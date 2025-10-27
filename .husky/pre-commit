@@ -1,1 +1,7 @@
+#export PATH="$HOME/.nvm/versions/node/v22.15.1/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+if [ -f ".nvmrc" ]; then
+  nvm use > /dev/null
+fi
 pnpm dlx lint-staged --allow-empty
