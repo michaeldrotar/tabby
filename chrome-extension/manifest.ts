@@ -38,8 +38,8 @@ const manifest = {
     type: 'module',
   },
   action: {
-    default_popup: 'popup/index.html',
     default_icon: 'icon-34.png',
+    default_title: 'Tabby 🐾',
   },
   icons: {
     '128': 'icon-128.png',
