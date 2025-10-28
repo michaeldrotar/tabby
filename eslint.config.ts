@@ -5,11 +5,12 @@ import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
+import unusedImports from 'eslint-plugin-unused-imports';
 import { browser, es2020, node } from 'globals';
-import { config, configs as tsConfigs, parser as tsParser } from 'typescript-eslint';
+import { configs as tsConfigs, parser as tsParser } from 'typescript-eslint';
 import type { FixupConfigArray } from '@eslint/compat';
 
-export default config(
+export default [
   // Shared configs
   js.configs.recommended,
   ...tsConfigs.recommended,
@@ -44,6 +45,9 @@ export default config(
         chrome: 'readonly',
       },
     },
+    plugins: {
+      'unused-imports': unusedImports,
+    },
     settings: {
       react: {
         version: 'detect',
@@ -52,6 +56,12 @@ export default config(
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+      ],
       'prefer-const': 'error',
       'no-var': 'error',
       'func-style': ['error', 'expression', { allowArrowFunctions: true }],
@@ -102,4 +112,4 @@ export default config(
       'no-restricted-imports': 'off',
     },
   },
-);
+];
