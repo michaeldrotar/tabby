@@ -4,33 +4,12 @@ import { exampleThemeStorage } from '@extension/storage';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
 import { useEffect, useState } from 'react';
 
-interface Tab {
-  id: number;
-  title?: string;
-  url?: string;
-  windowId: number;
-  groupId?: number;
-  favIconUrl?: string;
-}
-
-interface TabGroup {
-  id: number;
-  title?: string;
-  color?: string;
-  windowId: number;
-}
-
-interface Window {
-  id: number;
-  focused?: boolean;
-}
-
 const SidePanel = () => {
   const { isLight } = useStorage(exampleThemeStorage);
 
-  const [windows, setWindows] = useState<Window[]>([]);
-  const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
-  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [windows, setWindows] = useState<chrome.windows.Window[]>([]);
+  const [tabGroups, setTabGroups] = useState<chrome.tabGroups.TabGroup[]>([]);
+  const [tabs, setTabs] = useState<chrome.tabs.Tab[]>([]);
 
   // current active identifiers for highlighting
   const [currentWindowId, setCurrentWindowId] = useState<number | null>(null);
@@ -40,7 +19,7 @@ const SidePanel = () => {
   const refresh = async () => {
     const winList = await chrome.windows.getAll();
     const tabList = await chrome.tabs.query({});
-    let groupList: TabGroup[] = [];
+    let groupList: chrome.tabGroups.TabGroup[] = [];
     try {
       groupList = await chrome.tabGroups.query({});
     } catch {
