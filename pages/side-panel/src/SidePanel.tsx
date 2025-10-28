@@ -1,8 +1,7 @@
 import '@src/SidePanel.css';
-import { t } from '@extension/i18n';
-import { PROJECT_URL_OBJECT, useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
+import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
-import { cn, ErrorDisplay, LoadingSpinner, ToggleButton } from '@extension/ui';
+import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
 import { useEffect, useState } from 'react';
 
 interface Tab {
@@ -11,6 +10,7 @@ interface Tab {
   url?: string;
   windowId: number;
   groupId?: number;
+  favIconUrl?: string;
 }
 
 interface TabGroup {
@@ -27,9 +27,6 @@ interface Window {
 
 const SidePanel = () => {
   const { isLight } = useStorage(exampleThemeStorage);
-  const logo = isLight ? 'side-panel/logo_vertical.svg' : 'side-panel/logo_vertical_dark.svg';
-
-  const goGithubSite = () => chrome.tabs.create(PROJECT_URL_OBJECT);
 
   const [windows, setWindows] = useState<Window[]>([]);
   const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
@@ -107,16 +104,7 @@ const SidePanel = () => {
   }, []);
 
   return (
-    <div className={cn('App', isLight ? 'bg-slate-50' : 'bg-gray-800')}>
-      <header className={cn('App-header', isLight ? 'text-gray-900' : 'text-gray-100')}>
-        <button onClick={goGithubSite}>
-          <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-        </button>
-        <p>
-          Edit <code>pages/side-panel/src/SidePanel.tsx</code>
-        </p>
-        <ToggleButton onClick={exampleThemeStorage.toggle}>{t('toggleTheme')}</ToggleButton>
-      </header>
+    <>
       <div className="min-h-screen bg-gray-50 p-3 font-sans text-sm text-gray-800">
         <h2 className="mb-3 text-xl font-semibold text-gray-900">
           Tabby <span className="text-rose-500">🐾</span>
@@ -161,17 +149,24 @@ const SidePanel = () => {
                       }`}>
                       {group.title || 'Unnamed Group'}
                     </h4>
-                    <ul className="ml-3 list-inside list-disc space-y-0.5 text-gray-700">
+                    <ul className="ml-0 space-y-1 text-gray-700">
                       {tabs
                         .filter(t => t.windowId === win.id && t.groupId === group.id)
                         .map(tab => (
                           <li
                             key={tab.id}
                             className={cn(
-                              'cursor-pointer truncate hover:text-blue-600',
-                              tab.id === currentTabId ? 'bg-blue-50 font-semibold text-blue-700' : '',
+                              'flex cursor-pointer items-center gap-2 truncate rounded-sm px-1 py-0.5',
+                              tab.id === currentTabId
+                                ? 'bg-blue-50 font-semibold text-blue-700'
+                                : 'hover:text-blue-600',
                             )}>
-                            <a href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
+                            <img
+                              src={tab.favIconUrl ?? `chrome://favicon/${tab.url ?? ''}`}
+                              alt="fav"
+                              className="h-4 w-4 flex-shrink-0 rounded-sm"
+                            />
+                            <a className="truncate" href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
                               {tab.title}
                             </a>
                           </li>
@@ -181,17 +176,22 @@ const SidePanel = () => {
                 ))}
 
               {/* Ungrouped tabs */}
-              <ul className="ml-3 list-inside list-disc space-y-0.5">
+              <ul className="ml-0 space-y-1">
                 {tabs
                   .filter(t => t.windowId === win.id && t.groupId === -1)
                   .map(tab => (
                     <li
                       key={tab.id}
                       className={cn(
-                        'cursor-pointer truncate hover:text-blue-600',
-                        tab.id === currentTabId ? 'bg-blue-50 font-semibold text-blue-700' : '',
+                        'flex cursor-pointer items-center gap-2 truncate rounded-sm px-1 py-0.5',
+                        tab.id === currentTabId ? 'bg-blue-50 font-semibold text-blue-700' : 'hover:text-blue-600',
                       )}>
-                      <a href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
+                      <img
+                        src={tab.favIconUrl ?? `chrome://favicon/${tab.url ?? ''}`}
+                        alt="fav"
+                        className="h-4 w-4 flex-shrink-0 rounded-sm"
+                      />
+                      <a className="truncate" href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
                         {tab.title}
                       </a>
                     </li>
@@ -201,7 +201,7 @@ const SidePanel = () => {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 };
 
