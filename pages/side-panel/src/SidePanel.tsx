@@ -1,4 +1,5 @@
 import '@src/SidePanel.css';
+import TabItem from './TabItem';
 import { t } from '@extension/i18n';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
@@ -154,90 +155,38 @@ const SidePanel = () => {
                       )}>
                       {group.title || 'Unnamed Group'}
                     </h4>
-                    <ul className={cn('ml-0 space-y-1', isLight ? 'text-gray-700' : 'text-gray-200')}>
+                    <ol className={cn('ml-0 space-y-1', isLight ? 'text-gray-700' : 'text-gray-200')}>
                       {tabs
                         .filter(t => t.windowId === win.id && t.groupId === group.id)
                         .map(tab => (
-                          <li
-                            key={tab.id}
-                            className={cn(
-                              'flex cursor-pointer items-center gap-2 truncate rounded-sm px-1 py-0.5',
-                              tab.id === currentTabId
-                                ? isLight
-                                  ? 'bg-blue-50 font-semibold text-blue-700'
-                                  : 'bg-blue-900/40 font-semibold text-blue-200'
-                                : isLight
-                                  ? 'hover:text-blue-600'
-                                  : 'hover:text-blue-300',
-                            )}>
-                            <img
-                              src={tab.favIconUrl ?? `chrome://favicon/${tab.url ?? ''}`}
-                              alt="fav"
-                              className="h-4 w-4 flex-shrink-0 rounded-sm"
+                          <li key={tab.id} className="flex">
+                            <TabItem
+                              tab={tab as chrome.tabs.Tab & { favIconUrl?: string }}
+                              isActive={tab.id === currentTabId}
+                              isLight={isLight}
+                              refresh={refresh}
                             />
-                            <button
-                              type="button"
-                              className="truncate text-left"
-                              title={tab.url}
-                              onClick={async () => {
-                                // focus the window first (if available)
-                                if (typeof tab.windowId === 'number') {
-                                  await chrome.windows.update(tab.windowId, { focused: true });
-                                }
-                                // then activate the tab
-                                if (typeof tab.id === 'number') {
-                                  await chrome.tabs.update(tab.id, { active: true });
-                                }
-                                refresh();
-                              }}>
-                              {tab.title}
-                            </button>
                           </li>
                         ))}
-                    </ul>
+                    </ol>
                   </div>
                 ))}
 
               {/* Ungrouped tabs */}
-              <ul className={cn('ml-0 space-y-1', isLight ? '' : 'text-gray-200')}>
+              <ol className={cn('ml-0 space-y-1', isLight ? '' : 'text-gray-200')}>
                 {tabs
                   .filter(t => t.windowId === win.id && t.groupId === -1)
                   .map(tab => (
-                    <li
-                      key={tab.id}
-                      className={cn(
-                        'flex cursor-pointer items-center gap-2 truncate rounded-sm px-1 py-0.5',
-                        tab.id === currentTabId
-                          ? isLight
-                            ? 'bg-blue-50 font-semibold text-blue-700'
-                            : 'bg-blue-900/40 font-semibold text-blue-200'
-                          : isLight
-                            ? 'hover:text-blue-600'
-                            : 'hover:text-blue-300',
-                      )}>
-                      <img
-                        src={tab.favIconUrl ?? `chrome://favicon/${tab.url ?? ''}`}
-                        alt="fav"
-                        className="h-4 w-4 flex-shrink-0 rounded-sm"
+                    <li key={tab.id} className="flex">
+                      <TabItem
+                        tab={tab as chrome.tabs.Tab & { favIconUrl?: string }}
+                        isActive={tab.id === currentTabId}
+                        isLight={isLight}
+                        refresh={refresh}
                       />
-                      <button
-                        type="button"
-                        className="truncate text-left"
-                        title={tab.url}
-                        onClick={async () => {
-                          if (typeof tab.windowId === 'number') {
-                            await chrome.windows.update(tab.windowId, { focused: true });
-                          }
-                          if (typeof tab.id === 'number') {
-                            await chrome.tabs.update(tab.id, { active: true });
-                          }
-                          refresh();
-                        }}>
-                        {tab.title}
-                      </button>
                     </li>
                   ))}
-              </ul>
+              </ol>
             </div>
           </div>
         ))}
