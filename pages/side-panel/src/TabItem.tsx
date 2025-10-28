@@ -25,7 +25,7 @@ const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
     <button
       type="button"
       className={cn(
-        'flex items-center gap-2 truncate rounded-sm px-1 py-0.5 text-left',
+        'flex w-full items-center gap-2 truncate rounded-sm px-1 py-0.5 text-left',
         isActive
           ? isLight
             ? 'bg-blue-50 font-semibold text-blue-700'
