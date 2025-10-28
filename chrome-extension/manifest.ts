@@ -38,11 +38,11 @@ const manifest = {
     type: 'module',
   },
   action: {
-    default_icon: 'icon-34.png',
-    default_title: 'Tabby 🐾',
+    default_icon: 'tabby-face.png',
+    default_title: 'Tabby',
   },
   icons: {
-    '128': 'icon-128.png',
+    '128': 'tabby-face.png',
   },
   content_scripts: [
     {
@@ -52,7 +52,7 @@ const manifest = {
   ],
   web_accessible_resources: [
     {
-      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
+      resources: ['*.js', '*.css', '*.svg', '*.png'],
       matches: ['*://*/*'],
     },
   ],

@@ -91,9 +91,7 @@ const SidePanel = () => {
           isLight ? 'bg-gray-50 text-gray-800' : 'bg-gray-800 text-gray-100',
         )}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            Tabby <span className="text-rose-500">🐾</span>
-          </h2>
+          <h2 className="text-xl font-semibold">Tabby</h2>
         </div>
 
         {windows.map(win => (
