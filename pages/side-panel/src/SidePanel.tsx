@@ -216,6 +216,7 @@ const SidePanel = () => {
           </div>
         ))}
       </div>
+      <div className="p-8" />
       {/* Floating theme toggle — sleek circular button with icon, stays visible while scrolling */}
       <button
         onClick={() => exampleThemeStorage.toggle()}
