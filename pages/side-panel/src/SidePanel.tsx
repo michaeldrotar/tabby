@@ -175,9 +175,23 @@ const SidePanel = () => {
                               alt="fav"
                               className="h-4 w-4 flex-shrink-0 rounded-sm"
                             />
-                            <a className="truncate" href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
+                            <button
+                              type="button"
+                              className="truncate text-left"
+                              title={tab.url}
+                              onClick={async () => {
+                                // focus the window first (if available)
+                                if (typeof tab.windowId === 'number') {
+                                  await chrome.windows.update(tab.windowId, { focused: true });
+                                }
+                                // then activate the tab
+                                if (typeof tab.id === 'number') {
+                                  await chrome.tabs.update(tab.id, { active: true });
+                                }
+                                refresh();
+                              }}>
                               {tab.title}
-                            </a>
+                            </button>
                           </li>
                         ))}
                     </ul>
@@ -206,9 +220,21 @@ const SidePanel = () => {
                         alt="fav"
                         className="h-4 w-4 flex-shrink-0 rounded-sm"
                       />
-                      <a className="truncate" href={tab.url} target="_blank" rel="noreferrer" title={tab.url}>
+                      <button
+                        type="button"
+                        className="truncate text-left"
+                        title={tab.url}
+                        onClick={async () => {
+                          if (typeof tab.windowId === 'number') {
+                            await chrome.windows.update(tab.windowId, { focused: true });
+                          }
+                          if (typeof tab.id === 'number') {
+                            await chrome.tabs.update(tab.id, { active: true });
+                          }
+                          refresh();
+                        }}>
                         {tab.title}
-                      </a>
+                      </button>
                     </li>
                   ))}
               </ul>
