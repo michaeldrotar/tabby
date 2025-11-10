@@ -266,7 +266,6 @@ const SidePanel = () => {
         </div>
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
-          {/* Left: window selector (vertical tabs) */}
           <div
             className={cn(
               'h-full w-48 flex-shrink-0 overflow-y-auto overscroll-none border-r',
@@ -280,20 +279,6 @@ const SidePanel = () => {
                   onClick={() => setSelectedWindowId(wi.window.id ?? null)}
                   className={cn(
                     'mb-2 flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
-                    // wi.window.id === selectedWindowId
-                    //   ? isLight
-                    //     ? 'border border-blue-200 bg-blue-50 text-blue-700'
-                    //     : 'border border-blue-600 bg-blue-900/30 text-blue-200'
-                    //   : isLight
-                    //     ? 'border border-gray-200 bg-white text-gray-700'
-                    //     : 'border border-gray-800 bg-gray-900 text-gray-200',
-                    // wi.window.id === currentWindowId
-                    //   ? isLight
-                    //     ? 'border border-blue-200'
-                    //     : 'border border-blue-600'
-                    //   : isLight
-                    //     ? 'border border-gray-200'
-                    //     : 'border border-gray-800',
                     isLight && 'border border-gray-200 bg-white text-gray-700',
                     !isLight &&
                       'border border-gray-800 bg-gray-900 text-gray-200',
@@ -330,7 +315,6 @@ const SidePanel = () => {
             </div>
           </div>
 
-          {/* Right: tabs for the selected window */}
           <div className="h-full flex-1 overflow-y-auto overscroll-none p-3">
             {windowItems
               .filter(wi => wi.window.id === selectedWindowId)
