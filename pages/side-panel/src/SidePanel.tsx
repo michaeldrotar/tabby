@@ -30,6 +30,7 @@ const SidePanel = () => {
 
   const [tabs, setTabs] = useState<chrome.tabs.Tab[]>([]);
   const [windowItems, setWindowItems] = useState<WindowItem[]>([]);
+  const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null);
 
   // current active identifiers for highlighting
   const [currentWindowId, setCurrentWindowId] = useState<number | null>(null);
@@ -91,6 +92,13 @@ const SidePanel = () => {
       }
     });
     setWindowItems(newWindowItems);
+
+    const newCurrentWindow = await chrome.windows.getCurrent();
+
+    const newSelectedWindowId = selectedWindowId || newCurrentWindow.id || newWindowItems?.[0].window.id || null;
+    if (newSelectedWindowId !== selectedWindowId) {
+      setSelectedWindowId(newSelectedWindowId);
+    }
 
     // determine current active window / tab / group
     try {
@@ -165,12 +173,12 @@ const SidePanel = () => {
     <>
       <div
         className={cn(
-          'min-h-screen font-sans text-sm',
+          'flex h-screen flex-col overscroll-none font-sans text-sm',
           isLight ? 'bg-gray-50 text-gray-800' : 'bg-gray-800 text-gray-100',
         )}>
         <div
           className={cn(
-            'sticky top-0 flex items-center justify-between p-3 shadow-md',
+            'flex flex-shrink-0 items-center justify-between p-3 shadow-md',
             isLight ? 'bg-gray-50 text-gray-800' : 'bg-gray-800 text-gray-100',
           )}>
           <h2 className="text-xl font-semibold">Tabby</h2>
@@ -237,113 +245,134 @@ const SidePanel = () => {
           </div>
         </div>
 
-        <ol className="p-3">
-          {windowItems.map(windowItem => {
-            const win = windowItem.window;
-            return (
-              <li
-                key={win.id}
-                className={cn(
-                  'mb-4 rounded-lg px-0',
-                  win.id === currentWindowId
-                    ? // highlighted current window
-                      isLight
-                      ? 'border-2 border-blue-400 bg-blue-50 shadow-md'
-                      : 'border-2 border-blue-600 bg-blue-900/40 shadow-md'
-                    : isLight
-                      ? 'border border-gray-300 bg-white shadow-sm'
-                      : 'border border-gray-700 bg-gray-900/20 shadow-sm',
-                )}>
-                <div
+        <div className="flex flex-1 overflow-hidden overscroll-none">
+          {/* Left: window selector (vertical tabs) */}
+          <div
+            className={cn(
+              'h-full w-48 flex-shrink-0 overflow-y-auto overscroll-none border-r',
+              isLight ? 'bg-white' : 'bg-gray-900',
+            )}>
+            <div className="p-2">
+              {windowItems.map(wi => (
+                <button
+                  key={wi.window.id}
+                  type="button"
+                  onClick={() => setSelectedWindowId(wi.window.id ?? null)}
                   className={cn(
-                    'flex items-center justify-between px-3 py-2',
-                    isLight ? 'border-b border-gray-200' : 'border-b border-gray-700',
+                    'mb-2 flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
+                    // wi.window.id === selectedWindowId
+                    //   ? isLight
+                    //     ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                    //     : 'border border-blue-600 bg-blue-900/30 text-blue-200'
+                    //   : isLight
+                    //     ? 'border border-gray-200 bg-white text-gray-700'
+                    //     : 'border border-gray-800 bg-gray-900 text-gray-200',
+                    // wi.window.id === currentWindowId
+                    //   ? isLight
+                    //     ? 'border border-blue-200'
+                    //     : 'border border-blue-600'
+                    //   : isLight
+                    //     ? 'border border-gray-200'
+                    //     : 'border border-gray-800',
+                    isLight && 'border border-gray-200 bg-white text-gray-700',
+                    !isLight && 'border border-gray-800 bg-gray-900 text-gray-200',
+                    wi.window.id === selectedWindowId && isLight && 'border border-blue-200 bg-blue-50 text-blue-700',
+                    wi.window.id === selectedWindowId &&
+                      !isLight &&
+                      'border border-blue-600 bg-blue-900/30 text-blue-200',
+                    wi.window.id !== selectedWindowId &&
+                      wi.window.id === currentWindowId &&
+                      isLight &&
+                      'border border-blue-200',
+                    wi.window.id !== selectedWindowId &&
+                      wi.window.id === currentWindowId &&
+                      !isLight &&
+                      'border border-blue-600',
                   )}>
-                  <h3 className={cn('font-semibold', isLight ? 'text-gray-700' : 'text-gray-100')}>
-                    Window {win.id}
-                    {win.focused && (
-                      <span
-                        className={cn(
-                          'ml-2 inline-block text-xs font-medium',
-                          isLight ? 'text-blue-500' : 'text-blue-300',
-                        )}>
-                        focused
-                      </span>
-                    )}
-                  </h3>
-                  <span className={cn('text-xs', isLight ? 'text-gray-400' : 'text-gray-400/80')}>
-                    {tabs.filter(t => t.windowId === win.id).length} tabs
-                  </span>
-                </div>
+                  <div className="flex items-center gap-2">
+                    <div className={cn('font-medium')}>Window {wi.window.id}</div>
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {wi.subItems.reduce((acc, it) => acc + (it.type === 'tab' ? 1 : it.subItems.length), 0)} tabs
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
-                <div className="space-y-3 p-3">
-                  <ol className="flex flex-col">
-                    {windowItem.subItems.map(childItem => (
-                      <li
-                        key={childItem.type === 'tab' ? childItem.tab.id : childItem.tabGroup.id}
-                        className="flex w-full flex-col">
-                        {childItem.type === 'group' && (
-                          <div className={cn('flex flex-col rounded-md p-2')}>
-                            <h4
-                              className={cn(
-                                'mb-1 text-sm font-medium',
-                                childItem.tabGroup.color
-                                  ? childItem.tabGroup.id === currentGroupId
-                                    ? isLight
-                                      ? `text-${childItem.tabGroup.color}-600`
-                                      : `text-${childItem.tabGroup.color}-500`
+          {/* Right: tabs for the selected window */}
+          <div className="h-full flex-1 overflow-y-auto overscroll-none p-3">
+            {windowItems
+              .filter(wi => wi.window.id === selectedWindowId)
+              .map(windowItem => (
+                <div key={`window-tabs-${windowItem.window.id}`}>
+                  <div className="space-y-3">
+                    <ol className="flex flex-col">
+                      {windowItem.subItems.map(childItem => (
+                        <li
+                          key={childItem.type === 'tab' ? childItem.tab.id : childItem.tabGroup.id}
+                          className="flex w-full flex-col">
+                          {childItem.type === 'group' && (
+                            <div className={cn('flex flex-col rounded-md p-2')}>
+                              <h4
+                                className={cn(
+                                  'mb-1 text-sm font-medium',
+                                  childItem.tabGroup.color
+                                    ? childItem.tabGroup.id === currentGroupId
+                                      ? isLight
+                                        ? `text-${childItem.tabGroup.color}-600`
+                                        : `text-${childItem.tabGroup.color}-500`
+                                      : isLight
+                                        ? `text-${childItem.tabGroup.color}-800`
+                                        : `text-${childItem.tabGroup.color}-700`
                                     : isLight
-                                      ? `text-${childItem.tabGroup.color}-800`
-                                      : `text-${childItem.tabGroup.color}-700`
-                                  : isLight
-                                    ? 'text-gray-700'
-                                    : 'text-gray-100',
-                              )}>
-                              {childItem.tabGroup.title || 'Unnamed Group'}
-                            </h4>
-                            <ol
-                              className={cn(
-                                'ml-0 space-y-1 border-l-2 pl-2',
-                                childItem.tabGroup.color
-                                  ? `border-l-${childItem.tabGroup.color}-600`
-                                  : 'border-l-gray-600',
-                                isLight ? 'text-gray-700' : 'text-gray-200',
-                              )}>
-                              {childItem.subItems.map(tabItem => (
-                                <li key={tabItem.tab.id} className="flex flex-col">
-                                  <div data-tabid={tabItem.tab.id}>
-                                    <TabItem
-                                      tab={tabItem.tab}
-                                      isActive={tabItem.tab.id === currentTabId}
-                                      isLight={isLight}
-                                      refresh={refresh}
-                                    />
-                                  </div>
-                                </li>
-                              ))}
-                            </ol>
-                          </div>
-                        )}
-                        {childItem.type === 'tab' && (
-                          <div data-tabid={childItem.tab.id}>
-                            <TabItem
-                              tab={childItem.tab}
-                              isActive={childItem.tab.id === currentTabId}
-                              isLight={isLight}
-                              refresh={refresh}
-                            />
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
+                                      ? 'text-gray-700'
+                                      : 'text-gray-100',
+                                )}>
+                                {childItem.tabGroup.title || 'Unnamed Group'}
+                              </h4>
+                              <ol
+                                className={cn(
+                                  'ml-0 space-y-1 border-l-2 pl-2',
+                                  childItem.tabGroup.color
+                                    ? `border-l-${childItem.tabGroup.color}-600`
+                                    : 'border-l-gray-600',
+                                  isLight ? 'text-gray-700' : 'text-gray-200',
+                                )}>
+                                {childItem.subItems.map(tabItem => (
+                                  <li key={tabItem.tab.id} className="flex flex-col">
+                                    <div data-tabid={tabItem.tab.id}>
+                                      <TabItem
+                                        tab={tabItem.tab}
+                                        isActive={tabItem.tab.id === currentTabId}
+                                        isLight={isLight}
+                                        refresh={refresh}
+                                      />
+                                    </div>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+                          {childItem.type === 'tab' && (
+                            <div data-tabid={childItem.tab.id}>
+                              <TabItem
+                                tab={childItem.tab}
+                                isActive={childItem.tab.id === currentTabId}
+                                isLight={isLight}
+                                refresh={refresh}
+                              />
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 </div>
-              </li>
-            );
-          })}
-        </ol>
+              ))}
+          </div>
+        </div>
       </div>
-      <div className="p-8" />
     </>
   );
 };
