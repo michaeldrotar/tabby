@@ -6,7 +6,10 @@ import { existsSync, readdirSync } from 'node:fs';
 import type { ChoicesType, ModuleNameType } from '../types.ts';
 import type { ManifestType } from '@extension/shared';
 
-export const deleteFeature = async (manifestObject: ManifestType, moduleName?: ModuleNameType) => {
+export const deleteFeature = async (
+  manifestObject: ManifestType,
+  moduleName?: ModuleNameType,
+) => {
   const pageFolders = readdirSync(pagesPath);
 
   const choices: ChoicesType = DEFAULT_CHOICES.filter(choice => {
@@ -19,7 +22,11 @@ export const deleteFeature = async (manifestObject: ManifestType, moduleName?: M
     return pageFolders.includes(choice.value);
   });
 
-  const processResult = await processSelection(choices, DELETE_CHOICE_QUESTION, moduleName);
+  const processResult = await processSelection(
+    choices,
+    DELETE_CHOICE_QUESTION,
+    moduleName,
+  );
 
   if (processResult) {
     moduleName = processResult;

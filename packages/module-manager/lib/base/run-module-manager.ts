@@ -8,14 +8,28 @@ import { resolve } from 'node:path';
 import type { CliActionType, ModuleNameType } from '../types.js';
 import type { ManifestType } from '@extension/shared';
 
-const manifestPath = resolve(import.meta.dirname, '..', '..', '..', '..', 'chrome-extension', 'manifest.ts');
+const manifestPath = resolve(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'chrome-extension',
+  'manifest.ts',
+);
 
 const manifestObject = JSON.parse(JSON.stringify(manifest)) as ManifestType;
 const manifestString = readFileSync(manifestPath, 'utf-8');
 
-export const runModuleManager = async (moduleName?: ModuleNameType, action?: CliActionType, isLastLap = true) => {
+export const runModuleManager = async (
+  moduleName?: ModuleNameType,
+  action?: CliActionType,
+  isLastLap = true,
+) => {
   if (!action) {
-    action = (await promptSelection(MANAGER_ACTION_PROMPT_CONFIG)) as Awaited<CliActionType>;
+    action = (await promptSelection(
+      MANAGER_ACTION_PROMPT_CONFIG,
+    )) as Awaited<CliActionType>;
   }
 
   switch (action) {
@@ -29,7 +43,9 @@ export const runModuleManager = async (moduleName?: ModuleNameType, action?: Cli
   const updatedManifest = manifestString
     .replace(
       /const manifest = {[\s\S]*?} satisfies/,
-      'const manifest = ' + JSON.stringify(manifestObject, null, 2) + ' satisfies',
+      'const manifest = ' +
+        JSON.stringify(manifestObject, null, 2) +
+        ' satisfies',
     )
     .replace(/ {2}"version": "[\s\S]*?",/, '  version: packageJson.version,');
 

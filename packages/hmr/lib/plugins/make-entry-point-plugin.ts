@@ -47,7 +47,10 @@ export const makeEntryPointPlugin = (): PluginOption => ({
         case 'asset':
           if (fileName.endsWith('.map')) {
             const originalFileName = fileName.replace('.map', '');
-            const replacedSource = String(module.source).replaceAll(originalFileName, newFileName);
+            const replacedSource = String(module.source).replaceAll(
+              originalFileName,
+              newFileName,
+            );
 
             module.source = '';
             safeWriteFileSync(resolve(outputDir, newFileName), replacedSource);

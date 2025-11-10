@@ -8,7 +8,10 @@ import type { PluginOption } from 'vite';
 
 const injectionsPath = resolve(import.meta.dirname, '..', 'injections');
 
-const refreshCode = readFileSync(resolve(injectionsPath, 'refresh.js'), 'utf-8');
+const refreshCode = readFileSync(
+  resolve(injectionsPath, 'refresh.js'),
+  'utf-8',
+);
 const reloadCode = readFileSync(resolve(injectionsPath, 'reload.js'), 'utf-8');
 
 export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
@@ -24,11 +27,15 @@ export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
     ws = new WebSocket(LOCAL_RELOAD_SOCKET_URL);
 
     ws.onopen = () => {
-      console.log(`[HMR] Connected to dev-server at ${LOCAL_RELOAD_SOCKET_URL}`);
+      console.log(
+        `[HMR] Connected to dev-server at ${LOCAL_RELOAD_SOCKET_URL}`,
+      );
     };
 
     ws.onerror = () => {
-      console.error(`[HMR] Failed to connect server at ${LOCAL_RELOAD_SOCKET_URL}`);
+      console.error(
+        `[HMR] Failed to connect server at ${LOCAL_RELOAD_SOCKET_URL}`,
+      );
       console.warn('Retrying in 3 seconds...');
       ws = null;
 
@@ -38,7 +45,9 @@ export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
           initializeWebSocket();
         }, 3_000);
       } else {
-        console.error(`[HMR] Cannot establish connection to server at ${LOCAL_RELOAD_SOCKET_URL}`);
+        console.error(
+          `[HMR] Cannot establish connection to server at ${LOCAL_RELOAD_SOCKET_URL}`,
+        );
       }
     };
   };
@@ -60,7 +69,13 @@ export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
     generateBundle(_options, bundle) {
       for (const module of Object.values(bundle)) {
         if (module.type === 'chunk') {
-          module.code = `(function() {let __HMR_ID = "${id}";\n` + hmrCode + '\n' + '})();' + '\n' + module.code;
+          module.code =
+            `(function() {let __HMR_ID = "${id}";\n` +
+            hmrCode +
+            '\n' +
+            '})();' +
+            '\n' +
+            module.code;
         }
       }
     },

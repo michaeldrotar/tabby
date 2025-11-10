@@ -41,7 +41,10 @@ export const useStorage = <
   storage: Storage,
 ) => {
   const initializedRef = useRef(false);
-  const _data = useSyncExternalStore<Data | null>(storage.subscribe, storage.getSnapshot);
+  const _data = useSyncExternalStore<Data | null>(
+    storage.subscribe,
+    storage.getSnapshot,
+  );
 
   if (!storageMap.has(storage)) {
     storageMap.set(storage, wrapPromise(storage.get()));
@@ -52,5 +55,8 @@ export const useStorage = <
     initializedRef.current = true;
   }
 
-  return (_data ?? storageMap.get(storage)!.read()) as Exclude<Data, PromiseLike<unknown>>;
+  return (_data ?? storageMap.get(storage)!.read()) as Exclude<
+    Data,
+    PromiseLike<unknown>
+  >;
 };

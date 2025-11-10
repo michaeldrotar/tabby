@@ -8,7 +8,8 @@ export type ChoiceType = (typeof DEFAULT_CHOICES)[number];
 export type ChoicesType = ChoiceType[];
 export type ModuleNameType = ChoiceType['value'] | 'devtools-panel';
 export type InputConfigType = Parameters<typeof select>[0];
-export type WritableModuleConfigValuesType<T extends keyof ModuleConfigType> = WritableDeep<ModuleConfigType[T]>;
+export type WritableModuleConfigValuesType<T extends keyof ModuleConfigType> =
+  WritableDeep<ModuleConfigType[T]>;
 
 export interface ICLIOptions {
   action: 'delete' | 'recover';

@@ -1,8 +1,15 @@
-import { DEFAULT_CHOICES_VALUES, EXIT_PROMPT_ERROR, MODULE_CONFIG } from '../const.js';
+import {
+  DEFAULT_CHOICES_VALUES,
+  EXIT_PROMPT_ERROR,
+  MODULE_CONFIG,
+} from '../const.js';
 import { colorfulLog } from '@extension/shared';
 import { select } from '@inquirer/prompts';
 import { readdirSync } from 'node:fs';
-import type { DELETE_CHOICE_QUESTION, RECOVER_CHOICE_QUESTION } from '../const.js';
+import type {
+  DELETE_CHOICE_QUESTION,
+  RECOVER_CHOICE_QUESTION,
+} from '../const.js';
 import type {
   ChoicesType,
   CliEntriesType,
@@ -10,7 +17,11 @@ import type {
   ModuleNameType,
   WritableModuleConfigValuesType,
 } from '../types.js';
-import type { ConditionalPickDeep, Entries, ManifestType } from '@extension/shared';
+import type {
+  ConditionalPickDeep,
+  Entries,
+  ManifestType,
+} from '@extension/shared';
 import type { Arguments } from 'yargs';
 
 export const isFolderEmpty = (path: string) => !readdirSync(path).length;
@@ -29,16 +40,24 @@ export const processModuleConfig = (
   moduleName: ModuleNameType,
   isRecovering?: boolean,
 ) => {
-  if (moduleName === 'content-runtime' || moduleName === 'devtools-panel' || moduleName === 'tests') {
+  if (
+    moduleName === 'content-runtime' ||
+    moduleName === 'devtools-panel' ||
+    moduleName === 'tests'
+  ) {
     return;
   }
 
   const moduleConfigValues = MODULE_CONFIG[moduleName];
-  const moduleConfigEntriesOfKeys = Object.entries(moduleConfigValues) as Entries<typeof moduleConfigValues>;
+  const moduleConfigEntriesOfKeys = Object.entries(
+    moduleConfigValues,
+  ) as Entries<typeof moduleConfigValues>;
 
   if (moduleName === 'content' || moduleName === 'content-ui') {
     if (isRecovering) {
-      (moduleConfigValues as WritableModuleConfigValuesType<typeof moduleName>).content_scripts.map(script =>
+      (
+        moduleConfigValues as WritableModuleConfigValuesType<typeof moduleName>
+      ).content_scripts.map(script =>
         manifestObject.content_scripts?.push(script),
       );
     } else {
@@ -57,13 +76,20 @@ export const processModuleConfig = (
     if (manifestValue) {
       if (manifestValue instanceof Array) {
         const arrayValues = Object.values(
-          moduleConfigValues[key as ConditionalPickDeep<keyof typeof moduleConfigValues, typeof moduleName>],
+          moduleConfigValues[
+            key as ConditionalPickDeep<
+              keyof typeof moduleConfigValues,
+              typeof moduleName
+            >
+          ],
         );
 
         if (isRecovering) {
           manifestObject[key] = manifestValue.concat(arrayValues);
         } else {
-          manifestObject[key] = manifestValue.filter((value: string) => !arrayValues.includes(value));
+          manifestObject[key] = manifestValue.filter(
+            (value: string) => !arrayValues.includes(value),
+          );
         }
       } else {
         delete manifestObject[key];

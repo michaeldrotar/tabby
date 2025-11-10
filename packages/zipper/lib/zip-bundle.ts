@@ -13,7 +13,9 @@ const ensureBuildDirectoryExists = (buildDirectory: string): void => {
 };
 
 const logPackageSize = (size: number, startTime: number): void => {
-  console.log(`Zip Package size: ${toMB(size).toFixed(2)} MB in ${Date.now() - startTime}ms`);
+  console.log(
+    `Zip Package size: ${toMB(size).toFixed(2)} MB in ${Date.now() - startTime}ms`,
+  );
 };
 
 export const zipBundle = async (

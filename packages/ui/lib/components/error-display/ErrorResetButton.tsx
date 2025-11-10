@@ -1,6 +1,10 @@
 import { t } from '@extension/i18n';
 
-export const ErrorResetButton = ({ resetErrorBoundary }: { resetErrorBoundary?: () => void }) => (
+export const ErrorResetButton = ({
+  resetErrorBoundary,
+}: {
+  resetErrorBoundary?: () => void;
+}) => (
   <div className="flex items-center justify-center">
     <button
       onClick={resetErrorBoundary}

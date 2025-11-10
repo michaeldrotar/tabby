@@ -8,7 +8,10 @@ import { resolve } from 'node:path';
 import type { ChoicesType, ModuleNameType } from '../types.ts';
 import type { ManifestType } from '@extension/shared';
 
-export const recoverFeature = async (manifestObject: ManifestType, moduleName?: ModuleNameType) => {
+export const recoverFeature = async (
+  manifestObject: ManifestType,
+  moduleName?: ModuleNameType,
+) => {
   const archiveFiles = existsSync(archivePath) ? readdirSync(archivePath) : [];
 
   const choices: ChoicesType = DEFAULT_CHOICES.filter(choice => {
@@ -19,7 +22,11 @@ export const recoverFeature = async (manifestObject: ManifestType, moduleName?: 
     return archiveFiles.includes(`${choice.value}.zip`);
   });
 
-  const processResult = await processSelection(choices, RECOVER_CHOICE_QUESTION, moduleName);
+  const processResult = await processSelection(
+    choices,
+    RECOVER_CHOICE_QUESTION,
+    moduleName,
+  );
 
   if (processResult) {
     moduleName = processResult;

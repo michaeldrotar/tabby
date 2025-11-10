@@ -53,7 +53,8 @@ const SidePanel = () => {
     tabList.forEach(tab => {
       if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
         const foundWindow = winList.find(win => win.id === tab.windowId);
-        if (!foundWindow) throw new Error(`Window ${tab.windowId} not found for tab`);
+        if (!foundWindow)
+          throw new Error(`Window ${tab.windowId} not found for tab`);
         lastWindowItem = {
           window: foundWindow,
           subItems: [],
@@ -72,9 +73,11 @@ const SidePanel = () => {
         });
       } else {
         if (!lastTabGroupItem || tab.groupId !== lastTabGroupItem.tabGroup.id) {
-          if (!lastWindowItem) throw new Error('Window not set for new tab group');
+          if (!lastWindowItem)
+            throw new Error('Window not set for new tab group');
           const foundTabGroup = groupList.find(tg => tg.id === tab.groupId);
-          if (!foundTabGroup) throw new Error(`Tab group ${tab.groupId} not found for tab`);
+          if (!foundTabGroup)
+            throw new Error(`Tab group ${tab.groupId} not found for tab`);
           lastTabGroupItem = {
             type: 'group',
             window: lastWindowItem.window,
@@ -95,7 +98,11 @@ const SidePanel = () => {
 
     const newCurrentWindow = await chrome.windows.getCurrent();
 
-    const newSelectedWindowId = selectedWindowId || newCurrentWindow.id || newWindowItems?.[0].window.id || null;
+    const newSelectedWindowId =
+      selectedWindowId ||
+      newCurrentWindow.id ||
+      newWindowItems?.[0].window.id ||
+      null;
     if (newSelectedWindowId !== selectedWindowId) {
       setSelectedWindowId(newSelectedWindowId);
     }
@@ -109,11 +116,16 @@ const SidePanel = () => {
     }
 
     try {
-      const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const activeTabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
       const active = activeTabs[0];
       setCurrentTabId(active?.id ?? null);
       // groupId can be a number or -1 for ungrouped; if undefined treat as -1
-      setCurrentGroupId(typeof active?.groupId === 'number' ? active.groupId : -1);
+      setCurrentGroupId(
+        typeof active?.groupId === 'number' ? active.groupId : -1,
+      );
     } catch {
       setCurrentTabId(null);
       setCurrentGroupId(null);
@@ -190,11 +202,19 @@ const SidePanel = () => {
               onClick={() => scrollToCurrentTab()}
               className={cn(
                 'flex h-9 w-9 items-center justify-center rounded-md border p-1 transition hover:scale-105',
-                isLight ? 'border-gray-200 bg-white text-gray-700' : 'border-gray-700 bg-gray-800 text-gray-100',
+                isLight
+                  ? 'border-gray-200 bg-white text-gray-700'
+                  : 'border-gray-700 bg-gray-800 text-gray-100',
               )}>
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
                   <path
                     fill-rule="evenodd"
@@ -275,8 +295,11 @@ const SidePanel = () => {
                     //     ? 'border border-gray-200'
                     //     : 'border border-gray-800',
                     isLight && 'border border-gray-200 bg-white text-gray-700',
-                    !isLight && 'border border-gray-800 bg-gray-900 text-gray-200',
-                    wi.window.id === selectedWindowId && isLight && 'border border-blue-200 bg-blue-50 text-blue-700',
+                    !isLight &&
+                      'border border-gray-800 bg-gray-900 text-gray-200',
+                    wi.window.id === selectedWindowId &&
+                      isLight &&
+                      'border border-blue-200 bg-blue-50 text-blue-700',
                     wi.window.id === selectedWindowId &&
                       !isLight &&
                       'border border-blue-600 bg-blue-900/30 text-blue-200',
@@ -290,10 +313,17 @@ const SidePanel = () => {
                       'border border-blue-600',
                   )}>
                   <div className="flex items-center gap-2">
-                    <div className={cn('font-medium')}>Window {wi.window.id}</div>
+                    <div className={cn('font-medium')}>
+                      Window {wi.window.id}
+                    </div>
                   </div>
                   <div className="text-xs text-gray-400">
-                    {wi.subItems.reduce((acc, it) => acc + (it.type === 'tab' ? 1 : it.subItems.length), 0)} tabs
+                    {wi.subItems.reduce(
+                      (acc, it) =>
+                        acc + (it.type === 'tab' ? 1 : it.subItems.length),
+                      0,
+                    )}{' '}
+                    tabs
                   </div>
                 </button>
               ))}
@@ -310,7 +340,11 @@ const SidePanel = () => {
                     <ol className="flex flex-col">
                       {windowItem.subItems.map(childItem => (
                         <li
-                          key={childItem.type === 'tab' ? childItem.tab.id : childItem.tabGroup.id}
+                          key={
+                            childItem.type === 'tab'
+                              ? childItem.tab.id
+                              : childItem.tabGroup.id
+                          }
                           className="flex w-full flex-col">
                           {childItem.type === 'group' && (
                             <div className={cn('flex flex-col rounded-md p-2')}>
@@ -340,11 +374,15 @@ const SidePanel = () => {
                                   isLight ? 'text-gray-700' : 'text-gray-200',
                                 )}>
                                 {childItem.subItems.map(tabItem => (
-                                  <li key={tabItem.tab.id} className="flex flex-col">
+                                  <li
+                                    key={tabItem.tab.id}
+                                    className="flex flex-col">
                                     <div data-tabid={tabItem.tab.id}>
                                       <TabItem
                                         tab={tabItem.tab}
-                                        isActive={tabItem.tab.id === currentTabId}
+                                        isActive={
+                                          tabItem.tab.id === currentTabId
+                                        }
                                         isLight={isLight}
                                         refresh={refresh}
                                       />
@@ -377,4 +415,7 @@ const SidePanel = () => {
   );
 };
 
-export default withErrorBoundary(withSuspense(SidePanel, <LoadingSpinner />), ErrorDisplay);
+export default withErrorBoundary(
+  withSuspense(SidePanel, <LoadingSpinner />),
+  ErrorDisplay,
+);

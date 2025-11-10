@@ -1,4 +1,8 @@
-import { CLI_OPTIONS, DEFAULT_CHOICES_VALUES, HELP_EXAMPLES } from '../const.js';
+import {
+  CLI_OPTIONS,
+  DEFAULT_CHOICES_VALUES,
+  HELP_EXAMPLES,
+} from '../const.js';
 import { checkCliArgsIsValid } from '../helpers/utils.js';
 import { excludeValuesFromBaseArray } from '@extension/shared';
 import yargs from 'yargs';
@@ -36,14 +40,20 @@ export const processCLIArgs = (): ICLIOptions | null => {
   if (argv.deleteExclude) {
     return {
       action: 'delete',
-      targets: excludeValuesFromBaseArray(DEFAULT_CHOICES_VALUES, argv.deleteExclude),
+      targets: excludeValuesFromBaseArray(
+        DEFAULT_CHOICES_VALUES,
+        argv.deleteExclude,
+      ),
     };
   }
 
   if (argv.recoverExclude) {
     return {
       action: 'recover',
-      targets: excludeValuesFromBaseArray(DEFAULT_CHOICES_VALUES, argv.recoverExclude),
+      targets: excludeValuesFromBaseArray(
+        DEFAULT_CHOICES_VALUES,
+        argv.recoverExclude,
+      ),
     };
   }
 

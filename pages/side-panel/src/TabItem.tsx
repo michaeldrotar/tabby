@@ -34,7 +34,9 @@ const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
           : isLight
             ? 'hover:text-blue-600'
             : 'hover:text-blue-300',
-        !isActive && isDiscarded && (isLight ? 'text-gray-400 opacity-60' : 'text-gray-500 opacity-60'),
+        !isActive &&
+          isDiscarded &&
+          (isLight ? 'text-gray-400 opacity-60' : 'text-gray-500 opacity-60'),
       )}
       title={tab.url}
       onClick={handleClick}>
@@ -46,7 +48,10 @@ const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
         <img
           src={favicon}
           alt={tab.title ?? 'fav'}
-          className={cn(isDiscarded && 'h-3 w-3 rounded-full', !isDiscarded && 'h-4 w-4')}
+          className={cn(
+            isDiscarded && 'h-3 w-3 rounded-full',
+            !isDiscarded && 'h-4 w-4',
+          )}
         />
       </div>
       <span className="truncate">{tab.title}</span>

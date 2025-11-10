@@ -4,8 +4,14 @@ export const DELETE_CHOICE_QUESTION = `${CHOICE_QUESTION} delete`;
 
 export const DEFAULT_CHOICES = [
   { name: 'Content Script (Execute JS on Web Page)', value: 'content' },
-  { name: 'Content Script UI (Render Custom React Component on Web Page)', value: 'content-ui' },
-  { name: 'Content Script Runtime (Inject JS on Specific Actions like Popup Click)', value: 'content-runtime' },
+  {
+    name: 'Content Script UI (Render Custom React Component on Web Page)',
+    value: 'content-ui',
+  },
+  {
+    name: 'Content Script Runtime (Inject JS on Specific Actions like Popup Click)',
+    value: 'content-runtime',
+  },
   { name: 'Background Script', value: 'background' },
   { name: 'New Tab Override', value: 'new-tab' },
   { name: 'Popup (On Extension Icon Click)', value: 'popup' },
@@ -27,8 +33,16 @@ export const HELP_EXAMPLES = [
 export const CLI_OPTIONS = [
   { alias: 'd', type: 'array', description: 'Delete specified features' },
   { alias: 'r', type: 'array', description: 'Recover specified features' },
-  { alias: 'de', type: 'array', description: 'Delete all features except specified' },
-  { alias: 're', type: 'array', description: 'Recover all features except specified' },
+  {
+    alias: 'de',
+    type: 'array',
+    description: 'Delete all features except specified',
+  },
+  {
+    alias: 're',
+    type: 'array',
+    description: 'Recover all features except specified',
+  },
 ] as const;
 
 export const MANAGER_ACTION_PROMPT_CONFIG = {
