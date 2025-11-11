@@ -1,4 +1,4 @@
-import { useTabs } from './useTabs';
+import { useTabs } from '@extension/chrome';
 import { cn } from '@extension/ui';
 
 type SelectWindowButtonProps = {
@@ -16,7 +16,7 @@ const SelectWindowButton = ({
   isSelected,
   onSelect,
 }: SelectWindowButtonProps) => {
-  const tabs = useTabs({ windowId: window.id });
+  const { data: tabs = [] } = useTabs({ windowId: window.id });
   return (
     <button
       key={window.id}

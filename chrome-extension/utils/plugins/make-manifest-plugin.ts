@@ -22,7 +22,8 @@ const refreshFilePath = resolve(
   'refresh.js',
 );
 
-const withHMRId = (code: string) => `(function() {let __HMR_ID = 'chrome-extension-hmr';${code}\n})();`;
+const withHMRId = (code: string) =>
+  `(function() {let __HMR_ID = 'chrome-extension-hmr';${code}\n})();`;
 
 const getManifestWithCacheBurst = async () => {
   const withCacheBurst = (path: string) => `${path}?${Date.now().toString()}`;
@@ -32,7 +33,8 @@ const getManifestWithCacheBurst = async () => {
    * So, we need to convert path to file:// protocol. (url.pathToFileURL)
    */
   if (platform === 'win32') {
-    return (await import(withCacheBurst(pathToFileURL(manifestFile).href))).default;
+    return (await import(withCacheBurst(pathToFileURL(manifestFile).href)))
+      .default;
   } else {
     return (await import(withCacheBurst(manifestFile))).default;
   }
@@ -58,7 +60,10 @@ export default (config: { outDir: string }): PluginOption => {
       addRefreshContentScript(manifest);
     }
 
-    writeFileSync(manifestPath, ManifestParser.convertManifestToString(manifest, IS_FIREFOX));
+    writeFileSync(
+      manifestPath,
+      ManifestParser.convertManifestToString(manifest, IS_FIREFOX),
+    );
 
     const refreshFileString = readFileSync(refreshFilePath, 'utf-8');
 

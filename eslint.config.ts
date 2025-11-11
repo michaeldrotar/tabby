@@ -18,7 +18,12 @@ export default [
   importXFlatConfig.recommended,
   importXFlatConfig.typescript,
   eslintPluginPrettierRecommended,
-  ...fixupConfigRules(new FlatCompat().extends('plugin:react-hooks/recommended') as FixupConfigArray),
+  ...fixupConfigRules(
+    new FlatCompat().extends(
+      'plugin:@tanstack/eslint-plugin-query/recommended',
+      'plugin:react-hooks/recommended',
+    ) as FixupConfigArray,
+  ),
   {
     files: ['**/*.{ts,tsx}'],
     ...reactPlugin.configs.flat.recommended,
@@ -26,7 +31,12 @@ export default [
   },
   // Custom config
   {
-    ignores: ['**/build/**', '**/dist/**', '**/node_modules/**', 'chrome-extension/manifest.js'],
+    ignores: [
+      '**/build/**',
+      '**/dist/**',
+      '**/node_modules/**',
+      'chrome-extension/manifest.js',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],
@@ -61,7 +71,12 @@ export default [
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
         'warn',
-        { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
       ],
       'prefer-const': 'error',
       'no-var': 'error',
@@ -70,7 +85,8 @@ export default [
         'error',
         {
           name: 'type-fest',
-          message: 'Please import from `@extension/shared` instead of `type-fest`.',
+          message:
+            'Please import from `@extension/shared` instead of `type-fest`.',
         },
       ],
       'arrow-body-style': ['error', 'as-needed'],
@@ -81,7 +97,16 @@ export default [
         {
           'newlines-between': 'never',
           alphabetize: { order: 'asc', caseInsensitive: true },
-          groups: ['index', 'sibling', 'parent', 'internal', 'external', 'builtin', 'object', 'type'],
+          groups: [
+            'index',
+            'sibling',
+            'parent',
+            'internal',
+            'external',
+            'builtin',
+            'object',
+            'type',
+          ],
           pathGroups: [
             {
               pattern: '@*/**',
@@ -97,7 +122,10 @@ export default [
       'import-x/no-named-as-default-member': 'error',
       'import-x/newline-after-import': 'error',
       'import-x/no-deprecated': 'error',
-      'import-x/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
+      'import-x/no-duplicates': [
+        'error',
+        { considerQueryString: true, 'prefer-inline': false },
+      ],
       'import-x/consistent-type-specifier-style': 'error',
       'import-x/exports-last': 'error',
       'import-x/first': 'error',

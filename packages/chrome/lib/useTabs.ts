@@ -1,25 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export const useTabs = (query?: chrome.tabs.QueryInfo) => {
-  const [tabs, setTabs] = useState<chrome.tabs.Tab[]>([]);
+  const queryClient = useQueryClient();
+
+  const result = useQuery({
+    queryKey: ['chrome.tabs.query', query],
+    queryFn: () => chrome.tabs.query(query || {}),
+    staleTime: 1000,
+  });
 
   useEffect(() => {
-    let mounted = true;
-    const fetchTabs = async () => {
-      try {
-        const all = await chrome.tabs.query(query || {});
-        if (mounted) setTabs(all);
-      } catch {
-        if (mounted) setTabs([]);
-      }
-    };
+    const listener = () =>
+      queryClient.invalidateQueries({ queryKey: ['chrome.tabs.query'] });
 
-    fetchTabs();
-
-    const listener = (...args: unknown[]) => {
-      console.log(...args);
-      fetchTabs();
-    };
     chrome.tabs.onCreated.addListener(listener);
     chrome.tabs.onRemoved.addListener(listener);
     chrome.tabs.onMoved.addListener(listener);
@@ -27,14 +21,13 @@ export const useTabs = (query?: chrome.tabs.QueryInfo) => {
     chrome.tabs.onActivated.addListener(listener);
 
     return () => {
-      mounted = false;
       chrome.tabs.onCreated.removeListener(listener);
       chrome.tabs.onRemoved.removeListener(listener);
       chrome.tabs.onMoved.removeListener(listener);
       chrome.tabs.onUpdated.removeListener(listener);
       chrome.tabs.onActivated.removeListener(listener);
     };
-  }, []);
+  }, [queryClient]);
 
-  return tabs;
+  return result;
 };

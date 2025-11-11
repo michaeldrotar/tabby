@@ -1,5 +1,5 @@
 import '@src/index.css';
-import SidePanel from '@src/SidePanel';
+import { Root } from './Root';
 import { createRoot } from 'react-dom/client';
 
 const init = () => {
@@ -8,7 +8,7 @@ const init = () => {
     throw new Error('Can not find #app-container');
   }
   const root = createRoot(appContainer);
-  root.render(<SidePanel />);
+  root.render(<Root />);
 };
 
 init();

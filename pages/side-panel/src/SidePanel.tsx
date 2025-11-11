@@ -1,9 +1,6 @@
-import '@src/SidePanel.css';
 import { SelectWindowButton } from './SelectWindowButton';
 import TabItem from './TabItem';
-import { useTabGroups } from './useTabGroups';
-import { useTabs } from './useTabs';
-import { useWindows } from './useWindows';
+import { useTabGroups, useTabs, useWindows } from '@extension/chrome';
 import { t } from '@extension/i18n';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
@@ -32,9 +29,9 @@ type WindowItem = {
 const SidePanel = () => {
   const { isLight } = useStorage(exampleThemeStorage);
 
-  const windows = useWindows();
-  const tabs = useTabs();
-  const groups = useTabGroups();
+  const { data: windows } = useWindows();
+  const { data: tabs } = useTabs();
+  const { data: groups } = useTabGroups();
 
   const [windowItems, setWindowItems] = useState<WindowItem[]>([]);
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null);
