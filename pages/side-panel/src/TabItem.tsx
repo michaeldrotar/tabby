@@ -1,13 +1,13 @@
+import { Favicon } from './Favicon';
 import { cn } from '@extension/ui';
 
 type Props = {
-  tab: chrome.tabs.Tab & { favIconUrl?: string };
+  tab: chrome.tabs.Tab;
   isActive: boolean;
   isLight: boolean;
-  refresh?: () => Promise<void> | void;
 };
 
-const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
+const TabItem = ({ tab, isActive, isLight }: Props) => {
   const isDiscarded = tab.discarded;
   const handleClick = async () => {
     if (typeof tab.windowId === 'number') {
@@ -16,11 +16,7 @@ const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
     if (typeof tab.id === 'number') {
       await chrome.tabs.update(tab.id, { active: true });
     }
-
-    if (refresh) await refresh();
   };
-
-  const favicon = tab.favIconUrl ?? `chrome://favicon/${tab.url ?? ''}`;
 
   return (
     <button
@@ -45,9 +41,9 @@ const TabItem = ({ tab, isActive, isLight, refresh }: Props) => {
           'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-sm align-middle',
           isDiscarded && 'rounded-full border-2 border-dotted border-current',
         )}>
-        <img
-          src={favicon}
-          alt={tab.title ?? 'fav'}
+        <Favicon
+          pageUrl={tab.url}
+          size={16}
           className={cn(
             isDiscarded && 'h-3 w-3 rounded-full',
             !isDiscarded && 'h-4 w-4',
