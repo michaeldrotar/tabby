@@ -1,5 +1,9 @@
 import '@src/SidePanel.css';
+import { SelectWindowButton } from './SelectWindowButton';
 import TabItem from './TabItem';
+import { useTabGroups } from './useTabGroups';
+import { useTabs } from './useTabs';
+import { useWindows } from './useWindows';
 import { t } from '@extension/i18n';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
@@ -28,7 +32,10 @@ type WindowItem = {
 const SidePanel = () => {
   const { isLight } = useStorage(exampleThemeStorage);
 
-  const [tabs, setTabs] = useState<chrome.tabs.Tab[]>([]);
+  const windows = useWindows();
+  const tabs = useTabs();
+  const groups = useTabGroups();
+
   const [windowItems, setWindowItems] = useState<WindowItem[]>([]);
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null);
 
@@ -37,137 +44,113 @@ const SidePanel = () => {
   const [currentTabId, setCurrentTabId] = useState<number | null>(null);
   const [currentGroupId, setCurrentGroupId] = useState<number | null>(null);
 
-  const refresh = async () => {
-    const winList = await chrome.windows.getAll();
-    const tabList = await chrome.tabs.query({});
-    let groupList: chrome.tabGroups.TabGroup[] = [];
-    try {
-      groupList = await chrome.tabGroups.query({});
-    } catch {
-      // tabGroups API not always available – ignore errors
-    }
+  // Build windowItems from the hook data whenever windows/tabs/groups change
+  useEffect(() => {
+    const build = () => {
+      const groupList = groups ?? [];
+      const winList = windows ?? [];
+      const tabList = tabs ?? [];
 
-    const newWindowItems: WindowItem[] = [];
-    let lastWindowItem: WindowItem | undefined = undefined;
-    let lastTabGroupItem: TabGroupItem | undefined = undefined;
-    tabList.forEach(tab => {
-      if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
-        const foundWindow = winList.find(win => win.id === tab.windowId);
-        if (!foundWindow)
-          throw new Error(`Window ${tab.windowId} not found for tab`);
-        lastWindowItem = {
-          window: foundWindow,
-          subItems: [],
-        };
-        newWindowItems.push(lastWindowItem);
-      }
-      if (tab.groupId === -1) {
-        if (lastTabGroupItem) {
-          lastTabGroupItem = undefined;
-        }
-        if (!lastWindowItem) throw new Error('Window not set for new tab');
-        lastWindowItem.subItems.push({
-          type: 'tab',
-          window: lastWindowItem.window,
-          tab: tab,
-        });
-      } else {
-        if (!lastTabGroupItem || tab.groupId !== lastTabGroupItem.tabGroup.id) {
-          if (!lastWindowItem)
-            throw new Error('Window not set for new tab group');
-          const foundTabGroup = groupList.find(tg => tg.id === tab.groupId);
-          if (!foundTabGroup)
-            throw new Error(`Tab group ${tab.groupId} not found for tab`);
-          lastTabGroupItem = {
-            type: 'group',
-            window: lastWindowItem.window,
-            tabGroup: foundTabGroup,
+      const newWindowItems: WindowItem[] = [];
+      let lastWindowItem: WindowItem | undefined = undefined;
+      let lastTabGroupItem: TabGroupItem | undefined = undefined;
+      tabList.forEach(tab => {
+        if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
+          const foundWindow = winList.find(win => win.id === tab.windowId);
+          if (!foundWindow) return; // skip tabs for unknown windows
+          lastWindowItem = {
+            window: foundWindow,
             subItems: [],
           };
-          lastWindowItem.subItems.push(lastTabGroupItem);
+          newWindowItems.push(lastWindowItem);
         }
-        lastTabGroupItem.subItems.push({
-          type: 'tab',
-          window: lastWindowItem.window,
-          tabGroup: lastTabGroupItem.tabGroup,
-          tab: tab,
-        });
-      }
-    });
-    setWindowItems(newWindowItems);
-
-    const newCurrentWindow = await chrome.windows.getCurrent();
-
-    const newSelectedWindowId =
-      selectedWindowId ||
-      newCurrentWindow.id ||
-      newWindowItems?.[0].window.id ||
-      null;
-    if (newSelectedWindowId !== selectedWindowId) {
-      setSelectedWindowId(newSelectedWindowId);
-    }
-
-    // determine current active window / tab / group
-    try {
-      const currentWin = await chrome.windows.getCurrent();
-      setCurrentWindowId(currentWin?.id ?? null);
-    } catch {
-      setCurrentWindowId(null);
-    }
-
-    try {
-      const activeTabs = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
+        if (tab.groupId === -1) {
+          if (lastTabGroupItem) {
+            lastTabGroupItem = undefined;
+          }
+          if (!lastWindowItem) return;
+          lastWindowItem.subItems.push({
+            type: 'tab',
+            window: lastWindowItem.window,
+            tab: tab,
+          });
+        } else {
+          if (
+            !lastTabGroupItem ||
+            tab.groupId !== lastTabGroupItem.tabGroup.id
+          ) {
+            if (!lastWindowItem) return;
+            const foundTabGroup = groupList.find(
+              tg => tg.id === (tab.groupId as number),
+            );
+            if (!foundTabGroup) return;
+            lastTabGroupItem = {
+              type: 'group',
+              window: lastWindowItem.window,
+              tabGroup: foundTabGroup,
+              subItems: [],
+            };
+            lastWindowItem.subItems.push(lastTabGroupItem);
+          }
+          lastTabGroupItem.subItems.push({
+            type: 'tab',
+            window: lastWindowItem.window,
+            tabGroup: lastTabGroupItem.tabGroup,
+            tab: tab,
+          });
+        }
       });
-      const active = activeTabs[0];
-      setCurrentTabId(active?.id ?? null);
-      // groupId can be a number or -1 for ungrouped; if undefined treat as -1
-      setCurrentGroupId(
-        typeof active?.groupId === 'number' ? active.groupId : -1,
-      );
-    } catch {
-      setCurrentTabId(null);
-      setCurrentGroupId(null);
-    }
 
-    setTabs(tabList);
-  };
+      setWindowItems(newWindowItems);
+
+      if (!selectedWindowId) {
+        const focused = winList.find(w => w.focused);
+        setSelectedWindowId(
+          focused?.id ?? newWindowItems[0]?.window.id ?? null,
+        );
+      }
+    };
+
+    build();
+  }, [windows, tabs, groups, selectedWindowId]);
 
   useEffect(() => {
-    refresh();
+    let mounted = true;
+    const updateActive = async () => {
+      try {
+        const currentWin = await chrome.windows.getCurrent();
+        if (mounted) setCurrentWindowId(currentWin?.id ?? null);
+      } catch {
+        if (mounted) setCurrentWindowId(null);
+      }
 
-    // Listen for updates to keep view fresh
-    const listener = () => refresh();
-    chrome.tabs.onCreated.addListener(listener);
-    chrome.tabs.onRemoved.addListener(listener);
-    chrome.tabs.onMoved.addListener(listener);
-    chrome.tabs.onUpdated.addListener(listener);
-    chrome.tabs.onActivated.addListener?.(listener);
-    chrome.windows.onCreated.addListener(listener);
-    chrome.windows.onRemoved.addListener(listener);
-    chrome.windows.onFocusChanged.addListener?.(listener);
-    chrome.tabGroups?.onCreated?.addListener?.(listener);
-    chrome.tabGroups?.onRemoved?.addListener?.(listener);
-    chrome.tabGroups?.onUpdated?.addListener?.(listener);
+      try {
+        const activeTabs = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        const active = activeTabs[0];
+        if (mounted) {
+          setCurrentTabId(active?.id ?? null);
+          setCurrentGroupId(
+            typeof active?.groupId === 'number' ? active.groupId : -1,
+          );
+        }
+      } catch {
+        if (mounted) {
+          setCurrentTabId(null);
+          setCurrentGroupId(null);
+        }
+      }
+    };
+
+    updateActive();
 
     return () => {
-      chrome.tabs.onCreated.removeListener(listener);
-      chrome.tabs.onRemoved.removeListener(listener);
-      chrome.tabs.onMoved.removeListener(listener);
-      chrome.tabs.onUpdated.removeListener(listener);
-      chrome.tabs.onActivated.removeListener?.(listener);
-      chrome.windows.onCreated.removeListener(listener);
-      chrome.windows.onRemoved.removeListener(listener);
-      chrome.windows.onFocusChanged.removeListener?.(listener);
-      chrome.tabGroups?.onCreated?.removeListener?.(listener);
-      chrome.tabGroups?.onRemoved?.removeListener?.(listener);
-      chrome.tabGroups?.onUpdated?.removeListener?.(listener);
+      mounted = false;
     };
-  }, []);
+  }, [windows, tabs]);
 
-  // Scroll the side-panel to the current active tab (if any). Retries a few times
-  // in case the element isn't rendered yet.
   const scrollToCurrentTab = () => {
     const target = currentTabId;
     if (typeof target !== 'number') return;
@@ -273,44 +256,14 @@ const SidePanel = () => {
             )}>
             <div className="p-2">
               {windowItems.map(wi => (
-                <button
+                <SelectWindowButton
                   key={wi.window.id}
-                  type="button"
-                  onClick={() => setSelectedWindowId(wi.window.id ?? null)}
-                  className={cn(
-                    'mb-2 flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
-                    isLight && 'border border-gray-200 bg-white text-gray-700',
-                    !isLight &&
-                      'border border-gray-800 bg-gray-900 text-gray-200',
-                    wi.window.id === selectedWindowId &&
-                      isLight &&
-                      'border border-blue-200 bg-blue-50 text-blue-700',
-                    wi.window.id === selectedWindowId &&
-                      !isLight &&
-                      'border border-blue-600 bg-blue-900/30 text-blue-200',
-                    wi.window.id !== selectedWindowId &&
-                      wi.window.id === currentWindowId &&
-                      isLight &&
-                      'border border-blue-200',
-                    wi.window.id !== selectedWindowId &&
-                      wi.window.id === currentWindowId &&
-                      !isLight &&
-                      'border border-blue-600',
-                  )}>
-                  <div className="flex items-center gap-2">
-                    <div className={cn('font-medium')}>
-                      Window {wi.window.id}
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {wi.subItems.reduce(
-                      (acc, it) =>
-                        acc + (it.type === 'tab' ? 1 : it.subItems.length),
-                      0,
-                    )}{' '}
-                    tabs
-                  </div>
-                </button>
+                  isCurrent={wi.window.id === currentWindowId}
+                  isLight={isLight}
+                  isSelected={wi.window.id === selectedWindowId}
+                  window={wi.window}
+                  onSelect={() => setSelectedWindowId(wi.window.id ?? null)}
+                />
               ))}
             </div>
           </div>
@@ -368,7 +321,6 @@ const SidePanel = () => {
                                           tabItem.tab.id === currentTabId
                                         }
                                         isLight={isLight}
-                                        refresh={refresh}
                                       />
                                     </div>
                                   </li>
@@ -382,7 +334,6 @@ const SidePanel = () => {
                                 tab={childItem.tab}
                                 isActive={childItem.tab.id === currentTabId}
                                 isLight={isLight}
-                                refresh={refresh}
                               />
                             </div>
                           )}
