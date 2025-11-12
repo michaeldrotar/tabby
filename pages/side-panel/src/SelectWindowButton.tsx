@@ -1,3 +1,4 @@
+import { Favicon } from './Favicon';
 import { useTabs } from '@extension/chrome';
 import { cn } from '@extension/ui';
 
@@ -23,7 +24,7 @@ const SelectWindowButton = ({
       type="button"
       onClick={() => onSelect()}
       className={cn(
-        'mb-2 flex w-full items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
+        'mb-2 flex w-full flex-col items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
         isLight && 'border border-gray-200 bg-white text-gray-700',
         !isLight && 'border border-gray-800 bg-gray-900 text-gray-200',
         isSelected &&
@@ -35,10 +36,17 @@ const SelectWindowButton = ({
         !isSelected && isCurrent && isLight && 'border border-blue-200',
         !isSelected && isCurrent && !isLight && 'border border-blue-600',
       )}>
-      <div className="flex items-center gap-2">
-        <div className={cn('font-medium')}>Window {window.id}</div>
+      <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className={cn('font-medium')}>Window {window.id}</div>
+        </div>
+        <div className="text-xs text-gray-400">{tabs.length} tabs</div>
       </div>
-      <div className="text-xs text-gray-400">{tabs.length} tabs</div>
+      <div class="flex h-2 w-full justify-end gap-1 overflow-hidden">
+        {tabs.map(tab => (
+          <Favicon pageUrl={tab.url} size={8} />
+        ))}
+      </div>
     </button>
   );
 };

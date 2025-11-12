@@ -10,7 +10,14 @@ const Favicon = ({ pageUrl, size, ...imageProps }: FaviconProps) => {
   const faviconImage = document.createElement('img');
   faviconImage.src = src;
   document.body.appendChild(faviconImage); // Or append it to your desired element
-  return <img src={src} alt="favicon" {...imageProps} />;
+  return (
+    <img
+      src={src}
+      alt="favicon"
+      {...imageProps}
+      style={{ ...(size ? { height: `${size}px`, width: `${size}px` } : {}) }}
+    />
+  );
 };
 
 export { Favicon };

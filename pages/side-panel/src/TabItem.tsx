@@ -43,7 +43,7 @@ const TabItem = ({ tab, isActive, isLight }: Props) => {
         )}>
         <Favicon
           pageUrl={tab.url}
-          size={16}
+          size={isDiscarded ? 12 : 16}
           className={cn(
             isDiscarded && 'h-3 w-3 rounded-full',
             !isDiscarded && 'h-4 w-4',
