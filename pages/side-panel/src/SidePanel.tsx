@@ -1,4 +1,5 @@
 import { SelectWindowButton } from './SelectWindowButton';
+import { SelectWindowDot } from './SelectWindowDot';
 import TabItem from './TabItem';
 import { useTabGroups, useTabs, useWindows } from '@extension/chrome';
 import { t } from '@extension/i18n';
@@ -255,10 +256,29 @@ const SidePanel = () => {
               {windowItems.map(wi => (
                 <SelectWindowButton
                   key={wi.window.id}
+                  window={wi.window}
                   isCurrent={wi.window.id === currentWindowId}
                   isLight={isLight}
                   isSelected={wi.window.id === selectedWindowId}
+                  onSelect={() => setSelectedWindowId(wi.window.id ?? null)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              'flex h-full w-20 flex-shrink-0 items-center justify-center overflow-y-auto overscroll-none border-r',
+              isLight ? 'bg-white' : 'bg-gray-900',
+            )}>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-2">
+              {windowItems.map(wi => (
+                <SelectWindowDot
+                  key={wi.window.id}
                   window={wi.window}
+                  isCurrent={wi.window.id === currentWindowId}
+                  isLight={isLight}
+                  isSelected={wi.window.id === selectedWindowId}
                   onSelect={() => setSelectedWindowId(wi.window.id ?? null)}
                 />
               ))}

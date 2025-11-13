@@ -42,7 +42,7 @@ const SelectWindowButton = ({
         </div>
         <div className="text-xs text-gray-400">{tabs.length} tabs</div>
       </div>
-      <div class="flex h-2 w-full justify-end gap-1 overflow-hidden">
+      <div className="flex h-2 w-full justify-end gap-1 overflow-hidden">
         {tabs.map(tab => (
           <Favicon pageUrl={tab.url} size={8} />
         ))}
