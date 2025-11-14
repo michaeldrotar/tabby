@@ -46,7 +46,6 @@ const SidePanel = () => {
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
 
   // current active identifiers for highlighting
-  const [currentWindowId, setCurrentWindowId] = useState<number | null>(null)
   const [currentTabId, setCurrentTabId] = useState<number | null>(null)
   const [currentGroupId, setCurrentGroupId] = useState<number | null>(null)
 
@@ -121,13 +120,6 @@ const SidePanel = () => {
   useEffect(() => {
     let mounted = true
     const updateActive = async () => {
-      try {
-        const currentWin = await chrome.windows.getCurrent()
-        if (mounted) setCurrentWindowId(currentWin?.id ?? null)
-      } catch {
-        if (mounted) setCurrentWindowId(null)
-      }
-
       try {
         const activeTabs = await chrome.tabs.query({
           active: true,
@@ -279,13 +271,13 @@ const SidePanel = () => {
             )}
           >
             <div className="p-2">
-              {windowItems.map((wi) => (
+              {browserWindows.map((browserWindow) => (
                 <SelectWindowButton
-                  key={wi.window.id}
-                  window={wi.window}
-                  isCurrent={wi.window.id === currentBrowserWindow?.id}
+                  key={browserWindow.id}
+                  window={browserWindow}
+                  isCurrent={browserWindow === currentBrowserWindow}
                   isLight={isLight}
-                  isSelected={wi.window.id === selectedWindowId}
+                  isSelected={browserWindow.id === selectedWindowId}
                   onSelect={onSelectWindow}
                 />
               ))}
@@ -303,7 +295,7 @@ const SidePanel = () => {
                 <SelectWindowDot
                   key={browserWindow.id}
                   window={browserWindow}
-                  isCurrent={browserWindow.id === currentWindowId}
+                  isCurrent={browserWindow === currentBrowserWindow}
                   isLight={isLight}
                   isSelected={browserWindow.id === selectedWindowId}
                   onSelect={onSelectWindow}

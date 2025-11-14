@@ -4,7 +4,7 @@ import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
 
 type SelectWindowDotProps = {
-  window: chrome.windows.Window
+  window: BrowserWindow
   isCurrent: boolean
   isLight: boolean
   isSelected: boolean
