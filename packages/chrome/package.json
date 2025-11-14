@@ -22,7 +22,8 @@
     "postinstall": "pnpm ready"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.0.0"
+    "@tanstack/react-query": "^5.0.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
