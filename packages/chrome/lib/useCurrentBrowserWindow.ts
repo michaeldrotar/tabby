@@ -7,5 +7,6 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * May be initially undefined but should always have a browser
  * window once the lib is loaded.
  */
-export const useCurrentBrowserWindow = () =>
-  useBrowserWindowsStore((state) => state.current)
+export const useCurrentBrowserWindow = () => {
+  return useBrowserWindowsStore((state) => state.current)
+}

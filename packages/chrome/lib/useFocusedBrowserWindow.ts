@@ -7,5 +7,6 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * the focused window is not one that's tracked by the
  * BrowserWindows lib, such as a devtools window.
  */
-export const useFocusedBrowserWindow = () =>
-  useBrowserWindowsStore((state) => state.focused)
+export const useFocusedBrowserWindow = () => {
+  return useBrowserWindowsStore((state) => state.focused)
+}

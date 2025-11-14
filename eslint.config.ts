@@ -1,14 +1,14 @@
-import { fixupConfigRules } from '@eslint/compat';
-import { FlatCompat } from '@eslint/eslintrc';
-import js from '@eslint/js';
-import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import reactPlugin from 'eslint-plugin-react';
-import unusedImports from 'eslint-plugin-unused-imports';
-import { browser, es2020, node } from 'globals';
-import { configs as tsConfigs, parser as tsParser } from 'typescript-eslint';
-import type { FixupConfigArray } from '@eslint/compat';
+import { fixupConfigRules } from '@eslint/compat'
+import { FlatCompat } from '@eslint/eslintrc'
+import js from '@eslint/js'
+import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+import reactPlugin from 'eslint-plugin-react'
+import unusedImports from 'eslint-plugin-unused-imports'
+import { browser, es2020, node } from 'globals'
+import { configs as tsConfigs, parser as tsParser } from 'typescript-eslint'
+import type { FixupConfigArray } from '@eslint/compat'
 
 export default [
   // Shared configs
@@ -89,7 +89,7 @@ export default [
             'Please import from `@extension/shared` instead of `type-fest`.',
         },
       ],
-      'arrow-body-style': ['error', 'as-needed'],
+      'arrow-body-style': ['off'],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-exports': 'error',
       'import-x/order': [
@@ -141,4 +141,4 @@ export default [
       'no-restricted-imports': 'off',
     },
   },
-];
+]
