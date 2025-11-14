@@ -1,1 +1,6 @@
-export * from './lib/index.js'
+export { useBrowserWindows } from './lib/useBrowserWindows.js'
+export { useBrowserWindowsById } from './lib/useBrowserWindowsById.js'
+export { useCurrentBrowserWindow } from './lib/useCurrentBrowserWindow.js'
+export { useFocusedBrowserWindow } from './lib/useFocusedBrowserWindow.js'
+export { useTabGroups } from './lib/useTabGroups.js'
+export { useTabs } from './lib/useTabs.js'
