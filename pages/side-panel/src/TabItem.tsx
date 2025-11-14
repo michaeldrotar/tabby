@@ -1,13 +1,15 @@
 import { Favicon } from './Favicon';
 import { cn } from '@extension/ui';
+import { memo } from 'react';
 
-type Props = {
+type TabItemProps = {
   tab: chrome.tabs.Tab;
   isActive: boolean;
   isLight: boolean;
 };
 
-const TabItem = ({ tab, isActive, isLight }: Props) => {
+const TabItem = ({ tab, isActive, isLight }: TabItemProps) => {
+  console.count('TabItem.render');
   const isDiscarded = tab.discarded;
   const handleClick = async () => {
     if (typeof tab.windowId === 'number') {
@@ -55,4 +57,6 @@ const TabItem = ({ tab, isActive, isLight }: Props) => {
   );
 };
 
-export default TabItem;
+const TabItemMemo = memo(TabItem);
+
+export { TabItemMemo as TabItem, type TabItemProps };

@@ -1,12 +1,14 @@
 import { useTabs } from '@extension/chrome';
 import { cn } from '@extension/ui';
+import { memo } from 'react';
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
 
 type SelectWindowDotProps = {
   window: chrome.windows.Window;
   isCurrent: boolean;
   isLight: boolean;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (browserWindow: BrowserWindow) => void;
 };
 
 const SelectWindowDot = ({
@@ -16,13 +18,14 @@ const SelectWindowDot = ({
   isSelected,
   onSelect,
 }: SelectWindowDotProps) => {
+  console.count('SelectWindowDot.render');
   const { data: tabs = [] } = useTabs({ windowId: window.id });
   const title = `Window ${window.id} — ${tabs.length} tab${tabs.length === 1 ? '' : 's'}`;
 
   return (
     <button
       type="button"
-      onClick={onSelect}
+      onClick={() => onSelect(window)}
       title={title}
       aria-pressed={isSelected}
       className={cn(
@@ -60,4 +63,6 @@ const SelectWindowDot = ({
   );
 };
 
-export { SelectWindowDot, type SelectWindowDotProps };
+const SelectWindowDotMemo = memo(SelectWindowDot);
+
+export { SelectWindowDotMemo as SelectWindowDot, type SelectWindowDotProps };

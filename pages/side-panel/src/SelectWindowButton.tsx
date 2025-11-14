@@ -1,13 +1,15 @@
 import { Favicon } from './Favicon';
 import { useTabs } from '@extension/chrome';
 import { cn } from '@extension/ui';
+import { memo } from 'react';
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
 
 type SelectWindowButtonProps = {
   window: chrome.windows.Window;
   isCurrent: boolean;
   isLight: boolean;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (browserWindow: BrowserWindow) => void;
 };
 
 const SelectWindowButton = ({
@@ -17,12 +19,13 @@ const SelectWindowButton = ({
   isSelected,
   onSelect,
 }: SelectWindowButtonProps) => {
+  console.count('SelectWindowButton.render');
   const { data: tabs = [] } = useTabs({ windowId: window.id });
   return (
     <button
       key={window.id}
       type="button"
-      onClick={() => onSelect()}
+      onClick={() => onSelect(window)}
       className={cn(
         'mb-2 flex w-full flex-col items-center justify-between gap-2 rounded px-3 py-2 text-left transition hover:scale-[1.01]',
         isLight && 'border border-gray-200 bg-white text-gray-700',
@@ -51,4 +54,9 @@ const SelectWindowButton = ({
   );
 };
 
-export { SelectWindowButton, type SelectWindowButtonProps };
+const SelectWindowButtonMemo = memo(SelectWindowButton);
+
+export {
+  SelectWindowButtonMemo as SelectWindowButton,
+  type SelectWindowButtonProps,
+};

@@ -1,12 +1,18 @@
 import { SelectWindowButton } from './SelectWindowButton';
 import { SelectWindowDot } from './SelectWindowDot';
-import TabItem from './TabItem';
-import { useTabGroups, useTabs, useWindows } from '@extension/chrome';
+import { TabItem } from './TabItem';
+import {
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+  useTabGroups,
+  useTabs,
+} from '@extension/chrome';
 import { t } from '@extension/i18n';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
 
 type TabItem = {
   type: 'tab';
@@ -28,9 +34,11 @@ type WindowItem = {
 };
 
 const SidePanel = () => {
+  console.count('SidePanel.render');
   const { isLight } = useStorage(exampleThemeStorage);
 
-  const { data: windows } = useWindows();
+  const browserWindows = useBrowserWindows();
+  const currentBrowserWindow = useCurrentBrowserWindow();
   const { data: tabs } = useTabs();
   const { data: groups } = useTabGroups();
 
@@ -46,7 +54,7 @@ const SidePanel = () => {
   useEffect(() => {
     const build = () => {
       const groupList = groups ?? [];
-      const winList = windows ?? [];
+      const winList = browserWindows ?? [];
       const tabList = tabs ?? [];
 
       const newWindowItems: WindowItem[] = [];
@@ -110,7 +118,7 @@ const SidePanel = () => {
     };
 
     build();
-  }, [windows, tabs, groups, selectedWindowId]);
+  }, [browserWindows, tabs, groups, selectedWindowId]);
 
   useEffect(() => {
     let mounted = true;
@@ -147,7 +155,7 @@ const SidePanel = () => {
     return () => {
       mounted = false;
     };
-  }, [windows, tabs]);
+  }, [browserWindows, tabs]);
 
   const scrollToCurrentTab = () => {
     const target = currentTabId;
@@ -162,6 +170,13 @@ const SidePanel = () => {
     }
   };
 
+  const onSelectWindow = useCallback(
+    (window: BrowserWindow) => {
+      setSelectedWindowId(window.id ?? null);
+    },
+    [setSelectedWindowId],
+  );
+
   return (
     <>
       <div
@@ -174,7 +189,9 @@ const SidePanel = () => {
             'flex flex-shrink-0 items-center justify-between p-3 shadow-md',
             isLight ? 'bg-gray-50 text-gray-800' : 'bg-gray-800 text-gray-100',
           )}>
-          <h2 className="text-xl font-semibold">Tabby</h2>
+          <h2 className="text-xl font-semibold">
+            Tabby ({browserWindows.length} Windows)
+          </h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -257,10 +274,10 @@ const SidePanel = () => {
                 <SelectWindowButton
                   key={wi.window.id}
                   window={wi.window}
-                  isCurrent={wi.window.id === currentWindowId}
+                  isCurrent={wi.window.id === currentBrowserWindow?.id}
                   isLight={isLight}
                   isSelected={wi.window.id === selectedWindowId}
-                  onSelect={() => setSelectedWindowId(wi.window.id ?? null)}
+                  onSelect={onSelectWindow}
                 />
               ))}
             </div>
@@ -272,14 +289,14 @@ const SidePanel = () => {
               isLight ? 'bg-white' : 'bg-gray-900',
             )}>
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-2">
-              {windowItems.map(wi => (
+              {browserWindows.map(browserWindow => (
                 <SelectWindowDot
-                  key={wi.window.id}
-                  window={wi.window}
-                  isCurrent={wi.window.id === currentWindowId}
+                  key={browserWindow.id}
+                  window={browserWindow}
+                  isCurrent={browserWindow.id === currentWindowId}
                   isLight={isLight}
-                  isSelected={wi.window.id === selectedWindowId}
-                  onSelect={() => setSelectedWindowId(wi.window.id ?? null)}
+                  isSelected={browserWindow.id === selectedWindowId}
+                  onSelect={onSelectWindow}
                 />
               ))}
             </div>
