@@ -1,33 +1,18 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 export const useTabs = (query?: chrome.tabs.QueryInfo) => {
-  const queryClient = useQueryClient();
-
   const result = useQuery({
     queryKey: ['chrome.tabs.query', query],
-    queryFn: () => chrome.tabs.query(query || {}),
+    queryFn: async () => {
+      const tabs = await chrome.tabs.query(query || {});
+      console.log(tabs);
+      return tabs;
+    },
     staleTime: 1000,
   });
 
-  useEffect(() => {
-    const listener = () =>
-      queryClient.invalidateQueries({ queryKey: ['chrome.tabs.query'] });
-
-    chrome.tabs.onCreated.addListener(listener);
-    chrome.tabs.onRemoved.addListener(listener);
-    chrome.tabs.onMoved.addListener(listener);
-    chrome.tabs.onUpdated.addListener(listener);
-    chrome.tabs.onActivated.addListener(listener);
-
-    return () => {
-      chrome.tabs.onCreated.removeListener(listener);
-      chrome.tabs.onRemoved.removeListener(listener);
-      chrome.tabs.onMoved.removeListener(listener);
-      chrome.tabs.onUpdated.removeListener(listener);
-      chrome.tabs.onActivated.removeListener(listener);
-    };
-  }, [queryClient]);
+  // Invalidation is handled centrally (packages/chrome/lib/centralInvalidation)
+  // to avoid dozens of duplicate listeners firing the same invalidate logic.
 
   return result;
 };
