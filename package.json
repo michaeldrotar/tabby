@@ -31,6 +31,8 @@
     "lint:fix": "turbo lint:fix --continue",
     "format": "turbo format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
     "prepare": "husky",
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
     "update-version": "bash bash-scripts/update_version.sh",
     "copy-env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
@@ -82,6 +84,7 @@
     "tsx": "^4.19.4",
     "turbo": "^2.5.3",
     "typescript": "^5.8.3",
+    "vitest": "^1.0.0",
     "typescript-eslint": "^8.32.1",
     "vite": "^6.3.6",
     "vite-plugin-node-polyfills": "^0.23.0"
