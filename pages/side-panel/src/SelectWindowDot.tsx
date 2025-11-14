@@ -31,7 +31,8 @@ const SelectWindowDot = ({
       className={cn(
         'group relative flex h-8 w-8 items-center justify-center rounded-full p-1 focus:outline-none',
         'transition-transform hover:scale-105',
-      )}>
+      )}
+    >
       {/* Dot */}
       {(() => {
         let dotCls = ''
@@ -56,7 +57,8 @@ const SelectWindowDot = ({
         className={cn(
           'absolute -right-2 -top-2 hidden items-center justify-center rounded-full bg-gray-600 px-1 text-[10px] text-white',
           'group-hover:flex',
-        )}>
+        )}
+      >
         {tabs.length}
       </span>
     </button>

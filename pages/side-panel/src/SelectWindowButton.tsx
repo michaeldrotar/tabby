@@ -38,7 +38,8 @@ const SelectWindowButton = ({
           'border border-blue-600 bg-blue-900/30 text-blue-200',
         !isSelected && isCurrent && isLight && 'border border-blue-200',
         !isSelected && isCurrent && !isLight && 'border border-blue-600',
-      )}>
+      )}
+    >
       <div className="flex w-full items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className={cn('font-medium')}>Window {window.id}</div>

@@ -4,7 +4,7 @@
   "singleQuote": true,
   "arrowParens": "always",
   "printWidth": 80,
-  "bracketSameLine": true,
+  "bracketSameLine": false,
   "htmlWhitespaceSensitivity": "strict",
   "plugins": ["prettier-plugin-tailwindcss"]
 }

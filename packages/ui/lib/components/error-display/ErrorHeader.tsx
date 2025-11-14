@@ -6,7 +6,8 @@ const WarningIcon = ({ className }: { className: string }) => (
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
-    className={className}>
+    className={className}
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"

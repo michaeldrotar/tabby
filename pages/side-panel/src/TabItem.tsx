@@ -37,12 +37,14 @@ const TabItem = ({ tab, isActive, isLight }: TabItemProps) => {
           (isLight ? 'text-gray-400 opacity-60' : 'text-gray-500 opacity-60'),
       )}
       title={tab.url}
-      onClick={handleClick}>
+      onClick={handleClick}
+    >
       <div
         className={cn(
           'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-sm align-middle',
           isDiscarded && 'rounded-full border-2 border-dotted border-current',
-        )}>
+        )}
+      >
         <Favicon
           pageUrl={tab.url}
           size={isDiscarded ? 12 : 16}

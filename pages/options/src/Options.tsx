@@ -22,7 +22,8 @@ const Options = () => {
       className={cn(
         'App',
         isLight ? 'bg-slate-50 text-gray-900' : 'bg-gray-800 text-gray-100',
-      )}>
+      )}
+    >
       <button onClick={goGithubSite}>
         <img
           src={chrome.runtime.getURL(logo)}

@@ -22,7 +22,8 @@ export const ToggleButton = ({
         className,
       )}
       onClick={exampleThemeStorage.toggle}
-      {...props}>
+      {...props}
+    >
       {children}
     </button>
   )
