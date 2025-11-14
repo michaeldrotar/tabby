@@ -8,6 +8,12 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
  * window and session APIs, and the session API gives window data
  * for recently closed windows, which no longer have an ID.
  */
-export type BrowserWindow = chrome.windows.Window & {
+export type BrowserWindow = Omit<chrome.windows.Window, 'id' | 'tabs'> & {
+  /**
+   * The ID of the browser window.
+   *
+   * Every browser window will have one or else a warning will be logged
+   * and the window will be ignored.
+   */
   id: BrowserWindowID
 }
