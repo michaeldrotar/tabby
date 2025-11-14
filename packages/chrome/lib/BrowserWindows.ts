@@ -1,10 +1,10 @@
-import { createEvent } from './createEvent.js';
-import type { BrowserWindow } from './BrowserWindow.js';
-import type { BrowserWindowID } from './BrowserWindowID.js';
+import { createEvent } from './createEvent.js'
+import type { BrowserWindow } from './BrowserWindow.js'
+import type { BrowserWindowID } from './BrowserWindowID.js'
 
-const windowTypesToRegister: chrome.windows.windowTypeEnum[] = ['normal'];
+const windowTypesToRegister: chrome.windows.windowTypeEnum[] = ['normal']
 
-const onUpdated = createEvent('updated');
+const onUpdated = createEvent('updated')
 
 /**
  * Converts a chrome.windows.Window to a BrowserWindow.
@@ -20,34 +20,34 @@ const toBrowserWindow = async (
   if (chromeWindow.id === undefined || chromeWindow.id < 0) {
     console.warn(
       `BrowserWindows.toBrowserWindow got a window with a bad id ${chromeWindow.id}, skipping...`,
-    );
-    return undefined;
+    )
+    return undefined
   }
   return {
     id: chromeWindow.id,
     ...chromeWindow,
-  };
-};
+  }
+}
 
 /**
  * Gets all windows and converst them to BrowserWindow.
  */
 const getAllWindows = async () => {
-  const allChromeWindows = await chrome.windows.getAll();
+  const allChromeWindows = await chrome.windows.getAll()
   const allBrowserWindows = await Promise.all(
     allChromeWindows.map(toBrowserWindow),
-  );
-  return allBrowserWindows.filter(browserWindow => browserWindow !== undefined);
-};
+  )
+  return allBrowserWindows.filter(browserWindow => browserWindow !== undefined)
+}
 
 /**
  * Gets the current window and converts it to a BrowserWindow.
  */
 const getCurrentWindow = async () => {
-  const chromeWindow = await chrome.windows.getCurrent();
-  const browserWindow = await toBrowserWindow(chromeWindow);
-  return browserWindow;
-};
+  const chromeWindow = await chrome.windows.getCurrent()
+  const browserWindow = await toBrowserWindow(chromeWindow)
+  return browserWindow
+}
 
 /**
  * Data structure for inspecting browser windows.
@@ -101,29 +101,29 @@ export const BrowserWindows = {
    * initial state.
    */
   load: async () => {
-    console.count('BrowserWindows.load');
-    if (BrowserWindows.state !== 'initial') return;
-    BrowserWindows.state = 'loading';
+    console.count('BrowserWindows.load')
+    if (BrowserWindows.state !== 'initial') return
+    BrowserWindows.state = 'loading'
     try {
       const [all, current] = await Promise.all([
         getAllWindows(),
         getCurrentWindow(),
-      ]);
-      BrowserWindows.all = all;
-      BrowserWindows.current = current;
-      BrowserWindows.byId = {};
-      BrowserWindows.focused = undefined;
+      ])
+      BrowserWindows.all = all
+      BrowserWindows.current = current
+      BrowserWindows.byId = {}
+      BrowserWindows.focused = undefined
       for (const browserWindow of all) {
-        BrowserWindows.byId[browserWindow.id] = browserWindow;
+        BrowserWindows.byId[browserWindow.id] = browserWindow
         if (browserWindow.focused) {
-          BrowserWindows.focused = browserWindow;
+          BrowserWindows.focused = browserWindow
         }
       }
-      registerEventHandlers();
-      BrowserWindows.state = 'loaded';
+      registerEventHandlers()
+      BrowserWindows.state = 'loaded'
     } catch (error) {
-      console.error(error);
-      BrowserWindows.unload();
+      console.error(error)
+      BrowserWindows.unload()
     }
   },
 
@@ -134,13 +134,13 @@ export const BrowserWindows = {
    * things to their initial state if something goes wrong.
    */
   unload: () => {
-    console.count('BrowserWindows.unload');
-    unregisterEventHandlers();
-    BrowserWindows.all = [];
-    BrowserWindows.byId = {};
-    BrowserWindows.current = undefined;
-    BrowserWindows.focused = undefined;
-    BrowserWindows.state = 'initial';
+    console.count('BrowserWindows.unload')
+    unregisterEventHandlers()
+    BrowserWindows.all = []
+    BrowserWindows.byId = {}
+    BrowserWindows.current = undefined
+    BrowserWindows.focused = undefined
+    BrowserWindows.state = 'initial'
   },
 
   /**
@@ -150,56 +150,56 @@ export const BrowserWindows = {
    * - the focused browser window has changed
    */
   onUpdated: onUpdated.listener,
-};
-window.BrowserWindows = BrowserWindows;
+}
+window.BrowserWindows = BrowserWindows
 
 /**
  * Handles when a new chrome window is opened.
  */
 const onCreated = async (newChromeWindow: chrome.windows.Window) => {
-  console.count('BrowserWindows.onCreated');
-  const newBrowserWindow = await toBrowserWindow(newChromeWindow);
-  if (!newBrowserWindow) return;
-  BrowserWindows.all.push(newBrowserWindow);
-  BrowserWindows.byId[newBrowserWindow.id] = newBrowserWindow;
-  onUpdated.emit();
-};
+  console.count('BrowserWindows.onCreated')
+  const newBrowserWindow = await toBrowserWindow(newChromeWindow)
+  if (!newBrowserWindow) return
+  BrowserWindows.all.push(newBrowserWindow)
+  BrowserWindows.byId[newBrowserWindow.id] = newBrowserWindow
+  onUpdated.emit()
+}
 
 /**
  * Handles when focus changes to a different chrome window.
  */
 const onFocusChanged = (newFocusedWindowId: BrowserWindowID) => {
-  console.count('BrowserWindows.onFocusChanged');
-  const newFocusedWindow = BrowserWindows.byId[newFocusedWindowId];
-  const oldFocusedWindow = BrowserWindows.focused;
+  console.count('BrowserWindows.onFocusChanged')
+  const newFocusedWindow = BrowserWindows.byId[newFocusedWindowId]
+  const oldFocusedWindow = BrowserWindows.focused
   if (newFocusedWindow !== oldFocusedWindow) {
-    if (oldFocusedWindow) oldFocusedWindow.focused = false;
-    if (newFocusedWindow) newFocusedWindow.focused = true;
-    BrowserWindows.focused = newFocusedWindow;
-    onUpdated.emit();
+    if (oldFocusedWindow) oldFocusedWindow.focused = false
+    if (newFocusedWindow) newFocusedWindow.focused = true
+    BrowserWindows.focused = newFocusedWindow
+    onUpdated.emit()
   }
-};
+}
 
 /**
  * Handles when a chrome window is closed.
  */
 const onRemoved = (removedWindowId: BrowserWindowID) => {
-  console.count('BrowserWindows.onRemoved');
-  const removedWindow = BrowserWindows.byId[removedWindowId];
-  if (!removedWindow) return;
+  console.count('BrowserWindows.onRemoved')
+  const removedWindow = BrowserWindows.byId[removedWindowId]
+  if (!removedWindow) return
   if (BrowserWindows.current === removedWindow) {
-    BrowserWindows.current = undefined;
+    BrowserWindows.current = undefined
   }
   if (BrowserWindows.focused === removedWindow) {
-    BrowserWindows.focused = undefined;
+    BrowserWindows.focused = undefined
   }
-  delete BrowserWindows.byId[removedWindowId];
-  const removedWindowIndex = BrowserWindows.all.indexOf(removedWindow);
+  delete BrowserWindows.byId[removedWindowId]
+  const removedWindowIndex = BrowserWindows.all.indexOf(removedWindow)
   if (removedWindowIndex >= 0) {
-    BrowserWindows.all.splice(removedWindowIndex, 1);
+    BrowserWindows.all.splice(removedWindowIndex, 1)
   }
-  onUpdated.emit();
-};
+  onUpdated.emit()
+}
 
 /**
  * Registers all the necessary event handlers for tracking changes
@@ -208,21 +208,21 @@ const onRemoved = (removedWindowId: BrowserWindowID) => {
 const registerEventHandlers = () => {
   chrome.windows.onCreated.addListener(onCreated, {
     windowTypes: windowTypesToRegister,
-  });
+  })
   chrome.windows.onFocusChanged.addListener(onFocusChanged, {
     windowTypes: windowTypesToRegister,
-  });
+  })
   chrome.windows.onRemoved.addListener(onRemoved, {
     windowTypes: windowTypesToRegister,
-  });
-};
+  })
+}
 
 /**
  * Handles unregistering all the event handlers to unload the lib
  * and restore its initial state.
  */
 const unregisterEventHandlers = () => {
-  chrome.windows.onCreated.removeListener(onCreated);
-  chrome.windows.onFocusChanged.removeListener(onFocusChanged);
-  chrome.windows.onRemoved.removeListener(onRemoved);
-};
+  chrome.windows.onCreated.removeListener(onCreated)
+  chrome.windows.onFocusChanged.removeListener(onFocusChanged)
+  chrome.windows.onRemoved.removeListener(onRemoved)
+}

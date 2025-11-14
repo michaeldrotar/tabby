@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
-import type { ComponentType, ReactElement } from 'react';
+import { Suspense } from 'react'
+import type { ComponentType, ReactElement } from 'react'
 
 export const withSuspense =
   <T extends Record<string, unknown>>(
@@ -10,4 +10,4 @@ export const withSuspense =
     <Suspense fallback={SuspenseComponent}>
       <Component {...props} />
     </Suspense>
-  );
+  )

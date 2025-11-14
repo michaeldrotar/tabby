@@ -1,4 +1,4 @@
-import { useBrowserWindowsStore } from './useBrowserWindowsStore.js';
+import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
 
 /**
  * Provides the focused browser window.
@@ -8,4 +8,4 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js';
  * BrowserWindows lib, such as a devtools window.
  */
 export const useFocusedBrowserWindow = () =>
-  useBrowserWindowsStore(state => state.focused);
+  useBrowserWindowsStore(state => state.focused)

@@ -1,181 +1,179 @@
-import { SelectWindowButton } from './SelectWindowButton';
-import { SelectWindowDot } from './SelectWindowDot';
-import { TabItem } from './TabItem';
+import { SelectWindowButton } from './SelectWindowButton'
+import { SelectWindowDot } from './SelectWindowDot'
+import { TabItem } from './TabItem'
 import {
   useBrowserWindows,
   useCurrentBrowserWindow,
   useTabGroups,
   useTabs,
-} from '@extension/chrome';
-import { t } from '@extension/i18n';
-import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
-import { exampleThemeStorage } from '@extension/storage';
-import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui';
-import { useCallback, useEffect, useState } from 'react';
-import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
+} from '@extension/chrome'
+import { t } from '@extension/i18n'
+import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared'
+import { exampleThemeStorage } from '@extension/storage'
+import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
+import { useCallback, useEffect, useState } from 'react'
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
 
 type TabItem = {
-  type: 'tab';
-  window: chrome.windows.Window;
-  tabGroup?: chrome.tabGroups.TabGroup;
-  tab: chrome.tabs.Tab;
-};
+  type: 'tab'
+  window: chrome.windows.Window
+  tabGroup?: chrome.tabGroups.TabGroup
+  tab: chrome.tabs.Tab
+}
 
 type TabGroupItem = {
-  type: 'group';
-  window: chrome.windows.Window;
-  tabGroup: chrome.tabGroups.TabGroup;
-  subItems: TabItem[];
-};
+  type: 'group'
+  window: chrome.windows.Window
+  tabGroup: chrome.tabGroups.TabGroup
+  subItems: TabItem[]
+}
 
 type WindowItem = {
-  window: chrome.windows.Window;
-  subItems: Array<TabGroupItem | TabItem>;
-};
+  window: chrome.windows.Window
+  subItems: Array<TabGroupItem | TabItem>
+}
 
 const SidePanel = () => {
-  console.count('SidePanel.render');
-  const { isLight } = useStorage(exampleThemeStorage);
+  console.count('SidePanel.render')
+  const { isLight } = useStorage(exampleThemeStorage)
 
-  const browserWindows = useBrowserWindows();
-  const currentBrowserWindow = useCurrentBrowserWindow();
-  const { data: tabs } = useTabs();
-  const { data: groups } = useTabGroups();
+  const browserWindows = useBrowserWindows()
+  const currentBrowserWindow = useCurrentBrowserWindow()
+  const { data: tabs } = useTabs()
+  const { data: groups } = useTabGroups()
 
-  const [windowItems, setWindowItems] = useState<WindowItem[]>([]);
-  const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null);
+  const [windowItems, setWindowItems] = useState<WindowItem[]>([])
+  const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
 
   // current active identifiers for highlighting
-  const [currentWindowId, setCurrentWindowId] = useState<number | null>(null);
-  const [currentTabId, setCurrentTabId] = useState<number | null>(null);
-  const [currentGroupId, setCurrentGroupId] = useState<number | null>(null);
+  const [currentWindowId, setCurrentWindowId] = useState<number | null>(null)
+  const [currentTabId, setCurrentTabId] = useState<number | null>(null)
+  const [currentGroupId, setCurrentGroupId] = useState<number | null>(null)
 
   // Build windowItems from the hook data whenever windows/tabs/groups change
   useEffect(() => {
     const build = () => {
-      const groupList = groups ?? [];
-      const winList = browserWindows ?? [];
-      const tabList = tabs ?? [];
+      const groupList = groups ?? []
+      const winList = browserWindows ?? []
+      const tabList = tabs ?? []
 
-      const newWindowItems: WindowItem[] = [];
-      let lastWindowItem: WindowItem | undefined = undefined;
-      let lastTabGroupItem: TabGroupItem | undefined = undefined;
+      const newWindowItems: WindowItem[] = []
+      let lastWindowItem: WindowItem | undefined = undefined
+      let lastTabGroupItem: TabGroupItem | undefined = undefined
       tabList.forEach(tab => {
         if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
-          const foundWindow = winList.find(win => win.id === tab.windowId);
-          if (!foundWindow) return; // skip tabs for unknown windows
+          const foundWindow = winList.find(win => win.id === tab.windowId)
+          if (!foundWindow) return // skip tabs for unknown windows
           lastWindowItem = {
             window: foundWindow,
             subItems: [],
-          };
-          newWindowItems.push(lastWindowItem);
+          }
+          newWindowItems.push(lastWindowItem)
         }
         if (tab.groupId === -1) {
           if (lastTabGroupItem) {
-            lastTabGroupItem = undefined;
+            lastTabGroupItem = undefined
           }
-          if (!lastWindowItem) return;
+          if (!lastWindowItem) return
           lastWindowItem.subItems.push({
             type: 'tab',
             window: lastWindowItem.window,
             tab: tab,
-          });
+          })
         } else {
           if (
             !lastTabGroupItem ||
             tab.groupId !== lastTabGroupItem.tabGroup.id
           ) {
-            if (!lastWindowItem) return;
+            if (!lastWindowItem) return
             const foundTabGroup = groupList.find(
               tg => tg.id === (tab.groupId as number),
-            );
-            if (!foundTabGroup) return;
+            )
+            if (!foundTabGroup) return
             lastTabGroupItem = {
               type: 'group',
               window: lastWindowItem.window,
               tabGroup: foundTabGroup,
               subItems: [],
-            };
-            lastWindowItem.subItems.push(lastTabGroupItem);
+            }
+            lastWindowItem.subItems.push(lastTabGroupItem)
           }
           lastTabGroupItem.subItems.push({
             type: 'tab',
             window: lastWindowItem.window,
             tabGroup: lastTabGroupItem.tabGroup,
             tab: tab,
-          });
+          })
         }
-      });
+      })
 
-      setWindowItems(newWindowItems);
+      setWindowItems(newWindowItems)
 
       if (!selectedWindowId) {
-        const focused = winList.find(w => w.focused);
-        setSelectedWindowId(
-          focused?.id ?? newWindowItems[0]?.window.id ?? null,
-        );
+        const focused = winList.find(w => w.focused)
+        setSelectedWindowId(focused?.id ?? newWindowItems[0]?.window.id ?? null)
       }
-    };
+    }
 
-    build();
-  }, [browserWindows, tabs, groups, selectedWindowId]);
+    build()
+  }, [browserWindows, tabs, groups, selectedWindowId])
 
   useEffect(() => {
-    let mounted = true;
+    let mounted = true
     const updateActive = async () => {
       try {
-        const currentWin = await chrome.windows.getCurrent();
-        if (mounted) setCurrentWindowId(currentWin?.id ?? null);
+        const currentWin = await chrome.windows.getCurrent()
+        if (mounted) setCurrentWindowId(currentWin?.id ?? null)
       } catch {
-        if (mounted) setCurrentWindowId(null);
+        if (mounted) setCurrentWindowId(null)
       }
 
       try {
         const activeTabs = await chrome.tabs.query({
           active: true,
           currentWindow: true,
-        });
-        const active = activeTabs[0];
+        })
+        const active = activeTabs[0]
         if (mounted) {
-          setCurrentTabId(active?.id ?? null);
+          setCurrentTabId(active?.id ?? null)
           setCurrentGroupId(
             typeof active?.groupId === 'number' ? active.groupId : -1,
-          );
+          )
         }
       } catch {
         if (mounted) {
-          setCurrentTabId(null);
-          setCurrentGroupId(null);
+          setCurrentTabId(null)
+          setCurrentGroupId(null)
         }
       }
-    };
+    }
 
-    updateActive();
+    updateActive()
 
     return () => {
-      mounted = false;
-    };
-  }, [browserWindows, tabs]);
+      mounted = false
+    }
+  }, [browserWindows, tabs])
 
   const scrollToCurrentTab = () => {
-    const target = currentTabId;
-    if (typeof target !== 'number') return;
+    const target = currentTabId
+    if (typeof target !== 'number') return
 
-    const selector = `[data-tabid="${String(target)}"]`;
-    const el = document.querySelector(selector) as HTMLElement | null;
+    const selector = `[data-tabid="${String(target)}"]`
+    const el = document.querySelector(selector) as HTMLElement | null
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus?.();
-      return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.focus?.()
+      return
     }
-  };
+  }
 
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {
-      setSelectedWindowId(window.id ?? null);
+      setSelectedWindowId(window.id ?? null)
     },
     [setSelectedWindowId],
-  );
+  )
 
   return (
     <>
@@ -381,10 +379,10 @@ const SidePanel = () => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
 export default withErrorBoundary(
   withSuspense(SidePanel, <LoadingSpinner />),
   ErrorDisplay,
-);
+)

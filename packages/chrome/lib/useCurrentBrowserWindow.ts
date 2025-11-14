@@ -1,4 +1,4 @@
-import { useBrowserWindowsStore } from './useBrowserWindowsStore.js';
+import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
 
 /**
  * Provides the current browser window where the current script
@@ -8,4 +8,4 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js';
  * window once the lib is loaded.
  */
 export const useCurrentBrowserWindow = () =>
-  useBrowserWindowsStore(state => state.current);
+  useBrowserWindowsStore(state => state.current)

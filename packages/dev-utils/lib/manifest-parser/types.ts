@@ -1,8 +1,8 @@
-import type { ManifestType } from '@extension/shared';
+import type { ManifestType } from '@extension/shared'
 
 export interface IManifestParser {
   convertManifestToString: (
     manifest: ManifestType,
     isFirefox: boolean,
-  ) => string;
+  ) => string
 }

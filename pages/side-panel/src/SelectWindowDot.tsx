@@ -1,15 +1,15 @@
-import { useTabs } from '@extension/chrome';
-import { cn } from '@extension/ui';
-import { memo } from 'react';
-import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
+import { useTabs } from '@extension/chrome'
+import { cn } from '@extension/ui'
+import { memo } from 'react'
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
 
 type SelectWindowDotProps = {
-  window: chrome.windows.Window;
-  isCurrent: boolean;
-  isLight: boolean;
-  isSelected: boolean;
-  onSelect: (browserWindow: BrowserWindow) => void;
-};
+  window: chrome.windows.Window
+  isCurrent: boolean
+  isLight: boolean
+  isSelected: boolean
+  onSelect: (browserWindow: BrowserWindow) => void
+}
 
 const SelectWindowDot = ({
   window,
@@ -18,9 +18,9 @@ const SelectWindowDot = ({
   isSelected,
   onSelect,
 }: SelectWindowDotProps) => {
-  console.count('SelectWindowDot.render');
-  const { data: tabs = [] } = useTabs({ windowId: window.id });
-  const title = `Window ${window.id} — ${tabs.length} tab${tabs.length === 1 ? '' : 's'}`;
+  console.count('SelectWindowDot.render')
+  const { data: tabs = [] } = useTabs({ windowId: window.id })
+  const title = `Window ${window.id} — ${tabs.length} tab${tabs.length === 1 ? '' : 's'}`
 
   return (
     <button
@@ -34,21 +34,21 @@ const SelectWindowDot = ({
       )}>
       {/* Dot */}
       {(() => {
-        let dotCls = '';
+        let dotCls = ''
         if (isSelected) {
-          dotCls = isLight ? 'h-3 w-3 bg-blue-600' : 'h-3 w-3 bg-blue-300';
+          dotCls = isLight ? 'h-3 w-3 bg-blue-600' : 'h-3 w-3 bg-blue-300'
         } else if (isCurrent) {
           dotCls = isLight
             ? 'h-2 w-2 border-2 border-blue-400 bg-transparent'
-            : 'h-2 w-2 border-2 border-blue-500 bg-transparent';
+            : 'h-2 w-2 border-2 border-blue-500 bg-transparent'
         } else {
-          dotCls = isLight ? 'h-2 w-2 bg-gray-400' : 'h-2 w-2 bg-gray-500';
+          dotCls = isLight ? 'h-2 w-2 bg-gray-400' : 'h-2 w-2 bg-gray-500'
         }
         return (
           <span
             className={cn('inline-block rounded-full transition-all', dotCls)}
           />
-        );
+        )
       })()}
 
       {/* subtle badge for tab count on hover */}
@@ -60,9 +60,9 @@ const SelectWindowDot = ({
         {tabs.length}
       </span>
     </button>
-  );
-};
+  )
+}
 
-const SelectWindowDotMemo = memo(SelectWindowDot);
+const SelectWindowDotMemo = memo(SelectWindowDot)
 
-export { SelectWindowDotMemo as SelectWindowDot, type SelectWindowDotProps };
+export { SelectWindowDotMemo as SelectWindowDot, type SelectWindowDotProps }

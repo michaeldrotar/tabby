@@ -1,24 +1,24 @@
-import { Favicon } from './Favicon';
-import { cn } from '@extension/ui';
-import { memo } from 'react';
+import { Favicon } from './Favicon'
+import { cn } from '@extension/ui'
+import { memo } from 'react'
 
 type TabItemProps = {
-  tab: chrome.tabs.Tab;
-  isActive: boolean;
-  isLight: boolean;
-};
+  tab: chrome.tabs.Tab
+  isActive: boolean
+  isLight: boolean
+}
 
 const TabItem = ({ tab, isActive, isLight }: TabItemProps) => {
-  console.count('TabItem.render');
-  const isDiscarded = tab.discarded;
+  console.count('TabItem.render')
+  const isDiscarded = tab.discarded
   const handleClick = async () => {
     if (typeof tab.windowId === 'number') {
-      await chrome.windows.update(tab.windowId, { focused: true });
+      await chrome.windows.update(tab.windowId, { focused: true })
     }
     if (typeof tab.id === 'number') {
-      await chrome.tabs.update(tab.id, { active: true });
+      await chrome.tabs.update(tab.id, { active: true })
     }
-  };
+  }
 
   return (
     <button
@@ -54,9 +54,9 @@ const TabItem = ({ tab, isActive, isLight }: TabItemProps) => {
       </div>
       <span className="truncate">{tab.title}</span>
     </button>
-  );
-};
+  )
+}
 
-const TabItemMemo = memo(TabItem);
+const TabItemMemo = memo(TabItem)
 
-export { TabItemMemo as TabItem, type TabItemProps };
+export { TabItemMemo as TabItem, type TabItemProps }

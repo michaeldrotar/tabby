@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import EventEmitter from 'events'
 
 /**
   Creates an object with methods to handle event functionality.
@@ -25,7 +25,7 @@ export const createEvent = <
 >(
   eventName: string,
 ) => {
-  const emitter = new EventEmitter();
+  const emitter = new EventEmitter()
 
   return {
     listener: {
@@ -37,7 +37,7 @@ export const createEvent = <
        * callbacks from being called.
        */
       addListener: (callback: CALLBACK) => {
-        emitter.addListener(eventName, callback);
+        emitter.addListener(eventName, callback)
       },
       /**
        * Checks if the given callback is in the listener list.
@@ -55,7 +55,7 @@ export const createEvent = <
        * one of them.
        */
       removeListener: (callback: CALLBACK) => {
-        emitter.removeListener(eventName, callback);
+        emitter.removeListener(eventName, callback)
       },
     },
     /**
@@ -63,7 +63,7 @@ export const createEvent = <
      * in the order they were registered.
      */
     emit: (...args: Parameters<CALLBACK>): void => {
-      emitter.emit(eventName, ...args);
+      emitter.emit(eventName, ...args)
     },
-  };
-};
+  }
+}

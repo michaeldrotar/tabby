@@ -1,21 +1,21 @@
-import '@src/Options.css';
-import { t } from '@extension/i18n';
+import '@src/Options.css'
+import { t } from '@extension/i18n'
 import {
   PROJECT_URL_OBJECT,
   useStorage,
   withErrorBoundary,
   withSuspense,
-} from '@extension/shared';
-import { exampleThemeStorage } from '@extension/storage';
-import { cn, ErrorDisplay, LoadingSpinner, ToggleButton } from '@extension/ui';
+} from '@extension/shared'
+import { exampleThemeStorage } from '@extension/storage'
+import { cn, ErrorDisplay, LoadingSpinner, ToggleButton } from '@extension/ui'
 
 const Options = () => {
-  const { isLight } = useStorage(exampleThemeStorage);
+  const { isLight } = useStorage(exampleThemeStorage)
   const logo = isLight
     ? 'options/logo_horizontal.svg'
-    : 'options/logo_horizontal_dark.svg';
+    : 'options/logo_horizontal_dark.svg'
 
-  const goGithubSite = () => chrome.tabs.create(PROJECT_URL_OBJECT);
+  const goGithubSite = () => chrome.tabs.create(PROJECT_URL_OBJECT)
 
   return (
     <div
@@ -37,10 +37,10 @@ const Options = () => {
         {t('toggleTheme')}
       </ToggleButton>
     </div>
-  );
-};
+  )
+}
 
 export default withErrorBoundary(
   withSuspense(Options, <LoadingSpinner />),
   ErrorDisplay,
-);
+)

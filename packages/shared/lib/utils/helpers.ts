@@ -1,4 +1,4 @@
-import type { ExcludeValuesFromBaseArrayType } from './types.js';
+import type { ExcludeValuesFromBaseArrayType } from './types.js'
 
 export const excludeValuesFromBaseArray = <
   B extends string[],
@@ -9,7 +9,7 @@ export const excludeValuesFromBaseArray = <
 ) =>
   baseArray.filter(
     value => !excludeArray.includes(value),
-  ) as ExcludeValuesFromBaseArrayType<B, E>;
+  ) as ExcludeValuesFromBaseArrayType<B, E>
 
 export const sleep = async (time: number) =>
-  new Promise(r => setTimeout(r, time));
+  new Promise(r => setTimeout(r, time))

@@ -1,12 +1,12 @@
-import { BrowserWindows } from './BrowserWindows.js';
-import { create } from 'zustand';
+import { BrowserWindows } from './BrowserWindows.js'
+import { create } from 'zustand'
 
 type BrowserWindowStoreState = {
-  all: typeof BrowserWindows.all;
-  byId: typeof BrowserWindows.byId;
-  current: typeof BrowserWindows.current;
-  focused: typeof BrowserWindows.focused;
-};
+  all: typeof BrowserWindows.all
+  byId: typeof BrowserWindows.byId
+  current: typeof BrowserWindows.current
+  focused: typeof BrowserWindows.focused
+}
 
 /**
  * Provides a full state object to React that is based on the BrowserWindows lib.
@@ -20,17 +20,17 @@ export const useBrowserWindowsStore = create<BrowserWindowStoreState>(() => ({
   byId: {},
   current: undefined,
   focused: undefined,
-}));
+}))
 
 const update = () => {
-  const { all, byId, current, focused } = BrowserWindows;
+  const { all, byId, current, focused } = BrowserWindows
   useBrowserWindowsStore.setState({
     all,
     byId,
     current,
     focused,
-  });
-};
+  })
+}
 
-BrowserWindows.load().then(update);
-BrowserWindows.onUpdated.addListener(update);
+BrowserWindows.load().then(update)
+BrowserWindows.onUpdated.addListener(update)

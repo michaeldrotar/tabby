@@ -1,16 +1,16 @@
-import { Favicon } from './Favicon';
-import { useTabs } from '@extension/chrome';
-import { cn } from '@extension/ui';
-import { memo } from 'react';
-import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow';
+import { Favicon } from './Favicon'
+import { useTabs } from '@extension/chrome'
+import { cn } from '@extension/ui'
+import { memo } from 'react'
+import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
 
 type SelectWindowButtonProps = {
-  window: chrome.windows.Window;
-  isCurrent: boolean;
-  isLight: boolean;
-  isSelected: boolean;
-  onSelect: (browserWindow: BrowserWindow) => void;
-};
+  window: chrome.windows.Window
+  isCurrent: boolean
+  isLight: boolean
+  isSelected: boolean
+  onSelect: (browserWindow: BrowserWindow) => void
+}
 
 const SelectWindowButton = ({
   window,
@@ -19,8 +19,8 @@ const SelectWindowButton = ({
   isSelected,
   onSelect,
 }: SelectWindowButtonProps) => {
-  console.count('SelectWindowButton.render');
-  const { data: tabs = [] } = useTabs({ windowId: window.id });
+  console.count('SelectWindowButton.render')
+  const { data: tabs = [] } = useTabs({ windowId: window.id })
   return (
     <button
       key={window.id}
@@ -51,12 +51,12 @@ const SelectWindowButton = ({
         ))}
       </div>
     </button>
-  );
-};
+  )
+}
 
-const SelectWindowButtonMemo = memo(SelectWindowButton);
+const SelectWindowButtonMemo = memo(SelectWindowButton)
 
 export {
   SelectWindowButtonMemo as SelectWindowButton,
   type SelectWindowButtonProps,
-};
+}

@@ -1,4 +1,4 @@
-import type { BrowserWindowID } from './BrowserWindowID.js';
+import type { BrowserWindowID } from './BrowserWindowID.js'
 
 /**
  * Represents a visible browser window.
@@ -9,5 +9,5 @@ import type { BrowserWindowID } from './BrowserWindowID.js';
  * for recently closed windows, which no longer have an ID.
  */
 export type BrowserWindow = chrome.windows.Window & {
-  id: BrowserWindowID;
-};
+  id: BrowserWindowID
+}
