@@ -127,7 +127,7 @@ export default [
         { considerQueryString: true, 'prefer-inline': false },
       ],
       'import-x/consistent-type-specifier-style': 'error',
-      'import-x/exports-last': 'error',
+      'import-x/exports-last': 'off',
       'import-x/first': 'error',
     },
     linterOptions: {

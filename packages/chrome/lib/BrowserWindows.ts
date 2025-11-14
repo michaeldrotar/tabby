@@ -52,7 +52,6 @@ const getCurrentWindow = async () => {
 /**
  * Data structure for inspecting browser windows.
  */
-// eslint-disable-next-line import-x/exports-last
 export const BrowserWindows = {
   /**
    * The current loading state for this data.

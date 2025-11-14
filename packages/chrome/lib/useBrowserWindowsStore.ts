@@ -15,7 +15,6 @@ type BrowserWindowStoreState = {
  * hooks for best performance. They are optimized to only re-render when
  * their specific data is changed.
  */
-// eslint-disable-next-line import-x/exports-last
 export const useBrowserWindowsStore = create<BrowserWindowStoreState>(() => ({
   all: [],
   byId: {},
