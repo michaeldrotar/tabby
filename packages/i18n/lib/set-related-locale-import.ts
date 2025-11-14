@@ -17,7 +17,7 @@ export default () => {
   const localesDir = resolve(import.meta.dirname, '..', '..', 'locales')
   const readLocalesFolder = readdirSync(localesDir)
 
-  const implementedLocales = readLocalesFolder.map(innerDir => {
+  const implementedLocales = readLocalesFolder.map((innerDir) => {
     if (lstatSync(resolve(localesDir, innerDir)).isDirectory()) {
       return innerDir
     }

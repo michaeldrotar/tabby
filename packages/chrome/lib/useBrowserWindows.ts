@@ -13,4 +13,4 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * return browserWindows.map(browserWindow => <div key={browserWindow.id}>Window {browserWindow.id}</div>)
  */
 export const useBrowserWindows = () =>
-  useBrowserWindowsStore(state => state.all)
+  useBrowserWindowsStore((state) => state.all)

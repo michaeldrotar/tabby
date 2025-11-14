@@ -22,7 +22,7 @@ const convertToFirefoxCompatibleManifest = (manifest: ManifestType) => {
     extension_pages: "script-src 'self'; object-src 'self'",
   }
   manifestCopy.permissions = (manifestCopy.permissions as string[]).filter(
-    value => value !== 'sidePanel',
+    (value) => value !== 'sidePanel',
   )
 
   delete manifestCopy.options_page

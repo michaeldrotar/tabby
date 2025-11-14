@@ -19,7 +19,7 @@ export const streamFileToZip = (
         : data.push(chunk, false),
     )
     .on('end', () => data.push(new Uint8Array(0), true))
-    .on('error', error => {
+    .on('error', (error) => {
       onAbort()
       onError(error)
     })

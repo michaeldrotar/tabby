@@ -14,7 +14,7 @@ export const recoverFeature = async (
 ) => {
   const archiveFiles = existsSync(archivePath) ? readdirSync(archivePath) : []
 
-  const choices: ChoicesType = DEFAULT_CHOICES.filter(choice => {
+  const choices: ChoicesType = DEFAULT_CHOICES.filter((choice) => {
     if (choice.value === 'background') {
       return !manifestObject.background
     }

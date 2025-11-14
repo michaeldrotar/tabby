@@ -12,7 +12,7 @@ export const processCLIArgs = (): ICLIOptions | null => {
     .option('recover', CLI_OPTIONS[1])
     .option('delete-exclude', CLI_OPTIONS[2])
     .option('recover-exclude', CLI_OPTIONS[3])
-    .check(argv => checkCliArgsIsValid(argv))
+    .check((argv) => checkCliArgsIsValid(argv))
     .strict()
     .example(HELP_EXAMPLES as WritableDeep<typeof HELP_EXAMPLES>)
     .help()

@@ -8,4 +8,4 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * window once the lib is loaded.
  */
 export const useCurrentBrowserWindow = () =>
-  useBrowserWindowsStore(state => state.current)
+  useBrowserWindowsStore((state) => state.current)

@@ -16,7 +16,7 @@ const storage = createStorage<ThemeStateType>(
 export const exampleThemeStorage: ThemeStorageType = {
   ...storage,
   toggle: async () => {
-    await storage.set(currentState => {
+    await storage.set((currentState) => {
       const newTheme = currentState.theme === 'light' ? 'dark' : 'light'
 
       return {

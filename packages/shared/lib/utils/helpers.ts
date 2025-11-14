@@ -8,8 +8,8 @@ export const excludeValuesFromBaseArray = <
   excludeArray: E,
 ) =>
   baseArray.filter(
-    value => !excludeArray.includes(value),
+    (value) => !excludeArray.includes(value),
   ) as ExcludeValuesFromBaseArrayType<B, E>
 
 export const sleep = async (time: number) =>
-  new Promise(r => setTimeout(r, time))
+  new Promise((r) => setTimeout(r, time))

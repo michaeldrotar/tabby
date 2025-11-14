@@ -8,4 +8,4 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * return desiredIds.map(id => <div>Window {id} {browserWindowsById[id].focused ? '(focused)' : ''}</div>)
  */
 export const useBrowserWindowsById = () =>
-  useBrowserWindowsStore(state => state.byId)
+  useBrowserWindowsStore((state) => state.byId)

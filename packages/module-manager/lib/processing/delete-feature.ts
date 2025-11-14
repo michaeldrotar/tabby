@@ -12,7 +12,7 @@ export const deleteFeature = async (
 ) => {
   const pageFolders = readdirSync(pagesPath)
 
-  const choices: ChoicesType = DEFAULT_CHOICES.filter(choice => {
+  const choices: ChoicesType = DEFAULT_CHOICES.filter((choice) => {
     if (choice.value === 'background') {
       return !!manifestObject.background
     } else if (choice.value === 'tests') {

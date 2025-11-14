@@ -27,7 +27,7 @@ import type { Arguments } from 'yargs'
 export const isFolderEmpty = (path: string) => !readdirSync(path).length
 
 export const promptSelection = async (inputConfig: InputConfigType) =>
-  select(inputConfig).catch(err => {
+  select(inputConfig).catch((err) => {
     if (err.name === EXIT_PROMPT_ERROR) {
       process.exit(0)
     } else {
@@ -57,14 +57,14 @@ export const processModuleConfig = (
     if (isRecovering) {
       ;(
         moduleConfigValues as WritableModuleConfigValuesType<typeof moduleName>
-      ).content_scripts.map(script =>
+      ).content_scripts.map((script) =>
         manifestObject.content_scripts?.push(script),
       )
     } else {
       const outputFileName = new RegExp(`${moduleName}/+`)
 
       manifestObject.content_scripts = manifestObject.content_scripts?.filter(
-        script => !outputFileName.test(script.js ? script.js[0] : ''),
+        (script) => !outputFileName.test(script.js ? script.js[0] : ''),
       )
     }
     return
@@ -107,7 +107,7 @@ export const checkCliArgsIsValid = <T extends Arguments>(argv: T) => {
 
   if (Array.isArray(values)) {
     for (const value of values) {
-      if (!DEFAULT_CHOICES_VALUES.some(moduleName => value === moduleName)) {
+      if (!DEFAULT_CHOICES_VALUES.some((moduleName) => value === moduleName)) {
         throw new Error(`All values after --${key} must be names of pages`)
       }
     }

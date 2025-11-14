@@ -78,7 +78,7 @@ export const createStorage = <D = string>(
   const liveUpdate = config?.liveUpdate ?? false
 
   const serialize = config?.serialization?.serialize ?? ((v: D) => v)
-  const deserialize = config?.serialization?.deserialize ?? (v => v as D)
+  const deserialize = config?.serialization?.deserialize ?? ((v) => v as D)
 
   // Set global session storage access level for StoryType.Session, only when not already done but needed.
   if (
@@ -92,7 +92,7 @@ export const createStorage = <D = string>(
       .setAccessLevel({
         accessLevel: SessionAccessLevelEnum.ExtensionPagesAndContentScripts,
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error)
         console.error(
           'Please call .setAccessLevel() into different context, like a background script.',
@@ -127,14 +127,14 @@ export const createStorage = <D = string>(
     listeners = [...listeners, listener]
 
     return () => {
-      listeners = listeners.filter(l => l !== listener)
+      listeners = listeners.filter((l) => l !== listener)
     }
   }
 
   const getSnapshot = () => cache
 
   const _emitChange = () => {
-    listeners.forEach(listener => listener())
+    listeners.forEach((listener) => listener())
   }
 
   // Listener for live updates from the browser
@@ -155,7 +155,7 @@ export const createStorage = <D = string>(
     _emitChange()
   }
 
-  get().then(data => {
+  get().then((data) => {
     cache = data
     initialCache = true
     _emitChange()

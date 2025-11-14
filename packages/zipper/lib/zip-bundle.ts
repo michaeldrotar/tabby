@@ -80,7 +80,7 @@ export const zipBundle = async (
           aborted = true
           zip.terminate()
         },
-        error => pReject(`Error reading file ${absPath}: ${error.message}`),
+        (error) => pReject(`Error reading file ${absPath}: ${error.message}`),
       )
     }
 

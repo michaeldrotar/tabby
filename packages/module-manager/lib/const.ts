@@ -21,7 +21,7 @@ export const DEFAULT_CHOICES = [
   { name: 'All tests', value: 'tests' },
 ] as const
 
-export const DEFAULT_CHOICES_VALUES = DEFAULT_CHOICES.map(item => item.value)
+export const DEFAULT_CHOICES_VALUES = DEFAULT_CHOICES.map((item) => item.value)
 
 export const HELP_EXAMPLES = [
   ['-d content-ui content-runtime', 'Delete content-ui and content-runtime'],

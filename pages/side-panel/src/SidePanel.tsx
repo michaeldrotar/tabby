@@ -60,9 +60,9 @@ const SidePanel = () => {
       const newWindowItems: WindowItem[] = []
       let lastWindowItem: WindowItem | undefined = undefined
       let lastTabGroupItem: TabGroupItem | undefined = undefined
-      tabList.forEach(tab => {
+      tabList.forEach((tab) => {
         if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
-          const foundWindow = winList.find(win => win.id === tab.windowId)
+          const foundWindow = winList.find((win) => win.id === tab.windowId)
           if (!foundWindow) return // skip tabs for unknown windows
           lastWindowItem = {
             window: foundWindow,
@@ -87,7 +87,7 @@ const SidePanel = () => {
           ) {
             if (!lastWindowItem) return
             const foundTabGroup = groupList.find(
-              tg => tg.id === (tab.groupId as number),
+              (tg) => tg.id === (tab.groupId as number),
             )
             if (!foundTabGroup) return
             lastTabGroupItem = {
@@ -110,7 +110,7 @@ const SidePanel = () => {
       setWindowItems(newWindowItems)
 
       if (!selectedWindowId) {
-        const focused = winList.find(w => w.focused)
+        const focused = winList.find((w) => w.focused)
         setSelectedWindowId(focused?.id ?? newWindowItems[0]?.window.id ?? null)
       }
     }
@@ -268,7 +268,7 @@ const SidePanel = () => {
               isLight ? 'bg-white' : 'bg-gray-900',
             )}>
             <div className="p-2">
-              {windowItems.map(wi => (
+              {windowItems.map((wi) => (
                 <SelectWindowButton
                   key={wi.window.id}
                   window={wi.window}
@@ -287,7 +287,7 @@ const SidePanel = () => {
               isLight ? 'bg-white' : 'bg-gray-900',
             )}>
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-2">
-              {browserWindows.map(browserWindow => (
+              {browserWindows.map((browserWindow) => (
                 <SelectWindowDot
                   key={browserWindow.id}
                   window={browserWindow}
@@ -302,12 +302,12 @@ const SidePanel = () => {
 
           <div className="h-full flex-1 overflow-y-auto overscroll-none p-3">
             {windowItems
-              .filter(wi => wi.window.id === selectedWindowId)
-              .map(windowItem => (
+              .filter((wi) => wi.window.id === selectedWindowId)
+              .map((windowItem) => (
                 <div key={`window-tabs-${windowItem.window.id}`}>
                   <div className="space-y-3">
                     <ol className="flex flex-col">
-                      {windowItem.subItems.map(childItem => (
+                      {windowItem.subItems.map((childItem) => (
                         <li
                           key={
                             childItem.type === 'tab'
@@ -342,7 +342,7 @@ const SidePanel = () => {
                                     : 'border-l-gray-600',
                                   isLight ? 'text-gray-700' : 'text-gray-200',
                                 )}>
-                                {childItem.subItems.map(tabItem => (
+                                {childItem.subItems.map((tabItem) => (
                                   <li
                                     key={tabItem.tab.id}
                                     className="flex flex-col">

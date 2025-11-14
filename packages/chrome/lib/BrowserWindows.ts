@@ -37,7 +37,9 @@ const getAllWindows = async () => {
   const allBrowserWindows = await Promise.all(
     allChromeWindows.map(toBrowserWindow),
   )
-  return allBrowserWindows.filter(browserWindow => browserWindow !== undefined)
+  return allBrowserWindows.filter(
+    (browserWindow) => browserWindow !== undefined,
+  )
 }
 
 /**
