@@ -2,7 +2,7 @@ import { Favicon } from './Favicon'
 import { useTabs } from '@extension/chrome'
 import { cn } from '@extension/ui'
 import { memo } from 'react'
-import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
+import type { BrowserWindow } from '@extension/chrome'
 
 type SelectWindowButtonProps = {
   window: BrowserWindow

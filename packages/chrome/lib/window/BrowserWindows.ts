@@ -1,4 +1,4 @@
-import { createEvent } from './createEvent.js'
+import { createEvent } from '../createEvent.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 

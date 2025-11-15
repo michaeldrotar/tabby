@@ -13,7 +13,7 @@ import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared'
 import { exampleThemeStorage } from '@extension/storage'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
 import { useCallback, useEffect, useState } from 'react'
-import type { BrowserWindow } from '@extension/chrome/lib/BrowserWindow'
+import type { BrowserWindow } from '@extension/chrome'
 
 type TabItem = {
   type: 'tab'
