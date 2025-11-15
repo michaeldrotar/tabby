@@ -2,6 +2,7 @@ import { SelectWindowButton } from './SelectWindowButton'
 import { SelectWindowDot } from './SelectWindowDot'
 import { TabItem } from './TabItem'
 import {
+  useBrowserWindowActions,
   useBrowserWindows,
   useCurrentBrowserWindow,
   useTabGroups,
@@ -39,6 +40,7 @@ const SidePanel = () => {
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
+  const browserWindowActions = useBrowserWindowActions()
   const { data: tabs } = useTabs()
   const { data: groups } = useTabGroups()
 
@@ -167,6 +169,25 @@ const SidePanel = () => {
     [setSelectedWindowId],
   )
 
+  const openNewBrowserWindow = useCallback(async () => {
+    console.count('SidePanel.openNewBrowserWindow')
+    if (!currentBrowserWindow) {
+      await browserWindowActions.create()
+      return
+    }
+    const newWindow = await browserWindowActions.create({
+      height: currentBrowserWindow.height,
+      incognito: currentBrowserWindow.incognito,
+      left: currentBrowserWindow.left,
+      state: currentBrowserWindow.state,
+      top: currentBrowserWindow.top,
+      width: currentBrowserWindow.width,
+    })
+    if (newWindow) {
+      chrome.sidePanel.open({ windowId: newWindow.id })
+    }
+  }, [browserWindowActions, currentBrowserWindow])
+
   return (
     <>
       <div
@@ -281,6 +302,14 @@ const SidePanel = () => {
                   onSelect={onSelectWindow}
                 />
               ))}
+            </div>
+            <div className="sticky bottom-0 flex h-8 w-full">
+              <button
+                className="flex-grow bg-slate-600"
+                onClick={openNewBrowserWindow}
+              >
+                +
+              </button>
             </div>
           </div>
 

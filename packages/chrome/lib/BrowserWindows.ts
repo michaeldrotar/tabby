@@ -4,7 +4,10 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 
 const windowTypesToRegister: chrome.windows.windowTypeEnum[] = ['normal']
 
-const onUpdated = createEvent('updated')
+const onBrowserWindowListChanged = createEvent('listChanged')
+const onBrowserWindowUpdated = createEvent('updated')
+const onCurrentBrowserWindowChanged = createEvent('currentChanged')
+const onFocusedBrowserWindowChanged = createEvent('focusedChanged')
 
 /**
  * Converts a chrome.windows.Window to a BrowserWindow.
@@ -121,7 +124,7 @@ export const BrowserWindows = {
           BrowserWindows.focused = browserWindow
         }
       }
-      registerEventHandlers()
+      registerChromeWindowEventHandlers()
       BrowserWindows.state = 'loaded'
     } catch (error) {
       console.error(error)
@@ -137,7 +140,7 @@ export const BrowserWindows = {
    */
   unload: () => {
     console.count('BrowserWindows.unload')
-    unregisterEventHandlers()
+    unregisterChromeWindowEventHandlers()
     BrowserWindows.all = []
     BrowserWindows.byId = {}
     BrowserWindows.current = undefined
@@ -146,31 +149,96 @@ export const BrowserWindows = {
   },
 
   /**
-   * Fired whenever the underlying browser window data is updated.
-   * - a new browser window is opened and has been added to the list
-   * - an existing browser window was closed and removed from the list
-   * - the focused browser window has changed
+   * Creates a new browser window.
    */
-  onUpdated: onUpdated.listener,
+  create: async (options?: chrome.windows.CreateData) => {
+    console.count('BrowserWindows.create')
+    const newChromeWindow = await chrome.windows.create(options || {})
+    if (newChromeWindow.id) {
+      // This is assumed to exist because onCreated is fired before
+      // the create promise resolves.
+      return BrowserWindows.byId[newChromeWindow.id]
+    }
+    return undefined
+  },
+
+  /**
+   * Removes an existing browser window according to its ID.
+   */
+  removeById: async (id: BrowserWindowID) => {
+    console.count('BrowserWindows.removeById')
+    await chrome.windows.remove(id)
+  },
+
+  /**
+   * Updates an existing browser window with the supplied info.
+   * Resolves with the updated browser window.
+   */
+  updateById: async (id: BrowserWindowID, info: chrome.windows.UpdateInfo) => {
+    console.count('BrowserWindows.updateById')
+    await chrome.windows.update(id, info)
+    // events will handle applying the updates to the object
+    return BrowserWindows.byId[id]
+  },
+
+  /**
+   * Fired whenever the list of browser window changes, such as by adding,
+   * removing, or changing the order.
+   */
+  onListChanged: onBrowserWindowListChanged.listener,
+
+  /**
+   * Fired whenever the properties of a browser window are changed.
+   */
+  onUpdated: onBrowserWindowUpdated.listener,
+
+  /**
+   * Fired when a browser window becomes the "current" browser window.
+   */
+  onCurrentChanged: onCurrentBrowserWindowChanged.listener,
+
+  /**
+   * Fired when a browser window becomes the "focused" browser window.
+   */
+  onFocusedChanged: onFocusedBrowserWindowChanged.listener,
 }
 window.BrowserWindows = BrowserWindows
 
 /**
+ * Handles when the bounds or state of a chrome window are changed.
+ *
+ * If the user is dragging a window to resize it, this fires
+ * at the end of the operation. There are no intermediary
+ * updates.
+ */
+const onChromeWindowBoundsChanged = async (
+  updatedChromeWindow: chrome.windows.Window,
+) => {
+  console.count('BrowserWindows.onBoundsChanged')
+  if (!updatedChromeWindow.id) return
+  const existingBrowserWindow = BrowserWindows.byId[updatedChromeWindow.id]
+  Object.assign(existingBrowserWindow, updatedChromeWindow)
+  onBrowserWindowUpdated.emit()
+}
+
+/**
  * Handles when a new chrome window is opened.
  */
-const onCreated = async (newChromeWindow: chrome.windows.Window) => {
+const onChromeWindowCreated = async (
+  newChromeWindow: chrome.windows.Window,
+) => {
   console.count('BrowserWindows.onCreated')
   const newBrowserWindow = await toBrowserWindow(newChromeWindow)
   if (!newBrowserWindow) return
   BrowserWindows.all.push(newBrowserWindow)
   BrowserWindows.byId[newBrowserWindow.id] = newBrowserWindow
-  onUpdated.emit()
+  onBrowserWindowListChanged.emit()
 }
 
 /**
  * Handles when focus changes to a different chrome window.
  */
-const onFocusChanged = (newFocusedWindowId: BrowserWindowID) => {
+const onChromeWindowFocusChanged = (newFocusedWindowId: BrowserWindowID) => {
   console.count('BrowserWindows.onFocusChanged')
   const newFocusedWindow = BrowserWindows.byId[newFocusedWindowId]
   const oldFocusedWindow = BrowserWindows.focused
@@ -178,43 +246,47 @@ const onFocusChanged = (newFocusedWindowId: BrowserWindowID) => {
     if (oldFocusedWindow) oldFocusedWindow.focused = false
     if (newFocusedWindow) newFocusedWindow.focused = true
     BrowserWindows.focused = newFocusedWindow
-    onUpdated.emit()
+    onBrowserWindowUpdated.emit()
+    onFocusedBrowserWindowChanged.emit()
   }
 }
 
 /**
  * Handles when a chrome window is closed.
  */
-const onRemoved = (removedWindowId: BrowserWindowID) => {
+const onChromeWindowRemoved = (removedWindowId: BrowserWindowID) => {
   console.count('BrowserWindows.onRemoved')
   const removedWindow = BrowserWindows.byId[removedWindowId]
   if (!removedWindow) return
   if (BrowserWindows.current === removedWindow) {
     BrowserWindows.current = undefined
+    onCurrentBrowserWindowChanged.emit()
   }
   if (BrowserWindows.focused === removedWindow) {
     BrowserWindows.focused = undefined
+    onFocusedBrowserWindowChanged.emit()
   }
   delete BrowserWindows.byId[removedWindowId]
   const removedWindowIndex = BrowserWindows.all.indexOf(removedWindow)
   if (removedWindowIndex >= 0) {
     BrowserWindows.all.splice(removedWindowIndex, 1)
   }
-  onUpdated.emit()
+  onBrowserWindowListChanged.emit()
 }
 
 /**
  * Registers all the necessary event handlers for tracking changes
  * to the list of browser windows.
  */
-const registerEventHandlers = () => {
-  chrome.windows.onCreated.addListener(onCreated, {
+const registerChromeWindowEventHandlers = () => {
+  chrome.windows.onBoundsChanged.addListener(onChromeWindowBoundsChanged)
+  chrome.windows.onCreated.addListener(onChromeWindowCreated, {
     windowTypes: windowTypesToRegister,
   })
-  chrome.windows.onFocusChanged.addListener(onFocusChanged, {
+  chrome.windows.onFocusChanged.addListener(onFocusedBrowserWindowChanged, {
     windowTypes: windowTypesToRegister,
   })
-  chrome.windows.onRemoved.addListener(onRemoved, {
+  chrome.windows.onRemoved.addListener(onChromeWindowRemoved, {
     windowTypes: windowTypesToRegister,
   })
 }
@@ -223,8 +295,9 @@ const registerEventHandlers = () => {
  * Handles unregistering all the event handlers to unload the lib
  * and restore its initial state.
  */
-const unregisterEventHandlers = () => {
-  chrome.windows.onCreated.removeListener(onCreated)
-  chrome.windows.onFocusChanged.removeListener(onFocusChanged)
-  chrome.windows.onRemoved.removeListener(onRemoved)
+const unregisterChromeWindowEventHandlers = () => {
+  chrome.windows.onBoundsChanged.removeListener(onChromeWindowBoundsChanged)
+  chrome.windows.onCreated.removeListener(onChromeWindowCreated)
+  chrome.windows.onFocusChanged.removeListener(onFocusedBrowserWindowChanged)
+  chrome.windows.onRemoved.removeListener(onChromeWindowRemoved)
 }

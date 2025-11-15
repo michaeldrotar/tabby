@@ -1,3 +1,4 @@
+export { useBrowserWindowActions } from './lib/useBrowserWindowActions.js'
 export { useBrowserWindows } from './lib/useBrowserWindows.js'
 export { useBrowserWindowsById } from './lib/useBrowserWindowsById.js'
 export { useCurrentBrowserWindow } from './lib/useCurrentBrowserWindow.js'

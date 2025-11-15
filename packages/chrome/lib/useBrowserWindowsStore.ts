@@ -23,14 +23,58 @@ export const useBrowserWindowsStore = create<BrowserWindowStoreState>(() => ({
 }))
 
 const update = () => {
+  console.count('useBrowserWindowStore.update')
   const { all, byId, current, focused } = BrowserWindows
   useBrowserWindowsStore.setState({
-    all,
-    byId,
+    all: [...all],
+    byId: { ...byId },
     current,
     focused,
   })
 }
 
+const loaded = () => {
+  console.count('useBrowserWindowStore.loaded')
+  const { all, byId, current, focused } = BrowserWindows
+  useBrowserWindowsStore.setState({
+    all: [...all],
+    byId: { ...byId },
+    current,
+    focused,
+  })
+}
+
+const updated = () => {
+  console.count('useBrowserWindowStore.updated')
+}
+
+const listChanged = () => {
+  console.count('useBrowserWindowStore.listChanged')
+  const { all, byId } = BrowserWindows
+  useBrowserWindowsStore.setState({
+    all: [...all],
+    byId: { ...byId },
+  })
+}
+
+const currentChanged = () => {
+  console.count('useBrowserWindowStore.currentChanged')
+  const { current } = BrowserWindows
+  useBrowserWindowsStore.setState({
+    current,
+  })
+}
+
+const focusedChanged = () => {
+  console.count('useBrowserWindowStore.focusedChanged')
+  const { focused } = BrowserWindows
+  useBrowserWindowsStore.setState({
+    focused,
+  })
+}
+
 BrowserWindows.load().then(update)
+BrowserWindows.onCurrentChanged.addListener(currentChanged)
+BrowserWindows.onFocusedChanged.addListener(focusedChanged)
+BrowserWindows.onListChanged.addListener(listChanged)
 BrowserWindows.onUpdated.addListener(update)
