@@ -296,7 +296,7 @@ const SidePanel = () => {
                 <SelectWindowButton
                   key={browserWindow.id}
                   window={browserWindow}
-                  isCurrent={browserWindow === currentBrowserWindow}
+                  isCurrent={browserWindow.id === currentBrowserWindow?.id}
                   isLight={isLight}
                   isSelected={browserWindow.id === selectedWindowId}
                   onSelect={onSelectWindow}
@@ -305,7 +305,10 @@ const SidePanel = () => {
             </div>
             <div className="sticky bottom-0 flex h-8 w-full">
               <button
-                className="flex-grow bg-slate-600"
+                className={cn(
+                  'flex-grow',
+                  isLight ? 'bg-slate-200' : 'bg-slate-600',
+                )}
                 onClick={openNewBrowserWindow}
               >
                 +
@@ -324,7 +327,7 @@ const SidePanel = () => {
                 <SelectWindowDot
                   key={browserWindow.id}
                   window={browserWindow}
-                  isCurrent={browserWindow === currentBrowserWindow}
+                  isCurrent={browserWindow.id === currentBrowserWindow?.id}
                   isLight={isLight}
                   isSelected={browserWindow.id === selectedWindowId}
                   onSelect={onSelectWindow}

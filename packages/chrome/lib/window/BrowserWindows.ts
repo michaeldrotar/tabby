@@ -5,7 +5,7 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 const windowTypesToRegister: chrome.windows.windowTypeEnum[] = ['normal']
 
 const onBrowserWindowListChanged = createEvent('listChanged')
-const onBrowserWindowUpdated = createEvent('updated')
+const onBrowserWindowUpdated = createEvent<[BrowserWindow]>('updated')
 const onCurrentBrowserWindowChanged = createEvent('currentChanged')
 const onFocusedBrowserWindowChanged = createEvent('focusedChanged')
 
@@ -202,14 +202,12 @@ export const BrowserWindows = {
    */
   onFocusedChanged: onFocusedBrowserWindowChanged.listener,
 }
-window.BrowserWindows = BrowserWindows
 
 /**
  * Handles when the bounds or state of a chrome window are changed.
  *
- * If the user is dragging a window to resize it, this fires
- * at the end of the operation. There are no intermediary
- * updates.
+ * If the user is dragging a window to resize it, this may not
+ * fire until they release the window.
  */
 const onChromeWindowBoundsChanged = async (
   updatedChromeWindow: chrome.windows.Window,
@@ -218,7 +216,12 @@ const onChromeWindowBoundsChanged = async (
   if (!updatedChromeWindow.id) return
   const existingBrowserWindow = BrowserWindows.byId[updatedChromeWindow.id]
   Object.assign(existingBrowserWindow, updatedChromeWindow)
-  onBrowserWindowUpdated.emit()
+  // BrowserWindows.byId[updatedChromeWindow.id] = {
+  //   ...existingBrowserWindow,
+  //   ...updatedChromeWindow,
+  // }
+  // BrowserWindows.all = [...Object.values(BrowserWindows.byId)]
+  onBrowserWindowUpdated.emit(existingBrowserWindow)
 }
 
 /**
@@ -243,10 +246,15 @@ const onChromeWindowFocusChanged = (newFocusedWindowId: BrowserWindowID) => {
   const newFocusedWindow = BrowserWindows.byId[newFocusedWindowId]
   const oldFocusedWindow = BrowserWindows.focused
   if (newFocusedWindow !== oldFocusedWindow) {
-    if (oldFocusedWindow) oldFocusedWindow.focused = false
-    if (newFocusedWindow) newFocusedWindow.focused = true
+    if (oldFocusedWindow) {
+      oldFocusedWindow.focused = false
+      onBrowserWindowUpdated.emit(oldFocusedWindow)
+    }
+    if (newFocusedWindow) {
+      newFocusedWindow.focused = true
+      onBrowserWindowUpdated.emit(newFocusedWindow)
+    }
     BrowserWindows.focused = newFocusedWindow
-    onBrowserWindowUpdated.emit()
     onFocusedBrowserWindowChanged.emit()
   }
 }
@@ -283,7 +291,7 @@ const registerChromeWindowEventHandlers = () => {
   chrome.windows.onCreated.addListener(onChromeWindowCreated, {
     windowTypes: windowTypesToRegister,
   })
-  chrome.windows.onFocusChanged.addListener(onFocusedBrowserWindowChanged, {
+  chrome.windows.onFocusChanged.addListener(onChromeWindowFocusChanged, {
     windowTypes: windowTypesToRegister,
   })
   chrome.windows.onRemoved.addListener(onChromeWindowRemoved, {
@@ -298,6 +306,6 @@ const registerChromeWindowEventHandlers = () => {
 const unregisterChromeWindowEventHandlers = () => {
   chrome.windows.onBoundsChanged.removeListener(onChromeWindowBoundsChanged)
   chrome.windows.onCreated.removeListener(onChromeWindowCreated)
-  chrome.windows.onFocusChanged.removeListener(onFocusedBrowserWindowChanged)
+  chrome.windows.onFocusChanged.removeListener(onChromeWindowFocusChanged)
   chrome.windows.onRemoved.removeListener(onChromeWindowRemoved)
 }

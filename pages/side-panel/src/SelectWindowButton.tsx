@@ -1,5 +1,6 @@
 import { Favicon } from './Favicon'
-import { useTabs } from '@extension/chrome'
+import { WindowThumbnail } from './WindowThumbnail'
+import { useFocusedBrowserWindow, useTabs } from '@extension/chrome'
 import { cn } from '@extension/ui'
 import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -20,7 +21,10 @@ const SelectWindowButton = ({
   onSelect,
 }: SelectWindowButtonProps) => {
   console.count('SelectWindowButton.render')
+
+  const focusedBrowserWindow = useFocusedBrowserWindow()
   const { data: tabs = [] } = useTabs({ windowId: window.id })
+
   return (
     <button
       key={window.id}
@@ -32,19 +36,32 @@ const SelectWindowButton = ({
         !isLight && 'border border-gray-800 bg-gray-900 text-gray-200',
         isSelected &&
           isLight &&
-          'border border-blue-200 bg-blue-50 text-blue-700',
+          'border border-blue-400 bg-blue-50 text-blue-700',
         isSelected &&
           !isLight &&
           'border border-blue-600 bg-blue-900/30 text-blue-200',
-        !isSelected && isCurrent && isLight && 'border border-blue-200',
+        !isSelected && isCurrent && isLight && 'border border-blue-400',
         !isSelected && isCurrent && !isLight && 'border border-blue-600',
       )}
     >
-      <div className="flex w-full items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className={cn('font-medium')}>Window {window.id}</div>
+      <div className="flex w-full flex-row gap-2">
+        <div className="flex flex-grow-0 flex-col gap-1">
+          <div
+            className={cn(
+              'font-medium',
+              focusedBrowserWindow?.id === window.id ? 'font-bold' : '',
+            )}
+          >
+            W{window.id}
+          </div>
+          <div className="text-xs text-gray-400">
+            {window.state} {window.type}
+          </div>
+          <div className="text-xs text-gray-400">{tabs.length} tabs</div>
         </div>
-        <div className="text-xs text-gray-400">{tabs.length} tabs</div>
+        <div className="flex-grow">
+          <WindowThumbnail browserWindow={window} isLight={isLight} />
+        </div>
       </div>
       <div className="flex h-2 w-full justify-end gap-1 overflow-hidden">
         {tabs.map((tab) => (

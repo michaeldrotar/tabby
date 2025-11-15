@@ -4,7 +4,7 @@ import EventEmitter from 'events'
   Creates an object with methods to handle event functionality.
 
   @example
-  const onUpdated = createEvent<(id: number) => void>("updated");
+  const onUpdated = createEvent<[number]>("updated");
   const MyLibrary = {
     onUpdated: onUpdated.listener
   }
@@ -19,10 +19,7 @@ import EventEmitter from 'events'
   MyLibrary.onUpdated.hasListeners()        // => true
   MyLibrary.onUpdated.removeListener(listener)
  */
-export const createEvent = <
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  CALLBACK extends (...args: any[]) => void = () => void,
->(
+export const createEvent = <PARAMS extends unknown[] = []>(
   eventName: string,
 ) => {
   const emitter = new EventEmitter()
@@ -36,13 +33,13 @@ export const createEvent = <
        * event is emitted. An error in one of them will stop later
        * callbacks from being called.
        */
-      addListener: (callback: CALLBACK) => {
+      addListener: (callback: (...params: PARAMS) => void) => {
         emitter.addListener(eventName, callback)
       },
       /**
        * Checks if the given callback is in the listener list.
        */
-      hasListener: (callback: CALLBACK) =>
+      hasListener: (callback: (...params: PARAMS) => void) =>
         emitter.listenerCount(eventName, callback) > 0,
       /**
        * Checks if the event has at least one listener.
@@ -54,7 +51,7 @@ export const createEvent = <
        * If the callback was added multiple times, this will only remove
        * one of them.
        */
-      removeListener: (callback: CALLBACK) => {
+      removeListener: (callback: (...params: PARAMS) => void) => {
         emitter.removeListener(eventName, callback)
       },
     },
@@ -62,8 +59,8 @@ export const createEvent = <
      * Fires the event, calling all registered listeners synchronously
      * in the order they were registered.
      */
-    emit: (...args: Parameters<CALLBACK>): void => {
-      emitter.emit(eventName, ...args)
+    emit: (...params: PARAMS): void => {
+      emitter.emit(eventName, ...params)
     },
   }
 }

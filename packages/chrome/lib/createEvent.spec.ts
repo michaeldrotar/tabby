@@ -22,8 +22,11 @@ describe('createEvent', () => {
   })
 
   it('emit forwards arguments to listeners', () => {
-    const event = createEvent<(a: number, b: string) => void>('args')
-    const listener = vi.fn()
+    const event = createEvent<[number, string]>('args')
+    const listener = vi.fn((answer, word) => {
+      expect(answer).toBe(42)
+      expect(word).toBe('hello')
+    })
 
     event.listener.addListener(listener)
     event.emit(42, 'hello')

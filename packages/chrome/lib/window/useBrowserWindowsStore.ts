@@ -1,5 +1,6 @@
 import { BrowserWindows } from './BrowserWindows.js'
 import { create } from 'zustand'
+import type { BrowserWindow } from './BrowserWindow.js'
 
 type BrowserWindowStoreState = {
   all: typeof BrowserWindows.all
@@ -22,17 +23,6 @@ export const useBrowserWindowsStore = create<BrowserWindowStoreState>(() => ({
   focused: undefined,
 }))
 
-const update = () => {
-  console.count('useBrowserWindowStore.update')
-  const { all, byId, current, focused } = BrowserWindows
-  useBrowserWindowsStore.setState({
-    all: [...all],
-    byId: { ...byId },
-    current,
-    focused,
-  })
-}
-
 const loaded = () => {
   console.count('useBrowserWindowStore.loaded')
   const { all, byId, current, focused } = BrowserWindows
@@ -44,8 +34,24 @@ const loaded = () => {
   })
 }
 
-const updated = () => {
+const updated = (updatedBrowserWindow: BrowserWindow) => {
   console.count('useBrowserWindowStore.updated')
+  const state = useBrowserWindowsStore.getState()
+  const existingWindow = state.all.find(
+    (browserWindow) => browserWindow.id === updatedBrowserWindow.id,
+  )
+  if (!existingWindow) return
+  const index = state.all.indexOf(existingWindow)
+  const newWindow = {
+    ...existingWindow,
+    ...updatedBrowserWindow,
+  }
+  state.all.splice(index, 1, newWindow)
+  state.byId[newWindow.id] = newWindow
+  useBrowserWindowsStore.setState({
+    all: [...state.all],
+    byId: { ...state.byId },
+  })
 }
 
 const listChanged = () => {
@@ -73,8 +79,8 @@ const focusedChanged = () => {
   })
 }
 
-BrowserWindows.load().then(update)
+BrowserWindows.load().then(loaded)
 BrowserWindows.onCurrentChanged.addListener(currentChanged)
 BrowserWindows.onFocusedChanged.addListener(focusedChanged)
 BrowserWindows.onListChanged.addListener(listChanged)
-BrowserWindows.onUpdated.addListener(update)
+BrowserWindows.onUpdated.addListener(updated)
