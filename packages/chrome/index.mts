@@ -11,6 +11,6 @@ export type { BrowserWindow } from './lib/window/BrowserWindow.js'
 export type { BrowserWindowID } from './lib/window/BrowserWindowID.js'
 
 export {
-  BrowserWindowStoreProvider as BrowserWindowStoreProvider3,
-  type BrowserWindowStoreProviderProps as BrowserWindowStoreProvider3Props,
-} from './lib/window/BrowserWindowStoreProvider.js'
+  BrowserStoreProvider,
+  type BrowserStoreProviderProps,
+} from './lib/BrowserStoreProvider.js'
