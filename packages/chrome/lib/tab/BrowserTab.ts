@@ -1,4 +1,4 @@
-import type { BrowserWindowID } from './BrowserWindowID.js'
+import type { BrowserTabID } from './BrowserTabID.js'
 
 /**
  * Represents a browser tab.
@@ -17,5 +17,5 @@ export type BrowserTab = Omit<chrome.tabs.Tab, 'id'> & {
    * Every browser window will have one or else a warning will be logged
    * and the window will be ignored.
    */
-  id: BrowserWindowID
+  id: BrowserTabID
 }
