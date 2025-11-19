@@ -1,4 +1,5 @@
 import SidePanel from './SidePanel'
+import { BrowserWindowStoreProvider3 } from '@extension/chrome'
 import {
   registerQueryClient,
   unregisterQueryClient,
@@ -19,7 +20,9 @@ export const Root = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidePanel />
+      <BrowserWindowStoreProvider3>
+        <SidePanel />
+      </BrowserWindowStoreProvider3>
     </QueryClientProvider>
   )
 }

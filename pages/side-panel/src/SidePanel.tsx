@@ -2,7 +2,7 @@ import { SelectWindowButton } from './SelectWindowButton'
 import { SelectWindowDot } from './SelectWindowDot'
 import { TabItem } from './TabItem'
 import {
-  useBrowserWindowActions,
+  createBrowserWindow,
   useBrowserWindows,
   useCurrentBrowserWindow,
   useTabGroups,
@@ -40,7 +40,6 @@ const SidePanel = () => {
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
-  const browserWindowActions = useBrowserWindowActions()
   const { data: tabs } = useTabs()
   const { data: groups } = useTabGroups()
 
@@ -172,10 +171,10 @@ const SidePanel = () => {
   const openNewBrowserWindow = useCallback(async () => {
     console.count('SidePanel.openNewBrowserWindow')
     if (!currentBrowserWindow) {
-      await browserWindowActions.create()
+      await createBrowserWindow()
       return
     }
-    const newWindow = await browserWindowActions.create({
+    const newWindow = await createBrowserWindow({
       height: currentBrowserWindow.height,
       incognito: currentBrowserWindow.incognito,
       left: currentBrowserWindow.left,
@@ -186,7 +185,7 @@ const SidePanel = () => {
     if (newWindow) {
       chrome.sidePanel.open({ windowId: newWindow.id })
     }
-  }, [browserWindowActions, currentBrowserWindow])
+  }, [currentBrowserWindow])
 
   return (
     <>

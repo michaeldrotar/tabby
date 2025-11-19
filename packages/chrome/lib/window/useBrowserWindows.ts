@@ -1,4 +1,5 @@
-import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
+import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import type { BrowserWindow } from './BrowserWindow.js'
 
 /**
  * Provides all browser windows.
@@ -12,6 +13,6 @@ import { useBrowserWindowsStore } from './useBrowserWindowsStore.js'
  * const browserWindows = useBrowserWindows();
  * return browserWindows.map(browserWindow => <div key={browserWindow.id}>Window {browserWindow.id}</div>)
  */
-export const useBrowserWindows = () => {
-  return useBrowserWindowsStore((state) => state.all)
+export const useBrowserWindows = (): BrowserWindow[] => {
+  return useBrowserWindowStore((state) => state.all)
 }
