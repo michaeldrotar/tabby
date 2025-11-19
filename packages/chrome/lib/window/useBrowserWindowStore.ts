@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { BrowserWindow } from './BrowserWindow.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
-export type UseBrowserWindowStore3State = {
+export type UseBrowserWindowStoreState = {
   /**
    * The current loading state for this data.
    * - initial = initial state, not yet loaded
@@ -74,7 +74,7 @@ export type UseBrowserWindowStore3State = {
  * hooks for best performance. They are optimized to only re-render when
  * their specific data is changed.
  */
-export const useBrowserWindowStore = create<UseBrowserWindowStore3State>(
+export const useBrowserWindowStore = create<UseBrowserWindowStoreState>(
   (set, get) => {
     return {
       state: 'initial',
