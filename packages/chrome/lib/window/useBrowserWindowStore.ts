@@ -43,26 +43,17 @@ export type UseBrowserWindowStoreState = {
   focusedId: BrowserWindowID | undefined
 
   /**
-   * Adds a browser window to the store, updating the `all` and `byId` lists.
-   *
-   * Does not provide any additional logic or evaluation, such as changing the
-   * focusedId if the newly added window is also focused.
+   * Adds a browser window to all collections of the store.
    */
   add: (newBrowserWindow: BrowserWindow) => void
 
   /**
-   * Updates a browser window's state in the store.
-   *
-   * Does not provide any additional logic or evaluation, such as changing the
-   * focusedId if the updated window is focused.
+   * Updates a browser window's state across all collections in the store.
    */
   updateById: (id: BrowserWindowID, data: Partial<BrowserWindow>) => void
 
   /**
-   * Removes a browser window from the store.
-   *
-   * Does not provide any additional logic or evaluation, such as unsetting
-   * the focusedId if the focused window is removed.
+   * Removes a browser window from all collections in the store.
    */
   removeById: (id: BrowserWindowID) => void
 }
@@ -95,16 +86,15 @@ export const useBrowserWindowStore = create<UseBrowserWindowStoreState>(
         const { all, byId } = get()
         if (!byId[id]) return
 
-        const newBrowserWindow: BrowserWindow = {
-          ...byId[id],
+        const current = byId[id]
+        const updated: BrowserWindow = {
+          ...current,
           ...data,
         }
 
         set({
-          all: all.map((w) =>
-            w.id === newBrowserWindow.id ? newBrowserWindow : w,
-          ),
-          byId: { ...byId, [newBrowserWindow.id]: newBrowserWindow },
+          all: all.map((window) => (window.id === id ? updated : window)),
+          byId: { ...byId, [id]: updated },
         })
       },
 

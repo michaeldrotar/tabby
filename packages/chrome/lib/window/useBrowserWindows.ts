@@ -6,7 +6,7 @@ import type { BrowserWindow } from './BrowserWindow.js'
  *
  * Use this when you truly need the full list. If you just need a
  * specific window then its better performance to use
- * `useBrowserWindow` or something else more
+ * `useBrowserWindowById` or something else more
  * specific.
  *
  * @example
