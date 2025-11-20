@@ -1,3 +1,4 @@
+import { EventLog } from './EventLog'
 import SidePanel from './SidePanel'
 import { BrowserStoreProvider } from '@extension/chrome'
 import {
@@ -19,10 +20,13 @@ export const Root = () => {
   }, [])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserStoreProvider>
-        <SidePanel />
-      </BrowserStoreProvider>
-    </QueryClientProvider>
+    <>
+      <EventLog />
+      <QueryClientProvider client={queryClient}>
+        <BrowserStoreProvider>
+          <SidePanel />
+        </BrowserStoreProvider>
+      </QueryClientProvider>
+    </>
   )
 }
