@@ -11,7 +11,7 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 const getAllBrowserWindows = async (): Promise<BrowserWindow[]> => {
   const allChromeWindows = await chrome.windows.getAll()
   const allBrowserWindows = allChromeWindows.map(toBrowserWindow)
-  return allBrowserWindows.filter((w) => w !== undefined)
+  return allBrowserWindows.filter((window) => window !== undefined)
 }
 
 /**
