@@ -6,7 +6,6 @@ import type { BrowserWindow } from '@extension/chrome'
 type SelectWindowDotProps = {
   window: BrowserWindow
   isCurrent: boolean
-  isLight: boolean
   isSelected: boolean
   onSelect: (browserWindow: BrowserWindow) => void
 }
@@ -14,7 +13,6 @@ type SelectWindowDotProps = {
 const SelectWindowDot = ({
   window,
   isCurrent,
-  isLight,
   isSelected,
   onSelect,
 }: SelectWindowDotProps) => {
@@ -37,13 +35,12 @@ const SelectWindowDot = ({
       {(() => {
         let dotCls = ''
         if (isSelected) {
-          dotCls = isLight ? 'h-3 w-3 bg-blue-600' : 'h-3 w-3 bg-blue-300'
+          dotCls = 'h-3 w-3 bg-blue-600 dark:bg-blue-300'
         } else if (isCurrent) {
-          dotCls = isLight
-            ? 'h-2 w-2 border-2 border-blue-400 bg-transparent'
-            : 'h-2 w-2 border-2 border-blue-500 bg-transparent'
+          dotCls =
+            'h-2 w-2 border-2 border-blue-400 bg-transparent dark:border-blue-500'
         } else {
-          dotCls = isLight ? 'h-2 w-2 bg-gray-400' : 'h-2 w-2 bg-gray-500'
+          dotCls = 'h-2 w-2 bg-gray-400 dark:bg-gray-500'
         }
         return (
           <span

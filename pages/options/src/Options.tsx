@@ -2,18 +2,22 @@ import '@src/Options.css'
 import { t } from '@extension/i18n'
 import {
   PROJECT_URL_OBJECT,
-  useStorage,
+  useThemeStorage,
   withErrorBoundary,
   withSuspense,
 } from '@extension/shared'
 import { exampleThemeStorage } from '@extension/storage'
 import { cn, ErrorDisplay, LoadingSpinner, ToggleButton } from '@extension/ui'
+import type { ThemeStateType } from '@extension/storage/lib/base'
 
 const Options = () => {
-  const { isLight } = useStorage(exampleThemeStorage)
-  const logo = isLight
-    ? 'options/logo_horizontal.svg'
-    : 'options/logo_horizontal_dark.svg'
+  const { theme } = useThemeStorage()
+  const logo = (
+    {
+      light: 'options/logo_horizontal.svg',
+      dark: 'options/logo_horizontal_dark.svg',
+    } as Record<Exclude<ThemeStateType['theme'], undefined>, string>
+  )[theme || 'light']
 
   const goGithubSite = () => chrome.tabs.create(PROJECT_URL_OBJECT)
 
@@ -21,7 +25,8 @@ const Options = () => {
     <div
       className={cn(
         'App',
-        isLight ? 'bg-slate-50 text-gray-900' : 'bg-gray-800 text-gray-100',
+        'bg-slate-50 text-gray-900',
+        'dark:bg-gray-800 dark:text-gray-100',
       )}
     >
       <button onClick={goGithubSite}>

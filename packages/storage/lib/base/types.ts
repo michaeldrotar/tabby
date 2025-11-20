@@ -45,8 +45,7 @@ export type StorageConfigType<D = string> = {
 }
 
 export interface ThemeStateType {
-  theme: 'light' | 'dark'
-  isLight: boolean
+  theme: 'light' | 'dark' | undefined
 }
 
 export type ThemeStorageType = BaseStorageType<ThemeStateType> & {

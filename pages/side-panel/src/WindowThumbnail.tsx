@@ -3,13 +3,9 @@ import type { BrowserWindow } from '@extension/chrome'
 
 export type WindowThumbnailProps = {
   browserWindow: BrowserWindow
-  isLight: boolean
 }
 
-export const WindowThumbnail = ({
-  browserWindow,
-  isLight,
-}: WindowThumbnailProps) => {
+export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
   console.count('WindowThumbnail.render')
 
   const screenHeight = screen.height
@@ -41,17 +37,15 @@ export const WindowThumbnail = ({
       <div
         className={cn(
           'absolute inset-0 rounded-md border-2 bg-gradient-to-br',
-          isLight
-            ? 'border-gray-200 from-gray-50 to-gray-200'
-            : 'border-gray-700 from-gray-700 to-gray-900',
+          'border-gray-200 from-gray-50 to-gray-200',
+          'dark:border-gray-700 dark:from-gray-700 dark:to-gray-900',
         )}
       />
       <div
         className={cn(
           'absolute rounded-md border-2',
-          isLight
-            ? 'border-blue-500 bg-blue-200/40'
-            : 'border-blue-400 bg-blue-500/20',
+          'border-blue-500 bg-blue-200/40',
+          'dark:border-blue-400 dark:bg-blue-500/20',
         )}
         style={positionStyles}
       />

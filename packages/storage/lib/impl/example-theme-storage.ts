@@ -4,8 +4,7 @@ import type { ThemeStateType, ThemeStorageType } from '../base/index.js'
 const storage = createStorage<ThemeStateType>(
   'theme-storage-key',
   {
-    theme: 'light',
-    isLight: true,
+    theme: undefined,
   },
   {
     storageEnum: StorageEnum.Local,
@@ -13,16 +12,28 @@ const storage = createStorage<ThemeStateType>(
   },
 )
 
+const setTheme = async (theme: ThemeStateType['theme']) => {
+  await storage.set(() => {
+    return {
+      theme,
+    }
+  })
+  if (theme) {
+    document.body.setAttribute('data-theme', theme)
+  } else {
+    document.body.removeAttribute('data-theme')
+  }
+}
+
 export const exampleThemeStorage: ThemeStorageType = {
   ...storage,
   toggle: async () => {
-    await storage.set((currentState) => {
-      const newTheme = currentState.theme === 'light' ? 'dark' : 'light'
-
-      return {
-        theme: newTheme,
-        isLight: newTheme === 'light',
-      }
-    })
+    const currentState = await storage.get()
+    setTheme(currentState.theme === 'light' ? 'dark' : 'light')
   },
+}
+
+export const loadThemeStorage = async (): Promise<void> => {
+  const currentState = await storage.get()
+  setTheme(currentState.theme)
 }
