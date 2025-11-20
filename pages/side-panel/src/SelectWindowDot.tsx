@@ -27,37 +27,25 @@ const SelectWindowDot = ({
       title={title}
       aria-pressed={isSelected}
       className={cn(
-        'group relative flex h-8 w-8 items-center justify-center rounded-full p-1 focus:outline-none',
-        'transition-transform hover:scale-105',
+        'group relative flex h-8 w-8 items-center justify-center rounded-full transition-all focus:outline-none',
+        isSelected
+          ? 'bg-blue-100 dark:bg-blue-900/30'
+          : 'hover:bg-gray-200 dark:hover:bg-gray-800',
       )}
     >
       {/* Dot */}
-      {(() => {
-        let dotCls = ''
-        if (isSelected) {
-          dotCls = 'h-3 w-3 bg-blue-600 dark:bg-blue-300'
-        } else if (isCurrent) {
-          dotCls =
-            'h-2 w-2 border-2 border-blue-400 bg-transparent dark:border-blue-500'
-        } else {
-          dotCls = 'h-2 w-2 bg-gray-400 dark:bg-gray-500'
-        }
-        return (
-          <span
-            className={cn('inline-block rounded-full transition-all', dotCls)}
-          />
-        )
-      })()}
-
-      {/* subtle badge for tab count on hover */}
       <span
         className={cn(
-          'absolute -right-2 -top-2 hidden items-center justify-center rounded-full bg-gray-600 px-1 text-[10px] text-white',
-          'group-hover:flex',
+          'rounded-full transition-all',
+          isSelected
+            ? 'h-3 w-3 bg-blue-600 dark:bg-blue-400'
+            : isCurrent
+              ? 'h-2.5 w-2.5 border-2 border-blue-500 bg-transparent'
+              : 'h-2 w-2 bg-gray-400 group-hover:bg-gray-500 dark:bg-gray-600 dark:group-hover:bg-gray-500',
         )}
-      >
-        {tabs.length}
-      </span>
+      />
+
+      {/* Tooltip-like badge on hover (optional, maybe just rely on title) */}
     </button>
   )
 }

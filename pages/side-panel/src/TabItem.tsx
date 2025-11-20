@@ -23,35 +23,34 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
     <button
       type="button"
       className={cn(
-        'flex w-full items-center gap-2 truncate rounded-sm px-1 py-0.5 text-left font-semibold',
+        'group flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
         isActive
-          ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200'
-          : 'hover:text-blue-600 dark:hover:text-blue-300',
-        !isActive &&
-          isDiscarded &&
-          'text-gray-400 opacity-60 dark:text-gray-500',
+          ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
+          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+        !isActive && isDiscarded && 'opacity-60 grayscale',
       )}
       title={tab.url}
       onClick={handleClick}
     >
       <div
         className={cn(
-          'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-sm align-middle',
-          isDiscarded && 'rounded-full border-2 border-dotted border-current',
+          'relative flex h-4 w-4 flex-shrink-0 items-center justify-center',
+          isDiscarded && 'opacity-70',
         )}
       >
         <Favicon
           pageUrl={tab.url}
-          size={isDiscarded ? 12 : 16}
-          className={cn(
-            isDiscarded && 'h-3 w-3 rounded-full',
-            !isDiscarded && 'h-4 w-4',
-          )}
+          size={16}
+          className={cn('h-4 w-4 transition-transform group-hover:scale-110')}
         />
+        {isDiscarded && (
+          <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-white bg-gray-400 dark:border-gray-900" />
+        )}
       </div>
-      <span className="truncate">
-        {tab.index} {tab.active ? 'active' : ''} {tab.title}
+      <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
+        {tab.title}
       </span>
+      {/* Optional: Close button on hover could go here */}
     </button>
   )
 }

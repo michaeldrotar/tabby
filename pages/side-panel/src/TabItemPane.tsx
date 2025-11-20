@@ -85,9 +85,9 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   }
 
   return (
-    <div key={`window-tabs-${browserWindowId}`}>
-      <div className="space-y-3">
-        <ol className="flex flex-col">
+    <div key={`window-tabs-${browserWindowId}`} className="pb-4">
+      <div className="space-y-4 p-2">
+        <ol className="flex flex-col gap-1">
           {windowItem.subItems.map((childItem) => (
             <li
               key={
@@ -98,29 +98,33 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
               className="flex w-full flex-col"
             >
               {childItem.type === 'group' && (
-                <div className={cn('flex flex-col rounded-md p-2')}>
-                  <h4
-                    className={cn(
-                      'mb-1 text-sm font-medium',
-                      childItem.tabGroup.color
-                        ? childItem.active
-                          ? `text-${childItem.tabGroup.color}-600 dark:text-${childItem.tabGroup.color}-500`
-                          : `text-${childItem.tabGroup.color}-800 dark:text-${childItem.tabGroup.color}-700`
-                        : 'text-gray-700 dark:text-gray-100',
-                    )}
-                  >
-                    {childItem.tabGroup.title || 'Unnamed Group'}
-                  </h4>
-                  <ol
-                    className={cn(
-                      'ml-0 space-y-1 border-l-2 pl-2',
-                      childItem.tabGroup.color
-                        ? `border-l-${childItem.tabGroup.color}-600`
-                        : 'border-l-gray-600',
-                      'text-gray-700',
-                      'dark:text-gray-200',
-                    )}
-                  >
+                <div
+                  className={cn(
+                    'flex flex-col rounded-lg border border-transparent bg-gray-50/50 p-1 transition-colors dark:bg-gray-900/30',
+                    childItem.active && 'bg-blue-50/50 dark:bg-blue-900/10',
+                  )}
+                >
+                  <div className="mb-1 flex items-center gap-2 px-2 py-1">
+                    <div
+                      className={cn(
+                        'h-3 w-3 rounded-full',
+                        childItem.tabGroup.color
+                          ? `bg-${childItem.tabGroup.color}-500`
+                          : 'bg-gray-400',
+                      )}
+                    />
+                    <h4
+                      className={cn(
+                        'text-xs font-bold uppercase tracking-wider opacity-80',
+                        childItem.tabGroup.color
+                          ? `text-${childItem.tabGroup.color}-700 dark:text-${childItem.tabGroup.color}-400`
+                          : 'text-gray-600 dark:text-gray-400',
+                      )}
+                    >
+                      {childItem.tabGroup.title || 'Group'}
+                    </h4>
+                  </div>
+                  <ol className="flex flex-col gap-0.5 pl-2">
                     {childItem.subItems.map((tabItem) => (
                       <li key={tabItem.tab.id} className="flex flex-col">
                         <div data-tabid={tabItem.tab.id}>

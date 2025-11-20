@@ -190,20 +190,15 @@ const SidePanel = () => {
         <SidePanelHeader />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
-          <SelectWindowButtonPane
-            selectedBrowserWindowId={selectedWindowId || undefined}
-            onSelectBrowserWindow={onSelectWindow}
-            onNewBrowserWindowClick={openNewBrowserWindow}
-          />
-
+          {/* Navigation Rail (Dots) */}
           <div
             className={cn(
-              'flex h-full w-20 flex-shrink-0 items-center justify-center overflow-y-auto overscroll-none border-r',
-              'bg-white',
-              'dark:bg-gray-900',
+              'flex h-full w-12 flex-shrink-0 flex-col items-center overflow-y-auto border-r py-4',
+              'border-gray-200 bg-gray-100',
+              'dark:border-gray-800 dark:bg-gray-900',
             )}
           >
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-2">
+            <div className="flex flex-col gap-3">
               {browserWindows.map((browserWindow) => (
                 <SelectWindowDot
                   key={browserWindow.id}
@@ -214,80 +209,20 @@ const SidePanel = () => {
                 />
               ))}
             </div>
+            <div className="mt-auto pb-2">
+              {/* Placeholder for bottom actions if needed */}
+            </div>
           </div>
 
-          <div className="h-full flex-1 overflow-y-auto overscroll-none p-3">
-            {/* {windowItems
-              .filter((wi) => wi.window.id === selectedWindowId)
-              .map((windowItem) => (
-                <div key={`window-tabs-${windowItem.window.id}`}>
-                  <div className="space-y-3">
-                    <ol className="flex flex-col">
-                      {windowItem.subItems.map((childItem) => (
-                        <li
-                          key={
-                            childItem.type === 'tab'
-                              ? childItem.tab.id
-                              : childItem.tabGroup.id
-                          }
-                          className="flex w-full flex-col"
-                        >
-                          {childItem.type === 'group' && (
-                            <div className={cn('flex flex-col rounded-md p-2')}>
-                              <h4
-                                className={cn(
-                                  'mb-1 text-sm font-medium',
-                                  childItem.tabGroup.color
-                                    ? childItem.tabGroup.id === currentGroupId
-                                      ? `text-${childItem.tabGroup.color}-600 dark:text-${childItem.tabGroup.color}-500`
-                                      : `text-${childItem.tabGroup.color}-800 dark:text-${childItem.tabGroup.color}-700`
-                                    : 'text-gray-700 dark:text-gray-100',
-                                )}
-                              >
-                                {childItem.tabGroup.title || 'Unnamed Group'}
-                              </h4>
-                              <ol
-                                className={cn(
-                                  'ml-0 space-y-1 border-l-2 pl-2',
-                                  childItem.tabGroup.color
-                                    ? `border-l-${childItem.tabGroup.color}-600`
-                                    : 'border-l-gray-600',
-                                  'text-gray-700',
-                                  'dark:text-gray-200',
-                                )}
-                              >
-                                {childItem.subItems.map((tabItem) => (
-                                  <li
-                                    key={tabItem.tab.id}
-                                    className="flex flex-col"
-                                  >
-                                    <div data-tabid={tabItem.tab.id}>
-                                      <TabItem
-                                        tab={tabItem.tab}
-                                        isActive={
-                                          tabItem.tab.id === currentTabId
-                                        }
-                                      />
-                                    </div>
-                                  </li>
-                                ))}
-                              </ol>
-                            </div>
-                          )}
-                          {childItem.type === 'tab' && (
-                            <div data-tabid={childItem.tab.id}>
-                              <TabItem
-                                tab={childItem.tab}
-                                isActive={childItem.tab.id === currentTabId}
-                              />
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
-              ))} */}
+          {/* Window List (Blocks) */}
+          <SelectWindowButtonPane
+            selectedBrowserWindowId={selectedWindowId || undefined}
+            onSelectBrowserWindow={onSelectWindow}
+            onNewBrowserWindowClick={openNewBrowserWindow}
+          />
+
+          {/* Tab List */}
+          <div className="h-full flex-1 overflow-y-auto overscroll-none bg-white dark:bg-gray-950">
             <TabItemPane browserWindowId={selectedWindowId || undefined} />
           </div>
         </div>
