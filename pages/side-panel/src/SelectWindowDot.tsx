@@ -1,4 +1,4 @@
-import { useTabs } from '@extension/chrome'
+import { useBrowserTabsByWindowId } from '@extension/chrome'
 import { cn } from '@extension/ui'
 import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -19,7 +19,7 @@ const SelectWindowDot = ({
   onSelect,
 }: SelectWindowDotProps) => {
   console.count('SelectWindowDot.render')
-  const { data: tabs = [] } = useTabs({ windowId: window.id })
+  const tabs = useBrowserTabsByWindowId(window.id)
   const title = `Window ${window.id} — ${tabs.length} tab${tabs.length === 1 ? '' : 's'}`
 
   return (

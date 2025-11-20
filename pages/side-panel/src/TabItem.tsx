@@ -54,7 +54,9 @@ const TabItem = ({ tab, isActive, isLight }: TabItemProps) => {
           )}
         />
       </div>
-      <span className="truncate">{tab.title}</span>
+      <span className="truncate">
+        {tab.index} {tab.active ? 'active' : ''} {tab.title}
+      </span>
     </button>
   )
 }

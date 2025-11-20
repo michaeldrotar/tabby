@@ -3,10 +3,11 @@ import { SelectWindowDot } from './SelectWindowDot'
 import { TabItem } from './TabItem'
 import {
   createBrowserWindow,
+  useBrowserTabs,
+  useBrowserTabsByWindowId,
   useBrowserWindows,
   useCurrentBrowserWindow,
   useTabGroups,
-  useTabs,
 } from '@extension/chrome'
 import { t } from '@extension/i18n'
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared'
@@ -40,11 +41,12 @@ const SidePanel = () => {
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
-  const { data: tabs } = useTabs()
+  const tabs = useBrowserTabs()
   const { data: groups } = useTabGroups()
 
   const [windowItems, setWindowItems] = useState<WindowItem[]>([])
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
+  const selectedWindowTabs = useBrowserTabsByWindowId(selectedWindowId)
 
   // current active identifiers for highlighting
   const [currentTabId, setCurrentTabId] = useState<number | null>(null)
@@ -55,7 +57,7 @@ const SidePanel = () => {
     const build = () => {
       const groupList = groups ?? []
       const winList = browserWindows ?? []
-      const tabList = tabs ?? []
+      const tabList = selectedWindowTabs ?? []
 
       const newWindowItems: WindowItem[] = []
       let lastWindowItem: WindowItem | undefined = undefined
@@ -116,7 +118,7 @@ const SidePanel = () => {
     }
 
     build()
-  }, [browserWindows, tabs, groups, selectedWindowId])
+  }, [browserWindows, selectedWindowTabs, groups, selectedWindowId])
 
   useEffect(() => {
     let mounted = true

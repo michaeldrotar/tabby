@@ -1,6 +1,9 @@
 import { Favicon } from './Favicon'
 import { WindowThumbnail } from './WindowThumbnail'
-import { useFocusedBrowserWindow, useTabs } from '@extension/chrome'
+import {
+  useBrowserTabsByWindowId,
+  useFocusedBrowserWindow,
+} from '@extension/chrome'
 import { cn } from '@extension/ui'
 import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -23,7 +26,7 @@ const SelectWindowButton = ({
   console.count('SelectWindowButton.render')
 
   const focusedBrowserWindow = useFocusedBrowserWindow()
-  const { data: tabs = [] } = useTabs({ windowId: window.id })
+  const tabs = useBrowserTabsByWindowId(window.id)
 
   return (
     <button

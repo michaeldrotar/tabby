@@ -1,7 +1,6 @@
 export type { BrowserTab } from './lib/tab/BrowserTab.js'
 export type { BrowserTabID } from './lib/tab/BrowserTabID.js'
 
-export { useTabs } from './lib/useTabs.js'
 export { useBrowserTabById } from './lib/tab/useBrowserTabById.js'
 export { useBrowserTabs } from './lib/tab/useBrowserTabs.js'
 export { useBrowserTabsById } from './lib/tab/useBrowserTabsById.js'
