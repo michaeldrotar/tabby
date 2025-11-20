@@ -1,4 +1,5 @@
 import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useState } from 'react'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserWindowID } from 'index.mjs'
 
@@ -12,5 +13,8 @@ import type { BrowserWindowID } from 'index.mjs'
 export const useBrowserTabsByWindowId = (
   windowId: BrowserWindowID,
 ): BrowserTab[] => {
-  return useBrowserTabStore((state) => state.byWindowId[windowId] || [])
+  console.log('useBrowserTabsByWindowId', windowId)
+  const tabs = useBrowserTabStore((state) => state.byWindowId[windowId])
+  const [noTabs] = useState(() => [])
+  return tabs ?? noTabs
 }
