@@ -9,7 +9,7 @@ import {
 } from '@extension/chrome'
 import { withErrorBoundary, withSuspense } from '@extension/shared'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { TabItem } from './TabItem'
 import type { BrowserWindow } from '@extension/chrome'
 
@@ -115,6 +115,12 @@ const SidePanel = () => {
 
   //   build()
   // }, [browserWindows, selectedWindowTabs, groups, selectedWindowId])
+
+  useEffect(() => {
+    if (selectedWindowId) return
+    if (!browserWindows.length) return
+    setSelectedWindowId(currentBrowserWindow?.id ?? browserWindows[0].id)
+  }, [selectedWindowId, browserWindows, currentBrowserWindow])
 
   // useEffect(() => {
   //   let mounted = true
