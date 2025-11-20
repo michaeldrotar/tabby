@@ -1,18 +1,16 @@
-import { SelectWindowButton } from './SelectWindowButton'
+import { SelectWindowButtonPane } from './SelectWindowButtonPane'
 import { SelectWindowDot } from './SelectWindowDot'
 import { SidePanelHeader } from './SidePanelHeader'
-import { TabItem } from './TabItem'
+import { TabItemPane } from './TabItemPane'
 import {
   createBrowserWindow,
-  useBrowserTabs,
-  useBrowserTabsByWindowId,
   useBrowserWindows,
   useCurrentBrowserWindow,
-  useTabGroups,
 } from '@extension/chrome'
 import { withErrorBoundary, withSuspense } from '@extension/shared'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import type { TabItem } from './TabItem'
 import type { BrowserWindow } from '@extension/chrome'
 
 type TabItem = {
@@ -39,114 +37,114 @@ const SidePanel = () => {
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
-  const tabs = useBrowserTabs()
-  const { data: groups } = useTabGroups()
+  // const tabs = useBrowserTabs()
+  // const { data: groups } = useTabGroups()
 
   const [windowItems, setWindowItems] = useState<WindowItem[]>([])
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
-  const selectedWindowTabs = useBrowserTabsByWindowId(selectedWindowId)
+  const selectedWindowTabs = [] // useBrowserTabsByWindowId(selectedWindowId)
 
   // current active identifiers for highlighting
   const [currentTabId, setCurrentTabId] = useState<number | null>(null)
   const [currentGroupId, setCurrentGroupId] = useState<number | null>(null)
 
   // Build windowItems from the hook data whenever windows/tabs/groups change
-  useEffect(() => {
-    const build = () => {
-      const groupList = groups ?? []
-      const winList = browserWindows ?? []
-      const tabList = selectedWindowTabs ?? []
+  // useEffect(() => {
+  //   const build = () => {
+  //     const groupList = groups ?? []
+  //     const winList = browserWindows ?? []
+  //     const tabList = selectedWindowTabs ?? []
 
-      const newWindowItems: WindowItem[] = []
-      let lastWindowItem: WindowItem | undefined = undefined
-      let lastTabGroupItem: TabGroupItem | undefined = undefined
-      tabList.forEach((tab) => {
-        if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
-          const foundWindow = winList.find((win) => win.id === tab.windowId)
-          if (!foundWindow) return // skip tabs for unknown windows
-          lastWindowItem = {
-            window: foundWindow,
-            subItems: [],
-          }
-          newWindowItems.push(lastWindowItem)
-        }
-        if (tab.groupId === -1) {
-          if (lastTabGroupItem) {
-            lastTabGroupItem = undefined
-          }
-          if (!lastWindowItem) return
-          lastWindowItem.subItems.push({
-            type: 'tab',
-            window: lastWindowItem.window,
-            tab: tab,
-          })
-        } else {
-          if (
-            !lastTabGroupItem ||
-            tab.groupId !== lastTabGroupItem.tabGroup.id
-          ) {
-            if (!lastWindowItem) return
-            const foundTabGroup = groupList.find(
-              (tg) => tg.id === (tab.groupId as number),
-            )
-            if (!foundTabGroup) return
-            lastTabGroupItem = {
-              type: 'group',
-              window: lastWindowItem.window,
-              tabGroup: foundTabGroup,
-              subItems: [],
-            }
-            lastWindowItem.subItems.push(lastTabGroupItem)
-          }
-          lastTabGroupItem.subItems.push({
-            type: 'tab',
-            window: lastWindowItem.window,
-            tabGroup: lastTabGroupItem.tabGroup,
-            tab: tab,
-          })
-        }
-      })
+  //     const newWindowItems: WindowItem[] = []
+  //     let lastWindowItem: WindowItem | undefined = undefined
+  //     let lastTabGroupItem: TabGroupItem | undefined = undefined
+  //     tabList.forEach((tab) => {
+  //       if (!lastWindowItem || tab.windowId !== lastWindowItem.window.id) {
+  //         const foundWindow = winList.find((win) => win.id === tab.windowId)
+  //         if (!foundWindow) return // skip tabs for unknown windows
+  //         lastWindowItem = {
+  //           window: foundWindow,
+  //           subItems: [],
+  //         }
+  //         newWindowItems.push(lastWindowItem)
+  //       }
+  //       if (tab.groupId === -1) {
+  //         if (lastTabGroupItem) {
+  //           lastTabGroupItem = undefined
+  //         }
+  //         if (!lastWindowItem) return
+  //         lastWindowItem.subItems.push({
+  //           type: 'tab',
+  //           window: lastWindowItem.window,
+  //           tab: tab,
+  //         })
+  //       } else {
+  //         if (
+  //           !lastTabGroupItem ||
+  //           tab.groupId !== lastTabGroupItem.tabGroup.id
+  //         ) {
+  //           if (!lastWindowItem) return
+  //           const foundTabGroup = groupList.find(
+  //             (tg) => tg.id === (tab.groupId as number),
+  //           )
+  //           if (!foundTabGroup) return
+  //           lastTabGroupItem = {
+  //             type: 'group',
+  //             window: lastWindowItem.window,
+  //             tabGroup: foundTabGroup,
+  //             subItems: [],
+  //           }
+  //           lastWindowItem.subItems.push(lastTabGroupItem)
+  //         }
+  //         lastTabGroupItem.subItems.push({
+  //           type: 'tab',
+  //           window: lastWindowItem.window,
+  //           tabGroup: lastTabGroupItem.tabGroup,
+  //           tab: tab,
+  //         })
+  //       }
+  //     })
 
-      setWindowItems(newWindowItems)
+  //     setWindowItems(newWindowItems)
 
-      if (!selectedWindowId) {
-        const focused = winList.find((w) => w.focused)
-        setSelectedWindowId(focused?.id ?? newWindowItems[0]?.window.id ?? null)
-      }
-    }
+  //     if (!selectedWindowId) {
+  //       const focused = winList.find((w) => w.focused)
+  //       setSelectedWindowId(focused?.id ?? newWindowItems[0]?.window.id ?? null)
+  //     }
+  //   }
 
-    build()
-  }, [browserWindows, selectedWindowTabs, groups, selectedWindowId])
+  //   build()
+  // }, [browserWindows, selectedWindowTabs, groups, selectedWindowId])
 
-  useEffect(() => {
-    let mounted = true
-    const updateActive = async () => {
-      try {
-        const activeTabs = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        })
-        const active = activeTabs[0]
-        if (mounted) {
-          setCurrentTabId(active?.id ?? null)
-          setCurrentGroupId(
-            typeof active?.groupId === 'number' ? active.groupId : -1,
-          )
-        }
-      } catch {
-        if (mounted) {
-          setCurrentTabId(null)
-          setCurrentGroupId(null)
-        }
-      }
-    }
+  // useEffect(() => {
+  //   let mounted = true
+  //   const updateActive = async () => {
+  //     try {
+  //       const activeTabs = await chrome.tabs.query({
+  //         active: true,
+  //         currentWindow: true,
+  //       })
+  //       const active = activeTabs[0]
+  //       if (mounted) {
+  //         setCurrentTabId(active?.id ?? null)
+  //         setCurrentGroupId(
+  //           typeof active?.groupId === 'number' ? active.groupId : -1,
+  //         )
+  //       }
+  //     } catch {
+  //       if (mounted) {
+  //         setCurrentTabId(null)
+  //         setCurrentGroupId(null)
+  //       }
+  //     }
+  //   }
 
-    updateActive()
+  //   updateActive()
 
-    return () => {
-      mounted = false
-    }
-  }, [browserWindows, tabs])
+  //   return () => {
+  //     mounted = false
+  //   }
+  // }, [browserWindows, tabs])
 
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {
@@ -186,33 +184,11 @@ const SidePanel = () => {
         <SidePanelHeader />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
-          <div
-            className={cn(
-              'h-full w-48 flex-shrink-0 overflow-y-auto overscroll-none border-r',
-              'bg-white',
-              'dark:bg-gray-900',
-            )}
-          >
-            <div className="p-2">
-              {browserWindows.map((browserWindow) => (
-                <SelectWindowButton
-                  key={browserWindow.id}
-                  window={browserWindow}
-                  isCurrent={browserWindow.id === currentBrowserWindow?.id}
-                  isSelected={browserWindow.id === selectedWindowId}
-                  onSelect={onSelectWindow}
-                />
-              ))}
-            </div>
-            <div className="sticky bottom-0 flex h-8 w-full">
-              <button
-                className={cn('flex-grow', 'bg-slate-200', 'dark:bg-slate-600')}
-                onClick={openNewBrowserWindow}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          <SelectWindowButtonPane
+            selectedBrowserWindowId={selectedWindowId || undefined}
+            onSelectBrowserWindow={onSelectWindow}
+            onNewBrowserWindowClick={openNewBrowserWindow}
+          />
 
           <div
             className={cn(
@@ -235,7 +211,7 @@ const SidePanel = () => {
           </div>
 
           <div className="h-full flex-1 overflow-y-auto overscroll-none p-3">
-            {windowItems
+            {/* {windowItems
               .filter((wi) => wi.window.id === selectedWindowId)
               .map((windowItem) => (
                 <div key={`window-tabs-${windowItem.window.id}`}>
@@ -305,7 +281,8 @@ const SidePanel = () => {
                     </ol>
                   </div>
                 </div>
-              ))}
+              ))} */}
+            <TabItemPane browserWindowId={selectedWindowId || undefined} />
           </div>
         </div>
       </div>

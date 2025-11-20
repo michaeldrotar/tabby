@@ -9,8 +9,6 @@ export const onChromeTabUpdated = (
   changeInfo: chrome.tabs.TabChangeInfo,
   tab: chrome.tabs.Tab,
 ): void => {
-  console.log({ tabId, changeInfo, tab })
-
   const browserTab = toBrowserTab(tab)
   if (!browserTab) return
 
