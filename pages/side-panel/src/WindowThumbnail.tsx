@@ -17,8 +17,6 @@ export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
   const width = browserWindow.width || screenWidth - left
   const height = browserWindow.height || screenHeight - top
 
-  console.log({ top, left, width, height, screenWidth, screenHeight })
-
   const positionStyles = {
     top: `${(top / screenHeight) * 100}%`,
     left: `${(left / screenWidth) * 100}%`,
@@ -28,10 +26,7 @@ export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
 
   return (
     <div
-      className={cn(
-        'relative box-border w-full overflow-hidden',
-        // isLight ? 'border-gray-200 bg-gray-100' : 'border-gray-700 bg-gray-800',
-      )}
+      className={cn('relative box-border w-full overflow-hidden')}
       style={{ aspectRatio }}
     >
       <div
@@ -49,12 +44,6 @@ export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
         )}
         style={positionStyles}
       />
-      {/* <div
-        className={cn(
-          'pointer-events-none absolute inset-0 border-2',
-          isLight ? 'border-gray-300/40' : 'border-gray-600/40',
-        )}
-      /> */}
     </div>
   )
 }
