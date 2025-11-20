@@ -1,9 +1,11 @@
 import { Favicon } from './Favicon'
+import { refreshBrowserTab } from '@extension/chrome'
 import { cn } from '@extension/ui'
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
+import type { BrowserTab } from '@extension/chrome'
 
 type TabItemProps = {
-  tab: chrome.tabs.Tab
+  tab: BrowserTab
   isActive: boolean
 }
 
@@ -18,6 +20,10 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
       await chrome.tabs.update(tab.id, { active: true })
     }
   }
+
+  const refresh = useCallback(() => {
+    refreshBrowserTab(tab.id)
+  }, [tab.id])
 
   return (
     <button
@@ -48,8 +54,13 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
         )}
       </div>
       <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
-        {tab.title}
+        {tab.highlighted ? 'H' : 'X'} {tab.index} {tab.id} {tab.title}
       </span>
+      <div className="flex-grow-0">
+        <button type="button" onClick={() => refresh()}>
+          r
+        </button>
+      </div>
       {/* Optional: Close button on hover could go here */}
     </button>
   )

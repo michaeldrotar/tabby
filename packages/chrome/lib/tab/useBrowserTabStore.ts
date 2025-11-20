@@ -30,12 +30,21 @@ export type UseBrowserTabStoreState = {
   /**
    * Adds a browser tab to all collections of the store.
    */
-  add: (newBrowserTab: BrowserTab) => void
+  add: (newBrowserTab: BrowserTab) => BrowserTab
 
   /**
    * Updates a browser tab's state across all collections in the store.
    */
-  updateById: (id: BrowserTabID, data: Partial<BrowserTab>) => void
+  updateById: (
+    id: BrowserTabID,
+    data: Partial<BrowserTab>,
+  ) => BrowserTab | undefined
+
+  /**
+   * Swaps a matching browser tab with the given one across all collections,
+   * matching by id.
+   */
+  replace: (browserTab: BrowserTab) => BrowserTab
 
   /**
    * Removes a browser tab from all collections in the store.
@@ -76,6 +85,8 @@ export const useBrowserTabStore = create<UseBrowserTabStoreState>(
             ],
           },
         }))
+
+        return newBrowserTab
       },
 
       updateById: (id, data) => {
@@ -111,6 +122,26 @@ export const useBrowserTabStore = create<UseBrowserTabStoreState>(
           byId: { ...byId, [id]: updated },
           byWindowId: newByWindowId,
         })
+
+        return updated
+      },
+
+      replace: (browserTab) => {
+        const { all, byId, byWindowId } = get()
+        const { id, windowId } = browserTab
+
+        set({
+          all: all.map((tab) => (tab.id === id ? browserTab : tab)),
+          byId: { ...byId, [id]: browserTab },
+          byWindowId: {
+            ...byWindowId,
+            [windowId]: byWindowId[windowId].map((tab) => {
+              return tab.id === id ? browserTab : tab
+            }),
+          },
+        })
+
+        return browserTab
       },
 
       removeById: (id, removeInfo) => {

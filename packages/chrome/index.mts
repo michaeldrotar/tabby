@@ -9,8 +9,7 @@ export { useBrowserTabsByWindowId } from './lib/tab/useBrowserTabsByWindowId.js'
 export { createBrowserTab } from './lib/tab/createBrowserTab.js'
 export { updateBrowserTabById } from './lib/tab/updateBrowserTabById.js'
 export { removeBrowserTabById } from './lib/tab/removeBrowserTabById.js'
-
-export { useTabGroups } from './lib/useTabGroups.js'
+export { refreshBrowserTab } from './lib/tab/refreshBrowserTab.js'
 
 export type { BrowserWindow } from './lib/window/BrowserWindow.js'
 export type { BrowserWindowID } from './lib/window/BrowserWindowID.js'
