@@ -47,30 +47,41 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   }, [browserWindowId])
 
   const windowItem: WindowItem = {
-    subItems: tabs.map((tab) => {
-      if (tab.groupId) {
-        const group = tabGroups.find((x) => x.id === tab.groupId)
-        if (group) {
-          return {
-            type: 'group',
-            tabGroup: group,
-            subItems: tabs
-              .filter((x) => x.groupId === group.id)
-              .map((tab) => {
-                return {
-                  type: 'tab',
-                  tab,
-                }
-              }),
-            active: tabs.find((x) => x.active) ? true : false,
+    subItems: tabs.reduce(
+      (list, tab) => {
+        if (tab.groupId) {
+          const group = tabGroups.find((x) => x.id === tab.groupId)
+          if (group) {
+            const existingGroup = list.find((x) => x.tabGroup?.id === group.id)
+            if (existingGroup) return list
+            return [
+              ...list,
+              {
+                type: 'group',
+                tabGroup: group,
+                subItems: tabs
+                  .filter((x) => x.groupId === group.id)
+                  .map((tab) => {
+                    return {
+                      type: 'tab',
+                      tab,
+                    }
+                  }),
+                active: tabs.find((x) => x.active) ? true : false,
+              },
+            ]
           }
         }
-      }
-      return {
-        type: 'tab',
-        tab,
-      }
-    }),
+        return [
+          ...list,
+          {
+            type: 'tab',
+            tab,
+          },
+        ]
+      },
+      [] as WindowItem['subItems'],
+    ),
   }
 
   return (
