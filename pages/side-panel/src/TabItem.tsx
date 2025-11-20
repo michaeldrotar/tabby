@@ -31,9 +31,12 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
       className={cn(
         'group flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
         isActive
-          ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
-          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
-        !isActive && isDiscarded && 'opacity-60 grayscale',
+          ? 'bg-blue-200 text-blue-900 dark:bg-blue-900/60 dark:text-blue-50'
+          : tab.highlighted
+            ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
+            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+        isDiscarded && 'opacity-60 grayscale',
+        'transition-all',
       )}
       title={tab.url}
       onClick={handleClick}
@@ -54,7 +57,7 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
         )}
       </div>
       <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
-        {tab.highlighted ? 'H' : 'X'} {tab.index} {tab.id} {tab.title}
+        {tab.index} {tab.id} {tab.title}
       </span>
       <div className="flex-grow-0">
         <button type="button" onClick={() => refresh()}>
