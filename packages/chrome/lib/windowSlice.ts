@@ -35,6 +35,16 @@ export type WindowSlice = {
   focusedWindowId: BrowserWindowID | undefined
 
   /**
+   * The ID of the window currently selected in the UI.
+   */
+  selectedWindowId: BrowserWindowID | undefined
+
+  /**
+   * Sets the selected window ID.
+   */
+  setSelectedWindowId: (id: BrowserWindowID | undefined) => void
+
+  /**
    * Adds a browser window the store.
    */
   addWindow: (newBrowserWindow: BrowserWindow) => void
@@ -55,6 +65,9 @@ export const createWindowSlice: StateCreator<WindowSlice> = (set, get) => ({
   windowIds: [],
   currentWindowId: undefined,
   focusedWindowId: undefined,
+  selectedWindowId: undefined,
+
+  setSelectedWindowId: (id) => set({ selectedWindowId: id }),
 
   addWindow: (newBrowserWindow) => {
     set((state) => ({

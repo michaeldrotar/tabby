@@ -7,6 +7,8 @@ import {
   createBrowserWindow,
   useBrowserWindows,
   useCurrentBrowserWindow,
+  useSelectedWindowId,
+  useSetSelectedWindowId,
 } from '@extension/chrome'
 import { withErrorBoundary, withSuspense } from '@extension/shared'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
@@ -18,7 +20,8 @@ const SidePanel = () => {
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
-  const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
+  const selectedWindowId = useSelectedWindowId()
+  const setSelectedWindowId = useSetSelectedWindowId()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   useEffect(() => {
@@ -32,15 +35,9 @@ const SidePanel = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  useEffect(() => {
-    if (selectedWindowId) return
-    if (!browserWindows.length) return
-    setSelectedWindowId(currentBrowserWindow?.id ?? browserWindows[0].id)
-  }, [selectedWindowId, browserWindows, currentBrowserWindow])
-
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {
-      setSelectedWindowId(window.id ?? null)
+      setSelectedWindowId(window.id)
     },
     [setSelectedWindowId],
   )
@@ -77,10 +74,7 @@ const SidePanel = () => {
           'dark:bg-gray-800 dark:text-gray-100',
         )}
       >
-        <SidePanelHeader
-          onSelectWindow={(id) => setSelectedWindowId(id)}
-          onOpenSearch={() => setIsSearchOpen(true)}
-        />
+        <SidePanelHeader onOpenSearch={() => setIsSearchOpen(true)} />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
           {/* Navigation Rail (Dots) */}

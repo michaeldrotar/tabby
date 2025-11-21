@@ -111,6 +111,7 @@ export const loadBrowserStore = async (): Promise<void> => {
       windowIds: browserWindowIds,
       currentWindowId: currentBrowserWindow?.id,
       focusedWindowId: focusedBrowserWindow?.id,
+      selectedWindowId: currentBrowserWindow?.id ?? browserWindowIds[0],
       tabById: browserTabById,
       tabGroupById: browserTabGroupById,
     })

@@ -26,6 +26,8 @@ export { useBrowserWindows } from './lib/window/useBrowserWindows.js'
 export { useBrowserWindowsById } from './lib/window/useBrowserWindowsById.js'
 export { useCurrentBrowserWindow } from './lib/window/useCurrentBrowserWindow.js'
 export { useFocusedBrowserWindow } from './lib/window/useFocusedBrowserWindow.js'
+export { useSelectedWindowId } from './lib/window/useSelectedWindowId.js'
+export { useSetSelectedWindowId } from './lib/window/useSetSelectedWindowId.js'
 
 export { createBrowserWindow } from './lib/window/createBrowserWindow.js'
 export { updateBrowserWindowById } from './lib/window/updateBrowserWindowById.js'

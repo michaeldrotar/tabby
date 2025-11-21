@@ -2,6 +2,7 @@ import {
   useBrowserTabsByWindowId,
   useBrowserWindows,
   useCurrentBrowserWindow,
+  useSetSelectedWindowId,
 } from '@extension/chrome'
 import { t } from '@extension/i18n'
 import { useThemeStorage } from '@extension/shared'
@@ -9,19 +10,16 @@ import { exampleThemeStorage } from '@extension/storage'
 import { cn } from '@extension/ui'
 
 type SidePanelHeaderProps = {
-  onSelectWindow?: (windowId: number) => void
   onOpenSearch?: () => void
 }
 
-export const SidePanelHeader = ({
-  onSelectWindow,
-  onOpenSearch,
-}: SidePanelHeaderProps) => {
+export const SidePanelHeader = ({ onOpenSearch }: SidePanelHeaderProps) => {
   const { theme } = useThemeStorage()
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const tabs = useBrowserTabsByWindowId(currentBrowserWindow?.id)
   const activeTab = tabs.find((t) => t.active)
+  const setSelectedWindowId = useSetSelectedWindowId()
 
   return (
     <div
@@ -73,7 +71,7 @@ export const SidePanelHeader = ({
             const targetTabId = activeTab?.id || -1
 
             if (targetWindowId !== -1) {
-              onSelectWindow?.(targetWindowId)
+              setSelectedWindowId(targetWindowId)
             }
 
             // Small timeout to allow React to render the new window's tabs if we switched windows
