@@ -1,5 +1,5 @@
 import { toBrowserWindow } from './toBrowserWindow.js'
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 
 /**
  * Handles when a new chrome window is opened.
@@ -9,6 +9,6 @@ export const onChromeWindowCreated = (
 ): void => {
   const newBrowserWindow = toBrowserWindow(newChromeWindow)
   if (!newBrowserWindow) return
-  const state = useBrowserWindowStore.getState()
-  state.add(newBrowserWindow)
+  const state = useBrowserStore.getState()
+  state.addWindow(newBrowserWindow)
 }

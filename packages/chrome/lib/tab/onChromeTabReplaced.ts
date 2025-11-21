@@ -1,5 +1,5 @@
 import { toBrowserTab } from './toBrowserTab.js'
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 
 /**
  * Handles when a chrome tab is replaced by another tab (prerender, etc.).
@@ -14,9 +14,9 @@ export const onChromeTabReplaced = (
       const newBrowserTab = toBrowserTab(newChromeTab)
       if (!newBrowserTab) return
 
-      const state = useBrowserTabStore.getState()
-      state.removeById(removedTabId)
-      state.add(newBrowserTab)
+      const state = useBrowserStore.getState()
+      state.removeTabById(removedTabId)
+      state.addTab(newBrowserTab)
     })
     .catch((error) => {
       console.error('Failed to handle tab replacement', addedTabId, error)

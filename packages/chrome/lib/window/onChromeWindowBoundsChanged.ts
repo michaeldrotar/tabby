@@ -1,5 +1,5 @@
 import { toBrowserWindow } from './toBrowserWindow.js'
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 
 /**
  * Handles when the bounds or state of a chrome window are changed.
@@ -13,6 +13,6 @@ export const onChromeWindowBoundsChanged = (
   const updatedBrowserWindow = toBrowserWindow(updatedChromeWindow)
   if (!updatedBrowserWindow) return
 
-  const state = useBrowserWindowStore.getState()
-  state.updateById(updatedBrowserWindow.id, updatedBrowserWindow)
+  const state = useBrowserStore.getState()
+  state.updateWindowById(updatedBrowserWindow.id, updatedBrowserWindow)
 }

@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 
 /**
@@ -9,7 +9,7 @@ import type { BrowserWindow } from './BrowserWindow.js'
  * window once the lib is loaded.
  */
 export const useCurrentBrowserWindow = (): BrowserWindow | undefined => {
-  return useBrowserWindowStore((state) =>
-    state.currentId ? state.byId[state.currentId] : undefined,
+  return useBrowserStore((state) =>
+    state.currentWindowId ? state.windowById[state.currentWindowId] : undefined,
   )
 }

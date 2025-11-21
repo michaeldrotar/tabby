@@ -1,4 +1,4 @@
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserTab } from './BrowserTab.js'
 
 /**
@@ -13,8 +13,8 @@ export const createBrowserTab = async (
   }
   // This is assumed to exist because onCreated is fired before
   // the create promise resolves.
-  const state = useBrowserTabStore.getState()
-  const newBrowserTab = state.byId[newChromeTab.id]
+  const state = useBrowserStore.getState()
+  const newBrowserTab = state.tabById[newChromeTab.id]
   if (!newBrowserTab) {
     throw new Error(
       'createBrowserTab was unable to find the created browser tab',

@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
@@ -12,5 +12,5 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 export const useBrowserWindowById = (
   id: BrowserWindowID,
 ): BrowserWindow | undefined => {
-  return useBrowserWindowStore((state) => (id ? state.byId[id] : undefined))
+  return useBrowserStore((state) => (id ? state.windowById[id] : undefined))
 }

@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
@@ -13,5 +13,5 @@ export const useBrowserWindowsById = (): Record<
   BrowserWindowID,
   BrowserWindow
 > => {
-  return useBrowserWindowStore((state) => state.byId)
+  return useBrowserStore((state) => state.windowById)
 }

@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
@@ -14,8 +14,8 @@ export const updateBrowserWindowById = async (
   // Events will handle applying the updates to the object and it is
   // assumed that the state is updated before the promise resolves
   // back to here.
-  const state = useBrowserWindowStore.getState()
-  const updatedBrowserWindow = state.byId[id]
+  const state = useBrowserStore.getState()
+  const updatedBrowserWindow = state.windowById[id]
   if (!updatedBrowserWindow) {
     throw new Error(
       'updateBrowserWindowById failed to get the updated browser window',

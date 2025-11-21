@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
 /**
@@ -7,15 +7,15 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 export const onChromeWindowFocusChanged = (
   newFocusedId: BrowserWindowID,
 ): void => {
-  const state = useBrowserWindowStore.getState()
-  if (state.focusedId === newFocusedId) return
+  const state = useBrowserStore.getState()
+  if (state.focusedWindowId === newFocusedId) return
 
-  if (state.focusedId) {
-    state.updateById(state.focusedId, { focused: false })
+  if (state.focusedWindowId) {
+    state.updateWindowById(state.focusedWindowId, { focused: false })
   }
-  state.updateById(newFocusedId, { focused: true })
+  state.updateWindowById(newFocusedId, { focused: true })
 
-  useBrowserWindowStore.setState({
-    focusedId: newFocusedId,
+  useBrowserStore.setState({
+    focusedWindowId: newFocusedId,
   })
 }

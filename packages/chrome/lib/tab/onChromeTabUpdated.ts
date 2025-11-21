@@ -1,5 +1,5 @@
 import { toBrowserTab } from './toBrowserTab.js'
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 
 /**
  * Handles when a chrome tab is updated.
@@ -12,6 +12,6 @@ export const onChromeTabUpdated = (
   const browserTab = toBrowserTab(tab)
   if (!browserTab) return
 
-  const state = useBrowserTabStore.getState()
-  state.updateById(tabId, changeInfo)
+  const state = useBrowserStore.getState()
+  state.updateTabById(tabId, changeInfo)
 }

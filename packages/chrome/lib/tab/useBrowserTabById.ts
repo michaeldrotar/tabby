@@ -1,4 +1,4 @@
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserTabID } from './BrowserTabID.js'
 
@@ -10,5 +10,5 @@ import type { BrowserTabID } from './BrowserTabID.js'
  * return <div>Tab {browserTab.id} {browserTab.active ? '(active)' : ''}</div>)
  */
 export const useBrowserTabById = (id: BrowserTabID): BrowserTab | undefined => {
-  return useBrowserTabStore((state) => (id ? state.byId[id] : undefined))
+  return useBrowserStore((state) => (id ? state.tabById[id] : undefined))
 }

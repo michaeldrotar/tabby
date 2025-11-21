@@ -1,17 +1,19 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
 /**
  * Handles when a chrome window is closed.
  */
 export const onChromeWindowRemoved = (removedId: BrowserWindowID): void => {
-  const state = useBrowserWindowStore.getState()
-  const setState = useBrowserWindowStore.setState
+  const state = useBrowserStore.getState()
+  const setState = useBrowserStore.setState
 
   setState({
-    currentId: state.currentId === removedId ? undefined : state.currentId,
-    focusedId: state.focusedId === removedId ? undefined : state.focusedId,
+    currentWindowId:
+      state.currentWindowId === removedId ? undefined : state.currentWindowId,
+    focusedWindowId:
+      state.focusedWindowId === removedId ? undefined : state.focusedWindowId,
   })
 
-  state.removeById(removedId)
+  state.removeWindowById(removedId)
 }

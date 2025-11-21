@@ -1,4 +1,4 @@
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserTabID } from './BrowserTabID.js'
 
@@ -10,5 +10,5 @@ import type { BrowserTabID } from './BrowserTabID.js'
  * return desiredIds.map(id => <div>Tab {id} {browserTabsById[id].active ? '(active)' : ''}</div>)
  */
 export const useBrowserTabsById = (): Record<BrowserTabID, BrowserTab> => {
-  return useBrowserTabStore((state) => state.byId)
+  return useBrowserStore((state) => state.tabById)
 }

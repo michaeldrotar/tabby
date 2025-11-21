@@ -1,4 +1,4 @@
-import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserTabID } from './BrowserTabID.js'
 
@@ -14,8 +14,8 @@ export const updateBrowserTabById = async (
   // Events will handle applying the updates to the object and it is
   // assumed that the state is updated before the promise resolves
   // back to here.
-  const state = useBrowserTabStore.getState()
-  const updatedBrowserTab = state.byId[id]
+  const state = useBrowserStore.getState()
+  const updatedBrowserTab = state.tabById[id]
   if (!updatedBrowserTab) {
     throw new Error(
       'updateBrowserTabById failed to get the updated browser tab',

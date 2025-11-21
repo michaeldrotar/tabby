@@ -1,4 +1,4 @@
-import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 
 /**
@@ -13,8 +13,8 @@ export const createBrowserWindow = async (
   }
   // This is assumed to exist because onCreated is fired before
   // the create promise resolves.
-  const state = useBrowserWindowStore.getState()
-  const newBrowserWindow = state.byId[newChromeWindow.id]
+  const state = useBrowserStore.getState()
+  const newBrowserWindow = state.windowById[newChromeWindow.id]
   if (!newBrowserWindow) {
     throw new Error(
       'createBrowserWindow was unable to find the created browser window',
