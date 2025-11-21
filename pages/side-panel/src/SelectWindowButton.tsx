@@ -29,7 +29,7 @@ const SelectWindowButton = ({
       type="button"
       onClick={() => onSelect?.(window)}
       className={cn(
-        'flex w-full flex-col gap-2 rounded-lg border p-2 text-left transition-all',
+        'group flex w-full flex-col gap-2 rounded-lg border p-2 text-left transition-all',
         'border-gray-200 bg-white shadow-sm',
         'dark:border-gray-700 dark:bg-gray-800',
         isSelected
@@ -58,8 +58,32 @@ const SelectWindowButton = ({
             {tabs.length} tab{tabs.length === 1 ? '' : 's'}
           </div>
         </div>
-        <div className="h-10 w-16 flex-shrink-0">
+        <div className="relative h-10 w-16 flex-shrink-0">
           <WindowThumbnail browserWindow={window} />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (window.id) chrome.windows.remove(window.id)
+            }}
+            className="absolute -right-2 -top-2 hidden rounded-full bg-gray-100 p-0.5 text-gray-400 shadow-sm hover:bg-red-100 hover:text-red-600 group-hover:block dark:bg-gray-700 dark:hover:bg-red-900/50 dark:hover:text-red-400"
+            title="Close Window"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 18 12" />
+            </svg>
+          </button>
         </div>
       </div>
 
