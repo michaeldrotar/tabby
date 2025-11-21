@@ -11,10 +11,11 @@ import type { BrowserWindowID } from 'index.mjs'
  * return browserTabs.map(browserTab => <div key={browserTab.id}>Tab {browserTab.id}</div>)
  */
 export const useBrowserTabsByWindowId = (
-  windowId: BrowserWindowID,
+  windowId: BrowserWindowID | undefined,
 ): BrowserTab[] => {
   const tabs = useBrowserStore(
     useShallow((state) => {
+      if (!windowId) return []
       return Object.values(state.tabById)
         .filter((t) => t.windowId === windowId)
         .sort((a, b) => a.index - b.index)

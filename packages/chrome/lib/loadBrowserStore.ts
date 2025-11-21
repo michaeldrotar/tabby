@@ -1,11 +1,15 @@
 import { registerChromeTabEventHandlers } from './tab/tabEvents.js'
 import { toBrowserTab } from './tab/toBrowserTab.js'
+import { registerChromeTabGroupEventHandlers } from './tabGroup/tabGroupEvents.js'
+import { toBrowserTabGroup } from './tabGroup/toBrowserTabGroup.js'
 import { unloadBrowserStore } from './unloadBrowserStore.js'
 import { useBrowserStore } from './useBrowserStore.js'
 import { toBrowserWindow } from './window/toBrowserWindow.js'
 import { registerChromeWindowEventHandlers } from './window/windowEvents.js'
 import type { BrowserTab } from './tab/BrowserTab.js'
 import type { BrowserTabID } from './tab/BrowserTabID.js'
+import type { BrowserTabGroup } from './tabGroup/BrowserTabGroup.js'
+import type { BrowserTabGroupID } from './tabGroup/BrowserTabGroupID.js'
 import type { BrowserWindow } from './window/BrowserWindow.js'
 import type { BrowserWindowID } from './window/BrowserWindowID.js'
 
@@ -42,6 +46,16 @@ const getAllBrowserTabs = async (): Promise<BrowserTab[]> => {
 }
 
 /**
+ * Gets all browser tab groups.
+ */
+const getAllBrowserTabGroups = async (): Promise<BrowserTabGroup[]> => {
+  if (!chrome.tabGroups) return []
+  const allChromeTabGroups = await chrome.tabGroups.query({})
+  const allBrowserTabGroups = allChromeTabGroups.map(toBrowserTabGroup)
+  return allBrowserTabGroups.filter((group) => group !== undefined)
+}
+
+/**
  * Loads the lib and registers all its event handlers.
  * Once the promise resolves, everything is ready to be used.
  *
@@ -58,12 +72,17 @@ export const loadBrowserStore = async (): Promise<void> => {
   })
 
   try {
-    const [allBrowserWindows, currentBrowserWindow, allBrowserTabs] =
-      await Promise.all([
-        getAllBrowserWindows(),
-        getCurrentBrowserWindow(),
-        getAllBrowserTabs(),
-      ])
+    const [
+      allBrowserWindows,
+      currentBrowserWindow,
+      allBrowserTabs,
+      allBrowserTabGroups,
+    ] = await Promise.all([
+      getAllBrowserWindows(),
+      getCurrentBrowserWindow(),
+      getAllBrowserTabs(),
+      getAllBrowserTabGroups(),
+    ])
     if (getState().state !== 'loading') return
 
     const browserWindowById: Record<BrowserWindowID, BrowserWindow> = {}
@@ -82,16 +101,23 @@ export const loadBrowserStore = async (): Promise<void> => {
       browserTabById[browserTab.id] = browserTab
     }
 
+    const browserTabGroupById: Record<BrowserTabGroupID, BrowserTabGroup> = {}
+    for (const browserTabGroup of allBrowserTabGroups) {
+      browserTabGroupById[browserTabGroup.id] = browserTabGroup
+    }
+
     setState({
       windowById: browserWindowById,
       windowIds: browserWindowIds,
       currentWindowId: currentBrowserWindow?.id,
       focusedWindowId: focusedBrowserWindow?.id,
       tabById: browserTabById,
+      tabGroupById: browserTabGroupById,
     })
 
     registerChromeWindowEventHandlers()
     registerChromeTabEventHandlers()
+    registerChromeTabGroupEventHandlers()
 
     setState({
       state: 'loaded',

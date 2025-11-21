@@ -1,6 +1,8 @@
+import { createTabGroupSlice } from './tabGroupSlice.js'
 import { createTabSlice } from './tabSlice.js'
 import { createWindowSlice } from './windowSlice.js'
 import { create } from 'zustand'
+import type { TabGroupSlice } from './tabGroupSlice.js'
 import type { TabSlice } from './tabSlice.js'
 import type { WindowSlice } from './windowSlice.js'
 
@@ -14,7 +16,10 @@ type LoadingStoreState = {
   state: 'initial' | 'loading' | 'loaded'
 }
 
-export type UseBrowserStoreState = LoadingStoreState & WindowSlice & TabSlice
+export type UseBrowserStoreState = LoadingStoreState &
+  WindowSlice &
+  TabSlice &
+  TabGroupSlice
 
 /**
  * Provides the state of the browser.
@@ -26,9 +31,8 @@ export type UseBrowserStoreState = LoadingStoreState & WindowSlice & TabSlice
 export const useBrowserStore = create<UseBrowserStoreState>(
   (set, get, store) => ({
     state: 'initial',
-    // compose window slice
     ...createWindowSlice(set, get, store),
-    // compose tab slice
     ...createTabSlice(set, get, store),
+    ...createTabGroupSlice(set, get, store),
   }),
 )

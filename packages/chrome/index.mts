@@ -11,6 +11,13 @@ export { updateBrowserTabById } from './lib/tab/updateBrowserTabById.js'
 export { removeBrowserTabById } from './lib/tab/removeBrowserTabById.js'
 export { refreshBrowserTab } from './lib/tab/refreshBrowserTab.js'
 
+export type { BrowserTabGroup } from './lib/tabGroup/BrowserTabGroup.js'
+export type { BrowserTabGroupID } from './lib/tabGroup/BrowserTabGroupID.js'
+
+export { useBrowserTabGroups } from './lib/tabGroup/useBrowserTabGroups.js'
+export { useBrowserTabGroupsByWindowId } from './lib/tabGroup/useBrowserTabGroupsByWindowId.js'
+export { useBrowserTabGroupById } from './lib/tabGroup/useBrowserTabGroupById.js'
+
 export type { BrowserWindow } from './lib/window/BrowserWindow.js'
 export type { BrowserWindowID } from './lib/window/BrowserWindowID.js'
 
@@ -23,6 +30,8 @@ export { useFocusedBrowserWindow } from './lib/window/useFocusedBrowserWindow.js
 export { createBrowserWindow } from './lib/window/createBrowserWindow.js'
 export { updateBrowserWindowById } from './lib/window/updateBrowserWindowById.js'
 export { removeBrowserWindowById } from './lib/window/removeBrowserWindowById.js'
+
+export { useTabListItems, type TabListItem } from './lib/useTabListItems.js'
 
 export {
   BrowserStoreProvider,

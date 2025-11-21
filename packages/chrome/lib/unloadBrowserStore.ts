@@ -1,4 +1,5 @@
 import { unregisterChromeTabEventHandlers } from './tab/tabEvents.js'
+import { unregisterChromeTabGroupEventHandlers } from './tabGroup/tabGroupEvents.js'
 import { useBrowserStore } from './useBrowserStore.js'
 import { unregisterChromeWindowEventHandlers } from './window/windowEvents.js'
 
@@ -14,6 +15,7 @@ export const unloadBrowserStore = (): void => {
 
   unregisterChromeWindowEventHandlers()
   unregisterChromeTabEventHandlers()
+  unregisterChromeTabGroupEventHandlers()
 
   const setState = useBrowserStore.setState
   setState({
@@ -22,6 +24,7 @@ export const unloadBrowserStore = (): void => {
     currentWindowId: undefined,
     focusedWindowId: undefined,
     tabById: {},
+    tabGroupById: {},
     state: 'initial',
   })
 }
