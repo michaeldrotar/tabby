@@ -1,6 +1,6 @@
-import { unregisterChromeTabEventHandlers } from './tab/unregisterChromeTabEventHandlers.js'
+import { unregisterChromeTabEventHandlers } from './tab/tabEvents.js'
 import { useBrowserStore } from './useBrowserStore.js'
-import { unregisterChromeWindowEventHandlers } from './window/unregisterChromeWindowEventHandlers.js'
+import { unregisterChromeWindowEventHandlers } from './window/windowEvents.js'
 
 /**
  * Unloads the lib and unregisters its event handlers.
