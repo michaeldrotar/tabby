@@ -32,6 +32,10 @@ export const EventLog = () => {
     addNamespacedEventLogs('windows')
     addNamespacedEventLogs('tabGroups')
     addNamespacedEventLogs('tabs')
+
+    chrome.runtime.onMessage.addListener((message, sender) => {
+      addLog('runtime.onMessage', [message, sender])
+    })
   }, [addLog])
 
   // return (
