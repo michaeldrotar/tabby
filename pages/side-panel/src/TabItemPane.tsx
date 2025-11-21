@@ -20,9 +20,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
             if (item.type === 'tab') {
               return (
                 <li key={item.tab.id} className="flex w-full flex-col">
-                  <div data-tabid={item.tab.id}>
-                    <TabItem tab={item.tab} isActive={item.tab.active} />
-                  </div>
+                  <TabItem tab={item.tab} isActive={item.tab.active} />
                 </li>
               )
             }
@@ -60,9 +58,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                   <ol className="flex flex-col gap-0.5 pl-2">
                     {item.tabs.map((tab) => (
                       <li key={tab.id} className="flex flex-col">
-                        <div data-tabid={tab.id}>
-                          <TabItem tab={tab} isActive={tab.active} />
-                        </div>
+                        <TabItem tab={tab} isActive={tab.active} />
                       </li>
                     ))}
                   </ol>

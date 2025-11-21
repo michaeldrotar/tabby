@@ -40,6 +40,7 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
       )}
       title={tab.url}
       onClick={handleClick}
+      data-tab-button={tab.id}
     >
       <div
         className={cn(

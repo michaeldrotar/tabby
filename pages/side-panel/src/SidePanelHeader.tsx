@@ -1,4 +1,8 @@
-import { useBrowserWindows } from '@extension/chrome'
+import {
+  useBrowserTabsByWindowId,
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+} from '@extension/chrome'
 import { t } from '@extension/i18n'
 import { useThemeStorage } from '@extension/shared'
 import { exampleThemeStorage } from '@extension/storage'
@@ -7,6 +11,9 @@ import { cn } from '@extension/ui'
 export const SidePanelHeader = () => {
   const { theme } = useThemeStorage()
   const browserWindows = useBrowserWindows()
+  const currentBrowserWindow = useCurrentBrowserWindow()
+  const tabs = useBrowserTabsByWindowId(currentBrowserWindow?.id)
+  const activeTab = tabs.find((t) => t.active)
 
   return (
     <div
@@ -30,7 +37,21 @@ export const SidePanelHeader = () => {
           title="Scroll to active tab"
           aria-label="Scroll to active tab"
           onClick={() => {
-            console.log('TODO: implement a new scroller')
+            const targetWindowId = currentBrowserWindow?.id || -1
+            const targetTabId = activeTab?.id || -1
+            document
+              .querySelectorAll(
+                [
+                  `[data-window-button="${targetWindowId}"]`,
+                  `[data-tab-button="${targetTabId}"]`,
+                ].join(','),
+              )
+              .forEach((element) => {
+                element.scrollIntoView({
+                  block: 'center',
+                  behavior: 'smooth',
+                })
+              })
           }}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',

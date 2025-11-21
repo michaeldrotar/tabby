@@ -32,6 +32,7 @@ const SelectWindowDot = ({
           ? 'bg-blue-100 dark:bg-blue-900/30'
           : 'hover:bg-gray-200 dark:hover:bg-gray-800',
       )}
+      data-window-button={window.id}
     >
       {/* Dot */}
       <span

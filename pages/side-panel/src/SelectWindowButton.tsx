@@ -37,6 +37,7 @@ const SelectWindowButton = ({
           : 'hover:border-gray-300 dark:hover:border-gray-600',
         !isSelected && isCurrent && 'border-l-4 border-l-blue-500 pl-1.5', // Highlight current window if not selected
       )}
+      data-window-button={window.id}
     >
       <div className="flex w-full items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col">
