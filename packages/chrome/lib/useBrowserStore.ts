@@ -1,10 +1,10 @@
+import { createTabSlice } from './tabSlice.js'
+import { createWindowSlice } from './windowSlice.js'
 import { create } from 'zustand'
-import type { BrowserTab } from './tab/BrowserTab.js'
-import type { BrowserTabID } from './tab/BrowserTabID.js'
-import type { BrowserWindow } from './window/BrowserWindow.js'
-import type { BrowserWindowID } from './window/BrowserWindowID.js'
+import type { TabSlice } from './tabSlice.js'
+import type { WindowSlice } from './windowSlice.js'
 
-export type UseBrowserStoreState = {
+type LoadingStoreState = {
   /**
    * The current loading state for this data.
    * - initial = initial state, not yet loaded
@@ -12,166 +12,23 @@ export type UseBrowserStoreState = {
    * - loaded = data has loaded
    */
   state: 'initial' | 'loading' | 'loaded'
-
-  // Windows
-  windowById: Record<BrowserWindowID, BrowserWindow>
-  windowIds: BrowserWindowID[]
-  currentWindowId: BrowserWindowID | undefined
-  focusedWindowId: BrowserWindowID | undefined
-
-  // Tabs
-  tabById: Record<BrowserTabID, BrowserTab>
-
-  // Window Actions
-  addWindow: (window: BrowserWindow) => void
-  updateWindowById: (id: BrowserWindowID, data: Partial<BrowserWindow>) => void
-  removeWindowById: (id: BrowserWindowID) => void
-
-  // Tab Actions
-  addTab: (tab: BrowserTab) => BrowserTab
-  updateTabById: (
-    id: BrowserTabID,
-    data: Partial<BrowserTab>,
-  ) => BrowserTab | undefined
-  replaceTab: (tab: BrowserTab) => BrowserTab
-  removeTabById: (id: BrowserTabID, options?: chrome.tabs.TabRemoveInfo) => void
-  moveTabById: (id: BrowserTabID, options: { toIndex: number }) => void
 }
 
-export const useBrowserStore = create<UseBrowserStoreState>((set, get) => {
-  return {
+export type UseBrowserStoreState = LoadingStoreState & WindowSlice & TabSlice
+
+/**
+ * Provides the state of the browser.
+ *
+ * It is not recommended to use this directly. Use the other browser
+ * hooks for best performance. They are optimized to only re-render
+ * when their specific data is changed.
+ */
+export const useBrowserStore = create<UseBrowserStoreState>(
+  (set, get, store) => ({
     state: 'initial',
-
-    // Windows
-    windowById: {},
-    windowIds: [],
-    currentWindowId: undefined,
-    focusedWindowId: undefined,
-
-    // Tabs
-    tabById: {},
-
-    // Window Actions
-    addWindow: (newBrowserWindow) => {
-      set((state) => ({
-        windowById: {
-          ...state.windowById,
-          [newBrowserWindow.id]: newBrowserWindow,
-        },
-        windowIds: [...state.windowIds, newBrowserWindow.id],
-      }))
-    },
-
-    updateWindowById: (id, data) => {
-      const { windowById } = get()
-      if (!windowById[id]) return
-
-      const current = windowById[id]
-      const updated: BrowserWindow = {
-        ...current,
-        ...data,
-      }
-
-      set({
-        windowById: { ...windowById, [id]: updated },
-      })
-    },
-
-    removeWindowById: (id) => {
-      const { windowById, windowIds } = get()
-      if (!windowById[id]) return
-
-      const newWindowById = { ...windowById }
-      delete newWindowById[id]
-
-      set({
-        windowById: newWindowById,
-        windowIds: windowIds.filter((windowId) => windowId !== id),
-      })
-    },
-
-    // Tab Actions
-    addTab: (newBrowserTab) => {
-      set((state) => ({
-        tabById: { ...state.tabById, [newBrowserTab.id]: newBrowserTab },
-      }))
-
-      return newBrowserTab
-    },
-
-    updateTabById: (id, data) => {
-      const { tabById } = get()
-      if (!tabById[id]) return
-
-      const current = tabById[id]
-      const updated: BrowserTab = { ...current, ...data }
-
-      set({
-        tabById: { ...tabById, [id]: updated },
-      })
-
-      return updated
-    },
-
-    replaceTab: (browserTab) => {
-      const { tabById } = get()
-      const { id } = browserTab
-
-      set({
-        tabById: { ...tabById, [id]: browserTab },
-      })
-
-      return browserTab
-    },
-
-    removeTabById: (id, _removeInfo) => {
-      const { tabById } = get()
-      const browserTab = tabById[id]
-      if (!browserTab) return
-
-      const newTabById = { ...tabById }
-      delete newTabById[id]
-
-      set({
-        tabById: newTabById,
-      })
-    },
-
-    moveTabById: (id, { toIndex }) => {
-      const { tabById } = get()
-      const movedBrowserTab = tabById[id]
-      if (!movedBrowserTab) return
-
-      const fromIndex = movedBrowserTab.index
-      const windowId = movedBrowserTab.windowId
-
-      const newTabById: Record<BrowserTabID, BrowserTab> = {}
-
-      const add = (tab: BrowserTab) => {
-        newTabById[tab.id] = tab
-      }
-
-      Object.values(tabById).forEach((tab) => {
-        if (tab.id === id) {
-          return add({ ...tab, index: toIndex })
-        }
-        if (tab.windowId === windowId) {
-          if (fromIndex < toIndex) {
-            if (tab.index > fromIndex && tab.index <= toIndex) {
-              return add({ ...tab, index: tab.index - 1 })
-            }
-          } else if (fromIndex > toIndex) {
-            if (tab.index < fromIndex && tab.index >= toIndex) {
-              return add({ ...tab, index: tab.index + 1 })
-            }
-          }
-        }
-        return add(tab)
-      })
-
-      set({
-        tabById: newTabById,
-      })
-    },
-  }
-})
+    // compose window slice
+    ...createWindowSlice(set, get, store),
+    // compose tab slice
+    ...createTabSlice(set, get, store),
+  }),
+)
