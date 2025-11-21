@@ -12,14 +12,14 @@ export type UseBrowserWindowStoreState = {
   state: 'initial' | 'loading' | 'loaded'
 
   /**
-   * Provides a list of all browser windows.
-   */
-  all: BrowserWindow[]
-
-  /**
    * Provides an easy lookup for browser windows by their IDs.
    */
   byId: Record<BrowserWindowID, BrowserWindow>
+
+  /**
+   * Provides an ordered list of browser window IDs.
+   */
+  ids: BrowserWindowID[]
 
   /**
    * Provides the ID of the current browser window.
@@ -70,20 +70,20 @@ export const useBrowserWindowStore = create<UseBrowserWindowStoreState>(
     return {
       state: 'initial',
 
-      all: [],
       byId: {},
+      ids: [],
       currentId: undefined,
       focusedId: undefined,
 
       add: (newBrowserWindow) => {
         set((state) => ({
-          all: [...state.all, newBrowserWindow],
           byId: { ...state.byId, [newBrowserWindow.id]: newBrowserWindow },
+          ids: [...state.ids, newBrowserWindow.id],
         }))
       },
 
       updateById: (id, data) => {
-        const { all, byId } = get()
+        const { byId } = get()
         if (!byId[id]) return
 
         const current = byId[id]
@@ -93,21 +93,20 @@ export const useBrowserWindowStore = create<UseBrowserWindowStoreState>(
         }
 
         set({
-          all: all.map((window) => (window.id === id ? updated : window)),
           byId: { ...byId, [id]: updated },
         })
       },
 
       removeById: (id) => {
-        const { all, byId } = get()
+        const { byId, ids } = get()
         if (!byId[id]) return
 
         const newById = { ...byId }
         delete newById[id]
 
         set({
-          all: all.filter((w) => w.id !== id),
           byId: newById,
+          ids: ids.filter((windowId) => windowId !== id),
         })
       },
     }

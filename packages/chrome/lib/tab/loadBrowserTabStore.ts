@@ -4,7 +4,6 @@ import { unloadBrowserTabStore } from './unloadBrowserTabStore.js'
 import { useBrowserTabStore } from './useBrowserTabStore.js'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserTabID } from './BrowserTabID.js'
-import type { BrowserWindowID } from '../window/BrowserWindowID.js'
 
 /**
  * Gets all browser tabs.
@@ -36,18 +35,11 @@ export const loadBrowserTabStore = async (): Promise<void> => {
     if (getState().state !== 'loading') return
 
     const browserTabById: Record<BrowserTabID, BrowserTab> = {}
-    const browserTabsByWindowId: Record<BrowserWindowID, BrowserTab[]> = {}
     for (const browserTab of allBrowserTabs) {
       browserTabById[browserTab.id] = browserTab
-      if (!browserTabsByWindowId[browserTab.windowId]) {
-        browserTabsByWindowId[browserTab.windowId] = []
-      }
-      browserTabsByWindowId[browserTab.windowId].push(browserTab)
     }
     setState({
-      all: allBrowserTabs,
       byId: browserTabById,
-      byWindowId: browserTabsByWindowId,
     })
     registerChromeTabEventHandlers()
     setState({

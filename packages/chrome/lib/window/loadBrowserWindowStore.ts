@@ -52,16 +52,18 @@ export const loadBrowserWindowStore = async (): Promise<void> => {
     if (getState().state !== 'loading') return
 
     const browserWindowById: Record<BrowserWindowID, BrowserWindow> = {}
+    const browserWindowIds: BrowserWindowID[] = []
     let focusedBrowserWindow: BrowserWindow | undefined = undefined
     for (const browserWindow of allBrowserWindows) {
       browserWindowById[browserWindow.id] = browserWindow
+      browserWindowIds.push(browserWindow.id)
       if (browserWindow.focused) {
         focusedBrowserWindow = browserWindow
       }
     }
     setState({
-      all: allBrowserWindows,
       byId: browserWindowById,
+      ids: browserWindowIds,
       currentId: currentBrowserWindow?.id,
       focusedId: focusedBrowserWindow?.id,
     })

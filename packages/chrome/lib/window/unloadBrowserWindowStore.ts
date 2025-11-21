@@ -15,8 +15,8 @@ export const unloadBrowserWindowStore = (): void => {
 
   const setState = useBrowserWindowStore.setState
   setState({
-    all: [],
     byId: {},
+    ids: [],
     currentId: undefined,
     focusedId: undefined,
     state: 'initial',

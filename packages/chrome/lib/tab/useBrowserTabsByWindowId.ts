@@ -1,5 +1,5 @@
 import { useBrowserTabStore } from './useBrowserTabStore.js'
-import { useState } from 'react'
+import { useShallow } from 'zustand/shallow'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserWindowID } from 'index.mjs'
 
@@ -13,8 +13,12 @@ import type { BrowserWindowID } from 'index.mjs'
 export const useBrowserTabsByWindowId = (
   windowId: BrowserWindowID,
 ): BrowserTab[] => {
-  console.log('useBrowserTabsByWindowId', windowId)
-  const tabs = useBrowserTabStore((state) => state.byWindowId[windowId])
-  const [noTabs] = useState(() => [])
-  return tabs ?? noTabs
+  const tabs = useBrowserTabStore(
+    useShallow((state) => {
+      return Object.values(state.byId)
+        .filter((t) => t.windowId === windowId)
+        .sort((a, b) => a.index - b.index)
+    }),
+  )
+  return tabs
 }

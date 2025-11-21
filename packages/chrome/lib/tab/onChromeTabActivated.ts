@@ -9,7 +9,9 @@ export const onChromeTabActivated = (
   const { tabId, windowId } = activeInfo
   const state = useBrowserTabStore.getState()
 
-  const windowBrowserTabs = state.byWindowId[windowId]
+  const windowBrowserTabs = Object.values(state.byId).filter(
+    (tab) => tab.windowId === windowId,
+  )
   const activeBrowserTab = windowBrowserTabs.find((tab) => tab.active)
   if (activeBrowserTab && activeBrowserTab.id !== tabId) {
     state.updateById(activeBrowserTab.id, { active: false })

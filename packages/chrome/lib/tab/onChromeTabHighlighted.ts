@@ -8,7 +8,9 @@ export const onChromeTabHighlighted = (
 ): void => {
   const state = useBrowserTabStore.getState()
   const { tabIds, windowId } = highlightInfo
-  const windowTabs = state.byWindowId[windowId]
+  const windowTabs = Object.values(state.byId).filter(
+    (tab) => tab.windowId === windowId,
+  )
   if (!windowTabs || windowTabs.length === 0) return
 
   const highlightedTabIds = new Set(tabIds)

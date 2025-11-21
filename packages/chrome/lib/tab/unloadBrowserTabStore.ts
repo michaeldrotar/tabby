@@ -17,7 +17,6 @@ export const unloadBrowserTabStore = (): void => {
   setState({
     all: [],
     byId: {},
-    byWindowId: {},
     state: 'initial',
   })
 }

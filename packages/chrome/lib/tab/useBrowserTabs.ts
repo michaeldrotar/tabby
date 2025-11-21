@@ -1,4 +1,5 @@
 import { useBrowserTabStore } from './useBrowserTabStore.js'
+import { useShallow } from 'zustand/shallow'
 import type { BrowserTab } from './BrowserTab.js'
 
 /**
@@ -14,5 +15,5 @@ import type { BrowserTab } from './BrowserTab.js'
  * return browserTabs.map(browserTab => <div key={browserTab.id}>Tab {browserTab.id}</div>)
  */
 export const useBrowserTabs = (): BrowserTab[] => {
-  return useBrowserTabStore((state) => state.all)
+  return useBrowserTabStore(useShallow((state) => Object.values(state.byId)))
 }

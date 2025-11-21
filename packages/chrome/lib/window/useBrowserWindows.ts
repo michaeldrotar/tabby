@@ -1,4 +1,5 @@
 import { useBrowserWindowStore } from './useBrowserWindowStore.js'
+import { useShallow } from 'zustand/shallow'
 import type { BrowserWindow } from './BrowserWindow.js'
 
 /**
@@ -14,5 +15,7 @@ import type { BrowserWindow } from './BrowserWindow.js'
  * return browserWindows.map(browserWindow => <div key={browserWindow.id}>Window {browserWindow.id}</div>)
  */
 export const useBrowserWindows = (): BrowserWindow[] => {
-  return useBrowserWindowStore((state) => state.all)
+  return useBrowserWindowStore(
+    useShallow((state) => state.ids.map((id) => state.byId[id])),
+  )
 }
