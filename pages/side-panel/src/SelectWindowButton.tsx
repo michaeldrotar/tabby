@@ -63,7 +63,7 @@ const SelectWindowButton = ({
       </div>
 
       {/* Favicon strip */}
-      <div className="flex h-4 w-full gap-1 overflow-hidden opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+      <div className="flex h-4 w-full gap-1 overflow-hidden opacity-70 grayscale transition-all">
         {tabs.slice(0, 8).map((tab) => (
           <Favicon key={tab.id} pageUrl={tab.url} size={14} />
         ))}
