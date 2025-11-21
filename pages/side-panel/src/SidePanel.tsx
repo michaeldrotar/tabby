@@ -26,14 +26,31 @@ const SidePanel = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'p')) {
         e.preventDefault()
         setIsSearchOpen((prev) => !prev)
+      } else if (e.key === 'Escape' && !isSearchOpen) {
+        // Close side panel if search is not open
+        window.close()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+
+    const handleMessage = (message: { type: string; windowId?: number }) => {
+      if (
+        message.type === 'OPEN_SEARCH' &&
+        message.windowId === currentBrowserWindow?.id
+      ) {
+        setIsSearchOpen(true)
+      }
+    }
+    chrome.runtime.onMessage.addListener(handleMessage)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      chrome.runtime.onMessage.removeListener(handleMessage)
+    }
+  }, [currentBrowserWindow?.id, isSearchOpen])
 
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {

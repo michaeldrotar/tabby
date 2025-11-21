@@ -67,6 +67,24 @@ const manifest = {
   side_panel: {
     default_path: 'side-panel/index.html',
   },
+  commands: {
+    'open-search': {
+      suggested_key: {
+        default: 'MacCtrl+Shift+E',
+        mac: 'Command+Shift+E',
+        windows: 'Ctrl+Shift+E',
+      },
+      description: 'Open Side Panel and Search',
+    },
+    'toggle-side-panel': {
+      suggested_key: {
+        default: 'MacCtrl+B',
+        mac: 'Command+B',
+        windows: 'Ctrl+B',
+      },
+      description: 'Toggle Side Panel',
+    },
+  },
 } satisfies ManifestType
 
 export default manifest

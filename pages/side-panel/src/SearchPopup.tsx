@@ -17,10 +17,15 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50)
+      // Small timeout to ensure the element is mounted and visible
+      const timer = setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
       setQuery('')
       setSelectedIndex(0)
+      return () => clearTimeout(timer)
     }
+    return undefined
   }, [isOpen])
 
   const filteredTabs = useMemo(() => {
