@@ -1,3 +1,4 @@
+import { SearchPopup } from './SearchPopup'
 import { SelectWindowButtonPane } from './SelectWindowButtonPane'
 import { SelectWindowDot } from './SelectWindowDot'
 import { SidePanelHeader } from './SidePanelHeader'
@@ -18,6 +19,18 @@ const SidePanel = () => {
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const [selectedWindowId, setSelectedWindowId] = useState<number | null>(null)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   useEffect(() => {
     if (selectedWindowId) return
@@ -53,6 +66,10 @@ const SidePanel = () => {
 
   return (
     <>
+      <SearchPopup
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
       <div
         className={cn(
           'flex h-screen flex-col overscroll-none font-sans text-sm',
@@ -60,7 +77,10 @@ const SidePanel = () => {
           'dark:bg-gray-800 dark:text-gray-100',
         )}
       >
-        <SidePanelHeader />
+        <SidePanelHeader
+          onSelectWindow={(id) => setSelectedWindowId(id)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+        />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
           {/* Navigation Rail (Dots) */}

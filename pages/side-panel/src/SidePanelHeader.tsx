@@ -8,7 +8,15 @@ import { useThemeStorage } from '@extension/shared'
 import { exampleThemeStorage } from '@extension/storage'
 import { cn } from '@extension/ui'
 
-export const SidePanelHeader = () => {
+type SidePanelHeaderProps = {
+  onSelectWindow?: (windowId: number) => void
+  onOpenSearch?: () => void
+}
+
+export const SidePanelHeader = ({
+  onSelectWindow,
+  onOpenSearch,
+}: SidePanelHeaderProps) => {
   const { theme } = useThemeStorage()
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
@@ -34,24 +42,56 @@ export const SidePanelHeader = () => {
       <div className="flex items-center gap-1">
         <button
           type="button"
+          title="Search tabs (Cmd+K)"
+          aria-label="Search tabs"
+          onClick={onOpenSearch}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+            'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+            'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+          )}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className="h-5 w-5"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
           title="Scroll to active tab"
           aria-label="Scroll to active tab"
           onClick={() => {
             const targetWindowId = currentBrowserWindow?.id || -1
             const targetTabId = activeTab?.id || -1
-            document
-              .querySelectorAll(
-                [
-                  `[data-window-button="${targetWindowId}"]`,
-                  `[data-tab-button="${targetTabId}"]`,
-                ].join(','),
-              )
-              .forEach((element) => {
-                element.scrollIntoView({
-                  block: 'center',
-                  behavior: 'smooth',
+
+            if (targetWindowId !== -1) {
+              onSelectWindow?.(targetWindowId)
+            }
+
+            // Small timeout to allow React to render the new window's tabs if we switched windows
+            requestAnimationFrame(() => {
+              document
+                .querySelectorAll(
+                  [
+                    `[data-window-button="${targetWindowId}"]`,
+                    `[data-tab-button="${targetTabId}"]`,
+                  ].join(','),
+                )
+                .forEach((element) => {
+                  element.scrollIntoView({
+                    block: 'center',
+                    behavior: 'smooth',
+                  })
                 })
-              })
+            })
           }}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
