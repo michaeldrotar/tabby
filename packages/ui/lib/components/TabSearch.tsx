@@ -40,14 +40,49 @@ export const TabSearch = ({
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
   const [isShiftPressed, setIsShiftPressed] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    // Focus input on mount
-    const timer = setTimeout(() => {
-      inputRef.current?.focus()
-    }, 50)
-    return () => clearTimeout(timer)
+    // Load last query
+    if (
+      typeof chrome !== 'undefined' &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
+      chrome.storage.local.get('lastQuery').then((res) => {
+        if (res.lastQuery) {
+          setQuery(res.lastQuery)
+        }
+        setIsLoaded(true)
+
+        // Focus and select
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus()
+            if (res.lastQuery) {
+              inputRef.current.select()
+            }
+          }
+        }, 50)
+      })
+    } else {
+      setIsLoaded(true)
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 50)
+    }
   }, [])
+
+  useEffect(() => {
+    if (
+      isLoaded &&
+      typeof chrome !== 'undefined' &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
+      chrome.storage.local.set({ lastQuery: query })
+    }
+  }, [query, isLoaded])
 
   const originalWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -171,6 +206,21 @@ export const TabSearch = ({
     ].slice(0, 20)
   }, [query, tabs, externalResults])
 
+  const handleSelect = (
+    item: SearchItem,
+    modifier?: 'new-tab' | 'new-window',
+    originalWindowId?: number,
+  ) => {
+    if (
+      typeof chrome !== 'undefined' &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
+      chrome.storage.local.remove('lastQuery')
+    }
+    onSelect(item, modifier, originalWindowId)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation()
@@ -188,7 +238,7 @@ export const TabSearch = ({
         let modifier: 'new-tab' | 'new-window' | undefined
         if (e.metaKey || e.ctrlKey) modifier = 'new-tab'
         if (e.shiftKey) modifier = 'new-window'
-        onSelect(item, modifier, originalWindowId)
+        handleSelect(item, modifier, originalWindowId)
       }
     }
   }
@@ -284,7 +334,7 @@ export const TabSearch = ({
                     let modifier: 'new-tab' | 'new-window' | undefined
                     if (e.metaKey || e.ctrlKey) modifier = 'new-tab'
                     if (e.shiftKey) modifier = 'new-window'
-                    onSelect(item, modifier, originalWindowId)
+                    handleSelect(item, modifier, originalWindowId)
                   }}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
