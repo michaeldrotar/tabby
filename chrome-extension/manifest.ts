@@ -70,17 +70,17 @@ const manifest = {
   commands: {
     'open-search': {
       suggested_key: {
-        default: 'MacCtrl+Shift+E',
-        mac: 'Command+Shift+E',
-        windows: 'Ctrl+Shift+E',
+        default: 'MacCtrl+E',
+        mac: 'Command+E',
+        windows: 'Ctrl+E',
       },
-      description: 'Open Side Panel and Search',
+      description: 'Open Search',
     },
     'toggle-side-panel': {
       suggested_key: {
-        default: 'MacCtrl+B',
-        mac: 'Command+B',
-        windows: 'Ctrl+B',
+        default: 'MacCtrl+Shift+E',
+        mac: 'Command+Shift+E',
+        windows: 'Ctrl+Shift+E',
       },
       description: 'Toggle Side Panel',
     },
