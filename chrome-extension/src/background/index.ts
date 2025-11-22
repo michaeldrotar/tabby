@@ -55,15 +55,33 @@ const openSearchPopup = async (windowId?: number) => {
 }
 
 chrome.commands.onCommand.addListener(async (command) => {
-  console.log('command', command)
   if (command === 'open-search') {
-    const activeTab = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    })
-    console.log('activeTab', activeTab)
-    if (activeTab.length > 0 && activeTab[0].id) {
-      const tabId = activeTab[0].id
+    const activeTab = (
+      await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      })
+    )[0]
+    if (activeTab && activeTab.id) {
+      const tabId = activeTab.id
+
+      // Ensure window is focused (fixes issue where focus is lost after closing side panel)
+      if (activeTab.windowId) {
+        try {
+          await chrome.windows.update(activeTab.windowId, { focused: true })
+          const otherTab = await chrome.tabs.create({
+            windowId: activeTab.windowId,
+            active: true,
+          })
+          await chrome.tabs.update(activeTab.id, { active: true })
+          if (otherTab && otherTab.id) {
+            await chrome.tabs.remove(otherTab.id)
+          }
+        } catch (e) {
+          console.warn('Failed to focus window', e)
+        }
+      }
+
       const tabs = await chrome.tabs.query({})
       try {
         await chrome.tabs.sendMessage(tabId, {
@@ -89,7 +107,7 @@ chrome.commands.onCommand.addListener(async (command) => {
             retryError,
           )
           // Fallback to popup if we can't inject (e.g. chrome:// pages)
-          await openSearchPopup(activeTab[0].windowId)
+          await openSearchPopup(activeTab.windowId)
         }
       }
     }
@@ -105,7 +123,6 @@ chrome.commands.onCommand.addListener(async (command) => {
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('message', message, sender)
   if (message.type === 'GET_TABS') {
     chrome.tabs.query({}).then((tabs) => {
       sendResponse(tabs)
