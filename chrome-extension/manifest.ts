@@ -77,6 +77,14 @@ const manifest = {
       },
       description: 'Open Search',
     },
+    'open-search-popup': {
+      suggested_key: {
+        default: 'MacCtrl+K',
+        mac: 'Command+K',
+        windows: 'Ctrl+K',
+      },
+      description: 'Open Search',
+    },
     'toggle-side-panel': {
       suggested_key: {
         default: 'MacCtrl+Shift+E',
