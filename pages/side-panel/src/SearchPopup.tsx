@@ -34,7 +34,7 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
         onSelectTab={handleSelectTab}
         onClose={onClose}
         Favicon={Favicon}
-        className="w-full max-w-lg rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"
+        className="max-h-[80vh] w-full max-w-lg rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"
       />
     </div>
   )
