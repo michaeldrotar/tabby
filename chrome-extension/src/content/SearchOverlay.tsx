@@ -4,24 +4,30 @@ import type { SearchItem } from '@extension/ui'
 
 const SimpleFavicon = ({
   pageUrl,
+  favIconUrl,
   className,
 }: {
   pageUrl?: string
+  favIconUrl?: string
   className?: string
 }) => {
-  if (!pageUrl)
-    return <div className={cn('h-4 w-4 rounded bg-gray-200', className)} />
+  // Use the _favicon helper for consistent favicon loading
+  // This handles caching, fallbacks, and avoids CORS issues with direct fetching
+  // It also works for chrome:// pages which we can't access directly
+  const src =
+    favIconUrl && !favIconUrl.startsWith('chrome')
+      ? favIconUrl
+      : pageUrl
+        ? chrome.runtime.getURL(
+            `_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=32`,
+          )
+        : undefined
 
-  let hostname = ''
-  try {
-    hostname = new URL(pageUrl).hostname
-  } catch {
-    return <div className={cn('h-4 w-4 rounded bg-gray-200', className)} />
+  if (src) {
+    return <img src={src} alt="favicon" className={cn('h-8 w-8', className)} />
   }
 
-  const url = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`
-
-  return <img src={url} alt="favicon" className={cn('h-4 w-4', className)} />
+  return <div className={cn('h-7 w-7 rounded bg-gray-200', className)} />
 }
 
 export const SearchOverlay = ({

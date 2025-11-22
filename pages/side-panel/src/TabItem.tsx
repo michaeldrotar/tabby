@@ -44,14 +44,14 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
     >
       <div
         className={cn(
-          'relative flex h-4 w-4 flex-shrink-0 items-center justify-center',
+          'relative flex h-5 w-5 flex-shrink-0 items-center justify-center',
           isDiscarded && 'opacity-70',
         )}
       >
         <Favicon
           pageUrl={tab.url}
-          size={16}
-          className={cn('h-4 w-4 transition-transform group-hover:scale-110')}
+          size={20}
+          className={cn('h-5 w-5 transition-transform group-hover:scale-110')}
         />
         {isDiscarded && (
           <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-white bg-gray-400 dark:border-gray-900" />

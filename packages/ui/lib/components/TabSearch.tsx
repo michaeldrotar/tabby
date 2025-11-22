@@ -21,7 +21,11 @@ export type TabSearchProps = {
   ) => void
   onClose: () => void
   onSearch?: (query: string) => Promise<SearchItem[]>
-  Favicon: React.ComponentType<{ pageUrl?: string; className?: string }>
+  Favicon: React.ComponentType<{
+    pageUrl?: string
+    favIconUrl?: string
+    className?: string
+  }>
   className?: string
 }
 
@@ -343,7 +347,11 @@ export const TabSearch = ({
                       &gt;
                     </div>
                   ) : (
-                    <Favicon pageUrl={item.url} className="flex-shrink-0" />
+                    <Favicon
+                      pageUrl={item.url}
+                      favIconUrl={item.favIconUrl}
+                      className="flex-shrink-0"
+                    />
                   )}
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate font-medium">{item.title}</span>
