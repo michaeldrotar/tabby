@@ -16,7 +16,9 @@ chrome.windows.onFocusChanged.addListener((id) => {
 })
 
 const openSearchPopup = async (windowId?: number) => {
-  const searchUrl = chrome.runtime.getURL('search/index.html')
+  const searchUrl = chrome.runtime.getURL(
+    `search/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
+  )
   const existingTabs = await chrome.tabs.query({ url: searchUrl })
 
   if (existingTabs.length > 0 && existingTabs[0].windowId) {
@@ -44,7 +46,7 @@ const openSearchPopup = async (windowId?: number) => {
   }
 
   await chrome.windows.create({
-    url: 'search/index.html',
+    url: searchUrl,
     type: 'popup',
     width,
     height,
@@ -89,7 +91,10 @@ chrome.commands.onCommand.addListener(async (command) => {
           tabs,
         })
       } catch (e) {
-        console.warn('Could not send message to content script', e)
+        console.warn(
+          'Could not send message to content script, attempting to re-inject script...',
+          { error: e },
+        )
         // Try to inject the content script if it's missing
         try {
           await chrome.scripting.executeScript({
@@ -102,9 +107,9 @@ chrome.commands.onCommand.addListener(async (command) => {
             tabs,
           })
         } catch (retryError) {
-          console.error(
-            'Failed to inject or send message after retry',
-            retryError,
+          console.warn(
+            'Failed to inject or send message after retry, opening search popup window...',
+            { error: retryError },
           )
           // Fallback to popup if we can't inject (e.g. chrome:// pages)
           await openSearchPopup(activeTab.windowId)
@@ -127,6 +132,124 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.query({}).then((tabs) => {
       sendResponse(tabs)
     })
+    return true
+  } else if (message.type === 'SEARCH') {
+    const { query } = message
+    Promise.all([
+      chrome.history.search({ text: query, maxResults: 20, startTime: 0 }),
+      chrome.bookmarks.search(query),
+    ]).then(([historyResults, bookmarkResults]) => {
+      const results = [
+        ...bookmarkResults.map((b) => ({
+          id: b.id,
+          type: 'bookmark',
+          title: b.title,
+          url: b.url,
+          description: 'Bookmark',
+        })),
+        ...historyResults.map((h) => ({
+          id: h.id,
+          type: 'history',
+          title: h.title || h.url || 'Untitled',
+          url: h.url,
+          description: 'History',
+        })),
+      ]
+      sendResponse(results)
+    })
+    return true
+  } else if (message.type === 'EXECUTE') {
+    const { item, modifier, originalWindowId } = message
+    const performAction = async () => {
+      if (item.type === 'tab') {
+        if (item.windowId) {
+          await chrome.windows.update(item.windowId, { focused: true })
+        }
+        if (item.tabId) {
+          await chrome.tabs.update(item.tabId, { active: true })
+        }
+      } else if (item.type === 'command') {
+        if (item.id === 'cmd-side-panel') {
+          // Toggle side panel
+          const window = await chrome.windows.getLastFocused()
+          if (window.id) {
+            chrome.sidePanel.open({ windowId: window.id })
+          }
+        } else if (item.url) {
+          if (modifier === 'new-window') {
+            await chrome.windows.create({ url: item.url, focused: true })
+          } else if (modifier === 'new-tab') {
+            if (originalWindowId) {
+              await chrome.tabs.create({
+                windowId: originalWindowId,
+                url: item.url,
+                active: true,
+              })
+              await chrome.windows.update(originalWindowId, { focused: true })
+            } else {
+              await chrome.tabs.create({ url: item.url, active: true })
+            }
+          } else {
+            if (originalWindowId) {
+              const [tab] = await chrome.tabs.query({
+                windowId: originalWindowId,
+                active: true,
+              })
+              if (tab && tab.id) {
+                await chrome.tabs.update(tab.id, {
+                  url: item.url,
+                  active: true,
+                })
+                await chrome.windows.update(originalWindowId, { focused: true })
+              } else {
+                await chrome.tabs.create({
+                  windowId: originalWindowId,
+                  url: item.url,
+                })
+              }
+            } else {
+              await chrome.tabs.update({ url: item.url })
+            }
+          }
+        }
+      } else if (['bookmark', 'history', 'url', 'search'].includes(item.type)) {
+        if (modifier === 'new-window') {
+          await chrome.windows.create({ url: item.url, focused: true })
+        } else if (modifier === 'new-tab') {
+          if (originalWindowId) {
+            await chrome.tabs.create({
+              windowId: originalWindowId,
+              url: item.url,
+              active: true,
+            })
+            await chrome.windows.update(originalWindowId, { focused: true })
+          } else {
+            await chrome.tabs.create({ url: item.url, active: true })
+          }
+        } else {
+          if (originalWindowId) {
+            const [tab] = await chrome.tabs.query({
+              windowId: originalWindowId,
+              active: true,
+            })
+            if (tab && tab.id) {
+              await chrome.tabs.update(tab.id, { url: item.url, active: true })
+              await chrome.windows.update(originalWindowId, { focused: true })
+            } else {
+              await chrome.tabs.create({
+                windowId: originalWindowId,
+                url: item.url,
+              })
+            }
+          } else {
+            await chrome.tabs.update({ url: item.url })
+          }
+        }
+      }
+      sendResponse(undefined)
+    }
+    performAction()
+    return true
   } else if (message.type === 'SWITCH_TAB') {
     const performSwitch = async () => {
       if (message.windowId) {
@@ -138,6 +261,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse(undefined)
     }
     performSwitch()
+    return true
+  } else if (message.type === 'SEARCH_HISTORY') {
+    chrome.history
+      .search({
+        text: message.query,
+        maxResults: 20,
+        startTime: 0,
+      })
+      .then((results) => {
+        sendResponse(results)
+      })
+    return true
+  } else if (message.type === 'SEARCH_BOOKMARKS') {
+    chrome.bookmarks.search(message.query).then((results) => {
+      sendResponse(results)
+    })
+    return true
+  } else if (message.type === 'OPEN_URL') {
+    const { url, newTab, newWindow } = message
+    if (newWindow) {
+      chrome.windows.create({ url, focused: true })
+    } else if (newTab) {
+      chrome.tabs.create({ url, active: true })
+    } else {
+      chrome.tabs.update({ url })
+    }
   }
   return undefined
 })

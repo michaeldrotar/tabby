@@ -1,11 +1,10 @@
 import { Favicon } from './Favicon'
-import { useBrowserTabs } from '@extension/chrome'
-import { TabSearch } from '@extension/ui'
+import { TabSearch, useSearch } from '@extension/ui'
 import { useEffect } from 'react'
-import type { BrowserTab } from '@extension/chrome'
+import type { SearchItem } from '@extension/ui'
 
 export const SearchPage = () => {
-  const tabs = useBrowserTabs()
+  const { tabs, onSearch, onSelect } = useSearch()
 
   // Close window on blur
   useEffect(() => {
@@ -16,20 +15,20 @@ export const SearchPage = () => {
     return () => window.removeEventListener('blur', handleBlur)
   }, [])
 
-  const handleSelectTab = async (tab: BrowserTab) => {
-    if (typeof tab.windowId === 'number') {
-      await chrome.windows.update(tab.windowId, { focused: true })
-    }
-    if (typeof tab.id === 'number') {
-      await chrome.tabs.update(tab.id, { active: true })
-    }
+  const handleSelectWrapper = async (
+    item: SearchItem,
+    modifier?: 'new-tab' | 'new-window',
+    originalWindowId?: number,
+  ) => {
+    await onSelect(item, modifier, originalWindowId)
     window.close()
   }
 
   return (
     <TabSearch
       tabs={tabs}
-      onSelectTab={handleSelectTab}
+      onSelect={handleSelectWrapper}
+      onSearch={onSearch}
       onClose={() => window.close()}
       Favicon={Favicon}
       className="h-screen w-screen"

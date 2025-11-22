@@ -1,6 +1,6 @@
-import { cn, TabSearch } from '@extension/ui'
-import { useEffect, useState } from 'react'
+import { cn, TabSearch, useSearch } from '@extension/ui'
 import type { BrowserTab } from '@extension/chrome'
+import type { SearchItem } from '@extension/ui'
 
 const SimpleFavicon = ({
   pageUrl,
@@ -26,33 +26,18 @@ const SimpleFavicon = ({
 
 export const SearchOverlay = ({
   onClose,
-  initialTabs = [],
 }: {
   onClose: () => void
   initialTabs?: BrowserTab[]
 }) => {
-  const [tabs, setTabs] = useState<BrowserTab[]>(initialTabs)
+  const { tabs, onSearch, onSelect } = useSearch()
 
-  useEffect(() => {
-    if (initialTabs.length > 0) {
-      setTabs(initialTabs)
-    } else {
-      // Fallback fetch tabs from background if not provided
-      chrome.runtime.sendMessage({ type: 'GET_TABS' }).then((response) => {
-        if (response) {
-          setTabs(response)
-        }
-      })
-    }
-  }, [initialTabs])
-
-  const handleSelectTab = async (tab: BrowserTab) => {
-    // Send message to background to switch tab
-    await chrome.runtime.sendMessage({
-      type: 'SWITCH_TAB',
-      tabId: tab.id,
-      windowId: tab.windowId,
-    })
+  const handleSelect = async (
+    item: SearchItem,
+    modifier?: 'new-tab' | 'new-window',
+    originalWindowId?: number,
+  ) => {
+    await onSelect(item, modifier, originalWindowId)
     onClose()
   }
 
@@ -68,7 +53,8 @@ export const SearchOverlay = ({
     >
       <TabSearch
         tabs={tabs}
-        onSelectTab={handleSelectTab}
+        onSelect={handleSelect}
+        onSearch={onSearch}
         onClose={onClose}
         Favicon={SimpleFavicon}
         className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"

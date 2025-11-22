@@ -1,7 +1,6 @@
 import { Favicon } from './Favicon'
-import { useBrowserTabs } from '@extension/chrome'
-import { TabSearch } from '@extension/ui'
-import type { BrowserTab } from '@extension/chrome'
+import { TabSearch, useSearch } from '@extension/ui'
+import type { SearchItem } from '@extension/ui'
 
 type SearchPopupProps = {
   isOpen: boolean
@@ -9,15 +8,14 @@ type SearchPopupProps = {
 }
 
 export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
-  const tabs = useBrowserTabs()
+  const { tabs, onSearch, onSelect } = useSearch()
 
-  const handleSelectTab = async (tab: BrowserTab) => {
-    if (typeof tab.windowId === 'number') {
-      await chrome.windows.update(tab.windowId, { focused: true })
-    }
-    if (typeof tab.id === 'number') {
-      await chrome.tabs.update(tab.id, { active: true })
-    }
+  const handleSelectWrapper = async (
+    item: SearchItem,
+    modifier?: 'new-tab' | 'new-window',
+    originalWindowId?: number,
+  ) => {
+    await onSelect(item, modifier, originalWindowId)
     onClose()
   }
 
@@ -31,7 +29,8 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
     >
       <TabSearch
         tabs={tabs}
-        onSelectTab={handleSelectTab}
+        onSelect={handleSelectWrapper}
+        onSearch={onSearch}
         onClose={onClose}
         Favicon={Favicon}
         className="max-h-[80vh] w-full max-w-lg rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"

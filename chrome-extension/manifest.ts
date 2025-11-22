@@ -39,6 +39,8 @@ const manifest = {
     'tabGroups',
     'notifications',
     'sidePanel',
+    'bookmarks',
+    'history',
   ],
   options_page: 'options/index.html',
   background: {
