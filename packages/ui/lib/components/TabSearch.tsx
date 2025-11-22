@@ -26,6 +26,7 @@ export const TabSearch = <T extends Tab>({
 }: TabSearchProps<T>) => {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const selectedItemRef = useRef<HTMLButtonElement>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   useEffect(() => {
@@ -35,6 +36,12 @@ export const TabSearch = <T extends Tab>({
     }, 50)
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    selectedItemRef.current?.scrollIntoView({
+      block: 'nearest',
+    })
+  }, [selectedIndex])
 
   const filteredTabs = useMemo(() => {
     if (!query) return []
@@ -118,6 +125,7 @@ export const TabSearch = <T extends Tab>({
             {filteredTabs.map((tab, index) => (
               <li key={tab.id}>
                 <button
+                  ref={index === selectedIndex ? selectedItemRef : null}
                   type="button"
                   className={cn(
                     'flex w-full items-center gap-3 px-4 py-2 text-left text-sm',
