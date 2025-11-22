@@ -171,9 +171,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       } else if (item.type === 'command') {
         if (item.id === 'cmd-side-panel') {
           // Toggle side panel
-          const window = await chrome.windows.getLastFocused()
-          if (window.id) {
-            chrome.sidePanel.open({ windowId: window.id })
+          const targetWindowId = originalWindowId || focusedWindowId
+          if (targetWindowId) {
+            try {
+              // Must be called synchronously to preserve user gesture
+              chrome.sidePanel.open({ windowId: targetWindowId })
+            } catch (e) {
+              console.warn('Failed to open side panel from background', e)
+            }
           }
         } else if (item.url) {
           if (modifier === 'new-window') {

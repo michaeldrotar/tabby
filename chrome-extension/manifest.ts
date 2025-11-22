@@ -93,7 +93,7 @@ const manifest = {
         mac: 'Command+Shift+E',
         windows: 'Ctrl+Shift+E',
       },
-      description: 'Toggle Side Panel',
+      description: 'Open Side Panel',
     },
   },
 } satisfies ManifestType
