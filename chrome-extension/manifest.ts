@@ -56,6 +56,7 @@ const manifest = {
     {
       matches: ['http://*/*', 'https://*/*', '<all_urls>'],
       css: ['content.css'],
+      js: ['content.js'],
     },
   ],
   web_accessible_resources: [
