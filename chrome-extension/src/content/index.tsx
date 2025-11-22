@@ -12,6 +12,12 @@ let container: HTMLElement | null = null
 const mount = (initialTabs: BrowserTab[]) => {
   if (container) return
 
+  // Cleanup any existing container from previous injections/orphaned scripts
+  const existingContainer = document.getElementById(CONTAINER_ID)
+  if (existingContainer) {
+    existingContainer.remove()
+  }
+
   container = document.createElement('div')
   container.id = CONTAINER_ID
   document.body.appendChild(container)
