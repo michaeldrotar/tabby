@@ -11,16 +11,17 @@ const SimpleFavicon = ({
 }) => {
   if (!pageUrl)
     return <div className={cn('h-4 w-4 rounded bg-gray-200', className)} />
-  const url = new URL(chrome.runtime.getURL('/_favicon/'))
-  url.searchParams.set('pageUrl', pageUrl)
-  url.searchParams.set('size', '32')
-  return (
-    <img
-      src={url.toString()}
-      alt="favicon"
-      className={cn('h-4 w-4', className)}
-    />
-  )
+
+  let hostname = ''
+  try {
+    hostname = new URL(pageUrl).hostname
+  } catch {
+    return <div className={cn('h-4 w-4 rounded bg-gray-200', className)} />
+  }
+
+  const url = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`
+
+  return <img src={url} alt="favicon" className={cn('h-4 w-4', className)} />
 }
 
 export const SearchOverlay = ({
