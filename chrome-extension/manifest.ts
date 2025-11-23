@@ -30,8 +30,8 @@ const manifest = {
   },
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
-  host_permissions: ['<all_urls>'],
   permissions: [
+    'activeTab',
     'favicon',
     'storage',
     'scripting',
@@ -54,23 +54,9 @@ const manifest = {
   icons: {
     '128': 'tabby-face.png',
   },
-  content_scripts: [
-    {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-      css: ['content.css'],
-      js: ['content.js'],
-    },
-  ],
   web_accessible_resources: [
     {
-      resources: [
-        '*.js',
-        '*.css',
-        '*.svg',
-        '*.png',
-        '_favicon/*',
-        'content-search/index.html',
-      ],
+      resources: ['content-search/index.html', '_favicon/*'],
       matches: ['*://*/*'],
     },
   ],
