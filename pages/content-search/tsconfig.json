@@ -1,0 +1,12 @@
+{
+  "extends": "@extension/tsconfig/app.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@extension/chrome": ["../../packages/chrome/index.mts"],
+      "@extension/ui": ["../../packages/ui/index.ts"],
+      "@extension/shared": ["../../packages/shared/index.mts"]
+    }
+  },
+  "include": ["src", "tailwind.config.ts"]
+}

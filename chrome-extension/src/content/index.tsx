@@ -1,18 +1,14 @@
 // @ts-expect-error - inline import
 import css from './index.css?inline'
-import { SearchOverlay } from './SearchOverlay'
-import { createRoot } from 'react-dom/client'
-import type { BrowserTab } from '@extension/chrome'
 
 const CONTAINER_ID = 'tabby-search-overlay-container'
 
-let root: ReturnType<typeof createRoot> | null = null
 let container: HTMLElement | null = null
 
-const mount = (initialTabs: BrowserTab[]) => {
+const mount = () => {
   if (container) return
 
-  // Cleanup any existing container from previous injections/orphaned scripts
+  // Cleanup any existing container
   const existingContainer = document.getElementById(CONTAINER_ID)
   if (existingContainer) {
     existingContainer.remove()
@@ -29,35 +25,60 @@ const mount = (initialTabs: BrowserTab[]) => {
   style.textContent = css
   shadow.appendChild(style)
 
-  const appRoot = document.createElement('div')
-  shadow.appendChild(appRoot)
+  // Layer 1: Backdrop (Blur & Dim)
+  const backdrop = document.createElement('div')
+  backdrop.style.position = 'fixed'
+  backdrop.style.inset = '0'
+  backdrop.style.zIndex = '99998'
+  backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.2)'
+  backdrop.style.backdropFilter = 'blur(4px)'
+  backdrop.onclick = unmount
+  shadow.appendChild(backdrop)
 
-  root = createRoot(appRoot)
-  root.render(<SearchOverlay onClose={unmount} initialTabs={initialTabs} />)
+  // Layer 2: Iframe (Content)
+  const iframe = document.createElement('iframe')
+  iframe.src = chrome.runtime.getURL('content-search/index.html')
+  iframe.style.position = 'fixed'
+  iframe.style.inset = '0'
+  iframe.style.width = '100%'
+  iframe.style.height = '100%'
+  iframe.style.border = 'none'
+  iframe.style.zIndex = '99999'
+  iframe.style.setProperty('background-color', 'transparent', 'important')
+  iframe.setAttribute('allowtransparency', 'true')
+  shadow.appendChild(iframe)
+
+  // Focus the iframe
+  iframe.onload = () => {
+    iframe.contentWindow?.focus()
+  }
 }
 
 const unmount = () => {
-  if (root) {
-    root.unmount()
-    root = null
-  }
   if (container) {
     container.remove()
     container = null
   }
 }
 
-const toggle = (tabs?: BrowserTab[]) => {
+const toggle = () => {
   if (container) {
     unmount()
   } else {
-    mount(tabs || [])
+    mount()
   }
 }
 
 // Listen for messages from background
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'TOGGLE_SEARCH') {
-    toggle(message.tabs)
+    toggle()
+  }
+})
+
+// Listen for messages from the iframe
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'CLOSE_SEARCH') {
+    unmount()
   }
 })

@@ -84,11 +84,9 @@ chrome.commands.onCommand.addListener(async (command) => {
         }
       }
 
-      const tabs = await chrome.tabs.query({})
       try {
         await chrome.tabs.sendMessage(tabId, {
           type: 'TOGGLE_SEARCH',
-          tabs,
         })
       } catch (e) {
         console.warn(
@@ -104,7 +102,6 @@ chrome.commands.onCommand.addListener(async (command) => {
           // Retry sending the message
           await chrome.tabs.sendMessage(tabId, {
             type: 'TOGGLE_SEARCH',
-            tabs,
           })
         } catch (retryError) {
           console.warn(
