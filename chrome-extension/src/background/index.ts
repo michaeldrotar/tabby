@@ -57,7 +57,7 @@ const openSearchPopup = async (windowId?: number) => {
 }
 
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'open-search') {
+  if (command === 'open-search-overlay') {
     const activeTab = (
       await chrome.tabs.query({
         active: true,
@@ -115,7 +115,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
   } else if (command === 'open-search-popup' && focusedWindowId) {
     await openSearchPopup(focusedWindowId)
-  } else if (command === 'toggle-side-panel' && focusedWindowId) {
+  } else if (command === 'open-side-panel' && focusedWindowId) {
     // We can't easily check if it's open, but calling open will open it.
     // To toggle, we might need to rely on the user closing it manually or use a hack.
     // Chrome API doesn't have a simple 'toggle' or 'isOpen' check for sidePanel yet.

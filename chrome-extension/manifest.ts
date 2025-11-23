@@ -64,13 +64,13 @@ const manifest = {
     default_path: 'side-panel/index.html',
   },
   commands: {
-    'open-search': {
+    'open-search-overlay': {
       suggested_key: {
         default: 'MacCtrl+E',
         mac: 'Command+E',
         windows: 'Ctrl+E',
       },
-      description: 'Open Search',
+      description: 'Open Search Overlay',
     },
     'open-search-popup': {
       suggested_key: {
@@ -78,9 +78,9 @@ const manifest = {
         mac: 'Command+K',
         windows: 'Ctrl+K',
       },
-      description: 'Open Search',
+      description: 'Open Search Popup',
     },
-    'toggle-side-panel': {
+    'open-side-panel': {
       suggested_key: {
         default: 'MacCtrl+Shift+E',
         mac: 'Command+Shift+E',
