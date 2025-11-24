@@ -1,9 +1,9 @@
 name: Bug Report
 description: Create a bug report.
 title: "[Bug]: "
-labels: [ "bug", "triage" ]
+labels: ["bug", "triage"]
 assignees:
-  - Jonghakseo
+  - michaeldrotar
 
 body:
   - type: textarea
@@ -37,7 +37,7 @@ body:
     attributes:
       label: OS
       description: Select your operating system.
-      options: [ Windows, macOS, Linux ]
+      options: ["Windows", "macOS", "Linux"]
       default: 0
     validations:
       required: true
@@ -48,7 +48,16 @@ body:
       label: Browser
       description: Select the browser where the issue occurs(Multiple choice).
       multiple: true
-      options: [ Chrome, Opera, Opera GX, Firefox, Safari, Microsoft Edge, Brave ]
+      options:
+        [
+          Chrome,
+          "Opera",
+          "Opera GX",
+          "Firefox",
+          "Safari",
+          "Microsoft Edge",
+          "Brave",
+        ]
       default: 0
     validations:
       required: true

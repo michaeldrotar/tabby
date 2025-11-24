@@ -7,8 +7,9 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite.git"
+    "url": "https://github.com/michaeldrotar/tabby.git"
   },
+  "author": "Michael Drotar",
   "type": "module",
   "scripts": {
     "clean:bundle": "rimraf dist && turbo clean:bundle",
@@ -29,7 +30,7 @@
     "e2e:firefox": "pnpm zip:firefox && turbo e2e",
     "lint": "turbo lint --continue",
     "lint:fix": "turbo lint:fix --continue",
-    "format": "turbo format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
+    "format": "prettier --write \"**/*.{yml,yaml,json,md}\" && turbo format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
     "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest --watch",
@@ -90,7 +91,7 @@
     "vite-plugin-node-polyfills": "^0.23.0"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json}": [
+    "*.{js,jsx,ts,tsx,json,yml,yaml}": [
       "prettier --write",
       "eslint --fix"
     ]

@@ -1,9 +1,9 @@
 name: Feature Request
 description: Suggest an idea for improvement.
 title: "[Feature Request]: "
-labels: [ "request-new-feature", "triage" ]
+labels: ["request-new-feature", "triage"]
 assignees:
-  - Jonghakseo
+  - michaeldrotar
 
 body:
   - type: textarea
