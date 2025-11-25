@@ -31,3 +31,13 @@ We built Tabby with a "Privacy by Design" philosophy:
 ---
 
 _Enjoying Tabby? Please consider leaving us a review!_
+
+## v1.1.0 - Polishing the Experience ✨
+
+### 💎 Omnibar Improvements
+
+We've given the Omnibar a fresh coat of paint to make it even easier to scan your results:
+
+- **Type Indicators**: Clear, color-coded labels now show you exactly what each result is (Tab, Bookmark, History, etc.) at a glance.
+- **Better Layout**: URLs are now explicitly shown for bookmarks and history items, so you know exactly where you're going.
+- **Visual Polish**: Improved spacing, icons, and typography for a smoother experience.
