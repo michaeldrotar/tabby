@@ -8,8 +8,6 @@ export type TabItemPaneProps = {
 }
 
 export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
-  console.log('TabItemPane.render')
-
   const items = useTabListItems(browserWindowId)
 
   return (
