@@ -14,6 +14,8 @@ export const getOmnibarTypeColor = (type: OmnibarSearchItem['type']) => {
       return 'text-green-600 dark:text-green-400'
     case 'search':
       return 'text-indigo-600 dark:text-indigo-400'
+    case 'closed-tab':
+      return 'text-orange-600 dark:text-orange-400'
     default:
       return 'text-gray-500 dark:text-gray-400'
   }

@@ -31,6 +31,7 @@ To provide its functionality, Tabby requires certain permissions. We operate on 
 | `sidePanel` | Required to display the Tab Manager in the browser's side panel.                                                                                               |
 | `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                                                                                  |
 | `history`   | Allows searching and navigating your browsing history locally.                                                                                                 |
+| `sessions`  | Allows searching and restoring your recently closed tabs and windows.                                                                                          |
 
 ## Security
 

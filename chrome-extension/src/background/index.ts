@@ -1,4 +1,5 @@
 import 'webextension-polyfill'
+import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 
 let focusedWindowId: number | undefined = undefined
 const loadFocusedWindowId = async () => {
@@ -133,25 +134,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === 'SEARCH') {
     const { query } = message
     Promise.all([
-      chrome.history.search({ text: query, maxResults: 20, startTime: 0 }),
-      chrome.bookmarks.search(query),
-    ]).then(([historyResults, bookmarkResults]) => {
+      searchHistory(query),
+      searchBookmarks(query),
+      searchClosedTabs(query),
+    ]).then(([historyResults, bookmarkResults, closedTabResults]) => {
       const results = [
-        ...bookmarkResults.map((b) => ({
-          id: b.id,
-          type: 'bookmark',
-          title: b.title,
-          url: b.url,
-          description: 'Bookmark',
-        })),
-        ...historyResults.map((h) => ({
-          id: h.id,
-          type: 'history',
-          title: h.title || h.url || 'Untitled',
-          url: h.url,
-          description: 'History',
-          lastVisitTime: h.lastVisitTime,
-        })),
+        ...closedTabResults,
+        ...bookmarkResults,
+        ...historyResults,
       ]
       sendResponse(results)
     })
@@ -214,6 +204,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               await chrome.tabs.update({ url: item.url })
             }
           }
+        }
+      } else if (item.type === 'closed-tab') {
+        if (item.sessionId) {
+          await chrome.sessions.restore(item.sessionId)
         }
       } else if (['bookmark', 'history', 'url', 'search'].includes(item.type)) {
         if (modifier === 'new-window') {

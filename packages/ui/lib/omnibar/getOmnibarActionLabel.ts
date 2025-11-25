@@ -10,6 +10,8 @@ export const getOmnibarActionLabel = (item: OmnibarSearchItem) => {
       return 'Open'
     case 'search':
       return 'Search'
+    case 'closed-tab':
+      return 'Restore'
     default:
       return 'Open'
   }

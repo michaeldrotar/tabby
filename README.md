@@ -49,6 +49,7 @@ We believe in transparency. Here is a breakdown of every permission Tabby reques
 | [`sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)    | Required to display the Tab Manager in the browser's side panel.                |
 | [`bookmarks`](https://developer.chrome.com/docs/extensions/reference/api/bookmarks)    | Allows searching and navigating your saved bookmarks.                           |
 | [`history`](https://developer.chrome.com/docs/extensions/reference/api/history)        | Allows searching and navigating your browsing history.                          |
+| [`sessions`](https://developer.chrome.com/docs/extensions/reference/api/sessions)      | Allows searching and restoring your recently closed tabs and windows.           |
 
 ## Credits & Inspiration
 

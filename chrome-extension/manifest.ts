@@ -40,6 +40,7 @@ const manifest = {
     'sidePanel',
     'bookmarks',
     'history',
+    'sessions',
   ],
   background: {
     service_worker: 'background.js',

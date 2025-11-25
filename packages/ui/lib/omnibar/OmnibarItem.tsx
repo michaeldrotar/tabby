@@ -1,5 +1,6 @@
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
+import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { useEffect, useRef } from 'react'
@@ -137,8 +138,13 @@ export const OmnibarItem = ({
                 getOmnibarTypeColor(item.type),
               )}
             >
-              {item.type}
+              {getOmnibarTypeLabel(item)}
             </span>
+            {item.tabCount && item.tabCount > 1 && (
+              <span className="flex-shrink-0 text-gray-400">
+                (+{item.tabCount - 1} others)
+              </span>
+            )}
             {item.lastVisitTime && (
               <span className="flex-shrink-0 text-gray-400">
                 {formatTimeAgo(item.lastVisitTime)}
