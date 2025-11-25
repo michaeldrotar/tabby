@@ -64,29 +64,29 @@ const manifest = {
     default_path: 'side-panel/index.html',
   },
   commands: {
-    'open-search-overlay': {
+    'open-omnibar-overlay': {
       suggested_key: {
         default: 'MacCtrl+E',
         mac: 'Command+E',
         windows: 'Ctrl+E',
       },
-      description: 'Open Search Overlay',
+      description: 'Open Omnibar Overlay',
     },
-    'open-search-popup': {
+    'open-omnibar-popup': {
       suggested_key: {
         default: 'MacCtrl+K',
         mac: 'Command+K',
         windows: 'Ctrl+K',
       },
-      description: 'Open Search Popup',
+      description: 'Open Omnibar Popup',
     },
-    'open-side-panel': {
+    'open-tab-manager': {
       suggested_key: {
         default: 'MacCtrl+Shift+E',
         mac: 'Command+Shift+E',
         windows: 'Ctrl+Shift+E',
       },
-      description: 'Open Side Panel',
+      description: 'Open Tab Manager',
     },
   },
 } satisfies ManifestType

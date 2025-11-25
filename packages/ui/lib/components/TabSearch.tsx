@@ -146,8 +146,8 @@ export const TabSearch = ({
       {
         id: 'cmd-side-panel',
         type: 'command' as const,
-        title: 'Open Side Panel',
-        description: 'Tabby: Open Side Panel',
+        title: 'Open Tab Manager',
+        description: 'Tabby: Open Tab Manager',
       },
       {
         id: 'cmd-settings',
