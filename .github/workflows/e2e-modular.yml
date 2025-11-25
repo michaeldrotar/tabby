@@ -1,23 +1,34 @@
 name: Modular E2E Tests Matrix
 
-on: [ pull_request_target ]
+on: [pull_request_target]
 
 permissions:
   contents: read
-  
+
 env:
   ALL_SCENARIOS: '["content", "content-ui", "content-runtime", "background", "new-tab", "popup", "devtools", "side-panel", "options"]'
 
 jobs:
   e2e-tests:
-    name: '${{ matrix.browser }} | Scenario: ${{ matrix.scenario }}'
+    name: "${{ matrix.browser }} | Scenario: ${{ matrix.scenario }}"
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        browser: ['chrome', 'firefox']
-        scenario: ['content', 'content-ui', 'content-runtime', 'background', 'new-tab', 'popup', 'devtools', 'side-panel', 'options']
+        browser: ["chrome", "firefox"]
+        scenario:
+          [
+            "content",
+            "content-ui",
+            "content-runtime",
+            "background",
+            "new-tab",
+            "popup",
+            "devtools",
+            "side-panel",
+            "options",
+          ]
 
     env:
       CEB_CI: true
@@ -28,7 +39,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile --prefer-offline
@@ -68,4 +79,3 @@ jobs:
 
       - name: Run again E2E tests (${{ matrix.browser }})
         run: pnpm ${{ matrix.browser == 'chrome' && 'e2e' || 'e2e:firefox' }}
-

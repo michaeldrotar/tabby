@@ -5,8 +5,8 @@ packages:
   - tests/*
 
 onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@swc/core'
+  - "@parcel/watcher"
+  - "@swc/core"
   - edgedriver
   - esbuild
   - geckodriver

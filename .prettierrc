@@ -12,7 +12,7 @@
       "files": ["*.yml", "*.yaml"],
       "options": {
         "singleQuote": false,
-        "bracketSpacing": false
+        "bracketSpacing": true
       }
     }
   ]
