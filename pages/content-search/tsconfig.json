@@ -1,7 +1,6 @@
 {
   "extends": "@extension/tsconfig/app.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@extension/chrome": ["../../packages/chrome/index.mts"],
       "@extension/ui": ["../../packages/ui/index.ts"],
