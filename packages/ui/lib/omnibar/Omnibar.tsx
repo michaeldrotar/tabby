@@ -134,7 +134,7 @@ export const Omnibar = ({
                 onSelect={(item, modifier) =>
                   handleSelect(item, modifier, originalWindowId)
                 }
-                onMouseEnter={() => setSelectedIndex(index)}
+                onMouseMove={() => setSelectedIndex(index)}
                 Favicon={Favicon}
                 isShiftPressed={isShiftPressed}
                 isCmdCtrlPressed={isCmdCtrlPressed}

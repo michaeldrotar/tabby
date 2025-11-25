@@ -11,7 +11,7 @@ type OmnibarItemProps = {
     item: OmnibarSearchItem,
     modifier?: 'new-tab' | 'new-window',
   ) => void
-  onMouseEnter: () => void
+  onMouseMove: () => void
   Favicon: React.ComponentType<{ pageUrl?: string; className?: string }>
   isShiftPressed: boolean
   isCmdCtrlPressed: boolean
@@ -21,7 +21,7 @@ export const OmnibarItem = ({
   item,
   isSelected,
   onSelect,
-  onMouseEnter,
+  onMouseMove,
   Favicon,
   isShiftPressed,
   isCmdCtrlPressed,
@@ -53,7 +53,7 @@ export const OmnibarItem = ({
           if (e.shiftKey) modifier = 'new-window'
           onSelect(item, modifier)
         }}
-        onMouseEnter={onMouseEnter}
+        onMouseMove={onMouseMove}
       >
         {item.type === 'command' ? (
           <div className="flex h-5 w-5 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">

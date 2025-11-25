@@ -28,9 +28,11 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 ## Testing
 
 - Use Vitest for testing.
+- Bug fixes should include tests to prevent regressions.
 
 ## Documentation
 
 - User-facing changes should update `RELEASE_NOTES.md`.
+- Bug fixes should update `RELEASE_NOTES.md`.
 - Privacy changes should update `PRIVACY.md`.
 - Major feature additions should update `README.md`.
