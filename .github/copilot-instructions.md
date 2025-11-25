@@ -28,7 +28,8 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 ## Testing
 
 - Use Vitest for testing.
-- Bug fixes should include tests to prevent regressions.
+- Tests are not needed for relatively simple changes like new features or modifications.
+- Bug fixes must include tests to prevent regressions.
 
 ## Documentation
 

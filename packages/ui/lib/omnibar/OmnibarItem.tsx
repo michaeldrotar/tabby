@@ -4,6 +4,38 @@ import { cn } from '../utils'
 import { useEffect, useRef } from 'react'
 import type { OmnibarSearchItem } from './OmnibarSearchItem'
 
+const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
+  if (!query || !text) return <>{text}</>
+
+  const terms = query.split(/\s+/).filter((term) => term.length > 0)
+
+  if (terms.length === 0) return <>{text}</>
+
+  const escapedTerms = terms.map((term) =>
+    term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  )
+  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi')
+  const parts = text.split(regex)
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        const isMatch = escapedTerms.some((term) =>
+          new RegExp(`^${term}$`, 'i').test(part),
+        )
+
+        return isMatch ? (
+          <span key={i} className="font-bold">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      })}
+    </>
+  )
+}
+
 type OmnibarItemProps = {
   item: OmnibarSearchItem
   isSelected: boolean
@@ -15,6 +47,7 @@ type OmnibarItemProps = {
   Favicon: React.ComponentType<{ pageUrl?: string; className?: string }>
   isShiftPressed: boolean
   isCmdCtrlPressed: boolean
+  query: string
 }
 
 export const OmnibarItem = ({
@@ -25,6 +58,7 @@ export const OmnibarItem = ({
   Favicon,
   isShiftPressed,
   isCmdCtrlPressed,
+  query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
 
@@ -84,7 +118,9 @@ export const OmnibarItem = ({
           <Favicon pageUrl={item.url} className="flex-shrink-0" />
         )}
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate font-medium">{item.title}</span>
+          <span className="truncate font-medium">
+            <HighlightMatch text={item.title} query={query} />
+          </span>
           <div className="flex items-center gap-2 text-xs">
             <span
               className={cn(
@@ -94,7 +130,9 @@ export const OmnibarItem = ({
             >
               {item.type}
             </span>
-            <span className="truncate text-gray-400">{item.url}</span>
+            <span className="truncate text-gray-400">
+              <HighlightMatch text={item.url} query={query} />
+            </span>
           </div>
         </div>
         {isSelected && (

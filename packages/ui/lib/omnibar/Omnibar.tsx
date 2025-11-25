@@ -138,6 +138,7 @@ export const Omnibar = ({
                 Favicon={Favicon}
                 isShiftPressed={isShiftPressed}
                 isCmdCtrlPressed={isCmdCtrlPressed}
+                query={query}
                 // ref={index === selectedIndex ? selectedItemRef : null}
               />
             ))}

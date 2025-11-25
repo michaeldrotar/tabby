@@ -40,6 +40,7 @@ We've given the Omnibar a fresh coat of paint to make it even easier to scan you
 
 - **Type Indicators**: Clear, color-coded labels now show you exactly what each result is (Tab, Bookmark, History, etc.) at a glance.
 - **Better Layout**: URLs are now explicitly shown for bookmarks and history items, so you know exactly where you're going.
+- **Search Highlighting**: Matching terms in your search results are now highlighted, making it easier to find what you're looking for.
 - **Visual Polish**: Improved spacing, icons, and typography for a smoother experience.
 
 ### 🐛 Bug Fixes
