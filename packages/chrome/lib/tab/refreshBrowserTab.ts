@@ -1,6 +1,7 @@
 import { toBrowserTab } from './toBrowserTab.js'
 import { useBrowserStore } from '../useBrowserStore.js'
-import type { BrowserTab, BrowserTabID } from 'index.mjs'
+import type { BrowserTab } from './BrowserTab.js'
+import type { BrowserTabID } from './BrowserTabID.js'
 
 export const refreshBrowserTab = async (
   id: BrowserTabID,

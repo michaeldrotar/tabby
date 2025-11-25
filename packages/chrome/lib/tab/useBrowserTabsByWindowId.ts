@@ -1,7 +1,7 @@
 import { useBrowserStore } from '../useBrowserStore.js'
 import { useShallow } from 'zustand/shallow'
 import type { BrowserTab } from './BrowserTab.js'
-import type { BrowserWindowID } from 'index.mjs'
+import type { BrowserWindowID } from '../window/BrowserWindowID.js'
 
 /**
  * Provides all browser tabs belonging to the window ID.
