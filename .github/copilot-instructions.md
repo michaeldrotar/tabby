@@ -5,7 +5,9 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 ## Critical Workflow & Definition of Done
 
 - **Plan First:** When asked to perform a multi-step task, use the \`manage_todo_list\` tool to plan your work.
-- **Update Release Notes:** If the task involves a user-facing change or a bug fix, you **MUST** include a todo item to update \`RELEASE_NOTES.md\`. Do not mark the task as complete until this is done.
+- **Update Release Notes:** If the task involves a user-facing change or a bug fix, you **MUST** include a todo item to update the relevant release note file in \`product/releases/\`.
+  - File naming convention: \`v<version>-<slug>.md\` (e.g., \`v1.0.0-the-launch.md\`).
+  - Do not mark the task as complete until this is done.
 - **Documentation:**
   - Privacy changes should update \`PRIVACY.md\`.
   - Major feature additions should update \`README.md\`.
