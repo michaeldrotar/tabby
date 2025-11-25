@@ -1,4 +1,4 @@
-import { SearchPopup } from './SearchPopup'
+import { OmnibarPopup } from './OmnibarPopup'
 import { SelectWindowButtonPane } from './SelectWindowButtonPane'
 import { SelectWindowDot } from './SelectWindowDot'
 import { SidePanelHeader } from './SidePanelHeader'
@@ -22,15 +22,15 @@ const SidePanel = () => {
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isOmnibarOpen, setIsOmnibarOpen] = useState(false)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'p')) {
         e.preventDefault()
-        setIsSearchOpen((prev) => !prev)
-      } else if (e.key === 'Escape' && !isSearchOpen) {
-        // Close side panel if search is not open
+        setIsOmnibarOpen((prev) => !prev)
+      } else if (e.key === 'Escape' && !isOmnibarOpen) {
+        // Close side panel if omnibar is not open
         window.close()
       }
     }
@@ -38,10 +38,10 @@ const SidePanel = () => {
 
     const handleMessage = (message: { type: string; windowId?: number }) => {
       if (
-        message.type === 'OPEN_SEARCH' &&
+        message.type === 'OPEN_OMNIBAR' &&
         message.windowId === currentBrowserWindow?.id
       ) {
-        setIsSearchOpen(true)
+        setIsOmnibarOpen(true)
       }
     }
     chrome.runtime.onMessage.addListener(handleMessage)
@@ -50,7 +50,7 @@ const SidePanel = () => {
       window.removeEventListener('keydown', handleKeyDown)
       chrome.runtime.onMessage.removeListener(handleMessage)
     }
-  }, [currentBrowserWindow?.id, isSearchOpen])
+  }, [currentBrowserWindow?.id, isOmnibarOpen])
 
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {
@@ -80,9 +80,9 @@ const SidePanel = () => {
 
   return (
     <>
-      <SearchPopup
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+      <OmnibarPopup
+        isOpen={isOmnibarOpen}
+        onClose={() => setIsOmnibarOpen(false)}
       />
       <div
         className={cn(
@@ -91,7 +91,7 @@ const SidePanel = () => {
           'dark:bg-gray-800 dark:text-gray-100',
         )}
       >
-        <SidePanelHeader onOpenSearch={() => setIsSearchOpen(true)} />
+        <SidePanelHeader onOpenOmnibar={() => setIsOmnibarOpen(true)} />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
           {/* Navigation Rail (Dots) */}

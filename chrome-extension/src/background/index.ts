@@ -15,7 +15,7 @@ chrome.windows.onFocusChanged.addListener((id) => {
   focusedWindowId = id
 })
 
-const openSearchPopup = async (windowId?: number) => {
+const openOmnibarPopup = async (windowId?: number) => {
   const searchUrl = chrome.runtime.getURL(
     `search/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
   )
@@ -86,7 +86,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 
       try {
         await chrome.tabs.sendMessage(tabId, {
-          type: 'TOGGLE_SEARCH',
+          type: 'TOGGLE_OMNIBAR',
         })
       } catch (e) {
         console.warn(
@@ -101,7 +101,7 @@ chrome.commands.onCommand.addListener(async (command) => {
           })
           // Retry sending the message
           await chrome.tabs.sendMessage(tabId, {
-            type: 'TOGGLE_SEARCH',
+            type: 'TOGGLE_OMNIBAR',
           })
         } catch (retryError) {
           console.warn(
@@ -109,12 +109,12 @@ chrome.commands.onCommand.addListener(async (command) => {
             { error: retryError },
           )
           // Fallback to popup if we can't inject (e.g. chrome:// pages)
-          await openSearchPopup(activeTab.windowId)
+          await openOmnibarPopup(activeTab.windowId)
         }
       }
     }
   } else if (command === 'open-omnibar-popup' && focusedWindowId) {
-    await openSearchPopup(focusedWindowId)
+    await openOmnibarPopup(focusedWindowId)
   } else if (command === 'open-tab-manager' && focusedWindowId) {
     // We can't easily check if it's open, but calling open will open it.
     // To toggle, we might need to rely on the user closing it manually or use a hack.

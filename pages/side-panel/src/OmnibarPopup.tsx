@@ -1,13 +1,13 @@
-import { Favicon, TabSearch, useSearch } from '@extension/ui'
+import { Favicon, Omnibar, useOmnibar } from '@extension/ui'
 import type { SearchItem } from '@extension/ui'
 
-type SearchPopupProps = {
+type OmnibarPopupProps = {
   isOpen: boolean
   onClose: () => void
 }
 
-export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
-  const { tabs, onSearch, onSelect } = useSearch()
+export const OmnibarPopup = ({ isOpen, onClose }: OmnibarPopupProps) => {
+  const { tabs, onSearch, onSelect } = useOmnibar()
 
   const handleSelectWrapper = async (
     item: SearchItem,
@@ -26,7 +26,7 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 pt-[15vh] backdrop-blur-sm dark:bg-black/50"
       onClick={onClose}
     >
-      <TabSearch
+      <Omnibar
         tabs={tabs}
         onSelect={handleSelectWrapper}
         onSearch={onSearch}

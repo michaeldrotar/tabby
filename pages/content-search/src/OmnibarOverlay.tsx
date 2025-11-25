@@ -1,11 +1,11 @@
-import { Favicon, TabSearch, useSearch } from '@extension/ui'
+import { Favicon, Omnibar, useOmnibar } from '@extension/ui'
 import type { SearchItem } from '@extension/ui'
 
-export const SearchOverlay = () => {
-  const { tabs, onSearch, onSelect } = useSearch()
+export const OmnibarOverlay = () => {
+  const { tabs, onSearch, onSelect } = useOmnibar()
 
   const onClose = () => {
-    window.parent.postMessage({ type: 'CLOSE_SEARCH' }, '*')
+    window.parent.postMessage({ type: 'CLOSE_OMNIBAR' }, '*')
   }
 
   const handleSelectWrapper = async (
@@ -27,7 +27,7 @@ export const SearchOverlay = () => {
         if (e.key === 'Escape') onClose()
       }}
     >
-      <TabSearch
+      <Omnibar
         tabs={tabs}
         onSelect={handleSelectWrapper}
         onSearch={onSearch}

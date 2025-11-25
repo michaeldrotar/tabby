@@ -1,7 +1,7 @@
 // @ts-expect-error - inline import
 import css from './index.css?inline'
 
-const CONTAINER_ID = 'tabby-search-overlay-container'
+const CONTAINER_ID = 'tabby-omnibar-overlay-container'
 
 let container: HTMLElement | null = null
 
@@ -71,14 +71,14 @@ const toggle = () => {
 
 // Listen for messages from background
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'TOGGLE_SEARCH') {
+  if (message.type === 'TOGGLE_OMNIBAR') {
     toggle()
   }
 })
 
 // Listen for messages from the iframe
 window.addEventListener('message', (event) => {
-  if (event.data.type === 'CLOSE_SEARCH') {
+  if (event.data.type === 'CLOSE_OMNIBAR') {
     unmount()
   }
 })

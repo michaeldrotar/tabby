@@ -1,9 +1,9 @@
-import { Favicon, TabSearch, useSearch } from '@extension/ui'
+import { Favicon, Omnibar, useOmnibar } from '@extension/ui'
 import { useEffect } from 'react'
 import type { SearchItem } from '@extension/ui'
 
-export const SearchPage = () => {
-  const { tabs, onSearch, onSelect } = useSearch()
+export const OmnibarPage = () => {
+  const { tabs, onSearch, onSelect } = useOmnibar()
 
   // Close window on blur
   useEffect(() => {
@@ -24,7 +24,7 @@ export const SearchPage = () => {
   }
 
   return (
-    <TabSearch
+    <Omnibar
       tabs={tabs}
       onSelect={handleSelectWrapper}
       onSearch={onSearch}

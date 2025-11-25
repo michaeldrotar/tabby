@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { SearchItem } from '../components/TabSearch'
+import type { SearchItem } from '../components/Omnibar'
 
-export const useSearch = () => {
+export const useOmnibar = () => {
   const [tabs, setTabs] = useState<SearchItem[]>([])
 
   useEffect(() => {

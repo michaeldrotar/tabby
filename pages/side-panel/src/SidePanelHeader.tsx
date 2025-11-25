@@ -10,10 +10,10 @@ import { exampleThemeStorage } from '@extension/storage'
 import { cn } from '@extension/ui'
 
 type SidePanelHeaderProps = {
-  onOpenSearch?: () => void
+  onOpenOmnibar?: () => void
 }
 
-export const SidePanelHeader = ({ onOpenSearch }: SidePanelHeaderProps) => {
+export const SidePanelHeader = ({ onOpenOmnibar }: SidePanelHeaderProps) => {
   const { theme } = useThemeStorage()
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
@@ -42,7 +42,7 @@ export const SidePanelHeader = ({ onOpenSearch }: SidePanelHeaderProps) => {
           type="button"
           title="Search tabs (Cmd+K)"
           aria-label="Search tabs"
-          onClick={onOpenSearch}
+          onClick={onOpenOmnibar}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
             'text-gray-500 hover:bg-gray-100 hover:text-gray-700',

@@ -12,7 +12,7 @@ export type SearchItem = {
   tabId?: number
 }
 
-export type TabSearchProps = {
+export type OmnibarProps = {
   tabs: SearchItem[]
   onSelect: (
     item: SearchItem,
@@ -28,14 +28,14 @@ export type TabSearchProps = {
   className?: string
 }
 
-export const TabSearch = ({
+export const Omnibar = ({
   tabs,
   onSelect,
   onClose,
   onSearch,
   Favicon,
   className,
-}: TabSearchProps) => {
+}: OmnibarProps) => {
   const [query, setQuery] = useState('')
   const [externalResults, setExternalResults] = useState<SearchItem[]>([])
   const inputRef = useRef<HTMLInputElement>(null)

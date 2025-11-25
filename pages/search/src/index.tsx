@@ -1,5 +1,5 @@
 import '@src/index.css'
-import { SearchPage } from './SearchPage'
+import { OmnibarPage } from './OmnibarPage'
 import { BrowserStoreProvider } from '@extension/chrome'
 import { createRoot } from 'react-dom/client'
 
@@ -11,7 +11,7 @@ const init = () => {
   const root = createRoot(appContainer)
   root.render(
     <BrowserStoreProvider>
-      <SearchPage />
+      <OmnibarPage />
     </BrowserStoreProvider>,
   )
 }

@@ -1,4 +1,4 @@
-import { SearchOverlay } from './SearchOverlay'
+import { OmnibarOverlay } from './OmnibarOverlay'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 
@@ -8,4 +8,4 @@ if (!container) {
 }
 
 const root = createRoot(container)
-root.render(<SearchOverlay />)
+root.render(<OmnibarOverlay />)
