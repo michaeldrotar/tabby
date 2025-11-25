@@ -1,4 +1,5 @@
 export * from './components/index'
 export * from './utils'
 export * from './with-ui'
-export * from './hooks/useOmnibar'
+export * from './omnibar/Omnibar'
+export * from './omnibar/useOmnibar'

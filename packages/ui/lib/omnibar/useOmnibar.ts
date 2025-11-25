@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { SearchItem } from '../components/Omnibar'
+import type { OmnibarSearchItem } from './OmnibarSearchItem'
 
 export const useOmnibar = () => {
-  const [tabs, setTabs] = useState<SearchItem[]>([])
+  const [tabs, setTabs] = useState<OmnibarSearchItem[]>([])
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: 'GET_TABS' }).then((response) => {
@@ -36,7 +36,7 @@ export const useOmnibar = () => {
 
   const onSelect = useCallback(
     async (
-      item: SearchItem,
+      item: OmnibarSearchItem,
       modifier?: 'new-tab' | 'new-window',
       originalWindowId?: number,
     ) => {
