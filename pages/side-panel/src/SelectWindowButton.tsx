@@ -1,7 +1,6 @@
-import { Favicon } from './Favicon'
 import { WindowThumbnail } from './WindowThumbnail'
 import { useBrowserTabsByWindowId } from '@extension/chrome'
-import { cn } from '@extension/ui'
+import { cn, Favicon } from '@extension/ui'
 import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 

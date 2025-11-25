@@ -1,5 +1,4 @@
-import { Favicon } from './Favicon'
-import { TabSearch, useSearch } from '@extension/ui'
+import { Favicon, TabSearch, useSearch } from '@extension/ui'
 import { useEffect } from 'react'
 import type { SearchItem } from '@extension/ui'
 

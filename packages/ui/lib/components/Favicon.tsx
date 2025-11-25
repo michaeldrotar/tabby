@@ -1,9 +1,11 @@
+import type { ComponentPropsWithoutRef } from 'react'
+
 type FaviconProps = {
   pageUrl?: string
   size?: number | string
-} & Pick<React.JSX.IntrinsicElements['img'], 'alt' | 'className'>
+} & Pick<ComponentPropsWithoutRef<'img'>, 'alt' | 'className'>
 
-const Favicon = ({ pageUrl, size, ...imageProps }: FaviconProps) => {
+export const Favicon = ({ pageUrl, size, ...imageProps }: FaviconProps) => {
   const src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(pageUrl || '')}&size=${size || '32'}`
 
   return (
@@ -15,5 +17,3 @@ const Favicon = ({ pageUrl, size, ...imageProps }: FaviconProps) => {
     />
   )
 }
-
-export { Favicon }

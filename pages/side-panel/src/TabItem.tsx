@@ -1,6 +1,5 @@
-import { Favicon } from './Favicon'
 import { refreshBrowserTab } from '@extension/chrome'
-import { cn } from '@extension/ui'
+import { cn, Favicon } from '@extension/ui'
 import { memo, useCallback } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 

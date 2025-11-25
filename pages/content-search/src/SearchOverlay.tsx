@@ -1,5 +1,4 @@
-import { Favicon } from './Favicon'
-import { TabSearch, useSearch } from '@extension/ui'
+import { Favicon, TabSearch, useSearch } from '@extension/ui'
 import type { SearchItem } from '@extension/ui'
 
 export const SearchOverlay = () => {
