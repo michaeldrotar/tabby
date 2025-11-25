@@ -43,6 +43,7 @@ We've given the Omnibar a fresh coat of paint to make it even easier to scan you
 - **Search Highlighting**: Matching terms in your search results are now highlighted, making it easier to find what you're looking for.
 - **Visual Polish**: Improved spacing, icons, and typography for a smoother experience.
 - **Retina Ready**: Favicons now render at 2x resolution for crisp visuals on high-density displays.
+- **Google Search Icon**: Web searches now feature the official Google logo for easier recognition.
 - **History Age**: See how long ago you visited a history item right in the search results.
 
 ### 🐛 Bug Fixes
