@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "Chrome extension boilerplate developed with Vite, React and Typescript"
+    "message": "Cat friendly Omnibar and Tab Manager"
   },
   "extensionName": {
     "description": "Extension name",
