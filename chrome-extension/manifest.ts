@@ -37,7 +37,6 @@ const manifest = {
     'scripting',
     'tabs',
     'tabGroups',
-    'notifications',
     'sidePanel',
     'bookmarks',
     'history',
