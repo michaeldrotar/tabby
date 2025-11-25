@@ -1,5 +1,6 @@
 export * from './components/index'
-export * from './utils'
+export * from './utils/cn'
+export * from './utils/formatTimeAgo'
 export * from './with-ui'
 export * from './omnibar/Omnibar'
 export * from './omnibar/useOmnibar'

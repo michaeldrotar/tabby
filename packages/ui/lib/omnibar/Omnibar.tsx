@@ -4,7 +4,7 @@ import { OmnibarItem } from './OmnibarItem'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
-import { cn } from '../utils'
+import { cn } from '../utils/cn'
 import { useMemo, useRef, useState } from 'react'
 import type { OmnibarSearchItem } from './OmnibarSearchItem'
 

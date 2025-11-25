@@ -150,6 +150,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           title: h.title || h.url || 'Untitled',
           url: h.url,
           description: 'History',
+          lastVisitTime: h.lastVisitTime,
         })),
       ]
       sendResponse(results)

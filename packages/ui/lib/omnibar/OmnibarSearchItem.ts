@@ -6,4 +6,5 @@ export type OmnibarSearchItem = {
   favIconUrl?: string
   windowId?: number
   tabId?: number
+  lastVisitTime?: number
 }

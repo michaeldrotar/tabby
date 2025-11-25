@@ -18,7 +18,8 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 ## Architecture & Best Practices
 
 - **Feature-Based Organization:** Group components, hooks, and utils by feature (e.g., `omnibar/`) rather than by type (e.g., `components/`, `hooks/`, or `types/`).
-- **Single File Exports:** Prefer single file exports for everything, including for types and utils. Components with a props type can export both the component function and prop type.
+- **General Utilities:** General utilities that don't belong to a specific feature should be placed in a `utils/` folder. Each utility should be in its own file (e.g., `utils/formatTimeAgo.ts`).
+- **Single File Exports:** Prefer single file exports for everything, including for types and utils. Components with a props type can export both the component function and prop type. Avoid creating "bag" files like `utils.ts` or `types.ts` that contain multiple unrelated exports.
 - **Naming Convention:** Name feature-specific types and utils to include the feature name (e.g., `OmnibarSearchItem`, `getOmnibarActionLabel`).
 - **DRY Principle:** Always check for existing components before creating new ones.
 - Shared components (like `Favicon`, `Omnibar`) should live in `packages/ui`.
@@ -30,6 +31,7 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - Use Vitest for testing.
 - Tests are not needed for relatively simple changes like new features or modifications.
 - Bug fixes must include tests to prevent regressions.
+- Do not run builds or tests manually unless asked. The user will notify you if there are failures.
 
 ## Documentation
 

@@ -1,6 +1,7 @@
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
-import { cn } from '../utils'
+import { cn } from '../utils/cn'
+import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { useEffect, useRef } from 'react'
 import type { OmnibarSearchItem } from './OmnibarSearchItem'
 
@@ -130,6 +131,11 @@ export const OmnibarItem = ({
             >
               {item.type}
             </span>
+            {item.lastVisitTime && (
+              <span className="flex-shrink-0 text-gray-400">
+                {formatTimeAgo(item.lastVisitTime)}
+              </span>
+            )}
             <span className="truncate text-gray-400">
               <HighlightMatch text={item.url} query={query} />
             </span>
