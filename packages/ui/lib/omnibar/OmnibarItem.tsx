@@ -45,7 +45,11 @@ type OmnibarItemProps = {
     modifier?: 'new-tab' | 'new-window',
   ) => void
   onMouseMove: () => void
-  Favicon: React.ComponentType<{ pageUrl?: string; className?: string }>
+  Favicon: React.ComponentType<{
+    pageUrl?: string
+    className?: string
+    size?: number
+  }>
   isShiftPressed: boolean
   isCmdCtrlPressed: boolean
   query: string
@@ -91,11 +95,11 @@ export const OmnibarItem = ({
         onMouseMove={onMouseMove}
       >
         {item.type === 'command' ? (
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
             &gt;
           </div>
         ) : item.type === 'search' ? (
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
             <svg viewBox="0 0 24 24" className="h-full w-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -116,7 +120,11 @@ export const OmnibarItem = ({
             </svg>
           </div>
         ) : (
-          <Favicon pageUrl={item.url} className="flex-shrink-0" />
+          <Favicon
+            pageUrl={item.url}
+            className="h-8 w-8 flex-shrink-0"
+            size={32}
+          />
         )}
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium">

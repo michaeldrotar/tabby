@@ -22,6 +22,7 @@ export type OmnibarProps = {
   Favicon: React.ComponentType<{
     pageUrl?: string
     className?: string
+    size?: number
   }>
   className?: string
 }
