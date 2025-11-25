@@ -17,6 +17,9 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 
 ## Architecture & Best Practices
 
+- **Feature-Based Organization:** Group components, hooks, and utils by feature (e.g., `omnibar/`) rather than by type (e.g., `components/`, `hooks/`, or `types/`).
+- **Single File Exports:** Prefer single file exports for everything, including for types and utils. Components with a props type can export both the component function and prop type.
+- **Naming Convention:** Name feature-specific types and utils to include the feature name (e.g., `OmnibarSearchItem`, `getOmnibarActionLabel`).
 - **DRY Principle:** Always check for existing components before creating new ones.
 - Shared components (like `Favicon`, `Omnibar`) should live in `packages/ui`.
 - If you find duplicated code, refactor it into a shared location.
