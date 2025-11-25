@@ -46,3 +46,4 @@ We've given the Omnibar a fresh coat of paint to make it even easier to scan you
 ### 🐛 Bug Fixes
 
 - **Omnibar Navigation**: Fixed an issue where the mouse cursor would interfere with keyboard navigation in the Omnibar.
+- **Tab & Command Search**: Fixed an issue where tab and command search required exact phrase matching. Now supports multiple search terms in any order, consistent with history and bookmark search.

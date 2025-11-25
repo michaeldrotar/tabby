@@ -11,6 +11,7 @@ export const useOmnibarFiltering = (
   const filteredItems = useMemo(() => {
     if (!query) return []
     const lowerQuery = query.toLowerCase()
+    const queryTerms = lowerQuery.split(' ').filter(Boolean)
 
     // Google Search (Always First)
     const googleSearch: OmnibarSearchItem = {
@@ -71,15 +72,20 @@ export const useOmnibarFiltering = (
         title: 'Chrome: Bookmarks Manager',
         url: 'chrome://bookmarks',
       },
-    ].filter((c) => c.title.toLowerCase().includes(lowerQuery))
+    ].filter((c) => {
+      const title = c.title.toLowerCase()
+      return queryTerms.every((term) => title.includes(term))
+    })
 
     // Local tabs
     const localResults = tabs
-      .filter(
-        (tab) =>
-          tab.title?.toLowerCase().includes(lowerQuery) ||
-          tab.url?.toLowerCase().includes(lowerQuery),
-      )
+      .filter((tab) => {
+        const title = tab.title?.toLowerCase() || ''
+        const url = tab.url?.toLowerCase() || ''
+        return queryTerms.every(
+          (term) => title.includes(term) || url.includes(term),
+        )
+      })
       .map((t) => ({ ...t, type: 'tab' as const }))
 
     // External Results (Bookmarks & History)
