@@ -2,6 +2,14 @@
 
 This file contains instructions for GitHub Copilot to follow when working on this project.
 
+## Critical Workflow & Definition of Done
+
+- **Plan First:** When asked to perform a multi-step task, use the \`manage_todo_list\` tool to plan your work.
+- **Update Release Notes:** If the task involves a user-facing change or a bug fix, you **MUST** include a todo item to update \`RELEASE_NOTES.md\`. Do not mark the task as complete until this is done.
+- **Documentation:**
+  - Privacy changes should update \`PRIVACY.md\`.
+  - Major feature additions should update \`README.md\`.
+
 ## Project Overview
 
 - This is a Chrome Extension project named "Tabby".
@@ -32,10 +40,3 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - Tests are not needed for relatively simple changes like new features or modifications.
 - Bug fixes must include tests to prevent regressions.
 - Do not run builds or tests manually unless asked. The user will notify you if there are failures.
-
-## Documentation
-
-- User-facing changes should update `RELEASE_NOTES.md`.
-- Bug fixes should update `RELEASE_NOTES.md`.
-- Privacy changes should update `PRIVACY.md`.
-- Major feature additions should update `README.md`.
