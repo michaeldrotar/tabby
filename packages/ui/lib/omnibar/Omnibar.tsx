@@ -132,7 +132,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
   return (
     <div
       className={cn(
-        'flex flex-col overflow-hidden bg-white dark:bg-gray-800',
+        'flex flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100',
         className,
       )}
       onClick={(e) => e.stopPropagation()}
