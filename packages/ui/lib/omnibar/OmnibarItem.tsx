@@ -100,7 +100,7 @@ export const OmnibarItem = ({
             &gt;
           </div>
         ) : item.type === 'search' ? (
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:ring-gray-700">
             <svg viewBox="0 0 24 24" className="h-full w-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

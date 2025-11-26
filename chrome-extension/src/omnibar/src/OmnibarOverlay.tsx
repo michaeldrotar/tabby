@@ -33,7 +33,7 @@ export const OmnibarOverlay = () => {
         onSearch={onSearch}
         onClose={onClose}
         Favicon={Favicon}
-        className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"
+        className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-300 shadow-2xl dark:border-gray-700"
       />
     </div>
   )
