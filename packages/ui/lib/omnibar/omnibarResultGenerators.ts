@@ -1,4 +1,5 @@
 import { executeUrl } from './executeUrl'
+import { exampleThemeStorage } from '@extension/storage'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
@@ -48,6 +49,14 @@ const COMMANDS: OmnibarSearchResult[] = [
           await chrome.sidePanel.open({ windowId: window.id })
         }
       }
+    },
+  },
+  {
+    id: 'cmd-toggle-theme',
+    type: 'command',
+    title: 'Tabby: Toggle Theme',
+    execute: async () => {
+      await exampleThemeStorage.toggle()
     },
   },
   {
