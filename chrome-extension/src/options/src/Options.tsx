@@ -1,4 +1,4 @@
-import '@src/Options.css'
+import './Options.css'
 import { t } from '@extension/i18n'
 import {
   PROJECT_URL_OBJECT,

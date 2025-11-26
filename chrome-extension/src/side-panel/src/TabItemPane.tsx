@@ -1,6 +1,6 @@
+import { TabItem } from './TabItem'
 import { useTabListItems } from '@extension/chrome'
 import { cn } from '@extension/ui'
-import { TabItem } from '@src/TabItem'
 import type { BrowserWindowID } from '@extension/chrome'
 
 export type TabItemPaneProps = {

@@ -50,17 +50,21 @@ const manifest = {
     default_icon: 'tabby-face.png',
     default_title: 'Tabby',
   },
+  // options_ui: {
+  //   page: 'src/options/index.html',
+  //   open_in_tab: true,
+  // },
   icons: {
     '128': 'tabby-face.png',
   },
   web_accessible_resources: [
     {
-      resources: ['content-search/index.html', '_favicon/*'],
+      resources: ['src/omnibar/index.html', '_favicon/*'],
       matches: ['*://*/*'],
     },
   ],
   side_panel: {
-    default_path: 'side-panel/index.html',
+    default_path: 'src/side-panel/index.html',
   },
   commands: {
     'open-omnibar-overlay': {

@@ -2,7 +2,7 @@ import { Favicon, Omnibar, useOmnibar } from '@extension/ui'
 import { useEffect } from 'react'
 import type { SearchItem } from '@extension/ui'
 
-export const OmnibarPage = () => {
+export const OmnibarPopup = () => {
   const { tabs, onSearch, onSelect } = useOmnibar()
 
   // Close window on blur

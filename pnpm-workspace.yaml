@@ -1,6 +1,5 @@
 packages:
   - chrome-extension
-  - pages/*
   - packages/*
   - tests/*
 

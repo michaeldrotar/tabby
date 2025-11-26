@@ -1,10 +1,10 @@
+import { SelectWindowButton } from './SelectWindowButton'
 import {
   useBrowserWindows,
   useCurrentBrowserWindow,
   useFocusedBrowserWindow,
 } from '@extension/chrome'
 import { cn } from '@extension/ui'
-import { SelectWindowButton } from '@src/SelectWindowButton'
 import type { BrowserWindow, BrowserWindowID } from '@extension/chrome'
 
 type SelectWindowButtonPaneProps = {

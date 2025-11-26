@@ -1,6 +1,5 @@
-import '@src/index.css'
-import { OmnibarPage } from './OmnibarPage'
-import { BrowserStoreProvider } from '@extension/chrome'
+import './index.css'
+import { Root } from './Root'
 import { createRoot } from 'react-dom/client'
 
 const init = () => {
@@ -9,11 +8,7 @@ const init = () => {
     throw new Error('Can not find #app-container')
   }
   const root = createRoot(appContainer)
-  root.render(
-    <BrowserStoreProvider>
-      <OmnibarPage />
-    </BrowserStoreProvider>,
-  )
+  root.render(<Root />)
 }
 
 init()

@@ -1,4 +1,3 @@
-// @ts-expect-error - inline import
 import css from './index.css?inline'
 
 const CONTAINER_ID = 'tabby-omnibar-overlay-container'
@@ -37,7 +36,7 @@ const mount = () => {
 
   // Layer 2: Iframe (Content)
   const iframe = document.createElement('iframe')
-  iframe.src = chrome.runtime.getURL('content-search/index.html')
+  iframe.src = chrome.runtime.getURL('src/omnibar/index.html?mode=overlay')
   iframe.style.position = 'fixed'
   iframe.style.inset = '0'
   iframe.style.width = '100%'

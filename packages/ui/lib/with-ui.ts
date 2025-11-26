@@ -3,7 +3,7 @@ import type { Config } from 'tailwindcss'
 
 export const withUI = (tailwindConfig: Config): Config =>
   deepmerge(tailwindConfig, {
-    content: ['../../packages/ui/lib/**/*.{ts,tsx}'],
+    content: ['../packages/ui/lib/**/*.{ts,tsx}'],
     darkMode: [
       'variant',
       [

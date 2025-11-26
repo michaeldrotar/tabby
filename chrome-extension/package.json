@@ -19,21 +19,30 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/chrome": "workspace:*",
+    "@extension/i18n": "workspace:*",
     "@extension/env": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
     "@extension/ui": "workspace:*",
-    "@extension/chrome": "workspace:*",
+    "@tanstack/react-query": "^5.90.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@extension/dev-utils": "workspace:*",
     "@extension/hmr": "workspace:*",
+    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*",
-    "@extension/tailwindcss-config": "workspace:*",
     "@laynezh/vite-plugin-lib-assets": "^1.1.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "autoprefixer": "^10.4.21",
     "magic-string": "^0.30.17",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "ts-loader": "^9.5.2"
   },
   "postcss": {

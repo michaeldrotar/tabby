@@ -49,6 +49,9 @@ export default defineConfig({
       input: {
         background: resolve(srcDir, 'background', 'index.ts'),
         content: resolve(srcDir, 'content', 'index.tsx'),
+        omnibar: resolve(srcDir, 'omnibar', 'index.html'),
+        options: resolve(srcDir, 'options', 'index.html'),
+        sidePanel: resolve(srcDir, 'side-panel', 'index.html'),
       },
       output: {
         entryFileNames: '[name].js',
