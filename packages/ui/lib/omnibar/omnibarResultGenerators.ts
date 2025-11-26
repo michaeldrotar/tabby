@@ -104,6 +104,28 @@ const COMMANDS: OmnibarSearchResult[] = [
       await executeUrl('chrome://bookmarks', modifier, originalWindowId)
     },
   },
+  {
+    id: 'cmd-passwords',
+    type: 'command',
+    title: 'Chrome: Password Manager',
+    url: 'chrome://password-manager',
+    execute: async (modifier, originalWindowId) => {
+      await executeUrl('chrome://password-manager', modifier, originalWindowId)
+    },
+  },
+  {
+    id: 'cmd-clear-data',
+    type: 'command',
+    title: 'Chrome: Clear Browsing Data',
+    url: 'chrome://settings/clearBrowserData',
+    execute: async (modifier, originalWindowId) => {
+      await executeUrl(
+        'chrome://settings/clearBrowserData',
+        modifier,
+        originalWindowId,
+      )
+    },
+  },
 ]
 
 export const getMatchingCommands = (
