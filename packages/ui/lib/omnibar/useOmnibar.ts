@@ -17,6 +17,7 @@ export const useOmnibar = () => {
             favIconUrl: t.favIconUrl,
             windowId: t.windowId,
             tabId: t.id,
+            lastVisitTime: t.lastAccessed,
             execute: async () => {
               if (t.windowId) {
                 await chrome.windows.update(t.windowId, { focused: true })
