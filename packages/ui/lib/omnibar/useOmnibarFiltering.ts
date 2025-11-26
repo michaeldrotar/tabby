@@ -5,12 +5,12 @@ import {
   getUrlNavigationItem,
 } from './omnibarResultGenerators'
 import { useMemo, useState } from 'react'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export const useOmnibarFiltering = (
   query: string,
-  tabs: OmnibarSearchItem[],
-  externalResults: OmnibarSearchItem[],
+  tabs: OmnibarSearchResult[],
+  externalResults: OmnibarSearchResult[],
 ) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 

@@ -1,51 +1,58 @@
+import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useCallback, useEffect, useState } from 'react'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export const useOmnibar = () => {
-  const [tabs, setTabs] = useState<OmnibarSearchItem[]>([])
+  const [tabs, setTabs] = useState<OmnibarSearchResult[]>([])
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'GET_TABS' }).then((response) => {
+    chrome.tabs.query({}).then((response) => {
       if (response) {
         setTabs(
-          response.map(
-            (t: {
-              id?: number
-              title?: string
-              url?: string
-              favIconUrl?: string
-              windowId?: number
-            }) => ({
-              id: t.id || 0,
-              type: 'tab',
-              title: t.title || 'Untitled',
-              url: t.url,
-              favIconUrl: t.favIconUrl,
-              windowId: t.windowId,
-              tabId: t.id,
-            }),
-          ),
+          response.map((t) => ({
+            id: t.id || 0,
+            type: 'tab',
+            title: t.title || 'Untitled',
+            url: t.url,
+            favIconUrl: t.favIconUrl,
+            windowId: t.windowId,
+            tabId: t.id,
+            execute: async () => {
+              if (t.windowId) {
+                await chrome.windows.update(t.windowId, { focused: true })
+              }
+              if (t.id) {
+                await chrome.tabs.update(t.id, { active: true })
+              }
+            },
+          })),
         )
       }
     })
   }, [])
 
   const onSearch = useCallback(async (query: string) => {
-    return chrome.runtime.sendMessage({ type: 'SEARCH', query })
+    const [historyResults, bookmarkResults, closedTabResults] =
+      await Promise.all([
+        searchHistory(query),
+        searchBookmarks(query),
+        searchClosedTabs(query),
+      ])
+    const results = [
+      ...closedTabResults,
+      ...bookmarkResults,
+      ...historyResults,
+    ] as OmnibarSearchResult[]
+    return results
   }, [])
 
   const onSelect = useCallback(
     async (
-      item: OmnibarSearchItem,
+      item: OmnibarSearchResult,
       modifier?: 'new-tab' | 'new-window',
       originalWindowId?: number,
     ) => {
-      return chrome.runtime.sendMessage({
-        type: 'EXECUTE',
-        item,
-        modifier,
-        originalWindowId,
-      })
+      await item.execute(modifier, originalWindowId)
     },
     [],
   )

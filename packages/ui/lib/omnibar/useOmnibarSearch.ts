@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export const useOmnibarSearch = (
   query: string,
-  onSearch?: (query: string) => Promise<OmnibarSearchItem[]>,
+  onSearch?: (query: string) => Promise<OmnibarSearchResult[]>,
 ) => {
-  const [externalResults, setExternalResults] = useState<OmnibarSearchItem[]>(
+  const [externalResults, setExternalResults] = useState<OmnibarSearchResult[]>(
     [],
   )
 

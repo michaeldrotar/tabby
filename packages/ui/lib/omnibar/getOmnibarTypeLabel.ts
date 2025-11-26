@@ -1,8 +1,8 @@
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-export const getOmnibarTypeLabel = (item: OmnibarSearchItem) => {
+export const getOmnibarTypeLabel = (item: OmnibarSearchResult) => {
   switch (item.type) {
-    case 'closed-tab':
+    case 'recently-closed':
       return 'Recently Closed'
     default:
       return item.type

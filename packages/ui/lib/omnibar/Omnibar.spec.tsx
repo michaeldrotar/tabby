@@ -9,7 +9,7 @@ import {
   within,
 } from '@testing-library/react'
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 expect.extend(matchers)
 
@@ -22,10 +22,28 @@ describe('Omnibar', () => {
     cleanup()
   })
 
-  const mockTabs: OmnibarSearchItem[] = [
-    { id: 1, title: 'Tab 1', url: 'https://example.com/1', type: 'tab' },
-    { id: 2, title: 'Tab 2', url: 'https://example.com/2', type: 'tab' },
-    { id: 3, title: 'Tab 3', url: 'https://example.com/3', type: 'tab' },
+  const mockTabs: OmnibarSearchResult[] = [
+    {
+      id: 1,
+      title: 'Tab 1',
+      url: 'https://example.com/1',
+      type: 'tab',
+      execute: async () => {},
+    },
+    {
+      id: 2,
+      title: 'Tab 2',
+      url: 'https://example.com/2',
+      type: 'tab',
+      execute: async () => {},
+    },
+    {
+      id: 3,
+      title: 'Tab 3',
+      url: 'https://example.com/3',
+      type: 'tab',
+      execute: async () => {},
+    },
   ]
 
   const mockOnSelect = vi.fn()

@@ -1,6 +1,6 @@
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-export const getOmnibarTypeColor = (type: OmnibarSearchItem['type']) => {
+export const getOmnibarTypeColor = (type: OmnibarSearchResult['type']) => {
   switch (type) {
     case 'tab':
       return 'text-blue-600 dark:text-blue-400'
@@ -14,7 +14,7 @@ export const getOmnibarTypeColor = (type: OmnibarSearchItem['type']) => {
       return 'text-green-600 dark:text-green-400'
     case 'search':
       return 'text-indigo-600 dark:text-indigo-400'
-    case 'closed-tab':
+    case 'recently-closed':
       return 'text-orange-600 dark:text-orange-400'
     default:
       return 'text-gray-500 dark:text-gray-400'

@@ -2,19 +2,26 @@
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { renderHook } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 describe('useOmnibarFiltering', () => {
-  const mockTabs: OmnibarSearchItem[] = [
+  const mockTabs: OmnibarSearchResult[] = [
     {
       id: 1,
       title: 'Open Houses - 17 Upcoming | Zillow',
       url: 'https://zillow.com/homes/17',
       type: 'tab',
+      execute: async () => {},
     },
-    { id: 2, title: 'Other Tab', url: 'https://example.com', type: 'tab' },
+    {
+      id: 2,
+      title: 'Other Tab',
+      url: 'https://example.com',
+      type: 'tab',
+      execute: async () => {},
+    },
   ]
-  const mockExternalResults: OmnibarSearchItem[] = []
+  const mockExternalResults: OmnibarSearchResult[] = []
 
   it('should filter tabs by multiple terms', () => {
     const { result } = renderHook(() =>

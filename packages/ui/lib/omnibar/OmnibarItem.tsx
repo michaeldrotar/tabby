@@ -4,7 +4,7 @@ import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { useEffect, useRef } from 'react'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
   if (!query || !text) return <>{text}</>
@@ -39,10 +39,10 @@ const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
 }
 
 type OmnibarItemProps = {
-  item: OmnibarSearchItem
+  item: OmnibarSearchResult
   isSelected: boolean
   onSelect: (
-    item: OmnibarSearchItem,
+    item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
   ) => void
   onMouseMove: () => void

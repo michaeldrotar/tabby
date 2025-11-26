@@ -1,6 +1,6 @@
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-export const getOmnibarActionLabel = (item: OmnibarSearchItem) => {
+export const getOmnibarActionLabel = (item: OmnibarSearchResult) => {
   switch (item.type) {
     case 'tab':
       return 'Jump to'
@@ -10,7 +10,7 @@ export const getOmnibarActionLabel = (item: OmnibarSearchItem) => {
       return 'Open'
     case 'search':
       return 'Search'
-    case 'closed-tab':
+    case 'recently-closed':
       return 'Restore'
     default:
       return 'Open'

@@ -1,4 +1,4 @@
-export type OmnibarSearchItem = {
+export type OmnibarSearchResult = {
   id: string | number
   type:
     | 'tab'
@@ -7,13 +7,18 @@ export type OmnibarSearchItem = {
     | 'command'
     | 'url'
     | 'search'
-    | 'closed-tab'
+    | 'recently-closed'
   title: string
   url?: string
+  description?: string
   favIconUrl?: string
   windowId?: number
   tabId?: number
   lastVisitTime?: number
   sessionId?: string
   tabCount?: number
+  execute: (
+    modifier?: 'new-tab' | 'new-window',
+    originalWindowId?: number,
+  ) => Promise<void>
 }

@@ -6,19 +6,19 @@ import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
 import { cn } from '../utils/cn'
 import { useMemo, useRef, useState } from 'react'
-import type { OmnibarSearchItem } from './OmnibarSearchItem'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-export type { OmnibarSearchItem } from './OmnibarSearchItem'
+export type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export type OmnibarProps = {
-  tabs: OmnibarSearchItem[]
+  tabs: OmnibarSearchResult[]
   onSelect: (
-    item: OmnibarSearchItem,
+    item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
   ) => void
   onClose: () => void
-  onSearch?: (query: string) => Promise<OmnibarSearchItem[]>
+  onSearch?: (query: string) => Promise<OmnibarSearchResult[]>
   Favicon: React.ComponentType<{
     pageUrl?: string
     className?: string
@@ -54,7 +54,7 @@ export const Omnibar = ({
   }, [])
 
   const handleSelect = (
-    item: OmnibarSearchItem,
+    item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
   ) => {
