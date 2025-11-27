@@ -6,22 +6,22 @@ export const searchHistory = async (
 ): Promise<OmnibarSearchResult[]> => {
   const results = await chrome.history.search({
     text: query,
-    maxResults: 20,
-    startTime: 0,
   })
-  return results.map((h) => ({
-    id: h.id,
-    type: 'history',
-    title: h.title || h.url || 'Untitled',
-    url: h.url,
-    description: 'History',
-    lastVisitTime: h.lastVisitTime,
-    execute: async (modifier, originalWindowId) => {
-      if (h.url) {
-        await executeUrl(h.url, modifier, originalWindowId)
-      }
-    },
-  }))
+  return results.map((h) => {
+    return {
+      id: h.id,
+      type: 'history',
+      title: h.title || h.url || 'Untitled',
+      url: h.url,
+      description: 'History',
+      lastVisitTime: h.lastVisitTime,
+      execute: async (modifier, originalWindowId) => {
+        if (h.url) {
+          await executeUrl(h.url, modifier, originalWindowId)
+        }
+      },
+    }
+  })
 }
 
 export const searchBookmarks = async (

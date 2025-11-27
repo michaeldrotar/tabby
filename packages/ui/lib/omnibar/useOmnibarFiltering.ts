@@ -1,5 +1,5 @@
 import {
-  getGoogleSearchItem,
+  getBangFromQuery,
   getMatchingCommands,
   getMatchingTabs,
   getUrlNavigationItem,
@@ -17,15 +17,17 @@ export const useOmnibarFiltering = (
 
   const filteredItems = useMemo(() => {
     if (!query) return []
-    const lowerQuery = query.toLowerCase()
+
+    // Check for bang to clean query for other providers
+    const bangResult = getBangFromQuery(query)
+    const effectiveQuery = bangResult ? bangResult.cleanQuery : query
+    const lowerQuery = effectiveQuery.toLowerCase()
     const queryTerms = lowerQuery.split(' ').filter(Boolean)
 
-    const pinnedItems = [
-      ...getUrlNavigationItem(query),
-      getGoogleSearchItem(query),
-    ]
+    const pinnedItems = [...getUrlNavigationItem(query)]
 
     const rankedItems = [
+      // ...getSearchItems(query), // Pass original query to detect bangs
       ...getMatchingCommands(queryTerms),
       ...getMatchingTabs(tabs, queryTerms),
       ...externalResults,
@@ -33,7 +35,7 @@ export const useOmnibarFiltering = (
 
     const scoredItems = rankedItems.map((item) => ({
       item,
-      score: calculateScore(item, query),
+      score: calculateScore(item, effectiveQuery), // Score against clean query
     }))
 
     scoredItems.sort((a, b) => b.score - a.score)

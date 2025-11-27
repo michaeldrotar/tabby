@@ -1,18 +1,167 @@
+import { duckDuckGoBangs } from './bangs/data/duckDuckGoBangs'
+import { getDuckDuckGoBangByTrigger } from './bangs/getDuckDuckGoBangByTrigger'
 import { executeUrl } from './executeUrl'
+import { tokenizeOmnibarText } from './search/tokenizeOmnibarText'
 import { exampleThemeStorage } from '@extension/storage'
+import type { DuckDuckGoBang } from './bangs/DuckDuckGoBang'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
-  const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`
+// Source: DuckDuckGo Bangs Data (unofficial usage)
+// We use the 'd' (domain) field to fetch favicons via Google's service to avoid hotlinking DDG directly.
+const getFaviconUrl = (bang: { d?: string; u: string }): string | undefined => {
+  let domain = ''
+  if (bang.d) {
+    if (bang.d.startsWith('http')) {
+      try {
+        domain = new URL(bang.d).hostname
+      } catch {
+        domain = bang.d
+      }
+    } else {
+      domain = bang.d.split('/')[0]
+    }
+  } else {
+    try {
+      const urlStr = bang.u.replace('{{{s}}}', '')
+      if (urlStr.startsWith('http')) {
+        domain = new URL(urlStr).hostname
+      } else if (urlStr.startsWith('/')) {
+        domain = 'duckduckgo.com'
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (domain) {
+    // Use Google's favicon service which is widely used for this purpose
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+  }
+  return undefined
+}
+
+const createBangSearchResult = (
+  bang: { t: string; s: string; d?: string; u: string; r?: number },
+  query: string,
+): OmnibarSearchResult => {
+  const favIconUrl = getFaviconUrl(bang)
+  const cleanQuery = query.trim()
+
+  // If no query (or it's a suggestion which implies selecting the bang first), treat as "Open"
+  // But for suggestions, we might want to show "Open Site (!bang)"
+  // If it's a search result (from getBangFromQuery), we check if there is a query term.
+
+  if (!cleanQuery) {
+    let url = bang.d
+
+    // If d is empty or contains placeholder, fallback to u
+    if (!url || url.includes('{{{s}}}')) {
+      url = bang.u.replace('{{{s}}}', '')
+      if (url.startsWith('/')) {
+        url = `https://duckduckgo.com${url}`
+      }
+    } else {
+      // If d is present, ensure it has protocol
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`
+      }
+    }
+
+    return {
+      id: `open-bang-${bang.t}`,
+      type: 'search',
+      title: `Open ${bang.s}`,
+      description: `Run command !${bang.t}`,
+      url,
+      favIconUrl,
+      rank: bang.r,
+      execute: async (modifier, originalWindowId) => {
+        await executeUrl(url, modifier, originalWindowId)
+      },
+    }
+  }
+
+  let url = bang.u.replace('{{{s}}}', encodeURIComponent(cleanQuery))
+  if (url.startsWith('/')) {
+    url = `https://duckduckgo.com${url}`
+  }
   return {
-    id: 'search-google',
+    id: `search-bang-${bang.t}`,
     type: 'search',
-    title: 'Search Google',
+    title: `Search ${bang.s}`,
+    description: `Run command !${bang.t}`,
     url,
+    favIconUrl,
+    rank: bang.r,
     execute: async (modifier, originalWindowId) => {
       await executeUrl(url, modifier, originalWindowId)
     },
   }
+}
+
+const searchBangs = (query: string): DuckDuckGoBang[] => {
+  return duckDuckGoBangs.filter((bang) => {
+    return query.includes(bang.t)
+  })
+}
+
+export const getBangFromQuery = (
+  query: string,
+): { bang: DuckDuckGoBang; cleanQuery: string } | undefined => {
+  const tokens = tokenizeOmnibarText(query)
+  const bang = tokens
+    .map((token) => getDuckDuckGoBangByTrigger(token))
+    .filter(Boolean)[0]
+  if (!bang) return undefined
+  return {
+    bang,
+    cleanQuery: query.replace(bang.t, ''),
+  }
+}
+
+export const getSearchItems = (query: string): OmnibarSearchResult[] => {
+  const results: OmnibarSearchResult[] = []
+  const seenIds = new Set<string>()
+
+  // 1. Suggestions (if query contains !)
+  const suggestions = searchBangs(query)
+  if (suggestions.length > 0) {
+    suggestions.forEach((bang) => {
+      // For suggestions, we treat the query as empty (just opening/selecting the bang)
+      const result = createBangSearchResult(bang, '')
+      if (!seenIds.has(result.id as string)) {
+        results.push(result)
+        seenIds.add(result.id as string)
+      }
+    })
+  }
+
+  // 2. Explicit Bang (e.g. "!g cat")
+  const bangResult = getBangFromQuery(query)
+  if (bangResult) {
+    const { bang, cleanQuery } = bangResult
+    const result = createBangSearchResult(bang, cleanQuery)
+    if (!seenIds.has(result.id as string)) {
+      results.push(result)
+      seenIds.add(result.id as string)
+    }
+  }
+
+  // 3. Fallback (Google)
+  if (results.length === 0) {
+    const googleBang = getDuckDuckGoBangByTrigger('g')
+    if (googleBang) {
+      // Treat the entire query as the search term
+      const result = createBangSearchResult(googleBang, query)
+      // Override title for default search to be cleaner?
+      // User said: "treat it as though the google bang (!g) is there"
+      // So "Search Google (!g)" is fine, or maybe just "Search Google".
+      // Let's stick to the standard format for consistency and scoring.
+      results.push(result)
+    }
+  }
+
+  return results
 }
 
 export const getUrlNavigationItem = (query: string): OmnibarSearchResult[] => {

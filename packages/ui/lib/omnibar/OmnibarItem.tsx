@@ -99,6 +99,12 @@ export const OmnibarItem = ({
           <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
             &gt;
           </div>
+        ) : item.favIconUrl ? (
+          <img
+            src={item.favIconUrl}
+            alt=""
+            className="h-8 w-8 flex-shrink-0 rounded-sm p-1"
+          />
         ) : item.type === 'search' ? (
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:ring-gray-700">
             <svg viewBox="0 0 24 24" className="h-full w-full">

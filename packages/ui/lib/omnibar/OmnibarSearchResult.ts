@@ -17,6 +17,7 @@ export type OmnibarSearchResult = {
   lastVisitTime?: number
   sessionId?: string
   tabCount?: number
+  rank?: number
   execute: (
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,

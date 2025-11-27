@@ -1,11 +1,14 @@
 import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
 import { OmnibarItem } from './OmnibarItem'
+import { OmnibarSearchResultItem } from './OmnibarSearchResultItem'
+import { getOmnibarSearchResults } from './search/getOmnibarSearchResults'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
 import { cn } from '../utils/cn'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { OmnibarActionModifier } from './actions/OmnibarActionModifier'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
@@ -13,8 +16,10 @@ export type { OmnibarSearchResult } from './OmnibarSearchResult'
 export type OmnibarProps = {
   tabs: OmnibarSearchResult[]
   onSelect: (
-    item: OmnibarSearchResult,
-    modifier?: 'new-tab' | 'new-window',
+    item:
+      | OmnibarSearchResult
+      | Awaited<ReturnType<typeof getOmnibarSearchResults>>[number],
+    modifier?: OmnibarActionModifier,
     originalWindowId?: number,
   ) => void
   onClose: () => void
@@ -44,6 +49,25 @@ export const Omnibar = ({
   const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
   const [isShiftPressed, setIsShiftPressed] = useState(false)
 
+  const [results, setResults] = useState<
+    Awaited<ReturnType<typeof getOmnibarSearchResults>>
+  >([])
+
+  useEffect(() => {
+    if (!query) {
+      setResults([])
+      return
+    }
+    const search = async (searchText: string) => {
+      const newResults = await getOmnibarSearchResults(searchText)
+      setResults(newResults)
+    }
+    const timer = setTimeout(() => search(query), 200)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [query])
+
   const originalWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
@@ -54,7 +78,9 @@ export const Omnibar = ({
   }, [])
 
   const handleSelect = (
-    item: OmnibarSearchResult,
+    item:
+      | OmnibarSearchResult
+      | Awaited<ReturnType<typeof getOmnibarSearchResults>>[number],
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
   ) => {
@@ -124,9 +150,28 @@ export const Omnibar = ({
         onKeyDown={handleKeyDown}
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex flex-1 flex-row overflow-y-auto">
+        {results.length > 0 && (
+          <ul className="w-0.5 flex-auto py-2">
+            {results.map((result, index) => {
+              return (
+                <OmnibarSearchResultItem
+                  key={result.id}
+                  item={result}
+                  isSelected={index === selectedIndex}
+                  onSelect={(item, modifier) => {
+                    handleSelect(item, modifier, originalWindowId)
+                  }}
+                  onMouseMove={() => setSelectedIndex(index)}
+                  isShiftPressed={isShiftPressed}
+                  isCmdCtrlPressed={isCmdCtrlPressed}
+                />
+              )
+            })}
+          </ul>
+        )}
         {filteredItems.length > 0 && (
-          <ul className="py-2">
+          <ul className="w-0.5 flex-auto py-2">
             {filteredItems.map((item, index) => (
               <OmnibarItem
                 key={item.id}

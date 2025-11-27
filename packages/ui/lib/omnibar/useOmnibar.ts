@@ -1,6 +1,7 @@
 import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useCallback, useEffect, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
+import type { getOmnibarSearchResults } from './search/getOmnibarSearchResults'
 
 export const useOmnibar = () => {
   const [tabs, setTabs] = useState<OmnibarSearchResult[]>([])
@@ -49,11 +50,17 @@ export const useOmnibar = () => {
 
   const onSelect = useCallback(
     async (
-      item: OmnibarSearchResult,
+      item:
+        | OmnibarSearchResult
+        | Awaited<ReturnType<typeof getOmnibarSearchResults>>[number],
       modifier?: 'new-tab' | 'new-window',
       originalWindowId?: number,
     ) => {
-      await item.execute(modifier, originalWindowId)
+      if ('execute' in item) {
+        await item.execute(modifier, originalWindowId)
+      } else {
+        item.performAction(modifier, originalWindowId)
+      }
     },
     [],
   )

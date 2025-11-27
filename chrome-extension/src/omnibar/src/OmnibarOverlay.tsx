@@ -1,5 +1,6 @@
 import { Favicon, Omnibar, useOmnibar } from '@extension/ui'
-import type { SearchItem } from '@extension/ui'
+import type { OmnibarSearchResult } from '@extension/ui'
+import type { getOmnibarSearchResults } from '@extension/ui/lib/omnibar/search/getOmnibarSearchResults'
 
 export const OmnibarOverlay = () => {
   const { tabs, onSearch, onSelect } = useOmnibar()
@@ -9,7 +10,9 @@ export const OmnibarOverlay = () => {
   }
 
   const handleSelectWrapper = async (
-    item: SearchItem,
+    item:
+      | OmnibarSearchResult
+      | Awaited<ReturnType<typeof getOmnibarSearchResults>>[number],
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
   ) => {

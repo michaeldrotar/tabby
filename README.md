@@ -58,6 +58,7 @@ Tabby is the result of standing on the shoulders of giants (and AI).
 - **[Zen Browser](https://zen-browser.app/)**: The primary inspiration for Tabby's design and functionality. We wanted to bring that seamless, keyboard-centric experience to Chrome users.
 - **[Chrome Extension Boilerplate](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite)**: This amazing repository by Jonghakseo provided the robust foundation and monorepo structure that made development a breeze.
 - **GitHub Copilot**: This project is a testament to the power of AI-assisted development. It was built in close collaboration with GitHub Copilot, which helped provide guidance on security and performance, as well as help instrument large refactors and drive the entire look and feel.
+- **[DuckDuckGo](https://duckduckgo.com/)**: Special thanks for their "bangs" feature. We use their list to provide thousands of search shortcuts directly in the Omnibar.
 
 ## Installing Locally
 

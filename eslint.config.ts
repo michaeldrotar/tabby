@@ -33,6 +33,7 @@ export default [
   {
     ignores: [
       '**/build/**',
+      '**/data/**',
       '**/dist/**',
       '**/node_modules/**',
       'chrome-extension/manifest.js',
