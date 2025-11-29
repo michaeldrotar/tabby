@@ -69,7 +69,7 @@ const manifest = {
   commands: {
     'open-omnibar-overlay': {
       suggested_key: {
-        default: 'MacCtrl+E',
+        default: 'Ctrl+E',
         mac: 'Command+E',
         windows: 'Ctrl+E',
       },
@@ -77,7 +77,7 @@ const manifest = {
     },
     'open-omnibar-popup': {
       suggested_key: {
-        default: 'MacCtrl+K',
+        default: 'Ctrl+K',
         mac: 'Command+K',
         windows: 'Ctrl+K',
       },
@@ -85,7 +85,7 @@ const manifest = {
     },
     'open-tab-manager': {
       suggested_key: {
-        default: 'MacCtrl+Shift+E',
+        default: 'Ctrl+Shift+E',
         mac: 'Command+Shift+E',
         windows: 'Ctrl+Shift+E',
       },
