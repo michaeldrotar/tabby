@@ -28,6 +28,10 @@ We built Tabby with a "Privacy by Design" philosophy:
 - **On-Demand Access**: We only access your current tab when you explicitly ask us to.
 - **Sandboxed UI**: Your search queries are isolated in a secure environment, keeping your history safe from prying eyes.
 
+### 🐞 Bug Fixes
+
+- **Shortcut Bindings**: Fixed the default shortcut bindings to use Windows keys for non-Mac users. **(v1.0.1)**
+
 ---
 
 _Enjoying Tabby? Please consider leaving us a review!_
