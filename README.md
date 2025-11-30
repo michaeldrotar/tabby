@@ -84,3 +84,100 @@ Tabby is the result of standing on the shoulders of giants (and AI).
     - Enable "Developer mode"
     - Click "Load unpacked"
     - Select the `dist` folder
+
+## Releasing
+
+This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
+
+- **Major** (`1.0.0`): Marketing major releases (e.g., Tabby 2.0)
+- **Minor** (`1.1.0`): New features
+- **Patch** (`1.0.1`): Bug fixes
+
+### Release Process
+
+1.  **Update version on `next` branch:**
+
+    ```bash
+    git checkout next
+    git pull origin next
+    pnpm update-version 1.0.0
+    git add .
+    git commit -m "Bump version to v1.0.0"
+    git push origin next
+    ```
+
+    This script updates the version across all `package.json` files and the manifest.
+
+2.  **Build new features:**
+
+    Develop your features on the `next` branch via feature branches and PRs.
+
+3.  **Update release notes:**
+
+    Update or create the relevant file in `product/releases/` (e.g., `v1.0.0-the-launch.md`).
+
+    ```bash
+    git add product/releases/
+    git commit -m "Add release notes for v1.0.0"
+    git push origin next
+    ```
+
+4.  **Merge to `main` and tag:**
+
+    Once ready to release, merge `next` into `main`:
+
+    ```bash
+    git checkout main
+    git pull origin main
+    git merge next
+    git push origin main
+    git tag v1.0.0
+    git push origin v1.0.0
+    ```
+
+5.  **Build and upload:**
+
+    ```bash
+    git checkout v1.0.0
+    pnpm zip
+    ```
+
+    This creates a zip file in `dist-zip/` ready for upload to the Chrome Web Store.
+
+### Hotfix Process
+
+If you need to fix a bug in a released version:
+
+1.  **Create hotfix branch from the release tag:**
+
+    ```bash
+    git checkout v1.0.0
+    git checkout -b hotfix/v1.0.1
+    ```
+
+2.  **Fix the bug and update version:**
+
+    ```bash
+    pnpm update-version 1.0.1
+    git add .
+    git commit -m "Fix critical bug"
+    ```
+
+3.  **Merge to `main`, tag, and ship:**
+
+    ```bash
+    git checkout main
+    git merge hotfix/v1.0.1
+    git push origin main
+    git tag v1.0.1
+    git push origin v1.0.1
+    pnpm zip
+    ```
+
+4.  **Merge into `next`:**
+
+    ```bash
+    git checkout next
+    git merge main
+    git push origin next
+    ```
