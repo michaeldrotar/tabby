@@ -1,48 +1,73 @@
 import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
 import { OmnibarItem } from './OmnibarItem'
+import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
 import { cn } from '../utils/cn'
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export type OmnibarProps = {
-  tabs: OmnibarSearchResult[]
-  onSelect: (
-    item: OmnibarSearchResult,
-    modifier?: 'new-tab' | 'new-window',
-    originalWindowId?: number,
-  ) => void
-  onClose: () => void
-  onSearch?: (query: string) => Promise<OmnibarSearchResult[]>
-  Favicon: React.ComponentType<{
-    pageUrl?: string
-    className?: string
-    size?: number
-  }>
   className?: string
+  onDismiss: () => void
 }
 
-export const Omnibar = ({
-  tabs,
-  onSelect,
-  onClose,
-  onSearch,
-  Favicon,
-  className,
-}: OmnibarProps) => {
+export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const { query, setQuery } = useOmnibarQuery(inputRef)
-  const externalResults = useOmnibarSearch(query, onSearch)
-  const { filteredItems, selectedIndex, setSelectedIndex } =
-    useOmnibarFiltering(query, tabs, externalResults)
-  // const selectedItemRef = useOmnibarScroll(selectedIndex)
+  const [tabs, setTabs] = useState<OmnibarSearchResult[]>([])
   const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
   const [isShiftPressed, setIsShiftPressed] = useState(false)
+
+  // Fetch tabs on mount
+  useEffect(() => {
+    chrome.tabs.query({}).then((response) => {
+      if (response) {
+        setTabs(
+          response.map((t) => ({
+            id: t.id || 0,
+            type: 'tab',
+            title: t.title || 'Untitled',
+            url: t.url,
+            favIconUrl: t.favIconUrl,
+            windowId: t.windowId,
+            tabId: t.id,
+            execute: async () => {
+              if (t.windowId) {
+                await chrome.windows.update(t.windowId, { focused: true })
+              }
+              if (t.id) {
+                await chrome.tabs.update(t.id, { active: true })
+              }
+            },
+          })),
+        )
+      }
+    })
+  }, [])
+
+  // Search handler for external results (history, bookmarks, closed tabs)
+  const handleSearch = useCallback(async (query: string) => {
+    const [historyResults, bookmarkResults, closedTabResults] =
+      await Promise.all([
+        searchHistory(query),
+        searchBookmarks(query),
+        searchClosedTabs(query),
+      ])
+    return [
+      ...closedTabResults,
+      ...bookmarkResults,
+      ...historyResults,
+    ] as OmnibarSearchResult[]
+  }, [])
+
+  const externalResults = useOmnibarSearch(query, handleSearch)
+  const { filteredItems, selectedIndex, setSelectedIndex } =
+    useOmnibarFiltering(query, tabs, externalResults)
 
   const originalWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -53,7 +78,7 @@ export const Omnibar = ({
     return undefined
   }, [])
 
-  const handleSelect = (
+  const handleSelect = async (
     item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
@@ -65,13 +90,14 @@ export const Omnibar = ({
     ) {
       chrome.storage.local.remove('lastQuery')
     }
-    onSelect(item, modifier, originalWindowId)
+    await item.execute(modifier, originalWindowId)
+    onDismiss()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation()
-      onClose()
+      onDismiss()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
       setSelectedIndex((prev) => Math.min(prev + 1, filteredItems.length - 1))
@@ -136,7 +162,6 @@ export const Omnibar = ({
                   handleSelect(item, modifier, originalWindowId)
                 }
                 onMouseMove={() => setSelectedIndex(index)}
-                Favicon={Favicon}
                 isShiftPressed={isShiftPressed}
                 isCmdCtrlPressed={isCmdCtrlPressed}
                 query={query}

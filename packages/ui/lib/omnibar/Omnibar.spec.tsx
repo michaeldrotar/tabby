@@ -8,8 +8,15 @@ import {
   cleanup,
   within,
 } from '@testing-library/react'
-import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
-import type { OmnibarSearchResult } from './OmnibarSearchResult'
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeAll,
+  beforeEach,
+  afterEach,
+} from 'vitest'
 
 expect.extend(matchers)
 
@@ -18,49 +25,47 @@ describe('Omnibar', () => {
     Element.prototype.scrollIntoView = vi.fn()
   })
 
+  beforeEach(() => {
+    // Mock Chrome APIs
+    globalThis.chrome = {
+      tabs: {
+        query: vi.fn().mockResolvedValue([
+          { id: 1, title: 'Tab 1', url: 'https://example.com/1', windowId: 1 },
+          { id: 2, title: 'Tab 2', url: 'https://example.com/2', windowId: 1 },
+          { id: 3, title: 'Tab 3', url: 'https://example.com/3', windowId: 1 },
+        ]),
+        update: vi.fn(),
+      },
+      windows: {
+        update: vi.fn(),
+      },
+      history: {
+        search: vi.fn().mockResolvedValue([]),
+      },
+      bookmarks: {
+        search: vi.fn().mockResolvedValue([]),
+      },
+      sessions: {
+        getRecentlyClosed: vi.fn().mockResolvedValue([]),
+      },
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({}),
+          set: vi.fn(),
+          remove: vi.fn(),
+        },
+      },
+    } as unknown as typeof chrome
+  })
+
   afterEach(() => {
     cleanup()
   })
 
-  const mockTabs: OmnibarSearchResult[] = [
-    {
-      id: 1,
-      title: 'Tab 1',
-      url: 'https://example.com/1',
-      type: 'tab',
-      execute: async () => {},
-    },
-    {
-      id: 2,
-      title: 'Tab 2',
-      url: 'https://example.com/2',
-      type: 'tab',
-      execute: async () => {},
-    },
-    {
-      id: 3,
-      title: 'Tab 3',
-      url: 'https://example.com/3',
-      type: 'tab',
-      execute: async () => {},
-    },
-  ]
-
-  const mockOnSelect = vi.fn()
-  const mockOnClose = vi.fn()
-  const mockOnSearch = vi.fn().mockResolvedValue([])
-  const MockFavicon = () => <div data-testid="favicon" />
+  const mockOnDismiss = vi.fn()
 
   it('should select item on mouse move', async () => {
-    render(
-      <Omnibar
-        tabs={mockTabs}
-        onSelect={mockOnSelect}
-        onClose={mockOnClose}
-        onSearch={mockOnSearch}
-        Favicon={MockFavicon}
-      />,
-    )
+    render(<Omnibar onDismiss={mockOnDismiss} />)
 
     // Type into input to get results
     const input = screen.getByRole('textbox')
@@ -91,15 +96,7 @@ describe('Omnibar', () => {
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
-    render(
-      <Omnibar
-        tabs={mockTabs}
-        onSelect={mockOnSelect}
-        onClose={mockOnClose}
-        onSearch={mockOnSearch}
-        Favicon={MockFavicon}
-      />,
-    )
+    render(<Omnibar onDismiss={mockOnDismiss} />)
 
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Tab' } })

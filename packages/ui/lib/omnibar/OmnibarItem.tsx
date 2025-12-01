@@ -1,6 +1,7 @@
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
+import { Favicon } from '../components/Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { useEffect, useRef } from 'react'
@@ -46,11 +47,6 @@ type OmnibarItemProps = {
     modifier?: 'new-tab' | 'new-window',
   ) => void
   onMouseMove: () => void
-  Favicon: React.ComponentType<{
-    pageUrl?: string
-    className?: string
-    size?: number
-  }>
   isShiftPressed: boolean
   isCmdCtrlPressed: boolean
   query: string
@@ -61,7 +57,6 @@ export const OmnibarItem = ({
   isSelected,
   onSelect,
   onMouseMove,
-  Favicon,
   isShiftPressed,
   isCmdCtrlPressed,
   query,

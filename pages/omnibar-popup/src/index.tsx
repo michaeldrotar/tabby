@@ -1,19 +1,11 @@
-import '@src/index.css'
-import { OmnibarPage } from './OmnibarPage'
-import { BrowserStoreProvider } from '@extension/chrome'
+import './index.css'
+import { OmnibarPopup } from './OmnibarPopup'
 import { createRoot } from 'react-dom/client'
 
-const init = () => {
-  const appContainer = document.querySelector('#app-container')
-  if (!appContainer) {
-    throw new Error('Can not find #app-container')
-  }
-  const root = createRoot(appContainer)
-  root.render(
-    <BrowserStoreProvider>
-      <OmnibarPage />
-    </BrowserStoreProvider>,
-  )
+const container = document.getElementById('root')
+if (!container) {
+  throw new Error('Root element not found')
 }
 
-init()
+const root = createRoot(container)
+root.render(<OmnibarPopup />)
