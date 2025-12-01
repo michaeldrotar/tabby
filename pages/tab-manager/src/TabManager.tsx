@@ -1,4 +1,3 @@
-import { OmnibarPopup } from './OmnibarPopup'
 import { SelectWindowButtonPane } from './SelectWindowButtonPane'
 import { SelectWindowDot } from './SelectWindowDot'
 import { TabItemPane } from './TabItemPane'
@@ -12,7 +11,7 @@ import {
 } from '@extension/chrome'
 import { withErrorBoundary, withSuspense } from '@extension/shared'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 
 const TabManager = () => {
@@ -22,35 +21,19 @@ const TabManager = () => {
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
-  const [isOmnibarOpen, setIsOmnibarOpen] = useState(false)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'p')) {
-        e.preventDefault()
-        setIsOmnibarOpen((prev) => !prev)
-      } else if (e.key === 'Escape' && !isOmnibarOpen) {
-        // Close side panel if omnibar is not open
+      if (e.key === 'Escape') {
         window.close()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
 
-    const handleMessage = (message: { type: string; windowId?: number }) => {
-      if (
-        message.type === 'OPEN_OMNIBAR' &&
-        message.windowId === currentBrowserWindow?.id
-      ) {
-        setIsOmnibarOpen(true)
-      }
-    }
-    chrome.runtime.onMessage.addListener(handleMessage)
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      chrome.runtime.onMessage.removeListener(handleMessage)
     }
-  }, [currentBrowserWindow?.id, isOmnibarOpen])
+  }, [])
 
   const onSelectWindow = useCallback(
     (window: BrowserWindow) => {
@@ -79,59 +62,53 @@ const TabManager = () => {
   }, [currentBrowserWindow])
 
   return (
-    <>
-      <OmnibarPopup
-        isOpen={isOmnibarOpen}
-        onClose={() => setIsOmnibarOpen(false)}
-      />
-      <div
-        className={cn(
-          'flex h-screen flex-col overscroll-none font-sans text-sm',
-          'bg-gray-50 text-gray-800',
-          'dark:bg-gray-800 dark:text-gray-100',
-        )}
-      >
-        <TabManagerHeader onOpenOmnibar={() => setIsOmnibarOpen(true)} />
+    <div
+      className={cn(
+        'flex h-screen flex-col overscroll-none font-sans text-sm',
+        'bg-gray-50 text-gray-800',
+        'dark:bg-gray-800 dark:text-gray-100',
+      )}
+    >
+      <TabManagerHeader />
 
-        <div className="flex flex-1 overflow-hidden overscroll-none">
-          {/* Navigation Rail (Dots) */}
-          <div
-            className={cn(
-              'flex h-full w-12 flex-shrink-0 flex-col items-center overflow-y-auto border-r py-4',
-              'border-gray-200 bg-gray-100',
-              'dark:border-gray-800 dark:bg-gray-900',
-            )}
-          >
-            <div className="flex flex-col gap-3">
-              {browserWindows.map((browserWindow) => (
-                <SelectWindowDot
-                  key={browserWindow.id}
-                  window={browserWindow}
-                  isCurrent={browserWindow.id === currentBrowserWindow?.id}
-                  isSelected={browserWindow.id === selectedWindowId}
-                  onSelect={onSelectWindow}
-                />
-              ))}
-            </div>
-            <div className="mt-auto pb-2">
-              {/* Placeholder for bottom actions if needed */}
-            </div>
+      <div className="flex flex-1 overflow-hidden overscroll-none">
+        {/* Navigation Rail (Dots) */}
+        <div
+          className={cn(
+            'flex h-full w-12 flex-shrink-0 flex-col items-center overflow-y-auto border-r py-4',
+            'border-gray-200 bg-gray-100',
+            'dark:border-gray-800 dark:bg-gray-900',
+          )}
+        >
+          <div className="flex flex-col gap-3">
+            {browserWindows.map((browserWindow) => (
+              <SelectWindowDot
+                key={browserWindow.id}
+                window={browserWindow}
+                isCurrent={browserWindow.id === currentBrowserWindow?.id}
+                isSelected={browserWindow.id === selectedWindowId}
+                onSelect={onSelectWindow}
+              />
+            ))}
           </div>
-
-          {/* Window List (Blocks) */}
-          <SelectWindowButtonPane
-            selectedBrowserWindowId={selectedWindowId || undefined}
-            onSelectBrowserWindow={onSelectWindow}
-            onNewBrowserWindowClick={openNewBrowserWindow}
-          />
-
-          {/* Tab List */}
-          <div className="h-full flex-1 overflow-y-auto overscroll-none bg-white dark:bg-gray-950">
-            <TabItemPane browserWindowId={selectedWindowId || undefined} />
+          <div className="mt-auto pb-2">
+            {/* Placeholder for bottom actions if needed */}
           </div>
         </div>
+
+        {/* Window List (Blocks) */}
+        <SelectWindowButtonPane
+          selectedBrowserWindowId={selectedWindowId || undefined}
+          onSelectBrowserWindow={onSelectWindow}
+          onNewBrowserWindowClick={openNewBrowserWindow}
+        />
+
+        {/* Tab List */}
+        <div className="h-full flex-1 overflow-y-auto overscroll-none bg-white dark:bg-gray-950">
+          <TabItemPane browserWindowId={selectedWindowId || undefined} />
+        </div>
       </div>
-    </>
+    </div>
   )
 }
 
