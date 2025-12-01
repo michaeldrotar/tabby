@@ -1,6 +1,9 @@
+import { useThemeApplicator } from '@extension/shared'
 import { Omnibar } from '@extension/ui'
 
 export const OmnibarOverlay = () => {
+  useThemeApplicator()
+
   const onDismiss = () => {
     window.parent.postMessage({ type: 'CLOSE_OMNIBAR' }, '*')
   }

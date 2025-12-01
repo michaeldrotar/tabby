@@ -1,7 +1,10 @@
+import { useThemeApplicator } from '@extension/shared'
 import { Omnibar } from '@extension/ui'
 import { useEffect } from 'react'
 
 export const OmnibarPopup = () => {
+  useThemeApplicator()
+
   const onDismiss = () => {
     window.close()
   }
