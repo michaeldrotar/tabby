@@ -141,4 +141,15 @@ export default [
       'no-restricted-imports': 'off',
     },
   },
+  // Node.js scripts
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...node,
+      },
+    },
+  },
 ]

@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import type { ManifestType } from '@extension/shared'
 
-const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))
+// Read version from root package.json (the single source of truth)
+const packageJson = JSON.parse(readFileSync('../package.json', 'utf8'))
 
 /**
  * @prop default_locale

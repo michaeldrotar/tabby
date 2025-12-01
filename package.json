@@ -34,7 +34,7 @@
     "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "update-version": "bash bash-scripts/update_version.sh",
+    "prep": "node scripts/prep-release.mjs",
     "copy-env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
     "module-manager": "pnpm -F module-manager start",

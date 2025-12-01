@@ -93,20 +93,20 @@ This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
 - **Minor** (`1.1.0`): New features
 - **Patch** (`1.0.1`): Bug fixes
 
+The version is stored in the root `package.json` only. All other packages use `0.0.0` since they're private and never published.
+
 ### Release Process
 
-1.  **Update version on `next` branch:**
+1.  **Prep the release on `next` branch:**
 
     ```bash
     git checkout next
     git pull origin next
-    pnpm update-version 1.0.0
-    git add .
-    git commit -m "Bump version to v1.0.0"
+    pnpm prep minor          # or: pnpm prep patch, pnpm prep major, pnpm prep 2.0.0
+    git add package.json
+    git commit -m "Bump version to v1.1.0"
     git push origin next
     ```
-
-    This script updates the version across all `package.json` files and the manifest.
 
 2.  **Build new features:**
 
@@ -114,11 +114,11 @@ This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
 
 3.  **Update release notes:**
 
-    Update or create the relevant file in `product/releases/` (e.g., `v1.0.0-the-launch.md`).
+    Update or create the relevant file in `product/releases/` (e.g., `v1.1.0-polishing-the-experience.md`).
 
     ```bash
     git add product/releases/
-    git commit -m "Add release notes for v1.0.0"
+    git commit -m "Add release notes for v1.1.0"
     git push origin next
     ```
 
@@ -131,14 +131,14 @@ This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
     git pull origin main
     git merge next
     git push origin main
-    git tag v1.0.0
-    git push origin v1.0.0
+    git tag v1.1.0
+    git push origin v1.1.0
     ```
 
 5.  **Build and upload:**
 
     ```bash
-    git checkout v1.0.0
+    git checkout v1.1.0
     pnpm zip
     ```
 
@@ -158,8 +158,8 @@ If you need to fix a bug in a released version:
 2.  **Fix the bug and update version:**
 
     ```bash
-    pnpm update-version 1.0.1
-    git add .
+    pnpm prep patch          # or: pnpm prep 1.0.1
+    git add package.json
     git commit -m "Fix critical bug"
     ```
 

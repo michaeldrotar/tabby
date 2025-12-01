@@ -1,6 +1,6 @@
 {
   "name": "@extension/chrome",
-  "version": "1.1.0",
+  "version": "0.0.0",
   "description": "React-friendly access to chrome APIs",
   "type": "module",
   "private": true,
