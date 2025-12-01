@@ -25,7 +25,7 @@ export const useOmnibarFiltering = (
       ...getMatchingCommands(queryTerms),
       ...getMatchingTabs(tabs, queryTerms),
       ...externalResults,
-    ].slice(0, 20)
+    ]
   }, [query, tabs, externalResults])
 
   return { filteredItems, selectedIndex, setSelectedIndex }
