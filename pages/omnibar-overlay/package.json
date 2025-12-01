@@ -1,5 +1,5 @@
 {
-  "name": "@extension/content-search-page",
+  "name": "@extension/omnibar-overlay",
   "version": "1.1.0",
   "private": true,
   "scripts": {

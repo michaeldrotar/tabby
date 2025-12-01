@@ -17,7 +17,7 @@ chrome.windows.onFocusChanged.addListener((id) => {
 
 const openOmnibarPopup = async (windowId?: number) => {
   const searchUrl = chrome.runtime.getURL(
-    `search/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
+    `omnibar-popup/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
   )
   const existingTabs = await chrome.tabs.query({ url: searchUrl })
 

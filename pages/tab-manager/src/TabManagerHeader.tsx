@@ -9,11 +9,11 @@ import { useThemeStorage } from '@extension/shared'
 import { exampleThemeStorage } from '@extension/storage'
 import { cn } from '@extension/ui'
 
-type SidePanelHeaderProps = {
+type TabManagerHeaderProps = {
   onOpenOmnibar?: () => void
 }
 
-export const SidePanelHeader = ({ onOpenOmnibar }: SidePanelHeaderProps) => {
+export const TabManagerHeader = ({ onOpenOmnibar }: TabManagerHeaderProps) => {
   const { theme } = useThemeStorage()
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()

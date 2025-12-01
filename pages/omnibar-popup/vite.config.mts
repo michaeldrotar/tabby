@@ -12,6 +12,6 @@ export default withPageConfig({
   },
   publicDir: resolve(rootDir, 'public'),
   build: {
-    outDir: resolve(rootDir, '..', '..', 'dist', 'content-search'),
+    outDir: resolve(rootDir, '..', '..', 'dist', 'omnibar-popup'),
   },
 })

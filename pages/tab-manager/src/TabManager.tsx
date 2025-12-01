@@ -1,8 +1,8 @@
 import { OmnibarPopup } from './OmnibarPopup'
 import { SelectWindowButtonPane } from './SelectWindowButtonPane'
 import { SelectWindowDot } from './SelectWindowDot'
-import { SidePanelHeader } from './SidePanelHeader'
 import { TabItemPane } from './TabItemPane'
+import { TabManagerHeader } from './TabManagerHeader'
 import {
   createBrowserWindow,
   useBrowserWindows,
@@ -15,8 +15,8 @@ import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
 import { useCallback, useEffect, useState } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 
-const SidePanel = () => {
-  console.count('SidePanel.render')
+const TabManager = () => {
+  console.count('TabManager.render')
 
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
@@ -60,7 +60,7 @@ const SidePanel = () => {
   )
 
   const openNewBrowserWindow = useCallback(async () => {
-    console.count('SidePanel.openNewBrowserWindow')
+    console.count('TabManager.openNewBrowserWindow')
     if (!currentBrowserWindow) {
       await createBrowserWindow()
       return
@@ -91,7 +91,7 @@ const SidePanel = () => {
           'dark:bg-gray-800 dark:text-gray-100',
         )}
       >
-        <SidePanelHeader onOpenOmnibar={() => setIsOmnibarOpen(true)} />
+        <TabManagerHeader onOpenOmnibar={() => setIsOmnibarOpen(true)} />
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
           {/* Navigation Rail (Dots) */}
@@ -136,6 +136,6 @@ const SidePanel = () => {
 }
 
 export default withErrorBoundary(
-  withSuspense(SidePanel, <LoadingSpinner />),
+  withSuspense(TabManager, <LoadingSpinner />),
   ErrorDisplay,
 )

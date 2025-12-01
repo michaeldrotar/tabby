@@ -55,12 +55,12 @@ const manifest = {
   },
   web_accessible_resources: [
     {
-      resources: ['content-search/index.html', '_favicon/*'],
+      resources: ['omnibar-overlay/index.html', '_favicon/*'],
       matches: ['*://*/*'],
     },
   ],
   side_panel: {
-    default_path: 'side-panel/index.html',
+    default_path: 'tab-manager/index.html',
   },
   commands: {
     'open-omnibar-overlay': {

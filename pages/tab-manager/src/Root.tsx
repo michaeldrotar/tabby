@@ -1,5 +1,5 @@
 import { EventLog } from './EventLog'
-import SidePanel from './SidePanel'
+import TabManager from './TabManager'
 import { BrowserStoreProvider } from '@extension/chrome'
 import { useThemeApplicator } from '@extension/shared'
 import { loadThemeStorage } from '@extension/storage'
@@ -16,7 +16,7 @@ export const Root = () => {
       <EventLog />
       <QueryClientProvider client={queryClient}>
         <BrowserStoreProvider>
-          <SidePanel />
+          <TabManager />
         </BrowserStoreProvider>
       </QueryClientProvider>
     </>

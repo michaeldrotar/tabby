@@ -37,7 +37,7 @@ const mount = () => {
 
   // Layer 2: Iframe (Content)
   const iframe = document.createElement('iframe')
-  iframe.src = chrome.runtime.getURL('content-search/index.html')
+  iframe.src = chrome.runtime.getURL('omnibar-overlay/index.html')
   iframe.style.position = 'fixed'
   iframe.style.inset = '0'
   iframe.style.width = '100%'
