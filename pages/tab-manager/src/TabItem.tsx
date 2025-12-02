@@ -57,7 +57,7 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
         )}
       </div>
       <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
-        {tab.index} {tab.id} {tab.title}
+        {tab.title}
       </span>
       <div className="flex flex-grow-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <button
