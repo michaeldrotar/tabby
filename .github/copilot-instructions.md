@@ -12,6 +12,11 @@ This file contains instructions for GitHub Copilot to follow when working on thi
   - Privacy changes should update \`PRIVACY.md\`.
   - Major feature additions should update \`README.md\`.
 
+## Limitations
+
+- Do not run builds unless asked or working specifically on changes to the build.
+- Do not run tests unless asked or working specifically on test changes.
+
 ## Project Overview
 
 - This is a Chrome Extension project named "Tabby".
@@ -41,4 +46,3 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - Use Vitest for testing.
 - Tests are not needed for relatively simple changes like new features or modifications.
 - Bug fixes must include tests to prevent regressions.
-- Do not run builds or tests manually unless asked. The user will notify you if there are failures.
