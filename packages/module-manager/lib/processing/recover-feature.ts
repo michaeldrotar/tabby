@@ -1,7 +1,7 @@
 import { recoverModule } from './modules-handler.js'
 import { DEFAULT_CHOICES, RECOVER_CHOICE_QUESTION } from '../const.js'
 import { processSelection } from '../helpers/utils.js'
-import { archivePath } from 'lib/paths.js'
+import { archivePath } from '../paths.js'
 import { rimraf } from 'rimraf'
 import { existsSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
