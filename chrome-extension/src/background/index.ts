@@ -97,7 +97,7 @@ chrome.commands.onCommand.addListener(async (command) => {
         try {
           await chrome.scripting.executeScript({
             target: { tabId },
-            files: ['content.js'],
+            files: ['omnibar-embed/all.iife.js'],
           })
           // Retry sending the message
           await chrome.tabs.sendMessage(tabId, {

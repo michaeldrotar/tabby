@@ -34,10 +34,10 @@ export default defineConfig({
   publicDir: resolve(rootDir, 'public'),
   build: {
     lib: {
-      name: 'ExtensionScripts',
-      fileName: 'scripts',
+      name: 'BackgroundScript',
+      fileName: 'background',
       formats: ['es'],
-      entry: resolve(srcDir, 'background', 'index.ts'), // Ignored by rollupOptions.input
+      entry: resolve(srcDir, 'background', 'index.ts'),
     },
     outDir,
     emptyOutDir: false,
@@ -46,13 +46,6 @@ export default defineConfig({
     reportCompressedSize: IS_PROD,
     watch: watchOption,
     rollupOptions: {
-      input: {
-        background: resolve(srcDir, 'background', 'index.ts'),
-        content: resolve(srcDir, 'content', 'index.tsx'),
-      },
-      output: {
-        entryFileNames: '[name].js',
-      },
       external: ['chrome'],
     },
   },

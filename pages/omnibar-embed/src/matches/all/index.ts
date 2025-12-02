@@ -1,6 +1,3 @@
-// @ts-expect-error - inline import
-import css from './index.css?inline'
-
 const CONTAINER_ID = 'tabby-omnibar-overlay-container'
 
 let container: HTMLElement | null = null
@@ -19,11 +16,6 @@ const mount = () => {
   document.body.appendChild(container)
 
   const shadow = container.attachShadow({ mode: 'open' })
-
-  // Inject styles
-  const style = document.createElement('style')
-  style.textContent = css
-  shadow.appendChild(style)
 
   // Layer 1: Backdrop (Blur & Dim)
   const backdrop = document.createElement('div')

@@ -62,7 +62,11 @@ const manifest = {
   },
   web_accessible_resources: [
     {
-      resources: ['omnibar-overlay/index.html', '_favicon/*'],
+      resources: [
+        'omnibar-overlay/index.html',
+        'omnibar-embed/*',
+        '_favicon/*',
+      ],
       matches: ['*://*/*'],
     },
   ],
