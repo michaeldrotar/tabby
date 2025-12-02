@@ -1,8 +1,14 @@
 import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ManifestType } from '@extension/shared'
 
 // Read version from root package.json (the single source of truth)
-const packageJson = JSON.parse(readFileSync('../package.json', 'utf8'))
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const packageJson = JSON.parse(
+  readFileSync(resolve(__dirname, '../package.json'), 'utf8'),
+)
 
 /**
  * @prop default_locale
