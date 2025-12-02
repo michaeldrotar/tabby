@@ -5,6 +5,7 @@ import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
+import { ScrollArea } from '../components/ScrollArea'
 import { cn } from '../utils/cn'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
@@ -132,7 +133,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
   return (
     <div
       className={cn(
-        'flex flex-col overflow-hidden bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+        'flex h-full flex-col bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100',
         className,
       )}
       onClick={(e) => e.stopPropagation()}
@@ -151,7 +152,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
         onKeyDown={handleKeyDown}
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <ScrollArea orientation="vertical" className="flex-1">
         {filteredItems.length > 0 && (
           <ul className="py-2">
             {filteredItems.map((item, index) => (
@@ -176,7 +177,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
           query={query}
           hasResults={filteredItems.length > 0}
         />
-      </div>
+      </ScrollArea>
     </div>
   )
 }

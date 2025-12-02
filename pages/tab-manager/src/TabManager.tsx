@@ -10,7 +10,7 @@ import {
   useSetSelectedWindowId,
 } from '@extension/chrome'
 import { withErrorBoundary, withSuspense } from '@extension/shared'
-import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
+import { cn, ErrorDisplay, LoadingSpinner, ScrollArea } from '@extension/ui'
 import { useCallback, useEffect } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 
@@ -73,28 +73,30 @@ const TabManager = () => {
 
       <div className="flex flex-1 overflow-hidden overscroll-none">
         {/* Navigation Rail (Dots) */}
-        <div
+        <ScrollArea
           className={cn(
-            'flex h-full w-12 flex-shrink-0 flex-col items-center overflow-y-auto border-r py-4',
+            'h-full w-12 flex-shrink-0 border-r',
             'border-gray-200 bg-gray-100',
             'dark:border-gray-800 dark:bg-gray-900',
           )}
         >
-          <div className="flex flex-col gap-3">
-            {browserWindows.map((browserWindow) => (
-              <SelectWindowDot
-                key={browserWindow.id}
-                window={browserWindow}
-                isCurrent={browserWindow.id === currentBrowserWindow?.id}
-                isSelected={browserWindow.id === selectedWindowId}
-                onSelect={onSelectWindow}
-              />
-            ))}
+          <div className="flex min-h-full flex-col items-center py-4">
+            <div className="flex flex-col gap-3">
+              {browserWindows.map((browserWindow) => (
+                <SelectWindowDot
+                  key={browserWindow.id}
+                  window={browserWindow}
+                  isCurrent={browserWindow.id === currentBrowserWindow?.id}
+                  isSelected={browserWindow.id === selectedWindowId}
+                  onSelect={onSelectWindow}
+                />
+              ))}
+            </div>
+            <div className="mt-auto pb-2">
+              {/* Placeholder for bottom actions if needed */}
+            </div>
           </div>
-          <div className="mt-auto pb-2">
-            {/* Placeholder for bottom actions if needed */}
-          </div>
-        </div>
+        </ScrollArea>
 
         {/* Window List (Blocks) */}
         <SelectWindowButtonPane
@@ -104,9 +106,12 @@ const TabManager = () => {
         />
 
         {/* Tab List */}
-        <div className="h-full flex-1 overflow-y-auto overscroll-none bg-white dark:bg-gray-950">
+        <ScrollArea
+          orientation="vertical"
+          className="flex-1 bg-white dark:bg-gray-950"
+        >
           <TabItemPane browserWindowId={selectedWindowId || undefined} />
-        </div>
+        </ScrollArea>
       </div>
     </div>
   )

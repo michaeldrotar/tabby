@@ -3,7 +3,7 @@ import {
   useCurrentBrowserWindow,
   useFocusedBrowserWindow,
 } from '@extension/chrome'
-import { cn } from '@extension/ui'
+import { cn, ScrollArea } from '@extension/ui'
 import { SelectWindowButton } from '@src/SelectWindowButton'
 import type { BrowserWindow, BrowserWindowID } from '@extension/chrome'
 
@@ -23,9 +23,9 @@ export const SelectWindowButtonPane = ({
   const focusedBrowserWindow = useFocusedBrowserWindow()
 
   return (
-    <div
+    <ScrollArea
       className={cn(
-        'h-full w-56 flex-shrink-0 overflow-y-auto overscroll-none border-r',
+        'h-full w-56 flex-shrink-0 overscroll-none border-r',
         'border-gray-200 bg-gray-50',
         'dark:border-gray-800 dark:bg-gray-900',
       )}
@@ -49,11 +49,11 @@ export const SelectWindowButtonPane = ({
             'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50',
             'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
           )}
-          onClick={() => onNewBrowserWindowClick?.()}
+          onClick={onNewBrowserWindowClick}
         >
-          + New Window
+          New Window
         </button>
       </div>
-    </div>
+    </ScrollArea>
   )
 }
