@@ -6,7 +6,7 @@ Tabby is a Chrome extension built with React, Vite, Tailwind CSS, and Copilot.
 
 ### Omnibar
 
-More than just search, it's your browser's command line. Press `Cmd+E` (Mac) or `Ctrl+E` (Windows) to instantly access:
+More than just search, it's your browser's command line. Press `Cmd+E` (Mac) or `Alt+E` (Windows) to instantly access:
 
 - **Universal Search**: Query across open tabs, bookmarks, and browsing history simultaneously.
 - **Web Search**: Type a query to search Google directly.
@@ -17,7 +17,7 @@ Most commands support `Cmd/Ctrl` to open in a new tab and `Shift` to open in a n
 
 ### Tab Manager
 
-Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `Ctrl+Shift+E` (Windows) to open the side panel.
+Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `Alt+Shift+E` (Windows) to open the side panel.
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.

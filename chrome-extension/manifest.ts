@@ -66,25 +66,22 @@ const manifest = {
   commands: {
     'open-omnibar-overlay': {
       suggested_key: {
-        default: 'Ctrl+E',
+        default: 'Alt+E',
         mac: 'Command+E',
-        windows: 'Ctrl+E',
       },
       description: 'Open Omnibar Overlay',
     },
     'open-omnibar-popup': {
       suggested_key: {
-        default: 'Ctrl+K',
+        default: 'Alt+K',
         mac: 'Command+K',
-        windows: 'Ctrl+K',
       },
       description: 'Open Omnibar Popup',
     },
     'open-tab-manager': {
       suggested_key: {
-        default: 'Ctrl+Shift+E',
+        default: 'Alt+Shift+E',
         mac: 'Command+Shift+E',
-        windows: 'Ctrl+Shift+E',
       },
       description: 'Open Tab Manager',
     },
