@@ -97,10 +97,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation()
-      onDismiss()
-    } else if (e.key === 'ArrowDown') {
+    if (e.key === 'ArrowDown') {
       e.preventDefault()
       setSelectedIndex((prev) => Math.min(prev + 1, filteredItems.length - 1))
     } else if (e.key === 'ArrowUp') {
@@ -120,6 +117,10 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
+    if (e.key === 'Escape') {
+      onDismiss()
+      return
+    }
     if (e.key === 'Meta' || e.key === 'Control') setIsCmdCtrlPressed(true)
     if (e.key === 'Shift') setIsShiftPressed(true)
   }
