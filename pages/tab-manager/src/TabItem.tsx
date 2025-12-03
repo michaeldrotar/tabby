@@ -3,12 +3,12 @@ import { cn, Favicon } from '@extension/ui'
 import { memo, useCallback } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 
-type TabItemProps = {
+export type TabItemProps = {
   tab: BrowserTab
   isActive: boolean
 }
 
-const TabItem = ({ tab, isActive }: TabItemProps) => {
+export const TabItem = memo(({ tab, isActive }: TabItemProps) => {
   console.count('TabItem.render')
   const isDiscarded = tab.discarded
   const handleClick = async () => {
@@ -113,8 +113,4 @@ const TabItem = ({ tab, isActive }: TabItemProps) => {
       </div>
     </button>
   )
-}
-
-const TabItemMemo = memo(TabItem)
-
-export { TabItemMemo as TabItem, type TabItemProps }
+})

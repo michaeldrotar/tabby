@@ -1,3 +1,4 @@
+import localRules from './eslint-rules/index.js'
 import { fixupConfigRules } from '@eslint/compat'
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
@@ -38,6 +39,8 @@ export default [
       '**/dist-zip/**',
       '**/node_modules/**',
       'chrome-extension/manifest.js',
+      'eslint-rules/**',
+      'scripts/**',
     ],
   },
   {
@@ -59,6 +62,7 @@ export default [
     },
     plugins: {
       'unused-imports': unusedImports,
+      local: localRules,
     },
     settings: {
       react: {
@@ -82,7 +86,9 @@ export default [
       ],
       'prefer-const': 'error',
       'no-var': 'error',
-      'func-style': ['error', 'expression', { allowArrowFunctions: true }],
+      'func-style': 'off', // Replaced by local/func-style-fix which has auto-fix
+      'local/func-style-fix': 'error',
+      'local/prefer-inline-export': 'error',
       'no-restricted-imports': [
         'error',
         {
