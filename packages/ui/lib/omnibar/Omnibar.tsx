@@ -15,9 +15,15 @@ export type { OmnibarSearchResult } from './OmnibarSearchResult'
 export type OmnibarProps = {
   className?: string
   onDismiss: () => void
+  /** If true, hides the "Open Tab Manager" quick action (useful when already in Tab Manager) */
+  hideTabManagerAction?: boolean
 }
 
-export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
+export const Omnibar = ({
+  className,
+  onDismiss,
+  hideTabManagerAction,
+}: OmnibarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const { query, setQuery } = useOmnibarQuery(inputRef)
   const [tabs, setTabs] = useState<OmnibarSearchResult[]>([])
@@ -79,6 +85,44 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
     }
     return undefined
   }, [])
+
+  // Quick actions for empty state
+  const quickActions = useMemo(() => {
+    const actions = []
+
+    if (!hideTabManagerAction) {
+      actions.push({
+        id: 'open-tab-manager',
+        icon: (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="h-4 w-4"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+        label: 'Open Tab Manager',
+        onClick: async () => {
+          const windowId =
+            originalWindowId ||
+            (await chrome.windows.getLastFocused()).id ||
+            undefined
+          if (windowId) {
+            await chrome.sidePanel.open({ windowId })
+          }
+          onDismiss()
+        },
+      })
+    }
+
+    return actions
+  }, [hideTabManagerAction, originalWindowId, onDismiss])
 
   const handleSelect = async (
     item: OmnibarSearchResult,
@@ -177,6 +221,7 @@ export const Omnibar = ({ className, onDismiss }: OmnibarProps) => {
         <OmnibarEmptyState
           query={query}
           hasResults={filteredItems.length > 0}
+          quickActions={quickActions}
         />
       </ScrollArea>
     </div>
