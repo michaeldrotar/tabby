@@ -1,4 +1,4 @@
-name: Formating validation
+name: Formatting validation
 
 on: [pull_request_target]
 
@@ -10,16 +10,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run Prettier
-        id: prettier-run
-        uses: rutajdash/prettier-cli-action@v1.0.2
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          config_path: ./.prettierrc
-          file_pattern: "*.{js,jsx,ts,tsx,json}"
+          node-version-file: ".nvmrc"
+          cache: pnpm
 
-      - name: Prettier Output
-        if: ${{ failure() }}
-        shell: bash
-        run: |
-          echo "The following files aren't formatted properly:"
-          echo "${{steps.prettier-run.outputs.prettier_output}}"
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Check formatting
+        run: pnpm format:check

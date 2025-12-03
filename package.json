@@ -31,6 +31,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest --watch",
@@ -95,9 +96,12 @@
     "vitest": "^1.1.0"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,yml,yaml}": [
+    "*.{js,jsx,ts,tsx}": [
       "prettier --write",
       "eslint --fix"
+    ],
+    "*.{json,yml,yaml,md,html,css}": [
+      "prettier --write"
     ]
   },
   "packageManager": "pnpm@10.21.0",
