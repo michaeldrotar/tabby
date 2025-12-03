@@ -27,16 +27,6 @@
     "type-check": {
       "cache": false
     },
-    "lint": {
-      "cache": false
-    },
-    "lint:fix": {
-      "cache": false
-    },
-    "format": {
-      "dependsOn": ["^format"],
-      "cache": false
-    },
     "clean:node_modules": {
       "dependsOn": ["^clean:node_modules"],
       "cache": false

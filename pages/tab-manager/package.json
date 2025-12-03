@@ -14,9 +14,6 @@
     "clean": "pnpm clean:turbo && pnpm clean:node_modules",
     "build": "vite build",
     "dev": "vite build --mode development",
-    "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-    "format": "prettier . --write --ignore-path ../../.prettierignore",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

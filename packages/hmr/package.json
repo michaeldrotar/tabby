@@ -17,9 +17,6 @@
     "clean": "pnpm clean:bundle && pnpm clean:node_modules && pnpm clean:turbo",
     "ready": "tsc -b && rollup --config dist/rollup.config.js",
     "dev": "tsx lib/initializers/init-reload-server.ts",
-    "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-    "format": "prettier . --write --ignore-path ../../.prettierignore",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

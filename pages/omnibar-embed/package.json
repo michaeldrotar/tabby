@@ -13,9 +13,6 @@
     "clean": "pnpm clean:turbo && pnpm clean:node_modules",
     "build": "tsx build.mts",
     "dev": "tsx build.mts",
-    "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-    "format": "prettier . --write --ignore-path ../../.prettierignore",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

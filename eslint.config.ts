@@ -32,8 +32,10 @@ export default [
   // Custom config
   {
     ignores: [
+      '.*/**',
       '**/build/**',
       '**/dist/**',
+      '**/dist-zip/**',
       '**/node_modules/**',
       'chrome-extension/manifest.js',
     ],

@@ -5,7 +5,6 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --mode development",
-    "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
