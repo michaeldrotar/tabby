@@ -17,10 +17,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/chrome": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
     "@extension/ui": "workspace:*",
-    "@extension/i18n": "workspace:*"
+    "@extension/i18n": "workspace:*",
+    "@tanstack/react-query": "5.90.7"
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",

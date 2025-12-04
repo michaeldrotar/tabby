@@ -504,6 +504,9 @@ importers:
 
   pages/options:
     dependencies:
+      '@extension/chrome':
+        specifier: workspace:*
+        version: link:../../packages/chrome
       '@extension/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -516,6 +519,9 @@ importers:
       '@extension/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@tanstack/react-query':
+        specifier: 5.90.7
+        version: 5.90.7(react@19.1.1)
     devDependencies:
       '@extension/tailwindcss-config':
         specifier: workspace:*

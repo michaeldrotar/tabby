@@ -63,8 +63,8 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
-  const platform = usePlatformInfo()
-  const platformModifierLabel = platform.data?.os === 'mac' ? '⌘' : 'Ctrl'
+  const { data: platformInfo } = usePlatformInfo()
+  const platformModifierLabel = platformInfo?.os === 'mac' ? '⌘' : 'Ctrl'
 
   useEffect(() => {
     if (isSelected) {

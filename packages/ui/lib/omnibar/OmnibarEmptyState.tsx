@@ -19,8 +19,8 @@ export const OmnibarEmptyState = ({
   hasResults,
   quickActions,
 }: OmnibarEmptyStateProps) => {
-  const platform = usePlatformInfo()
-  const platformModifier = platform.data?.os === 'mac' ? '⌘' : 'Ctrl'
+  const { data: platformInfo } = usePlatformInfo()
+  const platformModifier = platformInfo?.os === 'mac' ? '⌘' : 'Ctrl'
 
   if (hasResults) return null
 

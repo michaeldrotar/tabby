@@ -60,6 +60,14 @@ const COMMANDS: OmnibarSearchResult[] = [
     },
   },
   {
+    id: 'cmd-open-options',
+    type: 'command',
+    title: 'Tabby: Open Options',
+    execute: async () => {
+      chrome.runtime.openOptionsPage()
+    },
+  },
+  {
     id: 'cmd-settings',
     type: 'command',
     title: 'Chrome: Open Settings',
