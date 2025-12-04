@@ -1,5 +1,8 @@
 import { useThemeApplicator } from '@extension/shared'
 import { Omnibar } from '@extension/ui'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
 
 export const OmnibarOverlay = () => {
   useThemeApplicator()
@@ -18,10 +21,12 @@ export const OmnibarOverlay = () => {
         if (e.key === 'Escape') onDismiss()
       }}
     >
-      <Omnibar
-        onDismiss={onDismiss}
-        className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-300 shadow-2xl dark:border-gray-700"
-      />
+      <QueryClientProvider client={queryClient}>
+        <Omnibar
+          onDismiss={onDismiss}
+          className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-300 shadow-2xl dark:border-gray-700"
+        />
+      </QueryClientProvider>
     </div>
   )
 }

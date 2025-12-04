@@ -4,16 +4,9 @@ import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import { Favicon } from '../components/Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
-import { useEffect, useMemo, useRef } from 'react'
+import { usePlatformInfo } from '@extension/chrome'
+import { useEffect, useRef } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
-
-/**
- * Detects if the current platform is macOS.
- */
-const isMac = (): boolean => {
-  if (typeof navigator === 'undefined') return false
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform)
-}
 
 const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
   if (!query || !text) return <>{text}</>
@@ -70,7 +63,8 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
-  const platformModifierLabel = useMemo(() => (isMac() ? '⌘' : 'Ctrl+'), [])
+  const platform = usePlatformInfo()
+  const platformModifierLabel = platform.data?.os === 'mac' ? '⌘' : 'Ctrl'
 
   useEffect(() => {
     if (isSelected) {

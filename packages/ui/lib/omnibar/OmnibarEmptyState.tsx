@@ -1,5 +1,5 @@
 import { cn } from '../utils/cn'
-import { useMemo } from 'react'
+import { usePlatformInfo } from '@extension/chrome'
 
 type QuickAction = {
   id: string
@@ -14,20 +14,13 @@ type OmnibarEmptyStateProps = {
   quickActions?: QuickAction[]
 }
 
-/**
- * Detects if the current platform is macOS.
- */
-const isMac = (): boolean => {
-  if (typeof navigator === 'undefined') return false
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform)
-}
-
 export const OmnibarEmptyState = ({
   query,
   hasResults,
   quickActions,
 }: OmnibarEmptyStateProps) => {
-  const platformModifier = useMemo(() => (isMac() ? '⌘' : 'Ctrl'), [])
+  const platform = usePlatformInfo()
+  const platformModifier = platform.data?.os === 'mac' ? '⌘' : 'Ctrl'
 
   if (hasResults) return null
 

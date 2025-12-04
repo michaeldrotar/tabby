@@ -1,6 +1,9 @@
 import { useThemeApplicator } from '@extension/shared'
 import { Omnibar } from '@extension/ui'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
+
+const queryClient = new QueryClient()
 
 export const OmnibarPopup = () => {
   useThemeApplicator()
@@ -15,5 +18,9 @@ export const OmnibarPopup = () => {
     return () => window.removeEventListener('blur', onDismiss)
   }, [])
 
-  return <Omnibar onDismiss={onDismiss} className="h-screen w-screen" />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Omnibar onDismiss={onDismiss} className="h-screen w-screen" />
+    </QueryClientProvider>
+  )
 }

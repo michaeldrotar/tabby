@@ -1,70 +1,58 @@
 import { cn } from '../utils/cn'
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import type * as React from 'react'
 
-type TooltipProps = {
-  /** The content to show in the tooltip */
-  content: ReactNode
-  /** The element that triggers the tooltip on hover */
-  children: ReactNode
-  /** Additional class names for the tooltip container */
-  className?: string
-  /** Position of the tooltip relative to the trigger */
-  position?: 'top' | 'bottom' | 'left' | 'right'
-  /** Callback when the tooltip becomes visible (useful for fetching data) */
-  onShow?: () => void
+export const TooltipProvider = ({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) => {
+  return (
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
+  )
 }
 
-/**
- * A simple tooltip component that shows content on hover.
- * Supports an onShow callback for lazy-loading tooltip content.
- */
 export const Tooltip = ({
-  content,
-  children,
-  className,
-  position = 'bottom',
-  onShow,
-}: TooltipProps) => {
-  const [isVisible, setIsVisible] = useState(false)
-
-  const handleMouseEnter = () => {
-    setIsVisible(true)
-    onShow?.()
-  }
-
-  const handleMouseLeave = () => {
-    setIsVisible(false)
-  }
-
-  const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-1',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-1',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-1',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-1',
-  }
-
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) => {
   return (
-    <div
-      className={cn('relative inline-flex', className)}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {children}
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
+}
 
-      {isVisible && (
-        <div
-          className={cn(
-            'absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-xs shadow-lg',
-            'bg-gray-900 text-white',
-            'dark:bg-gray-700',
-            positionClasses[position],
-          )}
-          role="tooltip"
-        >
-          {content}
-        </div>
-      )}
-    </div>
+export const TooltipTrigger = ({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) => {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+}
+
+export const TooltipContent = ({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) => {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+          'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          'origin-(--radix-tooltip-content-transform-origin) z-50 w-fit text-balance rounded-md bg-gray-900 px-3 py-1.5 text-xs text-white dark:bg-gray-700',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-gray-900 fill-gray-900 dark:bg-gray-700 dark:fill-gray-700" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
   )
 }

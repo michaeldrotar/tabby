@@ -10,6 +10,7 @@
   "dependencies": {
     "@extension/chrome": "workspace:*",
     "@extension/ui": "workspace:*",
+    "@tanstack/react-query": "5.90.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

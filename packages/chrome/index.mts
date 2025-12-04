@@ -33,6 +33,7 @@ export { createBrowserWindow } from './lib/window/createBrowserWindow.js'
 export { updateBrowserWindowById } from './lib/window/updateBrowserWindowById.js'
 export { removeBrowserWindowById } from './lib/window/removeBrowserWindowById.js'
 
+export { usePlatformInfo } from './lib/usePlatformInfo.js'
 export { useTabListItems, type TabListItem } from './lib/useTabListItems.js'
 
 export {

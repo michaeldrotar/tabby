@@ -1,5 +1,5 @@
 import { formatShortcut } from '@extension/shared'
-import { cn, Tooltip } from '@extension/ui'
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui'
 import { useCallback, useState } from 'react'
 
 type SearchButtonProps = {
@@ -34,31 +34,34 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
   )
 
   return (
-    <Tooltip content={tooltipContent} onShow={fetchShortcut}>
-      <button
-        type="button"
-        aria-label="Search"
-        onClick={onClick}
-        className={cn(
-          'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-          'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-          'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
-        )}
-      >
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+    <Tooltip onOpenChange={(open) => open && fetchShortcut()}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label="Search"
+          onClick={onClick}
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+            'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+            'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+          )}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </button>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{tooltipContent}</TooltipContent>
     </Tooltip>
   )
 }

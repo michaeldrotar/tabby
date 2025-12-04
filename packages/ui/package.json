@@ -19,10 +19,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/chrome": "workspace:*",
     "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
     "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.0"
   },
