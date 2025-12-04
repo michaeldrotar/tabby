@@ -7,15 +7,11 @@ import {
 } from '@extension/chrome'
 import { t } from '@extension/i18n'
 import { useThemeStorage } from '@extension/shared'
-import { exampleThemeStorage } from '@extension/storage'
+import { themeStorage } from '@extension/storage'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui'
 
 type TabManagerHeaderProps = {
   onOpenSearch?: () => void
-}
-
-const openShortcutsSettings = () => {
-  chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
 }
 
 export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
@@ -147,7 +143,7 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
             <button
               type="button"
               aria-label={t('toggleTheme')}
-              onClick={() => exampleThemeStorage.toggle()}
+              onClick={() => themeStorage.toggle()}
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',

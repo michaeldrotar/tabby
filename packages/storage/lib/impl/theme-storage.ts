@@ -25,7 +25,7 @@ const setTheme = async (theme: ThemeStateType['theme']) => {
   }
 }
 
-export const exampleThemeStorage: ThemeStorageType = {
+export const themeStorage: ThemeStorageType = {
   ...storage,
   toggle: async () => {
     const currentState = await storage.get()

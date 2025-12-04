@@ -1,5 +1,5 @@
 import { executeUrl } from './executeUrl'
-import { exampleThemeStorage } from '@extension/storage'
+import { themeStorage } from '@extension/storage'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
@@ -56,7 +56,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     type: 'command',
     title: 'Tabby: Toggle Theme',
     execute: async () => {
-      await exampleThemeStorage.toggle()
+      await themeStorage.toggle()
     },
   },
   {

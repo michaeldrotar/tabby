@@ -6,7 +6,7 @@ import {
   withErrorBoundary,
   withSuspense,
 } from '@extension/shared'
-import { exampleThemeStorage } from '@extension/storage'
+import { themeStorage } from '@extension/storage'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -78,7 +78,7 @@ const OptionsContent = () => {
                 </p>
               </div>
               <button
-                onClick={exampleThemeStorage.toggle}
+                onClick={themeStorage.toggle}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
                   'bg-gray-100 text-gray-700 hover:bg-gray-200',

@@ -1,10 +1,10 @@
 import { useStorage } from './use-storage.js'
-import { exampleThemeStorage } from '@extension/storage'
+import { themeStorage } from '@extension/storage'
 import { useEffect } from 'react'
 import type { ThemeStateType } from '@extension/storage/lib/base/types.js'
 
 export const useThemeStorage = (): ThemeStateType => {
-  return useStorage(exampleThemeStorage)
+  return useStorage(themeStorage)
 }
 
 export const useThemeApplicator = () => {
