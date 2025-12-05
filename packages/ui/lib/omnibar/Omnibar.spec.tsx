@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { Omnibar } from './Omnibar'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
   render,
@@ -55,6 +56,10 @@ describe('Omnibar', () => {
           remove: vi.fn(),
         },
       },
+      runtime: {
+        id: 'test-extension-id',
+        getPlatformInfo: vi.fn().mockResolvedValue({ os: 'mac' }),
+      },
     } as unknown as typeof chrome
   })
 
@@ -64,8 +69,18 @@ describe('Omnibar', () => {
 
   const mockOnDismiss = vi.fn()
 
+  const createQueryClient = () =>
+    new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+  const renderWithQuery = (ui: React.ReactElement) => {
+    const qc = createQueryClient()
+    return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+  }
+
   it('should select item on mouse move', async () => {
-    render(<Omnibar onDismiss={mockOnDismiss} />)
+    renderWithQuery(<Omnibar onDismiss={mockOnDismiss} />)
 
     // Type into input to get results
     const input = screen.getByRole('textbox')
@@ -96,7 +111,7 @@ describe('Omnibar', () => {
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
-    render(<Omnibar onDismiss={mockOnDismiss} />)
+    renderWithQuery(<Omnibar onDismiss={mockOnDismiss} />)
 
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Tab' } })

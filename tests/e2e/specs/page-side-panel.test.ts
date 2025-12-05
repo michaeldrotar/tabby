@@ -1,12 +1,13 @@
 import { canSwitchTheme } from '../helpers/theme.js'
 
-describe('Webextension Side Panel', () => {
-  it('should make side panel accessible', async () => {
+describe('Webextension Tab Manager', () => {
+  it('should make tab manager accessible', async () => {
     const extensionPath = await browser.getExtensionPath()
-    const sidePanelUrl = `${extensionPath}/side-panel/index.html`
+    const tabManagerUrl = `${extensionPath}/tab-manager/index.html`
 
-    await browser.url(sidePanelUrl)
-    await expect(browser).toHaveTitle('Side Panel')
+    await browser.url(tabManagerUrl)
+
+    await expect(browser).toHaveTitle('Tab Manager')
     await canSwitchTheme()
   })
 })
