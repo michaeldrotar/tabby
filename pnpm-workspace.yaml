@@ -15,6 +15,7 @@ onlyBuiltDependencies:
 minimumReleaseAge: 20160
 minimumReleaseAgeExclude:
   - react@19.2.1
+  - react-dom@19.2.1
 
 overrides:
   esbuild@<=0.24.2: ">=0.25.0"
