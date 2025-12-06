@@ -7,14 +7,12 @@ tools:
     'edit/editFiles',
     'extensions',
     'fetch',
-    'findTestFiles',
     'githubRepo',
     'new',
     'openSimpleBrowser',
     'problems',
     'runCommands',
     'runTasks',
-    'runTests',
     'search',
     'search/searchResults',
     'runCommands/terminalLastCommand',
@@ -22,8 +20,6 @@ tools:
     'testFailure',
     'usages',
     'vscodeAPI',
-    'microsoft.docs.mcp',
-    'github',
   ]
 ---
 

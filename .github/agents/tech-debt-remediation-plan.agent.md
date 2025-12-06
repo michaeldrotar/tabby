@@ -3,26 +3,23 @@ description: 'Generate technical debt remediation plans for code, tests, and doc
 tools:
   [
     'changes',
-    'codebase',
+    'search/codebase',
     'edit/editFiles',
     'extensions',
     'fetch',
-    'findTestFiles',
     'githubRepo',
     'new',
     'openSimpleBrowser',
     'problems',
     'runCommands',
     'runTasks',
-    'runTests',
     'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
+    'search/searchResults',
+    'runCommands/terminalLastCommand',
+    'runCommands/terminalSelection',
     'testFailure',
     'usages',
     'vscodeAPI',
-    'github',
   ]
 ---
 
