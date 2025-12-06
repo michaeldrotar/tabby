@@ -1,7 +1,7 @@
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
-import { Favicon } from '../components/Favicon'
+import { Favicon } from '../Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { usePlatformInfo } from '@extension/chrome'

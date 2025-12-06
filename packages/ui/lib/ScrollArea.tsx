@@ -1,4 +1,4 @@
-import { cn } from '../utils/cn'
+import { cn } from './utils/cn'
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 import type { ComponentProps } from 'react'
 
