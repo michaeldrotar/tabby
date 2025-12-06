@@ -11,3 +11,5 @@ onlyBuiltDependencies:
   - esbuild
   - geckodriver
   - unrs-resolver
+
+minimumReleaseAge: 20160
