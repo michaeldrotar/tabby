@@ -1,7 +1,5 @@
 import { refreshBrowserTab, useTabListItems } from '@extension/chrome'
-import { cn } from '@extension/ui'
-import { getFaviconUrl } from '@extension/ui/lib/getFaviconUrl'
-import { TabItem } from '@src/TabItem'
+import { cn, TabItem, getFaviconUrl } from '@extension/ui'
 import { memo, useCallback } from 'react'
 import type {
   BrowserTab,

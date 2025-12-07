@@ -1,4 +1,4 @@
-import { cn } from '@extension/ui'
+import { cn } from './utils/cn'
 import { memo } from 'react'
 import type { BrowserTabID } from '@extension/chrome'
 
