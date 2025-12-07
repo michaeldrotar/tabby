@@ -4,7 +4,7 @@
     "paths": {
       "@src/*": ["./src/*"]
     },
-    "types": ["chrome", "node"]
+    "types": ["chrome", "node", "vitest", "@testing-library/jest-dom"]
   },
   "include": ["src", "vite.config.mts", "tailwind.config.ts"]
 }

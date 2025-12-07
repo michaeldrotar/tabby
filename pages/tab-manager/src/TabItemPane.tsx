@@ -1,7 +1,56 @@
-import { useTabListItems } from '@extension/chrome'
+import { refreshBrowserTab, useTabListItems } from '@extension/chrome'
 import { cn } from '@extension/ui'
+import { getFaviconUrl } from '@extension/ui/lib/getFaviconUrl'
 import { TabItem } from '@src/TabItem'
-import type { BrowserWindowID } from '@extension/chrome'
+import { memo, useCallback } from 'react'
+import type {
+  BrowserTab,
+  BrowserTabID,
+  BrowserWindowID,
+} from '@extension/chrome'
+
+const onActivateTab = async (
+  windowId: BrowserWindowID,
+  tabId: BrowserTabID,
+): Promise<void> => {
+  await chrome.windows.update(windowId, { focused: true })
+  await chrome.tabs.update(tabId, { active: true })
+}
+
+const onRefreshTab = async (tabId: BrowserTabID): Promise<void> => {
+  await refreshBrowserTab(tabId)
+}
+
+const onRemoveTab = async (tabId: BrowserTabID): Promise<void> => {
+  if (tabId) {
+    await chrome.tabs.remove(tabId)
+  }
+}
+
+const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
+  console.count('TabItemForTab.render')
+
+  const onActivate = useCallback(
+    () => onActivateTab(tab.windowId, tab.id),
+    [tab.windowId, tab.id],
+  )
+  const onRefresh = useCallback(() => onRefreshTab(tab.id), [tab.id])
+  const onRemove = useCallback(() => onRemoveTab(tab.id), [tab.id])
+
+  return (
+    <TabItem
+      tabId={tab.id}
+      label={tab.title || '<Unnamed Tab>'}
+      iconUrl={getFaviconUrl(tab.url || '', { size: 32 })}
+      isActive={tab.active}
+      isDiscarded={tab.discarded}
+      isHighlighted={tab.highlighted}
+      onActivate={onActivate}
+      onRefresh={onRefresh}
+      onRemove={onRemove}
+    />
+  )
+})
 
 export type TabItemPaneProps = {
   browserWindowId?: BrowserWindowID
@@ -18,7 +67,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
             if (item.type === 'tab') {
               return (
                 <li key={item.tab.id} className="flex w-full flex-col">
-                  <TabItem tab={item.tab} isActive={item.tab.active} />
+                  <TabItemForTab tab={item.tab} />
                 </li>
               )
             }
@@ -54,11 +103,13 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                     </h4>
                   </div>
                   <ol className="flex flex-col gap-0.5 pl-2">
-                    {item.tabs.map((tab) => (
-                      <li key={tab.id} className="flex flex-col">
-                        <TabItem tab={tab} isActive={tab.active} />
-                      </li>
-                    ))}
+                    {item.tabs.map((tab) => {
+                      return (
+                        <li key={tab.id} className="flex flex-col">
+                          <TabItemForTab tab={tab} />
+                        </li>
+                      )
+                    })}
                   </ol>
                 </div>
               </li>
