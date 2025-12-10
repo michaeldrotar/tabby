@@ -43,6 +43,12 @@ export const TabItem = memo(
             'transition-all',
           )}
           onClick={onActivate}
+          // TODO: move data-tab-button to somewhere else, controlled by tab
+          // manager specifically, to ensure TabItem is reusable without
+          // being married to the scroll functionality.
+          // This should be able to take any arbitrary `data-*` properties so
+          // that a parent component inside `pages/tab-manager` can pass
+          // the full `data-tab-button={tabId}` property itself instead.
           data-tab-button={tabId}
         >
           <div
