@@ -17,12 +17,15 @@ const extPath = join(
   `../../../dist-zip/${latestExtension}`,
 )
 const bundledExtension = (await readFile(extPath)).toString('base64')
+const distPath = join(import.meta.dirname, '../../../dist')
+console.log('Dist Path:', distPath)
 
 const chromeCapabilities = {
   browserName: 'chrome',
   acceptInsecureCerts: true,
   'goog:chromeOptions': {
     args: [
+      `--load-extension=${distPath}`,
       '--disable-web-security',
       '--disable-gpu',
       '--no-sandbox',
@@ -30,7 +33,7 @@ const chromeCapabilities = {
       ...(IS_CI ? ['--headless'] : []),
     ],
     prefs: { 'extensions.ui.developer_mode': true },
-    extensions: [bundledExtension],
+    // extensions: [bundledExtension],
   },
 }
 
