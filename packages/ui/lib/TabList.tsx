@@ -24,6 +24,27 @@ export const TabListItem = ({
   className?: string
 }) => <li className={cn('flex w-full flex-col', className)}>{children}</li>
 
+const GROUP_COLORS: Record<string, { dot: string; text: string }> = {
+  grey: { dot: 'bg-gray-500', text: 'text-gray-700 dark:text-gray-400' },
+  blue: { dot: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400' },
+  red: { dot: 'bg-red-500', text: 'text-red-700 dark:text-red-400' },
+  yellow: {
+    dot: 'bg-yellow-500',
+    text: 'text-yellow-700 dark:text-yellow-400',
+  },
+  green: { dot: 'bg-green-500', text: 'text-green-700 dark:text-green-400' },
+  pink: { dot: 'bg-pink-500', text: 'text-pink-700 dark:text-pink-400' },
+  purple: {
+    dot: 'bg-purple-500',
+    text: 'text-purple-700 dark:text-purple-400',
+  },
+  cyan: { dot: 'bg-cyan-500', text: 'text-cyan-700 dark:text-cyan-400' },
+  orange: {
+    dot: 'bg-orange-500',
+    text: 'text-orange-700 dark:text-orange-400',
+  },
+}
+
 export type TabListGroupProps = {
   /** The title of the group. Defaults to 'Group'. */
   title?: string
@@ -45,6 +66,11 @@ export const TabListGroup = ({
   isActive,
   children,
 }: TabListGroupProps) => {
+  const colorClasses =
+    color && GROUP_COLORS[color]
+      ? GROUP_COLORS[color]
+      : { dot: 'bg-gray-400', text: 'text-gray-600 dark:text-gray-400' }
+
   return (
     <div
       className={cn(
@@ -53,18 +79,11 @@ export const TabListGroup = ({
       )}
     >
       <div className="mb-1 flex items-center gap-2 px-2 py-1">
-        <div
-          className={cn(
-            'h-3 w-3 rounded-full',
-            color ? `bg-${color}-500` : 'bg-gray-400',
-          )}
-        />
+        <div className={cn('h-3 w-3 rounded-full', colorClasses.dot)} />
         <h4
           className={cn(
             'text-xs font-bold uppercase tracking-wider opacity-80',
-            color
-              ? `text-${color}-700 dark:text-${color}-400`
-              : 'text-gray-600 dark:text-gray-400',
+            colorClasses.text,
           )}
         >
           {title}
