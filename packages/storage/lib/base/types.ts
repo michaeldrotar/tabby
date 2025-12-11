@@ -44,10 +44,11 @@ export type StorageConfigType<D = string> = {
   }
 }
 
-export interface ThemeStateType {
+export interface PreferenceStateType {
   theme: 'light' | 'dark' | undefined
+  tabManagerViewMode: 'dots' | 'buttons'
 }
 
-export type ThemeStorageType = BaseStorageType<ThemeStateType> & {
-  toggle: () => Promise<void>
+export type PreferenceStorageType = BaseStorageType<PreferenceStateType> & {
+  toggleTheme: () => Promise<void>
 }

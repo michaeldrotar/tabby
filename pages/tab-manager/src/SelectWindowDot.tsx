@@ -7,7 +7,7 @@ export type SelectWindowDotProps = {
   window: BrowserWindow
   isCurrent: boolean
   isSelected: boolean
-  onSelect: (browserWindow: BrowserWindow) => void
+  onSelect?: (browserWindow: BrowserWindow) => void
 }
 
 export const SelectWindowDot = memo(
@@ -19,7 +19,7 @@ export const SelectWindowDot = memo(
     return (
       <button
         type="button"
-        onClick={() => onSelect(window)}
+        onClick={() => onSelect?.(window)}
         title={title}
         aria-pressed={isSelected}
         className={cn(

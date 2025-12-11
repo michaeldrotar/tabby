@@ -1,10 +1,14 @@
 import { createStorage, StorageEnum } from '../base/index.js'
-import type { ThemeStateType, ThemeStorageType } from '../base/index.js'
+import type {
+  PreferenceStateType,
+  PreferenceStorageType,
+} from '../base/index.js'
 
-const storage = createStorage<ThemeStateType>(
-  'theme-storage-key',
+const storage = createStorage<PreferenceStateType>(
+  'preference-storage-key',
   {
     theme: undefined,
+    tabManagerViewMode: 'dots',
   },
   {
     storageEnum: StorageEnum.Local,
@@ -12,9 +16,10 @@ const storage = createStorage<ThemeStateType>(
   },
 )
 
-const setTheme = async (theme: ThemeStateType['theme']) => {
-  await storage.set(() => {
+const setTheme = async (theme: PreferenceStateType['theme']) => {
+  await storage.set((prev) => {
     return {
+      ...prev,
       theme,
     }
   })
@@ -25,15 +30,15 @@ const setTheme = async (theme: ThemeStateType['theme']) => {
   }
 }
 
-export const themeStorage: ThemeStorageType = {
+export const preferenceStorage: PreferenceStorageType = {
   ...storage,
-  toggle: async () => {
+  toggleTheme: async () => {
     const currentState = await storage.get()
     setTheme(currentState.theme === 'light' ? 'dark' : 'light')
   },
 }
 
-export const loadThemeStorage = async (): Promise<void> => {
+export const loadPreferenceStorage = async (): Promise<void> => {
   const currentState = await storage.get()
   setTheme(currentState.theme)
 }

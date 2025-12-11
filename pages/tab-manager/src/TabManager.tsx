@@ -1,16 +1,19 @@
 import { SearchPopup } from './SearchPopup'
 import { SelectWindowButtonPane } from './SelectWindowButtonPane'
-import { SelectWindowDot } from './SelectWindowDot'
+import { SelectWindowDotPane } from './SelectWindowDotPane'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerHeader } from './TabManagerHeader'
 import {
   createBrowserWindow,
-  useBrowserWindows,
   useCurrentBrowserWindow,
   useSelectedWindowId,
   useSetSelectedWindowId,
 } from '@extension/chrome'
-import { withErrorBoundary, withSuspense } from '@extension/shared'
+import {
+  usePreferenceStorage,
+  withErrorBoundary,
+  withSuspense,
+} from '@extension/shared'
 import { cn, ErrorDisplay, LoadingSpinner, ScrollArea } from '@extension/ui'
 import { useCallback, useEffect, useState } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -18,11 +21,11 @@ import type { BrowserWindow } from '@extension/chrome'
 const TabManager = () => {
   console.count('TabManager.render')
 
-  const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const { tabManagerViewMode } = usePreferenceStorage()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,37 +92,22 @@ const TabManager = () => {
 
         <div className="flex flex-1 overflow-hidden overscroll-none">
           {/* Navigation Rail (Dots) */}
-          <ScrollArea
-            className={cn(
-              'h-full w-12 flex-shrink-0 border-r',
-              'border-gray-200 bg-gray-100',
-              'dark:border-gray-800 dark:bg-gray-900',
-            )}
-          >
-            <div className="flex min-h-full flex-col items-center py-4">
-              <div className="flex flex-col gap-3">
-                {browserWindows.map((browserWindow) => (
-                  <SelectWindowDot
-                    key={browserWindow.id}
-                    window={browserWindow}
-                    isCurrent={browserWindow.id === currentBrowserWindow?.id}
-                    isSelected={browserWindow.id === selectedWindowId}
-                    onSelect={onSelectWindow}
-                  />
-                ))}
-              </div>
-              <div className="mt-auto pb-2">
-                {/* Placeholder for bottom actions if needed */}
-              </div>
-            </div>
-          </ScrollArea>
+          {tabManagerViewMode === 'dots' && (
+            <SelectWindowDotPane
+              selectedBrowserWindowId={selectedWindowId || undefined}
+              onSelectBrowserWindow={onSelectWindow}
+              onNewBrowserWindowClick={openNewBrowserWindow}
+            />
+          )}
 
           {/* Window List (Blocks) */}
-          <SelectWindowButtonPane
-            selectedBrowserWindowId={selectedWindowId || undefined}
-            onSelectBrowserWindow={onSelectWindow}
-            onNewBrowserWindowClick={openNewBrowserWindow}
-          />
+          {tabManagerViewMode === 'buttons' && (
+            <SelectWindowButtonPane
+              selectedBrowserWindowId={selectedWindowId || undefined}
+              onSelectBrowserWindow={onSelectWindow}
+              onNewBrowserWindowClick={openNewBrowserWindow}
+            />
+          )}
 
           {/* Tab List */}
           <ScrollArea

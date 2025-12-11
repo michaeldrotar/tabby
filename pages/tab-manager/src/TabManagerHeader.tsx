@@ -6,8 +6,8 @@ import {
   useSetSelectedWindowId,
 } from '@extension/chrome'
 import { t } from '@extension/i18n'
-import { useThemeStorage } from '@extension/shared'
-import { themeStorage } from '@extension/storage'
+import { usePreferenceStorage } from '@extension/shared'
+import { preferenceStorage } from '@extension/storage'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui'
 
 type TabManagerHeaderProps = {
@@ -15,7 +15,7 @@ type TabManagerHeaderProps = {
 }
 
 export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
-  const { theme } = useThemeStorage()
+  const { theme } = usePreferenceStorage()
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const tabs = useBrowserTabsByWindowId(currentBrowserWindow?.id)
@@ -143,7 +143,7 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
             <button
               type="button"
               aria-label={t('toggleTheme')}
-              onClick={() => themeStorage.toggle()}
+              onClick={() => preferenceStorage.toggleTheme()}
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700',

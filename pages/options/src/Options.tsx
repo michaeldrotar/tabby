@@ -1,19 +1,19 @@
 import '@src/Options.css'
 import { usePlatformInfo } from '@extension/chrome'
 import {
+  usePreferenceStorage,
   useThemeApplicator,
-  useThemeStorage,
   withErrorBoundary,
   withSuspense,
 } from '@extension/shared'
-import { themeStorage } from '@extension/storage'
+import { preferenceStorage } from '@extension/storage'
 import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const { theme } = useThemeStorage()
+  const { theme, tabManagerViewMode } = usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
 
@@ -78,7 +78,7 @@ const OptionsContent = () => {
                 </p>
               </div>
               <button
-                onClick={themeStorage.toggle}
+                onClick={preferenceStorage.toggleTheme}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
                   'bg-gray-100 text-gray-700 hover:bg-gray-200',
@@ -111,6 +111,65 @@ const OptionsContent = () => {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Tab Manager Section */}
+        <section className="mb-8">
+          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+            Tab Manager
+          </h2>
+          <div
+            className={cn(
+              'rounded-lg border p-4',
+              'border-gray-200 bg-white',
+              'dark:border-gray-700 dark:bg-gray-800',
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Window Selection View
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Choose how to view your open windows
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    preferenceStorage.set((prev) => ({
+                      ...prev,
+                      tabManagerViewMode: 'dots',
+                    }))
+                  }
+                  className={cn(
+                    'rounded-lg px-4 py-2 font-medium transition-colors',
+                    tabManagerViewMode === 'dots'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
+                  )}
+                >
+                  Dots
+                </button>
+                <button
+                  onClick={() =>
+                    preferenceStorage.set((prev) => ({
+                      ...prev,
+                      tabManagerViewMode: 'buttons',
+                    }))
+                  }
+                  className={cn(
+                    'rounded-lg px-4 py-2 font-medium transition-colors',
+                    tabManagerViewMode === 'buttons'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
+                  )}
+                >
+                  Buttons
+                </button>
+              </div>
             </div>
           </div>
         </section>
