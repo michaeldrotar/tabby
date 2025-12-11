@@ -5,12 +5,12 @@ import { useEffect } from 'react'
 
 const queryClient = new QueryClient()
 
+const onDismiss = () => {
+  window.close()
+}
+
 export const OmnibarPopup = () => {
   useThemeApplicator()
-
-  const onDismiss = () => {
-    window.close()
-  }
 
   // Close window on blur
   useEffect(() => {
@@ -18,7 +18,7 @@ export const OmnibarPopup = () => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
         e.preventDefault()
         e.stopPropagation()
-        window.close()
+        onDismiss()
       }
     }
 
