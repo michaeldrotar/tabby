@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 type FaviconProps = {
   pageUrl?: string
   size?: number
-} & Pick<ComponentPropsWithoutRef<'img'>, 'alt' | 'className'>
+} & Pick<ComponentPropsWithoutRef<'img'>, 'alt' | 'className' | 'title'>
 
 export const Favicon = ({
   pageUrl,

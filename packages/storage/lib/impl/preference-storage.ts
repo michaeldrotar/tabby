@@ -9,6 +9,9 @@ const storage = createStorage<PreferenceStateType>(
   {
     theme: undefined,
     tabManagerViewMode: 'dots',
+    tabManagerCompactIconMode: 'active',
+    tabManagerCompactLayout: 'icon',
+    tabManagerShowWindowPreview: false,
   },
   {
     storageEnum: StorageEnum.Local,

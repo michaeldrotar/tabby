@@ -1,5 +1,6 @@
 import { WindowThumbnail } from './WindowThumbnail'
 import { useBrowserTabsByWindowId } from '@extension/chrome'
+import { usePreferenceStorage } from '@extension/shared'
 import { cn, Favicon } from '@extension/ui'
 import { memo } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -7,22 +8,18 @@ import type { BrowserWindow } from '@extension/chrome'
 export type SelectWindowButtonProps = {
   window: BrowserWindow
   isCurrent: boolean
-  isFocused: boolean
   isSelected: boolean
   onSelect?: (browserWindow: BrowserWindow) => void
 }
 
 export const SelectWindowButton = memo(
-  ({
-    window,
-    isCurrent,
-    isFocused,
-    isSelected,
-    onSelect,
-  }: SelectWindowButtonProps) => {
+  ({ window, isCurrent, isSelected, onSelect }: SelectWindowButtonProps) => {
     console.count('SelectWindowButton.render')
 
+    const { tabManagerShowWindowPreview } = usePreferenceStorage()
     const tabs = useBrowserTabsByWindowId(window.id)
+    const activeTab = tabs.find((tab) => tab.active)
+    const title = activeTab?.title || `Window ${window.id}`
 
     return (
       <div className="group relative" data-window-button={window.id}>
@@ -30,48 +27,47 @@ export const SelectWindowButton = memo(
           type="button"
           onClick={() => onSelect?.(window)}
           className={cn(
-            'flex w-full flex-col gap-2 rounded-lg border p-2 text-left transition-all',
+            'flex h-20 w-full flex-col gap-2 rounded-lg border p-2 text-left transition-all',
             'border-gray-200 bg-white shadow-sm',
             'dark:border-gray-700 dark:bg-gray-800',
             isSelected
               ? 'border-blue-500 ring-1 ring-blue-500 dark:border-blue-400 dark:ring-blue-400'
               : 'hover:border-gray-300 dark:hover:border-gray-600',
-            !isSelected && isCurrent && 'border-l-4 border-l-blue-500 pl-1.5', // Highlight current window if not selected
+            !isSelected && isCurrent && 'border-l-4 border-l-gray-400 pl-1.5', // Highlight current window if not selected
           )}
         >
-          <div className="flex w-full items-start justify-between gap-2">
+          <div className="flex w-full flex-1 items-start justify-between gap-2">
             <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-1">
                 <span
                   className={cn(
-                    'text-xs font-medium text-gray-500 dark:text-gray-400',
-                    isFocused && 'font-bold text-blue-600 dark:text-blue-400',
+                    'line-clamp-2 text-xs font-medium text-gray-700 dark:text-gray-200',
                   )}
+                  title={title}
                 >
-                  Window {window.id}
+                  {title}
                 </span>
-                {isCurrent && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                )}
-              </div>
-              <div className="truncate text-xs text-gray-400">
-                {tabs.length} tab{tabs.length === 1 ? '' : 's'}
               </div>
             </div>
-            <div className="h-10 w-16 flex-shrink-0">
-              <WindowThumbnail browserWindow={window} />
-            </div>
+            {tabManagerShowWindowPreview && (
+              <div className="h-10 w-16 flex-shrink-0">
+                <WindowThumbnail browserWindow={window} />
+              </div>
+            )}
           </div>
 
           {/* Favicon strip */}
-          <div className="flex h-4 w-full gap-1 overflow-hidden opacity-70 grayscale transition-all">
-            {tabs.slice(0, 8).map((tab) => (
-              <Favicon key={tab.id} pageUrl={tab.url} size={14} />
+          <div className="flex h-4 w-full items-center gap-1 overflow-hidden opacity-70 grayscale transition-all">
+            {tabs.slice(0, 6).map((tab) => (
+              <Favicon
+                key={tab.id}
+                pageUrl={tab.url}
+                size={14}
+                title={tab.title}
+              />
             ))}
-            {tabs.length > 8 && (
-              <span className="text-[10px] text-gray-400">
-                +{tabs.length - 8}
-              </span>
+            {tabs.length > 6 && (
+              <span className="text-xs text-gray-400">+{tabs.length - 6}</span>
             )}
           </div>
         </button>

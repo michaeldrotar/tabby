@@ -1,4 +1,5 @@
 import { useBrowserWindows, useCurrentBrowserWindow } from '@extension/chrome'
+import { usePreferenceStorage } from '@extension/shared'
 import { cn, ScrollArea } from '@extension/ui'
 import { SelectWindowDot } from '@src/SelectWindowDot'
 import type { BrowserWindow, BrowserWindowID } from '@extension/chrome'
@@ -16,16 +17,24 @@ export const SelectWindowDotPane = ({
 }: SelectWindowDotPaneProps) => {
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
+  const { tabManagerCompactLayout } = usePreferenceStorage()
+  const isList = tabManagerCompactLayout === 'list'
 
   return (
     <ScrollArea
       className={cn(
-        'h-full w-12 flex-shrink-0 border-r',
+        'h-full flex-shrink-0 border-r transition-all duration-300',
+        isList ? 'w-48' : 'w-12',
         'border-gray-200 bg-gray-100',
         'dark:border-gray-800 dark:bg-gray-900',
       )}
     >
-      <div className="flex min-h-full flex-col items-center py-4">
+      <div
+        className={cn(
+          'flex min-h-full flex-col py-4',
+          isList ? 'items-stretch px-2' : 'items-center',
+        )}
+      >
         <div className="flex flex-col gap-3">
           {browserWindows.map((browserWindow) => (
             <SelectWindowDot
@@ -47,7 +56,7 @@ export const SelectWindowDotPane = ({
           )}
           onClick={onNewBrowserWindowClick}
         >
-          +
+          {isList ? 'New Window' : '+'}
         </button>
       </div>
     </ScrollArea>

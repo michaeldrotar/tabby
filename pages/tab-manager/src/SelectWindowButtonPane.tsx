@@ -1,8 +1,5 @@
-import {
-  useBrowserWindows,
-  useCurrentBrowserWindow,
-  useFocusedBrowserWindow,
-} from '@extension/chrome'
+import { useBrowserWindows, useCurrentBrowserWindow } from '@extension/chrome'
+import { usePreferenceStorage } from '@extension/shared'
 import { cn, ScrollArea } from '@extension/ui'
 import { SelectWindowButton } from '@src/SelectWindowButton'
 import type { BrowserWindow, BrowserWindowID } from '@extension/chrome'
@@ -18,14 +15,16 @@ export const SelectWindowButtonPane = ({
   onNewBrowserWindowClick,
   onSelectBrowserWindow,
 }: SelectWindowButtonPaneProps) => {
+  const { tabManagerShowWindowPreview } = usePreferenceStorage()
+
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
-  const focusedBrowserWindow = useFocusedBrowserWindow()
 
   return (
     <ScrollArea
       className={cn(
-        'h-full w-56 flex-shrink-0 overscroll-none border-r',
+        tabManagerShowWindowPreview ? 'w-64' : 'w-48',
+        'h-full flex-shrink-0 overscroll-none border-r',
         'border-gray-200 bg-gray-50',
         'dark:border-gray-800 dark:bg-gray-900',
       )}
@@ -36,7 +35,6 @@ export const SelectWindowButtonPane = ({
             key={browserWindow.id}
             window={browserWindow}
             isCurrent={browserWindow.id === currentBrowserWindow?.id}
-            isFocused={browserWindow.id === focusedBrowserWindow?.id}
             isSelected={browserWindow.id === selectedBrowserWindowId}
             onSelect={onSelectBrowserWindow}
           />
