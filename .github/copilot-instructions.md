@@ -29,13 +29,17 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - Use TypeScript for all new files.
 - Use Tailwind CSS for styling.
 - Prefer `const` over `let`.
+- Doc comments (JSDoc) are encouraged for components and utilities to explain their purpose and usage.
 
 ## Architecture & Best Practices
 
 - **Feature-Based Organization:** Group components, hooks, and utils by feature (e.g., `omnibar/`) rather than by type (e.g., `components/`, `hooks/`, or `types/`).
 - **General Utilities:** General utilities that don't belong to a specific feature should be placed in a `utils/` folder. Each utility should be in its own file (e.g., `utils/formatTimeAgo.ts`).
 - **Single File Exports:** Prefer single file exports for everything, including for types and utils. Components with a props type can export both the component function and prop type. Avoid creating "bag" files like `utils.ts` or `types.ts` that contain multiple unrelated exports.
+  - Types should also follow this rule. For example, `DataAttributes` should be in `DataAttributes.ts`, not `types.ts`.
+- **Co-location:** Tightly coupled components (e.g., `TabList`, `TabListItem`) should be defined in the same file to improve maintainability and discoverability.
 - **Naming Convention:** Name feature-specific types and utils to include the feature name (e.g., `OmnibarSearchItem`, `getOmnibarActionLabel`).
+- **Minimal Props:** Custom components should have minimal properties. Avoid extending full HTML attributes (like `React.ButtonHTMLAttributes`) unless absolutely necessary.
 - **DRY Principle:** Always check for existing components before creating new ones.
 - Shared components (like `Favicon`, `Omnibar`) should live in `packages/ui`.
 - If you find duplicated code, refactor it into a shared location.
@@ -46,3 +50,5 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - Use Vitest for testing.
 - Tests are not needed for relatively simple changes like new features or modifications.
 - Bug fixes must include tests to prevent regressions.
+- Dummy UI components should have tests for their functionality, if any (e.g. conditional rendering, event handling).
+- **Test Functionality, Not Implementation:** Tests should verify behavior and user-visible state (e.g., `aria-current`, `data-active`) rather than implementation details like CSS classes.

@@ -1,9 +1,8 @@
 import { cn } from './utils/cn'
 import { memo } from 'react'
-import type { BrowserTabID } from '@extension/chrome'
+import type { DataAttributes } from './DataAttributes'
 
 export type TabItemProps = {
-  tabId: BrowserTabID
   label: string
   iconUrl: string
   isActive: boolean
@@ -12,11 +11,10 @@ export type TabItemProps = {
   onActivate: () => void
   onRefresh: () => void
   onRemove: () => void
-}
+} & DataAttributes
 
 export const TabItem = memo(
   ({
-    tabId,
     label,
     iconUrl,
     isActive,
@@ -25,11 +23,12 @@ export const TabItem = memo(
     onActivate,
     onRefresh,
     onRemove,
+    ...props
   }: TabItemProps) => {
     console.count('TabItem.render')
 
     return (
-      <div className="group relative overflow-hidden rounded-md">
+      <div className="group relative overflow-hidden rounded-md" {...props}>
         <button
           type="button"
           className={cn(
@@ -43,13 +42,6 @@ export const TabItem = memo(
             'transition-all',
           )}
           onClick={onActivate}
-          // TODO: move data-tab-button to somewhere else, controlled by tab
-          // manager specifically, to ensure TabItem is reusable without
-          // being married to the scroll functionality.
-          // This should be able to take any arbitrary `data-*` properties so
-          // that a parent component inside `pages/tab-manager` can pass
-          // the full `data-tab-button={tabId}` property itself instead.
-          data-tab-button={tabId}
         >
           <div
             className={cn(

@@ -98,7 +98,7 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
                     .querySelectorAll(
                       [
                         `[data-window-button="${targetWindowId}"]`,
-                        `[data-tab-button="${targetTabId}"]`,
+                        `[data-tab-item="${targetTabId}"]`,
                       ].join(','),
                     )
                     .forEach((element) => {

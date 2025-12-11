@@ -18,7 +18,6 @@ describe('TabItem', () => {
 
     render(
       <TabItem
-        tabId={42}
         label="My Tab"
         iconUrl="https://example.com/favicon.ico"
         isActive={false}
@@ -27,11 +26,15 @@ describe('TabItem', () => {
         onActivate={onActivate}
         onRefresh={onRefresh}
         onRemove={onRemove}
+        data-testid="tab-item"
       />,
     )
 
+    const element = screen.getByTestId('tab-item')
+    expect(element).toBeInTheDocument()
+
     const button = screen.getByRole('button', { name: /My Tab/i })
-    expect(button).toHaveAttribute('data-tab-button', '42')
+    expect(button).toBeInTheDocument()
 
     const img = screen.getByAltText('')
     expect(img).toHaveAttribute('src', 'https://example.com/favicon.ico')
@@ -44,7 +47,6 @@ describe('TabItem', () => {
 
     render(
       <TabItem
-        tabId={99}
         label="Main Tab"
         iconUrl="/favicon.ico"
         isActive={false}
@@ -56,18 +58,15 @@ describe('TabItem', () => {
       />,
     )
 
-    // Click the main button
     const mainBtn = screen.getByRole('button', { name: /Main Tab/i })
     fireEvent.click(mainBtn)
     expect(onActivate).toHaveBeenCalled()
 
-    // Click refresh and close buttons via titles
     const refreshBtn = screen.getByTitle('Refresh Tab')
-    const closeBtn = screen.getByTitle('Close Tab')
-
     fireEvent.click(refreshBtn)
     expect(onRefresh).toHaveBeenCalled()
 
+    const closeBtn = screen.getByTitle('Close Tab')
     fireEvent.click(closeBtn)
     expect(onRemove).toHaveBeenCalled()
   })

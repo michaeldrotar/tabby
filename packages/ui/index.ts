@@ -1,8 +1,11 @@
+export type * from './lib/DataAttributes'
+
 export * from './lib/components/LoadingSpinner'
 export * from './lib/components/error-display/ErrorDisplay'
 export * from './lib/Favicon'
 export * from './lib/ScrollArea'
 export * from './lib/TabItem'
+export * from './lib/TabList'
 export * from './lib/Tooltip'
 
 export * from './lib/getFaviconUrl'
