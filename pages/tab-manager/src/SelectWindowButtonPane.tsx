@@ -26,8 +26,8 @@ export const SelectWindowButtonPane = ({
     <ScrollArea
       className={cn(
         'h-full w-56 flex-shrink-0 overscroll-none border-r',
-        'border-gray-200 bg-gray-50',
-        'dark:border-gray-800 dark:bg-gray-900',
+        'border-stone-200 bg-stone-100',
+        'dark:border-slate-800 dark:bg-slate-950',
       )}
     >
       <div className="flex flex-col gap-2 p-2">
@@ -42,12 +42,12 @@ export const SelectWindowButtonPane = ({
           />
         ))}
       </div>
-      <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 to-transparent p-2 dark:from-gray-900">
+      <div className="sticky bottom-0 bg-gradient-to-t from-stone-100 to-transparent p-2 dark:from-slate-950">
         <button
           className={cn(
             'flex w-full items-center justify-center rounded-md py-2 text-sm font-medium transition-colors',
-            'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50',
-            'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
+            'border border-stone-200 bg-stone-50 text-slate-700 shadow-sm hover:bg-stone-100',
+            'dark:border-slate-700 dark:bg-slate-800 dark:text-neutral-200 dark:hover:bg-slate-700',
           )}
           onClick={onNewBrowserWindowClick}
         >

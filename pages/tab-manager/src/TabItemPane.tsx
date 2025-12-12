@@ -29,8 +29,8 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
               <li key={item.group.id} className="flex w-full flex-col">
                 <div
                   className={cn(
-                    'flex flex-col rounded-lg border border-transparent bg-gray-50/50 p-1 transition-colors dark:bg-gray-900/30',
-                    active && 'bg-blue-50/50 dark:bg-blue-900/10',
+                    'flex flex-col rounded-lg border border-transparent bg-stone-50/50 p-1 transition-colors dark:bg-slate-900/30',
+                    active && 'bg-red-50/50 dark:bg-red-900/10',
                   )}
                 >
                   <div className="mb-1 flex items-center gap-2 px-2 py-1">
@@ -39,7 +39,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                         'h-3 w-3 rounded-full',
                         item.group.color
                           ? `bg-${item.group.color}-500`
-                          : 'bg-gray-400',
+                          : 'bg-stone-400 dark:bg-neutral-500',
                       )}
                     />
                     <h4
@@ -47,7 +47,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                         'text-xs font-bold uppercase tracking-wider opacity-80',
                         item.group.color
                           ? `text-${item.group.color}-700 dark:text-${item.group.color}-400`
-                          : 'text-gray-600 dark:text-gray-400',
+                          : 'text-slate-600 dark:text-neutral-400',
                       )}
                     >
                       {item.group.title || 'Group'}
