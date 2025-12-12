@@ -9,59 +9,59 @@
 
   body,
   [data-theme='light'] {
-    --background: 30 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: theme(colors.stone.50);
+    --foreground: theme(colors.slate.900);
 
-    --card: 30 20% 99%;
-    --card-foreground: 222 47% 11%;
+    --card: theme(colors.white);
+    --card-foreground: theme(colors.slate.900);
 
-    --popover: 30 20% 99%;
-    --popover-foreground: 222 47% 11%;
+    --popover: theme(colors.white);
+    --popover-foreground: theme(colors.slate.900);
 
-    --muted: 30 10% 94%;
-    --muted-foreground: 215 16% 47%;
+    --muted: theme(colors.stone.100);
+    --muted-foreground: theme(colors.stone.500);
 
-    --accent: 30 10% 94%;
-    --accent-foreground: 222 47% 11%;
+    --accent: theme(colors.stone.100);
+    --accent-foreground: theme(colors.slate.900);
 
-    --border: 30 7% 90%;
-    --input: 30 7% 90%;
+    --border: theme(colors.stone.200);
+    --input: theme(colors.stone.200);
 
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 98%;
+    --primary: theme(colors.red.600);
+    --primary-foreground: theme(colors.white);
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: theme(colors.red.600);
+    --destructive-foreground: theme(colors.white);
 
-    --ring: 0 72% 51%;
+    --ring: theme(colors.red.600);
   }
 
   [data-theme='dark'] {
-    --background: 222 68% 7%;
-    --foreground: 30 10% 92%;
+    --background: theme(colors.slate.950);
+    --foreground: theme(colors.stone.100);
 
-    --card: 222 68% 9%;
-    --card-foreground: 30 10% 92%;
+    --card: theme(colors.slate.900);
+    --card-foreground: theme(colors.stone.100);
 
-    --popover: 222 68% 9%;
-    --popover-foreground: 30 10% 92%;
+    --popover: theme(colors.slate.900);
+    --popover-foreground: theme(colors.stone.100);
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 30 6% 72%;
+    --muted: theme(colors.slate.800);
+    --muted-foreground: theme(colors.slate.400);
 
-    --accent: 222 30% 14%;
-    --accent-foreground: 30 10% 92%;
+    --accent: theme(colors.slate.800);
+    --accent-foreground: theme(colors.stone.100);
 
-    --border: 222 20% 18%;
-    --input: 222 20% 18%;
+    --border: theme(colors.slate.800);
+    --input: theme(colors.slate.800);
 
-    --primary: 0 91% 71%;
-    --primary-foreground: 222 68% 10%;
+    --primary: theme(colors.red.300);
+    --primary-foreground: theme(colors.slate.950);
 
-    --destructive: 0 91% 71%;
-    --destructive-foreground: 222 68% 10%;
+    --destructive: theme(colors.red.300);
+    --destructive-foreground: theme(colors.slate.950);
 
-    --ring: 0 91% 71%;
+    --ring: theme(colors.red.300);
   }
 
   body {
