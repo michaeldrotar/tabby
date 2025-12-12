@@ -41,10 +41,10 @@ export const TabItem = memo(
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                 isActive
-                  ? 'bg-blue-200 text-blue-900 dark:bg-indigo-500/20 dark:text-indigo-100'
+                  ? 'bg-accent/20 text-foreground'
                   : isHighlighted
-                    ? 'bg-blue-100 text-blue-900 dark:bg-indigo-500/10 dark:text-indigo-200'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
+                    ? 'bg-surface-muted text-foreground'
+                    : 'text-muted-foreground hover:bg-surface-muted/70',
                 isDiscarded && 'opacity-60 grayscale',
                 'transition-all',
               )}
@@ -69,9 +69,9 @@ export const TabItem = memo(
                   className="h-5 w-5 transition-transform group-hover:scale-110"
                   style={{ height: `20px`, width: `20px` }}
                 />
-                {isDiscarded && (
-                  <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-white bg-gray-400 dark:border-gray-900" />
-                )}
+                 {isDiscarded && (
+                   <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-surface bg-muted-foreground" />
+                 )}
               </div>
               <span
                 className={cn('flex-1 truncate', isActive && 'font-medium')}
@@ -80,13 +80,13 @@ export const TabItem = memo(
               </span>
               <div className="hidden w-4 group-hover:flex"></div>
             </button>
-            <div className="absolute right-2 top-0 hidden h-full group-hover:flex">
-              <button
-                type="button"
-                onClick={onRemove}
-                className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                title="Close Tab"
-                aria-label="Close Tab"
+             <div className="absolute right-2 top-0 hidden h-full group-hover:flex">
+               <button
+                 type="button"
+                 onClick={onRemove}
+                 className="rounded p-1 text-muted-foreground hover:bg-accent-soft/60 hover:text-accent"
+                 title="Close Tab"
+                 aria-label="Close Tab"
               >
                 <CloseIcon className="size-3.5" />
               </button>

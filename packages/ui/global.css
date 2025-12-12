@@ -2,20 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root {
+  color-scheme: light;
+  --tabby-background: 245 245 244;
+  --tabby-surface: 254 253 250;
+  --tabby-muted-surface: 248 247 244;
+  --tabby-border: 221 214 209;
+  --tabby-foreground: 30 27 24;
+  --tabby-muted-foreground: 99 102 106;
+  --tabby-accent: 220 38 38;
+  --tabby-accent-soft: 254 226 226;
+  --tabby-accent-foreground: 255 241 242;
+  --tabby-ring: 248 113 113;
+  --tabby-input: 250 245 244;
+  --tabby-overlay: 15 23 42;
 }
 
-code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --tabby-background: 11 15 23;
+  --tabby-surface: 17 23 34;
+  --tabby-muted-surface: 27 35 49;
+  --tabby-border: 52 63 82;
+  --tabby-foreground: 231 229 228;
+  --tabby-muted-foreground: 159 168 184;
+  --tabby-accent: 248 113 113;
+  --tabby-accent-soft: 127 29 29;
+  --tabby-accent-foreground: 17 8 8;
+  --tabby-ring: 248 113 113;
+  --tabby-input: 32 40 58;
+  --tabby-overlay: 2 6 23;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--tabby-border) / 0.6);
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: rgb(var(--tabby-background));
+    color: rgb(var(--tabby-foreground));
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family:
+      source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
 }

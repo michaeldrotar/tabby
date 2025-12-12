@@ -176,7 +176,7 @@ export const Omnibar = ({
   return (
     <div
       className={cn(
-        'flex h-full flex-col bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+        'flex h-full flex-col bg-surface text-foreground',
         className,
       )}
       onClick={(e) => e.stopPropagation()}

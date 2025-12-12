@@ -22,16 +22,16 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'flex h-full flex-col bg-gray-50/50 transition-all duration-300 ease-in-out dark:bg-slate-950',
+        'flex h-full flex-col bg-surface-muted/60 transition-all duration-300 ease-in-out',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
     >
       {/* Top Sticky: Toggle Mode */}
-      <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-slate-800">
+      <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border/60 px-3">
         <button
           onClick={onToggleExpand}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
           title={isExpanded ? 'Collapse' : 'Expand'}
           aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
@@ -42,7 +42,7 @@ export const TabManagerSidebar = ({
           )}
         </button>
         {isExpanded && windowCount !== undefined && (
-          <span className="whitespace-nowrap text-xs font-medium text-gray-500 dark:text-slate-500">
+          <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
             {windowCount} Windows
           </span>
         )}
@@ -54,7 +54,7 @@ export const TabManagerSidebar = ({
       </ScrollArea>
 
       {/* Bottom Sticky: Actions */}
-      <div className="flex flex-shrink-0 flex-col gap-1 border-t border-gray-200 p-2 dark:border-gray-800">
+      <div className="flex flex-shrink-0 flex-col gap-1 border-t border-border/60 p-2">
         {actions}
       </div>
     </div>
