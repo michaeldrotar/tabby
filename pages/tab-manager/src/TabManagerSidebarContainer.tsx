@@ -196,6 +196,7 @@ export const TabManagerSidebarContainer = ({
           'group mt-2 flex w-full items-center gap-3 rounded-md p-2 text-gray-700 transition-all hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
         )}
         title="New Window"
+        aria-label="New Window"
       >
         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
           <svg

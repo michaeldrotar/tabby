@@ -20,6 +20,7 @@ export const SidebarAction = ({
     <button
       onClick={onClick}
       data-nav-type="action"
+      aria-label={label}
       className={cn(
         'group flex w-full items-center gap-3 rounded-md p-2 transition-all',
         isActive

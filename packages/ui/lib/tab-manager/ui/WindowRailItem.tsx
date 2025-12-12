@@ -91,6 +91,7 @@ export const WindowRailItem = ({
             }}
             className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
             title="Close Window"
+            aria-label="Close Window"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
