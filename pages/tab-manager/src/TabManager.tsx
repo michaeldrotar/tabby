@@ -41,7 +41,10 @@ const TabManager = () => {
         })
 
       try {
+        // // @ ts-expect-error chrome not defined during build
+        // if (chrome.sidePanel && chrome.sidePanel.open) {
         await chrome.sidePanel.open({ windowId })
+        // }
       } catch (e) {
         console.debug('Failed to open side panel', e)
       }

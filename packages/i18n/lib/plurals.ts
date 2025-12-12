@@ -1,7 +1,8 @@
 import { t } from './i18n.js'
 import type { LocalesJSONType } from './types.js'
 
-const locale = chrome.i18n.getUILanguage()
+const locale =
+  typeof chrome !== 'undefined' ? chrome.i18n.getUILanguage() : 'en'
 const pluralRules = new Intl.PluralRules(locale)
 
 export const tt = (baseKey: keyof LocalesJSONType, count: number) => {
