@@ -13,13 +13,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const {
-    theme,
-    tabManagerViewMode,
-    tabManagerCompactIconMode,
-    tabManagerCompactLayout,
-    tabManagerShowWindowPreview,
-  } = usePreferenceStorage()
+  const { theme, tabManagerCompactIconMode, tabManagerCompactLayout } =
+    usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
 
@@ -136,10 +131,10 @@ const OptionsContent = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Window Selection View
+                  Compact View Icon
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose how to view your open windows
+                  Choose which tab icon to display
                 </p>
               </div>
               <div className="flex gap-2">
@@ -147,166 +142,81 @@ const OptionsContent = () => {
                   onClick={() =>
                     preferenceStorage.set((prev) => ({
                       ...prev,
-                      tabManagerViewMode: 'dots',
+                      tabManagerCompactIconMode: 'active',
                     }))
                   }
                   className={cn(
                     'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerViewMode === 'dots'
+                    tabManagerCompactIconMode === 'active'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
                   )}
                 >
-                  Compact
+                  Active Tab
                 </button>
                 <button
                   onClick={() =>
                     preferenceStorage.set((prev) => ({
                       ...prev,
-                      tabManagerViewMode: 'buttons',
+                      tabManagerCompactIconMode: 'first',
                     }))
                   }
                   className={cn(
                     'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerViewMode === 'buttons'
+                    tabManagerCompactIconMode === 'first'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
                   )}
                 >
-                  Detailed
+                  First Tab
                 </button>
               </div>
             </div>
 
-            {tabManagerViewMode === 'dots' && (
-              <>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                  <div>
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                      Compact View Icon
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Choose which tab icon to display
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactIconMode: 'active',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactIconMode === 'active'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      Active Tab
-                    </button>
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactIconMode: 'first',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactIconMode === 'first'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      First Tab
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                  <div>
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                      Compact View Layout
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Choose layout style
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactLayout: 'icon',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactLayout === 'icon'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      Icon Only
-                    </button>
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactLayout: 'list',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactLayout === 'list'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      List
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {tabManagerViewMode === 'buttons' && (
-              <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                    Window Preview
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Show a visual preview of the window layout
-                  </p>
-                </div>
+            <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
+              <div>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Compact View Layout
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Choose layout style
+                </p>
+              </div>
+              <div className="flex gap-2">
                 <button
                   onClick={() =>
                     preferenceStorage.set((prev) => ({
                       ...prev,
-                      tabManagerShowWindowPreview: !tabManagerShowWindowPreview,
+                      tabManagerCompactLayout: 'icon',
                     }))
                   }
                   className={cn(
-                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                    tabManagerShowWindowPreview
-                      ? 'bg-blue-600'
-                      : 'bg-gray-200 dark:bg-gray-700',
+                    'rounded-lg px-4 py-2 font-medium transition-colors',
+                    tabManagerCompactLayout === 'icon'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
                   )}
                 >
-                  <span
-                    className={cn(
-                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                      tabManagerShowWindowPreview
-                        ? 'translate-x-6'
-                        : 'translate-x-1',
-                    )}
-                  />
+                  Icon Only
+                </button>
+                <button
+                  onClick={() =>
+                    preferenceStorage.set((prev) => ({
+                      ...prev,
+                      tabManagerCompactLayout: 'list',
+                    }))
+                  }
+                  className={cn(
+                    'rounded-lg px-4 py-2 font-medium transition-colors',
+                    tabManagerCompactLayout === 'list'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
+                  )}
+                >
+                  List
                 </button>
               </div>
-            )}
+            </div>
           </div>
         </section>
 

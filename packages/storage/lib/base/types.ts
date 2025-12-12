@@ -46,10 +46,8 @@ export type StorageConfigType<D = string> = {
 
 export interface PreferenceStateType {
   theme: 'light' | 'dark' | undefined
-  tabManagerViewMode: 'dots' | 'buttons'
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerCompactLayout: 'icon' | 'list'
-  tabManagerShowWindowPreview: boolean
 }
 
 export type PreferenceStorageType = BaseStorageType<PreferenceStateType> & {

@@ -7,6 +7,12 @@ export * from './lib/ScrollArea'
 export * from './lib/TabItem'
 export * from './lib/TabList'
 export * from './lib/Tooltip'
+export * from './lib/ContextMenu'
+
+export * from './lib/tab-manager/ui/TabManagerShell'
+export * from './lib/tab-manager/ui/TabManagerSidebar'
+export * from './lib/tab-manager/ui/WindowRailItem'
+export * from './lib/tab-manager/ui/SidebarAction'
 
 export * from './lib/getFaviconUrl'
 export * from './lib/utils/cn'

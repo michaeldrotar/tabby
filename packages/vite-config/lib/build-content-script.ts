@@ -1,6 +1,7 @@
 import { withPageConfig } from './index.js'
 import { IS_DEV } from '@extension/env'
 import { makeEntryPointPlugin } from '@extension/hmr'
+// @ts-expect-error no type defined
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
 import { readdirSync, statSync } from 'node:fs'
