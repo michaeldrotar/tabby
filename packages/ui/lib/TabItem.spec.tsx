@@ -13,7 +13,6 @@ describe('TabItem', () => {
 
   it('renders label, icon and data attribute', () => {
     const onActivate = vi.fn()
-    const onRefresh = vi.fn()
     const onRemove = vi.fn()
 
     render(
@@ -24,7 +23,6 @@ describe('TabItem', () => {
         isDiscarded={false}
         isHighlighted={false}
         onActivate={onActivate}
-        onRefresh={onRefresh}
         onRemove={onRemove}
         data-testid="tab-item"
       />,
@@ -42,7 +40,6 @@ describe('TabItem', () => {
 
   it('calls handlers on clicks', () => {
     const onActivate = vi.fn()
-    const onRefresh = vi.fn()
     const onRemove = vi.fn()
 
     render(
@@ -53,7 +50,6 @@ describe('TabItem', () => {
         isDiscarded={false}
         isHighlighted={false}
         onActivate={onActivate}
-        onRefresh={onRefresh}
         onRemove={onRemove}
       />,
     )
@@ -61,10 +57,6 @@ describe('TabItem', () => {
     const mainBtn = screen.getByRole('button', { name: /Main Tab/i })
     fireEvent.click(mainBtn)
     expect(onActivate).toHaveBeenCalled()
-
-    const refreshBtn = screen.getByTitle('Refresh Tab')
-    fireEvent.click(refreshBtn)
-    expect(onRefresh).toHaveBeenCalled()
 
     const closeBtn = screen.getByTitle('Close Tab')
     fireEvent.click(closeBtn)

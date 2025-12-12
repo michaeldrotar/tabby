@@ -8,10 +8,8 @@ const storage = createStorage<PreferenceStateType>(
   'preference-storage-key',
   {
     theme: undefined,
-    tabManagerViewMode: 'dots',
     tabManagerCompactIconMode: 'active',
     tabManagerCompactLayout: 'icon',
-    tabManagerShowWindowPreview: false,
   },
   {
     storageEnum: StorageEnum.Local,

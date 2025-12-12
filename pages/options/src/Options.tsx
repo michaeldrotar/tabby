@@ -7,19 +7,26 @@ import {
   withSuspense,
 } from '@extension/shared'
 import { preferenceStorage } from '@extension/storage'
-import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
+import {
+  cn,
+  ErrorDisplay,
+  LoadingSpinner,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SunIcon,
+  MoonIcon,
+  ExternalLinkIcon,
+} from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const {
-    theme,
-    tabManagerViewMode,
-    tabManagerCompactIconMode,
-    tabManagerCompactLayout,
-    tabManagerShowWindowPreview,
-  } = usePreferenceStorage()
+  const { theme, tabManagerCompactIconMode, tabManagerCompactLayout } =
+    usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
 
@@ -93,26 +100,12 @@ const OptionsContent = () => {
               >
                 {theme === 'light' ? (
                   <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8 1.8-1.8zM1 13h3v-2H1v2zm10 9h2v-3h-2v3zm7.24-2.16l1.79 1.79 1.79-1.79-1.79-1.8-1.79 1.8zM20 11v2h3v-2h-3zM11 1h2v3h-2V1zm4.24 3.76l1.79-1.8-1.79-1.79-1.8 1.79 1.8 1.8zM12 6a6 6 0 100 12 6 6 0 000-12z" />
-                    </svg>
+                    <SunIcon className="h-5 w-5" />
                     Light
                   </>
                 ) : (
                   <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
+                    <MoonIcon className="h-5 w-5" />
                     Dark
                   </>
                 )}
@@ -136,177 +129,66 @@ const OptionsContent = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Window Selection View
+                  Window Icon
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose how to view your open windows
+                  Choose which tab icon to display for windows
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() =>
+                <Select
+                  value={tabManagerCompactIconMode}
+                  onValueChange={(value) =>
                     preferenceStorage.set((prev) => ({
                       ...prev,
-                      tabManagerViewMode: 'dots',
+                      tabManagerCompactIconMode: value as 'active' | 'first',
                     }))
                   }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerViewMode === 'dots'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
                 >
-                  Compact
-                </button>
-                <button
-                  onClick={() =>
-                    preferenceStorage.set((prev) => ({
-                      ...prev,
-                      tabManagerViewMode: 'buttons',
-                    }))
-                  }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerViewMode === 'buttons'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
-                >
-                  Detailed
-                </button>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active Tab</SelectItem>
+                    <SelectItem value="first">First Tab</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            {tabManagerViewMode === 'dots' && (
-              <>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                  <div>
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                      Compact View Icon
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Choose which tab icon to display
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactIconMode: 'active',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactIconMode === 'active'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      Active Tab
-                    </button>
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactIconMode: 'first',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactIconMode === 'first'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      First Tab
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                  <div>
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                      Compact View Layout
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Choose layout style
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactLayout: 'icon',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactLayout === 'icon'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      Icon Only
-                    </button>
-                    <button
-                      onClick={() =>
-                        preferenceStorage.set((prev) => ({
-                          ...prev,
-                          tabManagerCompactLayout: 'list',
-                        }))
-                      }
-                      className={cn(
-                        'rounded-lg px-4 py-2 font-medium transition-colors',
-                        tabManagerCompactLayout === 'list'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                      )}
-                    >
-                      List
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {tabManagerViewMode === 'buttons' && (
-              <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                    Window Preview
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Show a visual preview of the window layout
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    preferenceStorage.set((prev) => ({
-                      ...prev,
-                      tabManagerShowWindowPreview: !tabManagerShowWindowPreview,
-                    }))
-                  }
-                  className={cn(
-                    'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                    tabManagerShowWindowPreview
-                      ? 'bg-blue-600'
-                      : 'bg-gray-200 dark:bg-gray-700',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-                      tabManagerShowWindowPreview
-                        ? 'translate-x-6'
-                        : 'translate-x-1',
-                    )}
-                  />
-                </button>
+            <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
+              <div>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Sidebar Layout
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Toggle between collapsed (icon only) and expanded (list) views
+                </p>
               </div>
-            )}
+              <div className="flex items-center">
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={tabManagerCompactLayout === 'list'}
+                    onChange={(e) =>
+                      preferenceStorage.set((prev) => ({
+                        ...prev,
+                        tabManagerCompactLayout: e.target.checked
+                          ? 'list'
+                          : 'icon',
+                      }))
+                    }
+                  />
+                  <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    {tabManagerCompactLayout === 'list'
+                      ? 'Expanded'
+                      : 'Collapsed'}
+                  </span>
+                </label>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -332,19 +214,7 @@ const OptionsContent = () => {
                 'bg-blue-600 text-white hover:bg-blue-700',
               )}
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
+              <ExternalLinkIcon className="h-4 w-4" />
               Open Shortcut Settings
             </button>
             <div
@@ -439,19 +309,7 @@ const OptionsContent = () => {
                 'bg-blue-600 text-white hover:bg-blue-700',
               )}
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
+              <ExternalLinkIcon className="h-4 w-4" />
               Open Appearance Settings
             </button>
             <div

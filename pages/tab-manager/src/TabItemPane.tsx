@@ -1,4 +1,4 @@
-import { refreshBrowserTab, useTabListItems } from '@extension/chrome'
+import { useTabListItems } from '@extension/chrome'
 import {
   TabItem,
   TabList,
@@ -21,10 +21,6 @@ const onActivateTab = async (
   await chrome.tabs.update(tabId, { active: true })
 }
 
-const onRefreshTab = async (tabId: BrowserTabID): Promise<void> => {
-  await refreshBrowserTab(tabId)
-}
-
 const onRemoveTab = async (tabId: BrowserTabID): Promise<void> => {
   if (tabId) {
     await chrome.tabs.remove(tabId)
@@ -38,7 +34,6 @@ const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
     () => onActivateTab(tab.windowId, tab.id),
     [tab.windowId, tab.id],
   )
-  const onRefresh = useCallback(() => onRefreshTab(tab.id), [tab.id])
   const onRemove = useCallback(() => onRemoveTab(tab.id), [tab.id])
 
   return (
@@ -49,9 +44,10 @@ const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
       isDiscarded={tab.discarded}
       isHighlighted={tab.highlighted}
       onActivate={onActivate}
-      onRefresh={onRefresh}
       onRemove={onRemove}
       data-tab-item={tab.id}
+      data-nav-type="tab"
+      data-active={tab.active}
     />
   )
 })
