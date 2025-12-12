@@ -69,13 +69,13 @@ export const TabListGroup = ({
   const colorClasses =
     color && GROUP_COLORS[color]
       ? GROUP_COLORS[color]
-      : { dot: 'bg-gray-400', text: 'text-gray-600 dark:text-gray-400' }
+      : { dot: 'bg-muted-foreground/70', text: 'text-muted-foreground' }
 
   return (
     <div
       className={cn(
-        'flex flex-col rounded-lg border border-transparent bg-gray-50/50 p-1 transition-colors dark:bg-gray-900/30',
-        isActive && 'bg-blue-50/50 dark:bg-blue-900/10',
+        'bg-muted/40 flex flex-col rounded-lg border border-transparent p-1 transition-colors',
+        isActive && 'bg-primary/10',
       )}
     >
       <div className="mb-1 flex items-center gap-2 px-2 py-1">

@@ -24,8 +24,8 @@ export const SidebarAction = ({
       className={cn(
         'group flex w-full items-center gap-3 rounded-md p-2 transition-all',
         isActive
-          ? 'bg-blue-100 text-blue-900 dark:bg-indigo-500/20 dark:text-indigo-200'
-          : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
+          ? 'bg-primary/10 text-foreground'
+          : 'text-foreground hover:bg-muted/50',
       )}
     >
       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">

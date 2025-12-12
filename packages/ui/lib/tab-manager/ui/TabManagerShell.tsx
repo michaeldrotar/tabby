@@ -15,13 +15,11 @@ export const TabManagerShell = ({
   return (
     <div
       className={cn(
-        'flex h-screen w-full overflow-hidden bg-white dark:bg-zinc-950',
+        'bg-background flex h-screen w-full overflow-hidden',
         className,
       )}
     >
-      <aside className="flex-shrink-0 border-r border-gray-200 dark:border-gray-800">
-        {sidebar}
-      </aside>
+      <aside className="border-border flex-shrink-0 border-r">{sidebar}</aside>
       <ScrollArea className="flex-1" orientation="vertical">
         <main className="h-full">{children}</main>
       </ScrollArea>
