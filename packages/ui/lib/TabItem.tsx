@@ -40,10 +40,10 @@ export const TabItem = memo(
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                 isActive
-                  ? 'bg-blue-200 text-blue-900 dark:bg-blue-900/60 dark:text-blue-50'
+                  ? 'bg-blue-200 text-blue-900 dark:bg-indigo-500/20 dark:text-indigo-100'
                   : isHighlighted
-                    ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+                    ? 'bg-blue-100 text-blue-900 dark:bg-indigo-500/10 dark:text-indigo-200'
+                    : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
                 isDiscarded && 'opacity-60 grayscale',
                 'transition-all',
               )}

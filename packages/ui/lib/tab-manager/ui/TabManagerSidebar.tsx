@@ -71,16 +71,16 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'flex h-full flex-col bg-gray-50/50 transition-all duration-300 ease-in-out dark:bg-zinc-900/50',
+        'flex h-full flex-col bg-gray-50/50 transition-all duration-300 ease-in-out dark:bg-slate-950',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
     >
       {/* Top Sticky: Toggle Mode */}
-      <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-gray-800">
+      <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-slate-800">
         <button
           onClick={onToggleExpand}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           title={isExpanded ? 'Collapse' : 'Expand'}
           aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
@@ -91,7 +91,7 @@ export const TabManagerSidebar = ({
           )}
         </button>
         {isExpanded && windowCount !== undefined && (
-          <span className="whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="whitespace-nowrap text-xs font-medium text-gray-500 dark:text-slate-500">
             {windowCount} Windows
           </span>
         )}

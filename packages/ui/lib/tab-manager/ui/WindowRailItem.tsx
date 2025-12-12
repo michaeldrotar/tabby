@@ -49,10 +49,10 @@ export const WindowRailItem = ({
         className={cn(
           'flex w-full items-center gap-3 rounded-md p-2 outline-none transition-all focus:outline-none',
           isSelected
-            ? 'bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
+            ? 'bg-gray-200 text-gray-900 dark:bg-slate-800 dark:text-slate-100'
             : isActive
-              ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100'
-              : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+              ? 'bg-blue-50 text-blue-900 dark:bg-indigo-500/15 dark:text-indigo-200'
+              : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
         )}
       >
         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
@@ -75,7 +75,7 @@ export const WindowRailItem = ({
           <span className="truncate text-sm font-medium leading-tight">
             {title}
           </span>
-          <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+          <span className="truncate text-xs text-gray-500 dark:text-slate-500">
             {tt('nTabs', tabCount)}
           </span>
         </div>
