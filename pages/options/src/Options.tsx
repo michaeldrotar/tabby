@@ -7,7 +7,16 @@ import {
   withSuspense,
 } from '@extension/shared'
 import { preferenceStorage } from '@extension/storage'
-import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
+import {
+  cn,
+  ErrorDisplay,
+  LoadingSpinner,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
@@ -131,90 +140,64 @@ const OptionsContent = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Compact View Icon
+                  Window Icon
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose which tab icon to display
+                  Choose which tab icon to display for windows
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() =>
+                <Select
+                  value={tabManagerCompactIconMode}
+                  onValueChange={(value) =>
                     preferenceStorage.set((prev) => ({
                       ...prev,
-                      tabManagerCompactIconMode: 'active',
+                      tabManagerCompactIconMode: value as 'active' | 'first',
                     }))
                   }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerCompactIconMode === 'active'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
                 >
-                  Active Tab
-                </button>
-                <button
-                  onClick={() =>
-                    preferenceStorage.set((prev) => ({
-                      ...prev,
-                      tabManagerCompactIconMode: 'first',
-                    }))
-                  }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerCompactIconMode === 'first'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
-                >
-                  First Tab
-                </button>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active Tab</SelectItem>
+                    <SelectItem value="first">First Tab</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Compact View Layout
+                  Sidebar Layout
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose layout style
+                  Toggle between collapsed (icon only) and expanded (list) views
                 </p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    preferenceStorage.set((prev) => ({
-                      ...prev,
-                      tabManagerCompactLayout: 'icon',
-                    }))
-                  }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerCompactLayout === 'icon'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
-                >
-                  Icon Only
-                </button>
-                <button
-                  onClick={() =>
-                    preferenceStorage.set((prev) => ({
-                      ...prev,
-                      tabManagerCompactLayout: 'list',
-                    }))
-                  }
-                  className={cn(
-                    'rounded-lg px-4 py-2 font-medium transition-colors',
-                    tabManagerCompactLayout === 'list'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                  )}
-                >
-                  List
-                </button>
+              <div className="flex items-center">
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={tabManagerCompactLayout === 'list'}
+                    onChange={(e) =>
+                      preferenceStorage.set((prev) => ({
+                        ...prev,
+                        tabManagerCompactLayout: e.target.checked
+                          ? 'list'
+                          : 'icon',
+                      }))
+                    }
+                  />
+                  <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    {tabManagerCompactLayout === 'list'
+                      ? 'Expanded'
+                      : 'Collapsed'}
+                  </span>
+                </label>
               </div>
             </div>
           </div>
