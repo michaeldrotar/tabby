@@ -26,15 +26,15 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
     <div
       className={cn(
         'flex flex-shrink-0 items-center justify-between border-b px-4 py-3',
-        'border-gray-200 bg-white',
-        'dark:border-gray-800 dark:bg-gray-900',
+        'border-stone-200 bg-stone-50',
+        'dark:border-slate-800 dark:bg-slate-950',
       )}
     >
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-neutral-100">
           Tabby
         </h2>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+        <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-neutral-400">
           {browserWindows.length} Windows
         </span>
       </div>
@@ -51,8 +51,8 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
               onClick={() => chrome.runtime.openOptionsPage()}
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                'text-slate-500 hover:bg-stone-100 hover:text-slate-700',
+                'dark:text-neutral-400 dark:hover:bg-slate-800 dark:hover:text-neutral-200',
               )}
             >
               <svg
@@ -111,8 +111,8 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
               }}
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                'text-slate-500 hover:bg-stone-100 hover:text-slate-700',
+                'dark:text-neutral-400 dark:hover:bg-slate-800 dark:hover:text-neutral-200',
               )}
             >
               <svg
@@ -146,8 +146,8 @@ export const TabManagerHeader = ({ onOpenSearch }: TabManagerHeaderProps) => {
               onClick={() => themeStorage.toggle()}
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                'text-slate-500 hover:bg-stone-100 hover:text-slate-700',
+                'dark:text-neutral-400 dark:hover:bg-slate-800 dark:hover:text-neutral-200',
               )}
             >
               {theme === 'light' ? (

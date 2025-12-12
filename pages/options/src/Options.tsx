@@ -29,8 +29,8 @@ const OptionsContent = () => {
     <div
       className={cn(
         'min-h-screen w-full',
-        'bg-slate-50 text-gray-900',
-        'dark:bg-gray-900 dark:text-gray-100',
+        'bg-stone-50 text-slate-900',
+        'dark:bg-slate-900 dark:text-neutral-100',
       )}
     >
       <div className="mx-auto max-w-2xl px-6 py-12">
@@ -45,35 +45,35 @@ const OptionsContent = () => {
             <h1
               className={cn(
                 'text-3xl font-bold',
-                'text-gray-800 dark:text-gray-100',
+                'text-slate-800 dark:text-neutral-100',
               )}
             >
               Tabby
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-600 dark:text-neutral-400">
             Your friendly tab manager for Chrome
           </p>
         </div>
 
         {/* Theme Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-neutral-200">
             Appearance
           </h2>
           <div
             className={cn(
               'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'border-stone-200 bg-stone-50',
+              'dark:border-slate-700 dark:bg-slate-800',
             )}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                <h3 className="font-medium text-slate-800 dark:text-neutral-200">
                   Theme
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-slate-500 dark:text-neutral-400">
                   Choose between light and dark mode
                 </p>
               </div>
@@ -81,8 +81,8 @@ const OptionsContent = () => {
                 onClick={themeStorage.toggle}
                 className={cn(
                   'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                  'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                  'dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
+                  'bg-stone-200 text-slate-700 hover:bg-stone-300',
+                  'dark:bg-slate-700 dark:text-neutral-200 dark:hover:bg-slate-600',
                 )}
               >
                 {theme === 'light' ? (
@@ -117,24 +117,24 @@ const OptionsContent = () => {
 
         {/* Keyboard Shortcuts Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-neutral-200">
             Keyboard Shortcuts
           </h2>
           <div
             className={cn(
               'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'border-stone-200 bg-stone-50',
+              'dark:border-slate-700 dark:bg-slate-800',
             )}
           >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-4 text-sm text-slate-600 dark:text-neutral-400">
               Configure keyboard shortcuts to quickly access Tabby's features.
             </p>
             <button
               onClick={openShortcutsSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
+                'bg-red-600 text-white hover:bg-red-700',
               )}
             >
               <svg
@@ -153,9 +153,9 @@ const OptionsContent = () => {
               Open Shortcut Settings
             </button>
             <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
+              className={cn('rounded-md p-4', 'bg-stone-100 dark:bg-slate-950')}
             >
-              <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <h4 className="mb-3 text-sm font-medium text-slate-700 dark:text-neutral-300">
                 Recommended Shortcuts
               </h4>
               <ul className="space-y-3 text-sm">
@@ -163,14 +163,14 @@ const OptionsContent = () => {
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-stone-200 text-slate-700',
+                      'dark:bg-slate-700 dark:text-neutral-300',
                     )}
                   >
                     {isMac ? '⌘E' : 'Alt+E'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  <span className="text-slate-600 dark:text-neutral-400">
+                    <strong className="text-slate-800 dark:text-neutral-200">
                       Open Omnibar
                     </strong>{' '}
                     — Quick access to search tabs, bookmarks, and history
@@ -180,14 +180,14 @@ const OptionsContent = () => {
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-stone-200 text-slate-700',
+                      'dark:bg-slate-700 dark:text-neutral-300',
                     )}
                   >
                     {isMac ? '⌘K' : 'Alt+K'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  <span className="text-slate-600 dark:text-neutral-400">
+                    <strong className="text-slate-800 dark:text-neutral-200">
                       Open Omnibar Popup
                     </strong>{' '}
                     — Opens in a popup window instead of in-page overlay
@@ -197,14 +197,14 @@ const OptionsContent = () => {
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-stone-200 text-slate-700',
+                      'dark:bg-slate-700 dark:text-neutral-300',
                     )}
                   >
                     {isMac ? '⌘⇧E' : 'Alt+Shift+E'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  <span className="text-slate-600 dark:text-neutral-400">
+                    <strong className="text-slate-800 dark:text-neutral-200">
                       Open Tab Manager
                     </strong>{' '}
                     — Opens the side panel
@@ -212,7 +212,7 @@ const OptionsContent = () => {
                 </li>
               </ul>
               {!isMac && (
-                <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
+                <p className="mt-3 text-xs text-slate-500 dark:text-neutral-500">
                   Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
                   so Alt-based shortcuts are used instead.
                 </p>
@@ -223,17 +223,17 @@ const OptionsContent = () => {
 
         {/* Side Panel Settings Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-neutral-200">
             Side Panel Position
           </h2>
           <div
             className={cn(
               'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'border-stone-200 bg-stone-50',
+              'dark:border-slate-700 dark:bg-slate-800',
             )}
           >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-4 text-sm text-slate-600 dark:text-neutral-400">
               Move the Tab Manager between the left and right sides of your
               browser.
             </p>
@@ -241,7 +241,7 @@ const OptionsContent = () => {
               onClick={openSidePanelSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
+                'bg-red-600 text-white hover:bg-red-700',
               )}
             >
               <svg
@@ -260,20 +260,20 @@ const OptionsContent = () => {
               Open Appearance Settings
             </button>
             <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
+              className={cn('rounded-md p-4', 'bg-stone-100 dark:bg-slate-950')}
             >
-              <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-neutral-300">
                 How to change the side panel position:
               </h4>
-              <ol className="list-inside list-decimal space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <ol className="list-inside list-decimal space-y-2 text-sm text-slate-600 dark:text-neutral-400">
                 <li>Scroll down to the "Side panel" section</li>
                 <li>
                   Choose{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-slate-800 dark:text-neutral-200">
                     "Show on left side"
                   </strong>{' '}
                   or{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-slate-800 dark:text-neutral-200">
                     "Show on right side"
                   </strong>
                 </li>

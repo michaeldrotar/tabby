@@ -31,12 +31,12 @@ export const SelectWindowButton = memo(
           onClick={() => onSelect?.(window)}
           className={cn(
             'flex w-full flex-col gap-2 rounded-lg border p-2 text-left transition-all',
-            'border-gray-200 bg-white shadow-sm',
-            'dark:border-gray-700 dark:bg-gray-800',
+            'border-stone-200 bg-stone-50 shadow-sm',
+            'dark:border-slate-700 dark:bg-slate-800',
             isSelected
-              ? 'border-blue-500 ring-1 ring-blue-500 dark:border-blue-400 dark:ring-blue-400'
-              : 'hover:border-gray-300 dark:hover:border-gray-600',
-            !isSelected && isCurrent && 'border-l-4 border-l-blue-500 pl-1.5', // Highlight current window if not selected
+              ? 'border-red-500 ring-1 ring-red-500 dark:border-red-400 dark:ring-red-400'
+              : 'hover:border-stone-300 dark:hover:border-slate-600',
+            !isSelected && isCurrent && 'border-l-4 border-l-red-500 pl-1.5', // Highlight current window if not selected
           )}
         >
           <div className="flex w-full items-start justify-between gap-2">
@@ -44,8 +44,8 @@ export const SelectWindowButton = memo(
               <div className="flex items-center gap-1">
                 <span
                   className={cn(
-                    'text-xs font-medium text-gray-500 dark:text-gray-400',
-                    isFocused && 'font-bold text-blue-600 dark:text-blue-400',
+                    'text-xs font-medium text-slate-500 dark:text-neutral-400',
+                    isFocused && 'font-bold text-red-600 dark:text-red-400',
                   )}
                 >
                   Window {window.id}
@@ -54,7 +54,7 @@ export const SelectWindowButton = memo(
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 )}
               </div>
-              <div className="truncate text-xs text-gray-400">
+              <div className="truncate text-xs text-stone-400 dark:text-neutral-500">
                 {tabs.length} tab{tabs.length === 1 ? '' : 's'}
               </div>
             </div>
@@ -69,7 +69,7 @@ export const SelectWindowButton = memo(
               <Favicon key={tab.id} pageUrl={tab.url} size={14} />
             ))}
             {tabs.length > 8 && (
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-stone-400 dark:text-neutral-500">
                 +{tabs.length - 8}
               </span>
             )}
@@ -82,7 +82,7 @@ export const SelectWindowButton = memo(
           onClick={() => {
             if (window.id) chrome.windows.remove(window.id)
           }}
-          className="absolute right-0 top-0 hidden rounded-full bg-gray-100 p-0.5 text-gray-400 shadow-sm hover:bg-red-100 hover:text-red-600 group-hover:block dark:bg-gray-700 dark:hover:bg-red-900/50 dark:hover:text-red-400"
+          className="absolute right-0 top-0 hidden rounded-full bg-stone-200 p-0.5 text-stone-400 shadow-sm hover:bg-red-100 hover:text-red-600 group-hover:block dark:bg-slate-700 dark:hover:bg-red-900/50 dark:hover:text-red-400"
           title="Close Window"
         >
           <svg

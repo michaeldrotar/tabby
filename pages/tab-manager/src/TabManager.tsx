@@ -81,8 +81,8 @@ const TabManager = () => {
       <div
         className={cn(
           'flex h-screen flex-col overscroll-none font-sans text-sm',
-          'bg-gray-50 text-gray-800',
-          'dark:bg-gray-800 dark:text-gray-100',
+          'bg-stone-50 text-slate-800',
+          'dark:bg-slate-900 dark:text-neutral-100',
         )}
       >
         <TabManagerHeader onOpenSearch={openSearch} />
@@ -92,8 +92,8 @@ const TabManager = () => {
           <ScrollArea
             className={cn(
               'h-full w-12 flex-shrink-0 border-r',
-              'border-gray-200 bg-gray-100',
-              'dark:border-gray-800 dark:bg-gray-900',
+              'border-stone-200 bg-stone-100',
+              'dark:border-slate-800 dark:bg-slate-950',
             )}
           >
             <div className="flex min-h-full flex-col items-center py-4">
@@ -124,7 +124,7 @@ const TabManager = () => {
           {/* Tab List */}
           <ScrollArea
             orientation="vertical"
-            className="flex-1 bg-white dark:bg-gray-950"
+            className="flex-1 bg-stone-50 dark:bg-slate-900"
           >
             <TabItemPane browserWindowId={selectedWindowId || undefined} />
           </ScrollArea>

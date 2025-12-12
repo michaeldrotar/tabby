@@ -25,8 +25,8 @@ export const SelectWindowDot = memo(
         className={cn(
           'group relative flex h-8 w-8 items-center justify-center rounded-full transition-all focus:outline-none',
           isSelected
-            ? 'bg-blue-100 dark:bg-blue-900/30'
-            : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+            ? 'bg-red-100 dark:bg-red-900/20'
+            : 'hover:bg-stone-200 dark:hover:bg-slate-800',
         )}
         data-window-button={window.id}
       >
@@ -35,10 +35,10 @@ export const SelectWindowDot = memo(
           className={cn(
             'rounded-full transition-all',
             isSelected
-              ? 'h-3 w-3 bg-blue-600 dark:bg-blue-400'
+              ? 'h-3 w-3 bg-red-600 dark:bg-red-300'
               : isCurrent
-                ? 'h-2.5 w-2.5 border-2 border-blue-500 bg-transparent'
-                : 'h-2 w-2 bg-gray-400 group-hover:bg-gray-500 dark:bg-gray-600 dark:group-hover:bg-gray-500',
+                ? 'h-2.5 w-2.5 border-2 border-red-500 bg-transparent'
+                : 'h-2 w-2 bg-stone-400 group-hover:bg-stone-500 dark:bg-neutral-600 dark:group-hover:bg-neutral-500',
           )}
         />
 
