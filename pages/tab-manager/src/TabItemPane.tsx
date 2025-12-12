@@ -38,7 +38,7 @@ const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
 
   return (
     <TabItem
-      label={tab.title || '<Unnamed Tab>'}
+      label={tab.title || 'Untitled'}
       iconUrl={getFaviconUrl(tab.url || '', { size: 32 })}
       isActive={tab.active}
       isDiscarded={tab.discarded}
