@@ -16,6 +16,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SunIcon,
+  MoonIcon,
+  ExternalLinkIcon,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -97,26 +100,12 @@ const OptionsContent = () => {
               >
                 {theme === 'light' ? (
                   <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8 1.8-1.8zM1 13h3v-2H1v2zm10 9h2v-3h-2v3zm7.24-2.16l1.79 1.79 1.79-1.79-1.79-1.8-1.79 1.8zM20 11v2h3v-2h-3zM11 1h2v3h-2V1zm4.24 3.76l1.79-1.8-1.79-1.79-1.8 1.79 1.8 1.8zM12 6a6 6 0 100 12 6 6 0 000-12z" />
-                    </svg>
+                    <SunIcon className="h-5 w-5" />
                     Light
                   </>
                 ) : (
                   <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
+                    <MoonIcon className="h-5 w-5" />
                     Dark
                   </>
                 )}
@@ -225,19 +214,7 @@ const OptionsContent = () => {
                 'bg-blue-600 text-white hover:bg-blue-700',
               )}
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
+              <ExternalLinkIcon className="h-4 w-4" />
               Open Shortcut Settings
             </button>
             <div
@@ -332,19 +309,7 @@ const OptionsContent = () => {
                 'bg-blue-600 text-white hover:bg-blue-700',
               )}
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
+              <ExternalLinkIcon className="h-4 w-4" />
               Open Appearance Settings
             </button>
             <div

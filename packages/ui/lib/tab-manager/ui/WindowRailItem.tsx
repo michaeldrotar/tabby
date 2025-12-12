@@ -5,6 +5,7 @@ import {
   ContextMenuTrigger,
 } from '../../ContextMenu'
 import { Favicon } from '../../Favicon'
+import { CloseIcon } from '../../icons'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'
 import { cn } from '../../utils/cn'
 import { tt } from '@extension/i18n'
@@ -93,20 +94,7 @@ export const WindowRailItem = ({
             title="Close Window"
             aria-label="Close Window"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 18 12" />
-            </svg>
+            <CloseIcon className="size-4" />
           </button>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { WarningIcon } from '../icons/WarningIcon'
+import { WarningIcon } from '../../icons'
 import { t } from '@extension/i18n'
 
 export const ErrorHeader = () => (

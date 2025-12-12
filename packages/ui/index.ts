@@ -20,3 +20,5 @@ export * from './lib/utils/cn'
 export * from './lib/utils/formatTimeAgo'
 export * from './lib/with-ui'
 export * from './lib/omnibar/Omnibar'
+
+export * from './lib/icons'
