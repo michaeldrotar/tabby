@@ -30,10 +30,10 @@ export const TabItem = memo(({ tab, isActive }: TabItemProps) => {
       className={cn(
         'group flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
         isActive
-          ? 'bg-blue-200 text-blue-900 dark:bg-blue-900/60 dark:text-blue-50'
+          ? 'bg-red-200 text-red-900 dark:bg-red-900/40 dark:text-red-50'
           : tab.highlighted
-            ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100'
-            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+            ? 'bg-red-100 text-red-900 dark:bg-red-900/20 dark:text-red-100'
+            : 'text-slate-700 hover:bg-stone-100 dark:text-neutral-300 dark:hover:bg-slate-800',
         isDiscarded && 'opacity-60 grayscale',
         'transition-all',
       )}
@@ -53,7 +53,7 @@ export const TabItem = memo(({ tab, isActive }: TabItemProps) => {
           className={cn('h-5 w-5 transition-transform group-hover:scale-110')}
         />
         {isDiscarded && (
-          <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-white bg-gray-400 dark:border-gray-900" />
+          <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-stone-50 bg-stone-400 dark:border-slate-950 dark:bg-neutral-600" />
         )}
       </div>
       <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
@@ -66,7 +66,7 @@ export const TabItem = memo(({ tab, isActive }: TabItemProps) => {
             e.stopPropagation()
             refresh()
           }}
-          className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+          className="rounded p-1 text-stone-400 hover:bg-stone-200 hover:text-slate-700 dark:text-neutral-500 dark:hover:bg-slate-700 dark:hover:text-neutral-200"
           title="Refresh Tab"
         >
           <svg
@@ -92,7 +92,7 @@ export const TabItem = memo(({ tab, isActive }: TabItemProps) => {
             e.stopPropagation()
             if (tab.id) chrome.tabs.remove(tab.id)
           }}
-          className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+          className="rounded p-1 text-stone-400 hover:bg-red-100 hover:text-red-600 dark:text-neutral-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
           title="Close Tab"
         >
           <svg

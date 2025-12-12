@@ -45,13 +45,13 @@ export const TooltipContent = ({
         className={cn(
           'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
           'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-          'origin-(--radix-tooltip-content-transform-origin) z-50 w-fit text-balance rounded-md bg-gray-900 px-3 py-1.5 text-xs text-white dark:bg-gray-700',
+          'origin-(--radix-tooltip-content-transform-origin) z-50 w-fit text-balance rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white dark:bg-slate-700',
           className,
         )}
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-gray-900 fill-gray-900 dark:bg-gray-700 dark:fill-gray-700" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-slate-900 fill-slate-900 dark:bg-slate-700 dark:fill-slate-700" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   )

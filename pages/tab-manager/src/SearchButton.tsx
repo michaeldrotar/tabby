@@ -25,7 +25,7 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
   const tooltipContent = shortcut ? (
     <span>
       Search{' '}
-      <kbd className="ml-1 rounded bg-gray-700 px-1 py-0.5 font-sans dark:bg-gray-600">
+      <kbd className="ml-1 rounded bg-slate-700 px-1 py-0.5 font-sans dark:bg-slate-600">
         {formatShortcut(shortcut)}
       </kbd>
     </span>
@@ -42,8 +42,8 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
           onClick={onClick}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-            'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-            'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+            'text-slate-500 hover:bg-stone-100 hover:text-slate-700',
+            'dark:text-neutral-400 dark:hover:bg-slate-800 dark:hover:text-neutral-200',
           )}
         >
           <svg
