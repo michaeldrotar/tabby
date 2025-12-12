@@ -10,10 +10,29 @@ export const usePreferenceStorage = (): PreferenceStateType => {
 export const useThemeApplicator = () => {
   const { theme } = usePreferenceStorage()
   useEffect(() => {
+    const body = document.body
+    if (!body) return
+
     if (theme) {
-      document.body.setAttribute('data-theme', theme)
-    } else {
-      document.body.removeAttribute('data-theme')
+      body.setAttribute('data-theme', theme)
+      return
     }
+
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    const applyFallbackTheme = () => {
+      if (mediaQuery?.matches) {
+        body.setAttribute('data-theme', 'dark')
+      } else {
+        body.removeAttribute('data-theme')
+      }
+    }
+
+    applyFallbackTheme()
+
+    if (!mediaQuery) return
+    const handleChange = () => applyFallbackTheme()
+
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [theme])
 }

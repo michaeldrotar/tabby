@@ -7,7 +7,8 @@
     color-scheme: light dark;
   }
 
-  body {
+  body,
+  [data-theme='light'] {
     --background: 30 20% 98%;
     --foreground: 222 47% 11%;
 
@@ -35,37 +36,7 @@
     --ring: 0 72% 51%;
   }
 
-  @media (prefers-color-scheme: dark) {
-    body:not([data-theme='light']) {
-      --background: 222 68% 7%;
-      --foreground: 30 10% 92%;
-
-      --card: 222 68% 9%;
-      --card-foreground: 30 10% 92%;
-
-      --popover: 222 68% 9%;
-      --popover-foreground: 30 10% 92%;
-
-      --muted: 222 30% 14%;
-      --muted-foreground: 30 6% 72%;
-
-      --accent: 222 30% 14%;
-      --accent-foreground: 30 10% 92%;
-
-      --border: 222 20% 18%;
-      --input: 222 20% 18%;
-
-      --primary: 0 91% 71%;
-      --primary-foreground: 222 68% 10%;
-
-      --destructive: 0 91% 71%;
-      --destructive-foreground: 222 68% 10%;
-
-      --ring: 0 91% 71%;
-    }
-  }
-
-  body[data-theme='dark'] {
+  [data-theme='dark'] {
     --background: 222 68% 7%;
     --foreground: 30 10% 92%;
 
@@ -91,34 +62,6 @@
     --destructive-foreground: 222 68% 10%;
 
     --ring: 0 91% 71%;
-  }
-
-  body[data-theme='light'] {
-    --background: 30 20% 98%;
-    --foreground: 222 47% 11%;
-
-    --card: 30 20% 99%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 30 20% 99%;
-    --popover-foreground: 222 47% 11%;
-
-    --muted: 30 10% 94%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 30 10% 94%;
-    --accent-foreground: 222 47% 11%;
-
-    --border: 30 7% 90%;
-    --input: 30 7% 90%;
-
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 98%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 0 72% 51%;
   }
 
   body {
