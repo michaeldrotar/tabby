@@ -15,6 +15,7 @@
     --input: theme(colors.slate.200);
     --border: theme(colors.slate.300);
     --highlighted: theme(colors.slate.300);
+    --tooltip-foreground: theme(colors.slate.100);
   }
 
   [data-theme='dark'][data-theme-background='slate'] {
@@ -24,6 +25,7 @@
     --input: theme(colors.slate.800);
     --border: theme(colors.slate.800);
     --highlighted: theme(colors.slate.800);
+    --tooltip-foreground: theme(colors.slate.950);
   }
 
   [data-theme='light'][data-theme-background='gray'] {
@@ -33,6 +35,7 @@
     --input: theme(colors.gray.200);
     --border: theme(colors.gray.300);
     --highlighted: theme(colors.gray.300);
+    --tooltip-foreground: theme(colors.gray.100);
   }
 
   [data-theme='dark'][data-theme-background='gray'] {
@@ -42,6 +45,7 @@
     --input: theme(colors.gray.800);
     --border: theme(colors.gray.800);
     --highlighted: theme(colors.gray.800);
+    --tooltip-foreground: theme(colors.gray.950);
   }
 
   [data-theme='light'][data-theme-background='zinc'] {
@@ -51,6 +55,7 @@
     --input: theme(colors.zinc.200);
     --border: theme(colors.zinc.300);
     --highlighted: theme(colors.zinc.300);
+    --tooltip-foreground: theme(colors.zinc.100);
   }
 
   [data-theme='dark'][data-theme-background='zinc'] {
@@ -60,6 +65,7 @@
     --input: theme(colors.zinc.800);
     --border: theme(colors.zinc.800);
     --highlighted: theme(colors.zinc.800);
+    --tooltip-foreground: theme(colors.zinc.950);
   }
 
   [data-theme='light'][data-theme-background='neutral'] {
@@ -69,6 +75,7 @@
     --input: theme(colors.neutral.200);
     --border: theme(colors.neutral.300);
     --highlighted: theme(colors.neutral.300);
+    --tooltip-foreground: theme(colors.neutral.100);
   }
 
   [data-theme='dark'][data-theme-background='neutral'] {
@@ -78,6 +85,7 @@
     --input: theme(colors.neutral.800);
     --border: theme(colors.neutral.800);
     --highlighted: theme(colors.neutral.800);
+    --tooltip-foreground: theme(colors.neutral.950);
   }
 
   [data-theme='light'][data-theme-background='stone'] {
@@ -87,6 +95,7 @@
     --input: theme(colors.stone.200);
     --border: theme(colors.stone.300);
     --highlighted: theme(colors.stone.300);
+    --tooltip-foreground: theme(colors.stone.100);
   }
 
   [data-theme='dark'][data-theme-background='stone'] {
@@ -96,6 +105,7 @@
     --input: theme(colors.stone.800);
     --border: theme(colors.stone.800);
     --highlighted: theme(colors.stone.800);
+    --tooltip-foreground: theme(colors.stone.950);
   }
 
   [data-theme='light'][data-theme-foreground='slate'] {
@@ -103,6 +113,7 @@
     --card-foreground: theme(colors.slate.900);
     --popover-foreground: theme(colors.slate.900);
     --muted: theme(colors.slate.500);
+    --tooltip: theme(colors.slate.900);
   }
 
   [data-theme='dark'][data-theme-foreground='slate'] {
@@ -110,6 +121,7 @@
     --card-foreground: theme(colors.slate.100);
     --popover-foreground: theme(colors.slate.100);
     --muted: theme(colors.slate.400);
+    --tooltip: theme(colors.slate.100);
   }
 
   [data-theme='light'][data-theme-foreground='gray'] {
@@ -117,6 +129,7 @@
     --card-foreground: theme(colors.gray.900);
     --popover-foreground: theme(colors.gray.900);
     --muted: theme(colors.gray.500);
+    --tooltip: theme(colors.gray.900);
   }
 
   [data-theme='dark'][data-theme-foreground='gray'] {
@@ -124,6 +137,7 @@
     --card-foreground: theme(colors.gray.100);
     --popover-foreground: theme(colors.gray.100);
     --muted: theme(colors.gray.400);
+    --tooltip: theme(colors.gray.100);
   }
 
   [data-theme='light'][data-theme-foreground='zinc'] {
@@ -131,6 +145,7 @@
     --card-foreground: theme(colors.zinc.900);
     --popover-foreground: theme(colors.zinc.900);
     --muted: theme(colors.zinc.500);
+    --tooltip: theme(colors.zinc.900);
   }
 
   [data-theme='dark'][data-theme-foreground='zinc'] {
@@ -138,6 +153,7 @@
     --card-foreground: theme(colors.zinc.100);
     --popover-foreground: theme(colors.zinc.100);
     --muted: theme(colors.zinc.400);
+    --tooltip: theme(colors.zinc.100);
   }
 
   [data-theme='light'][data-theme-foreground='neutral'] {
@@ -145,6 +161,7 @@
     --card-foreground: theme(colors.neutral.900);
     --popover-foreground: theme(colors.neutral.900);
     --muted: theme(colors.neutral.500);
+    --tooltip: theme(colors.neutral.900);
   }
 
   [data-theme='dark'][data-theme-foreground='neutral'] {
@@ -152,6 +169,7 @@
     --card-foreground: theme(colors.neutral.100);
     --popover-foreground: theme(colors.neutral.100);
     --muted: theme(colors.neutral.400);
+    --tooltip: theme(colors.neutral.100);
   }
 
   [data-theme='light'][data-theme-foreground='stone'] {
@@ -159,6 +177,7 @@
     --card-foreground: theme(colors.stone.900);
     --popover-foreground: theme(colors.stone.900);
     --muted: theme(colors.stone.500);
+    --tooltip: theme(colors.stone.900);
   }
 
   [data-theme='dark'][data-theme-foreground='stone'] {
@@ -166,6 +185,7 @@
     --card-foreground: theme(colors.stone.100);
     --popover-foreground: theme(colors.stone.100);
     --muted: theme(colors.stone.400);
+    --tooltip: theme(colors.stone.100);
   }
 
   [data-theme='light'][data-theme-accent='red'] {

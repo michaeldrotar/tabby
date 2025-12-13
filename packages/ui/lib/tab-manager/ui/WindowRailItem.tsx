@@ -125,7 +125,10 @@ export const WindowRailItem = ({
         <Tooltip>
           <TooltipTrigger asChild>{trigger}</TooltipTrigger>
           <TooltipContent side="right">
-            {title} ({tabCount} tabs)
+            <div>{title}</div>
+            <div className="text-tooltip-foreground/50 text-xs">
+              {tt('nTabs', tabCount)}
+            </div>
           </TooltipContent>
         </Tooltip>
       )}

@@ -17,6 +17,10 @@ export default {
         'popover-foreground':
           'hsl(from var(--popover-foreground) h s l / <alpha-value>)',
 
+        tooltip: 'hsl(from var(--tooltip) h s l / <alpha-value>)',
+        'tooltip-foreground':
+          'hsl(from var(--tooltip-foreground) h s l / <alpha-value>)',
+
         accent: 'hsl(from var(--accent) h s l / <alpha-value>)',
         muted: 'hsl(from var(--muted) h s l / <alpha-value>)',
         border: 'hsl(from var(--border) h s l / <alpha-value>)',
