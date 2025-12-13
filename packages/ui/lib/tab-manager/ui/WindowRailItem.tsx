@@ -47,15 +47,29 @@ export const WindowRailItem = ({
         data-nav-type="window"
         data-nav-id={id}
         data-selected={isSelected}
+        data-active={isActive}
         className={cn(
           'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          'flex w-full items-center gap-3 overflow-clip rounded-md p-2 outline-none',
+          'relative flex w-full items-center gap-3 overflow-clip rounded-md p-2 outline-none',
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-            : 'text-foreground group-hover:bg-highlighted/50',
+            : isActive
+              ? 'bg-input/50'
+              : 'text-foreground group-hover:bg-highlighted/50',
         )}
       >
+        {isActive && (
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute left-0 top-1/2 -translate-y-1/2',
+              'bg-foreground/60 h-6 w-1 rounded-r-full',
+              isSelected ? 'bg-foreground/50' : 'bg-muted/20',
+            )}
+          />
+        )}
+
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
           {activeTabUrl ? (
             <Favicon pageUrl={activeTabUrl} size={24} />
