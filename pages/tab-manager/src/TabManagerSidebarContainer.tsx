@@ -132,7 +132,7 @@ export const TabManagerSidebarContainer = ({
       <button
         onClick={openNewWindow}
         className={cn(
-          'group mt-2 flex w-full items-center gap-3 rounded-md p-2 text-gray-700 transition-all hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
+          'text-foreground hover:bg-muted/50 focus-visible:ring-ring/30 focus-visible:ring-offset-background group mt-2 flex w-full items-center gap-3 rounded-md p-2 transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         )}
         title="New Window"
         aria-label="New Window"

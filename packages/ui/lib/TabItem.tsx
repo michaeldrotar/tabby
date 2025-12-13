@@ -35,18 +35,23 @@ export const TabItem = memo(
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div className="group relative overflow-hidden rounded-md" {...props}>
+          <div
+            className={cn(
+              'group relative overflow-hidden rounded-md',
+              'has-[button:focus-visible]:ring-ring/30 has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+            )}
+            {...props}
+          >
             <button
               type="button"
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                'focus:outline-none focus-visible:outline-none',
                 isActive
-                  ? 'bg-blue-200 text-blue-900 dark:bg-indigo-500/20 dark:text-indigo-100'
+                  ? 'bg-accent/15 text-foreground'
                   : isHighlighted
-                    ? 'bg-blue-100 text-blue-900 dark:bg-indigo-500/10 dark:text-indigo-200'
-                    : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
-                isDiscarded && 'opacity-60 grayscale',
-                'transition-all',
+                    ? 'bg-accent/10 text-foreground'
+                    : 'text-foreground hover:bg-muted/50',
               )}
               onClick={onActivate}
               onKeyDown={(e) => {
@@ -70,7 +75,7 @@ export const TabItem = memo(
                   style={{ height: `20px`, width: `20px` }}
                 />
                 {isDiscarded && (
-                  <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-white bg-gray-400 dark:border-gray-900" />
+                  <div className="border-background bg-muted-foreground absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
                 )}
               </div>
               <span
@@ -84,7 +89,7 @@ export const TabItem = memo(
               <button
                 type="button"
                 onClick={onRemove}
-                className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
                 title="Close Tab"
                 aria-label="Close Tab"
               >

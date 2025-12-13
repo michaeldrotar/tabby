@@ -7,7 +7,10 @@ import type {
 const storage = createStorage<PreferenceStateType>(
   'preference-storage-key',
   {
-    theme: undefined,
+    theme: 'system',
+    themeBackground: 'stone',
+    themeForeground: 'slate',
+    themeAccent: 'red',
     tabManagerCompactIconMode: 'active',
     tabManagerCompactLayout: 'icon',
   },
@@ -24,18 +27,32 @@ const setTheme = async (theme: PreferenceStateType['theme']) => {
       theme,
     }
   })
-  if (theme) {
-    document.body.setAttribute('data-theme', theme)
-  } else {
-    document.body.removeAttribute('data-theme')
+
+  const resolveTheme = (): 'light' | 'dark' => {
+    if (theme === 'light' || theme === 'dark') return theme
+
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    return mediaQuery?.matches ? 'dark' : 'light'
   }
+
+  document.body.setAttribute('data-theme', resolveTheme())
 }
 
 export const preferenceStorage: PreferenceStorageType = {
   ...storage,
   toggleTheme: async () => {
     const currentState = await storage.get()
-    setTheme(currentState.theme === 'light' ? 'dark' : 'light')
+    const resolveCurrentTheme = (): 'light' | 'dark' => {
+      if (currentState.theme === 'light' || currentState.theme === 'dark') {
+        return currentState.theme
+      }
+
+      const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+      return mediaQuery?.matches ? 'dark' : 'light'
+    }
+
+    const currentResolvedTheme = resolveCurrentTheme()
+    setTheme(currentResolvedTheme === 'light' ? 'dark' : 'light')
   },
 }
 

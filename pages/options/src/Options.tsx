@@ -16,19 +16,116 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SunIcon,
-  MoonIcon,
   ExternalLinkIcon,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type {
+  ThemeAccentPalette,
+  ThemeNeutralPalette,
+} from '@extension/storage/lib/base/types.js'
 
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const { theme, tabManagerCompactIconMode, tabManagerCompactLayout } =
-    usePreferenceStorage()
+  const {
+    theme,
+    themeBackground,
+    themeForeground,
+    themeAccent,
+    tabManagerCompactIconMode,
+    tabManagerCompactLayout,
+  } = usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
+
+  const neutralPalettes: readonly ThemeNeutralPalette[] = [
+    'slate',
+    'gray',
+    'zinc',
+    'neutral',
+    'stone',
+  ]
+
+  const accentPalettes: readonly ThemeAccentPalette[] = [
+    'red',
+    'orange',
+    'amber',
+    'yellow',
+    'lime',
+    'green',
+    'emerald',
+    'teal',
+    'cyan',
+    'sky',
+    'blue',
+    'indigo',
+    'violet',
+    'purple',
+    'fuchsia',
+    'pink',
+    'rose',
+  ]
+
+  const neutralSwatchByPalette = {
+    slate: 'bg-slate-500',
+    gray: 'bg-gray-500',
+    zinc: 'bg-zinc-500',
+    neutral: 'bg-neutral-500',
+    stone: 'bg-stone-500',
+  } satisfies Record<ThemeNeutralPalette, string>
+
+  const accentSwatchByPalette = {
+    red: 'bg-red-500',
+    orange: 'bg-orange-500',
+    amber: 'bg-amber-500',
+    yellow: 'bg-yellow-500',
+    lime: 'bg-lime-500',
+    green: 'bg-green-500',
+    emerald: 'bg-emerald-500',
+    teal: 'bg-teal-500',
+    cyan: 'bg-cyan-500',
+    sky: 'bg-sky-500',
+    blue: 'bg-blue-500',
+    indigo: 'bg-indigo-500',
+    violet: 'bg-violet-500',
+    purple: 'bg-purple-500',
+    fuchsia: 'bg-fuchsia-500',
+    pink: 'bg-pink-500',
+    rose: 'bg-rose-500',
+  } satisfies Record<ThemeAccentPalette, string>
+
+  const pickRandomDifferent = <T extends string>(
+    current: T,
+    options: readonly T[],
+  ): T => {
+    if (options.length <= 1) return current
+    let next = current
+    while (next === current) {
+      next = options[Math.floor(Math.random() * options.length)]
+    }
+    return next
+  }
+
+  const randomizeColors = () => {
+    void preferenceStorage.set((prev) => {
+      const nextBackground = pickRandomDifferent(
+        prev.themeBackground,
+        neutralPalettes,
+      )
+      const nextForeground = pickRandomDifferent(
+        prev.themeForeground,
+        neutralPalettes,
+      )
+      const nextAccent = pickRandomDifferent(prev.themeAccent, accentPalettes)
+
+      return {
+        ...prev,
+        themeBackground: nextBackground,
+        themeForeground: nextForeground,
+        themeAccent: nextAccent,
+      }
+    })
+  }
 
   const openShortcutsSettings = () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
@@ -39,13 +136,7 @@ const OptionsContent = () => {
   }
 
   return (
-    <div
-      className={cn(
-        'min-h-screen w-full',
-        'bg-slate-50 text-gray-900',
-        'dark:bg-gray-900 dark:text-gray-100',
-      )}
-    >
+    <div className={cn('min-h-screen w-full', 'bg-background text-foreground')}>
       <div className="mx-auto max-w-2xl px-6 py-12">
         {/* Header */}
         <div className="mb-12 text-center">
@@ -55,83 +146,239 @@ const OptionsContent = () => {
               className="h-12 w-12"
               alt="Tabby logo"
             />
-            <h1
-              className={cn(
-                'text-3xl font-bold',
-                'text-gray-800 dark:text-gray-100',
-              )}
-            >
+            <h1 className={cn('text-3xl font-bold', 'text-foreground')}>
               Tabby
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             Your friendly tab manager for Chrome
           </p>
         </div>
 
         {/* Theme Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Appearance
           </h2>
-          <div
-            className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
-            )}
-          >
-            <div className="flex items-center justify-between">
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Theme
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose between light and dark mode
+                <h3 className="text-foreground font-medium">Theme</h3>
+                <p className="text-muted-foreground text-sm">
+                  Choose System, Light, or Dark
                 </p>
               </div>
-              <button
-                onClick={preferenceStorage.toggleTheme}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                  'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                  'dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                )}
-              >
-                {theme === 'light' ? (
-                  <>
-                    <SunIcon className="h-5 w-5" />
-                    Light
-                  </>
-                ) : (
-                  <>
-                    <MoonIcon className="h-5 w-5" />
-                    Dark
-                  </>
-                )}
-              </button>
+              <fieldset className="flex shrink-0 items-center gap-2">
+                <legend className="sr-only">Theme mode</legend>
+                {(
+                  [
+                    { value: 'system' as const, label: 'System' },
+                    { value: 'light' as const, label: 'Light' },
+                    { value: 'dark' as const, label: 'Dark' },
+                  ] as const
+                ).map((option) => {
+                  return (
+                    <label key={option.value} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="theme-mode"
+                        className="peer sr-only"
+                        checked={theme === option.value}
+                        onChange={() =>
+                          preferenceStorage.set((prev) => ({
+                            ...prev,
+                            theme: option.value,
+                          }))
+                        }
+                      />
+                      <span
+                        className={cn(
+                          'inline-flex rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          'bg-muted text-foreground hover:bg-muted/70',
+                          'peer-checked:bg-accent/15 peer-checked:text-foreground',
+                          'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                        )}
+                      >
+                        {option.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </fieldset>
+            </div>
+
+            <div className="border-border mt-4 border-t pt-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-foreground font-medium">Colors</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Pick background, foreground, and accent palettes
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={randomizeColors}
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'bg-muted text-foreground hover:bg-muted/70 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  )}
+                >
+                  Randomize colors
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-6">
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Background
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {neutralPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-background"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} background palette`}
+                            checked={themeBackground === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeBackground: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                neutralSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Foreground
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {neutralPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-foreground"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} foreground palette`}
+                            checked={themeForeground === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeForeground: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                neutralSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Accent
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {accentPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-accent"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} accent palette`}
+                            checked={themeAccent === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeAccent: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                accentSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Tab Manager Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Tab Manager
           </h2>
           <div
             className={cn(
               'flex flex-col gap-4 rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'border-border bg-card',
             )}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Window Icon
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="text-foreground font-medium">Window Icon</h3>
+                <p className="text-muted-foreground text-sm">
                   Choose which tab icon to display for windows
                 </p>
               </div>
@@ -156,12 +403,10 @@ const OptionsContent = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-gray-700">
+            <div className="border-border flex items-center justify-between border-t pt-4">
               <div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Sidebar Layout
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="text-foreground font-medium">Sidebar Layout</h3>
+                <p className="text-muted-foreground text-sm">
                   Toggle between collapsed (icon only) and expanded (list) views
                 </p>
               </div>
@@ -180,8 +425,8 @@ const OptionsContent = () => {
                       }))
                     }
                   />
-                  <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
-                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <div className="border-border bg-muted after:border-border after:bg-background peer-checked:bg-accent/15 peer-checked:after:border-ring/40 peer-focus-visible:ring-ring/30 peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus-visible:outline-none peer-focus-visible:ring-4"></div>
+                  <span className="text-foreground ml-3 text-sm font-medium">
                     {tabManagerCompactLayout === 'list'
                       ? 'Expanded'
                       : 'Collapsed'}
@@ -194,33 +439,25 @@ const OptionsContent = () => {
 
         {/* Keyboard Shortcuts Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Keyboard Shortcuts
           </h2>
-          <div
-            className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
-            )}
-          >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <p className="text-muted-foreground mb-4 text-sm">
               Configure keyboard shortcuts to quickly access Tabby's features.
             </p>
             <button
               onClick={openShortcutsSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
+                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               )}
             >
               <ExternalLinkIcon className="h-4 w-4" />
               Open Shortcut Settings
             </button>
-            <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
-            >
-              <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className={cn('rounded-md p-4', 'bg-muted/40')}>
+              <h4 className="text-foreground mb-3 text-sm font-medium">
                 Recommended Shortcuts
               </h4>
               <ul className="space-y-3 text-sm">
@@ -228,31 +465,27 @@ const OptionsContent = () => {
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-muted text-muted-foreground',
                     )}
                   >
                     {isMac ? '⌘E' : 'Alt+E'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
-                      Open Omnibar
-                    </strong>{' '}
-                    — Quick access to search tabs, bookmarks, and history
+                  <span className="text-muted-foreground">
+                    <strong className="text-foreground">Open Omnibar</strong> —
+                    Quick access to search tabs, bookmarks, and history
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-muted text-muted-foreground',
                     )}
                   >
                     {isMac ? '⌘K' : 'Alt+K'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  <span className="text-muted-foreground">
+                    <strong className="text-foreground">
                       Open Omnibar Popup
                     </strong>{' '}
                     — Opens in a popup window instead of in-page overlay
@@ -262,14 +495,13 @@ const OptionsContent = () => {
                   <kbd
                     className={cn(
                       'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
+                      'bg-muted text-muted-foreground',
                     )}
                   >
                     {isMac ? '⌘⇧E' : 'Alt+Shift+E'}
                   </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  <span className="text-muted-foreground">
+                    <strong className="text-foreground">
                       Open Tab Manager
                     </strong>{' '}
                     — Opens the side panel
@@ -277,7 +509,7 @@ const OptionsContent = () => {
                 </li>
               </ul>
               {!isMac && (
-                <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
+                <p className="text-muted-foreground mt-3 text-xs">
                   Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
                   so Alt-based shortcuts are used instead.
                 </p>
@@ -288,17 +520,11 @@ const OptionsContent = () => {
 
         {/* Side Panel Settings Section */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Side Panel Position
           </h2>
-          <div
-            className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
-            )}
-          >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <p className="text-muted-foreground mb-4 text-sm">
               Move the Tab Manager between the left and right sides of your
               browser.
             </p>
@@ -306,27 +532,25 @@ const OptionsContent = () => {
               onClick={openSidePanelSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
+                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               )}
             >
               <ExternalLinkIcon className="h-4 w-4" />
               Open Appearance Settings
             </button>
-            <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
-            >
-              <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className={cn('rounded-md p-4', 'bg-muted/40')}>
+              <h4 className="text-foreground mb-2 text-sm font-medium">
                 How to change the side panel position:
               </h4>
-              <ol className="list-inside list-decimal space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <ol className="text-muted-foreground list-inside list-decimal space-y-2 text-sm">
                 <li>Scroll down to the "Side panel" section</li>
                 <li>
                   Choose{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-foreground">
                     "Show on left side"
                   </strong>{' '}
                   or{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-foreground">
                     "Show on right side"
                   </strong>
                 </li>

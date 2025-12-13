@@ -48,12 +48,12 @@ export const WindowRailItem = ({
         data-nav-id={id}
         data-selected={isSelected}
         className={cn(
-          'flex w-full items-center gap-3 rounded-md p-2 outline-none transition-all focus:outline-none',
+          'focus-visible:ring-ring/30 focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-gray-200 text-gray-900 dark:bg-slate-800 dark:text-slate-100'
+            ? 'bg-accent/15 text-foreground'
             : isActive
-              ? 'bg-blue-50 text-blue-900 dark:bg-indigo-500/15 dark:text-indigo-200'
-              : 'text-gray-700 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
+              ? 'bg-accent/10 text-foreground'
+              : 'text-foreground hover:bg-muted/50',
         )}
       >
         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
@@ -63,7 +63,7 @@ export const WindowRailItem = ({
               className="h-5 w-5 object-contain"
             />
           ) : (
-            <div className="h-4 w-4 rounded-full bg-gray-400/50" />
+            <div className="bg-muted-foreground/40 h-4 w-4 rounded-full" />
           )}
         </div>
 
@@ -76,7 +76,7 @@ export const WindowRailItem = ({
           <span className="truncate text-sm font-medium leading-tight">
             {title}
           </span>
-          <span className="truncate text-xs text-gray-500 dark:text-slate-500">
+          <span className="text-muted-foreground truncate text-xs">
             {tt('nTabs', tabCount)}
           </span>
         </div>
@@ -90,7 +90,7 @@ export const WindowRailItem = ({
               e.stopPropagation()
               onClose()
             }}
-            className="rounded p-1 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+            className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1"
             title="Close Window"
             aria-label="Close Window"
           >

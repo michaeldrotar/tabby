@@ -7,6 +7,8 @@ This file contains instructions for GitHub Copilot to follow when working on thi
 - **Plan First:** When asked to perform a multi-step task, use the \`manage_todo_list\` tool to plan your work.
 - **Update Release Notes:** If the task involves a user-facing change or a bug fix, you **MUST** include a todo item to update the relevant release note file in \`product/releases/\`.
   - File naming convention: \`v<version>-<slug>.md\` (e.g., \`v1.0.0-the-launch.md\`).
+  - **Version Source of Truth:** Always trust the current version in \`package.json\` when naming release note files. The version is always updated first before adding release notes.
+  - **One File Per Version:** Do not create multiple release note files for the same version. If a \`v<version>-\*.md\` file already exists for the current version, append your notes to that file (renaming the existing file/slug is OK if you want a different title).
   - Do not mark the task as complete until this is done.
 - **Documentation:**
   - Privacy changes should update \`PRIVACY.md\`.

@@ -12,7 +12,6 @@ const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
   if (!query || !text) return <>{text}</>
 
   const terms = query.split(/\s+/).filter((term) => term.length > 0)
-
   if (terms.length === 0) return <>{text}</>
 
   const escapedTerms = terms.map((term) =>
@@ -80,10 +79,10 @@ export const OmnibarItem = ({
         ref={itemRef}
         type="button"
         className={cn(
-          'relative flex w-full items-center gap-3 px-4 py-2 text-left text-sm',
+          'focus-visible:ring-ring/30 focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100'
-            : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50',
+            ? 'bg-accent/10 text-foreground'
+            : 'text-foreground hover:bg-muted/50',
         )}
         onClick={(e) => {
           let modifier: 'new-tab' | 'new-window' | undefined
@@ -94,11 +93,11 @@ export const OmnibarItem = ({
         onMouseMove={onMouseMove}
       >
         {item.type === 'command' ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          <div className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded text-xs font-bold">
             &gt;
           </div>
         ) : item.type === 'search' ? (
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-gray-300 dark:bg-gray-800 dark:ring-gray-700">
+          <div className="bg-card ring-border flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full p-0.5 shadow-sm ring-1">
             <svg viewBox="0 0 24 24" className="h-full w-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -125,6 +124,7 @@ export const OmnibarItem = ({
             size={32}
           />
         )}
+
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium">
             <HighlightMatch text={item.title} query={query} />
@@ -138,23 +138,27 @@ export const OmnibarItem = ({
             >
               {getOmnibarTypeLabel(item)}
             </span>
+
             {item.tabCount && item.tabCount > 1 && (
-              <span className="flex-shrink-0 text-gray-400">
+              <span className="text-muted-foreground flex-shrink-0">
                 (+{item.tabCount - 1} others)
               </span>
             )}
+
             {item.lastVisitTime && (
-              <span className="flex-shrink-0 text-gray-400">
+              <span className="text-muted-foreground flex-shrink-0">
                 {formatTimeAgo(item.lastVisitTime)}
               </span>
             )}
-            <span className="truncate text-gray-400">
+
+            <span className="text-muted-foreground truncate">
               <HighlightMatch text={item.url} query={query} />
             </span>
           </div>
         </div>
+
         {isSelected && (
-          <span className="flex-shrink-0 text-xs text-gray-400">
+          <span className="text-muted-foreground flex-shrink-0 text-xs">
             {getOmnibarActionLabel(item)}
             {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
               item.type,
