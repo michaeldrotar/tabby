@@ -10,11 +10,9 @@ import {
   TabManagerSidebar,
   WindowRailItem,
   SidebarAction,
-  cn,
   SearchIcon,
   SettingsIcon,
   ScrollToActiveIcon,
-  MoonIcon,
   PlusIcon,
 } from '@extension/ui'
 import type { BrowserWindow } from '@extension/chrome'
@@ -73,14 +71,12 @@ export const TabManagerSidebarContainer = ({
   onSelectWindow,
   onOpenSearch,
   onOpenSettings,
-  onToggleTheme,
   onOpenTarget,
 }: {
   selectedWindowId?: number
   onSelectWindow: (window: BrowserWindow) => void
   onOpenSearch: () => void
   onOpenSettings: () => void
-  onToggleTheme: () => void
   onOpenTarget: () => void
 }) => {
   const browserWindows = useBrowserWindows()
@@ -129,31 +125,23 @@ export const TabManagerSidebarContainer = ({
           onClose={() => closeWindow(window.id)}
         />
       ))}
-      <button
-        onClick={openNewWindow}
-        className={cn(
-          'text-foreground hover:bg-muted/50 focus-visible:ring-ring/30 focus-visible:ring-offset-background group mt-2 flex w-full items-center gap-3 rounded-md p-2 transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-        )}
-        title="New Window"
-        aria-label="New Window"
-      >
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
-          <PlusIcon className="size-5" />
-        </div>
-        <div
-          className={cn(
-            'overflow-hidden whitespace-nowrap text-left text-sm transition-all duration-300',
-            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
-          )}
-        >
-          New Window
-        </div>
-      </button>
     </>
   )
 
   const actions = (
     <>
+      <SidebarAction
+        icon={<PlusIcon className="size-5" />}
+        label="New Window"
+        onClick={openNewWindow}
+        isExpanded={isExpanded}
+      />
+      <SidebarAction
+        icon={<ScrollToActiveIcon className="size-5" />}
+        label="Scroll to active"
+        onClick={onOpenTarget}
+        isExpanded={isExpanded}
+      />
       <SidebarAction
         icon={<SearchIcon className="size-5" />}
         label="Search"
@@ -164,18 +152,6 @@ export const TabManagerSidebarContainer = ({
         icon={<SettingsIcon className="size-5" />}
         label="Settings"
         onClick={onOpenSettings}
-        isExpanded={isExpanded}
-      />
-      <SidebarAction
-        icon={<ScrollToActiveIcon className="size-5" />}
-        label="Scroll to active"
-        onClick={onOpenTarget}
-        isExpanded={isExpanded}
-      />
-      <SidebarAction
-        icon={<MoonIcon className="size-5" />}
-        label="Theme"
-        onClick={onToggleTheme}
         isExpanded={isExpanded}
       />
     </>

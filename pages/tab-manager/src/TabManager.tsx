@@ -8,7 +8,6 @@ import {
   useSetSelectedWindowId,
   useBrowserTabsByWindowId,
 } from '@extension/chrome'
-import { preferenceStorage } from '@extension/storage'
 import { TabManagerShell } from '@extension/ui'
 import { useCallback, useEffect, useState } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
@@ -156,10 +155,6 @@ const TabManager = () => {
     chrome.runtime.openOptionsPage()
   }, [])
 
-  const toggleTheme = useCallback(() => {
-    preferenceStorage.toggleTheme()
-  }, [])
-
   const openTarget = useCallback(() => {
     const targetWindowId = currentBrowserWindow?.id || -1
     const targetTabId = activeTab?.id || -1
@@ -196,7 +191,6 @@ const TabManager = () => {
             onSelectWindow={onSelectWindowCallback}
             onOpenSearch={openSearch}
             onOpenSettings={openSettings}
-            onToggleTheme={toggleTheme}
             onOpenTarget={openTarget}
           />
         }

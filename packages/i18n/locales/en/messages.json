@@ -7,9 +7,6 @@
     "description": "Extension name",
     "message": "Tabby"
   },
-  "toggleTheme": {
-    "message": "Toggle theme"
-  },
   "displayErrorInfo": {
     "message": "Error occur"
   },

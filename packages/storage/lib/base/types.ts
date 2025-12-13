@@ -81,6 +81,4 @@ export interface PreferenceStateType {
   tabManagerCompactLayout: 'icon' | 'list'
 }
 
-export type PreferenceStorageType = BaseStorageType<PreferenceStateType> & {
-  toggleTheme: () => Promise<void>
-}
+export type PreferenceStorageType = BaseStorageType<PreferenceStateType>

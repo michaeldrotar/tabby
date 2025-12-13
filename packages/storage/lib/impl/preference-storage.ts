@@ -40,20 +40,6 @@ const setTheme = async (theme: PreferenceStateType['theme']) => {
 
 export const preferenceStorage: PreferenceStorageType = {
   ...storage,
-  toggleTheme: async () => {
-    const currentState = await storage.get()
-    const resolveCurrentTheme = (): 'light' | 'dark' => {
-      if (currentState.theme === 'light' || currentState.theme === 'dark') {
-        return currentState.theme
-      }
-
-      const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
-      return mediaQuery?.matches ? 'dark' : 'light'
-    }
-
-    const currentResolvedTheme = resolveCurrentTheme()
-    setTheme(currentResolvedTheme === 'light' ? 'dark' : 'light')
-  },
 }
 
 export const loadPreferenceStorage = async (): Promise<void> => {
