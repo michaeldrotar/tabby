@@ -74,9 +74,12 @@ export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface PreferenceStateType {
   theme: ThemeMode
-  themeBackground: ThemeNeutralPalette
-  themeForeground: ThemeNeutralPalette
-  themeAccent: ThemeAccentPalette
+  themeLightBackground: ThemeNeutralPalette
+  themeLightForeground: ThemeNeutralPalette
+  themeLightAccent: ThemeAccentPalette
+  themeDarkBackground: ThemeNeutralPalette
+  themeDarkForeground: ThemeNeutralPalette
+  themeDarkAccent: ThemeAccentPalette
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerCompactLayout: 'icon' | 'list'
 }

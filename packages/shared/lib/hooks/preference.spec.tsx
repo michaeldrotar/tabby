@@ -54,9 +54,12 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
         }),
       }
     })
@@ -80,9 +83,9 @@ describe('useThemeApplicator', () => {
     render(<Test />)
 
     expect(document.body.getAttribute('data-theme')).toBe('dark')
-    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
-    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
   })
 
   it('applies data-theme="light" when theme is system and system prefers light', async () => {
@@ -92,9 +95,12 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
         }),
       }
     })
@@ -119,8 +125,8 @@ describe('useThemeApplicator', () => {
 
     expect(document.body.getAttribute('data-theme')).toBe('light')
     expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
-    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('amber')
   })
 
   it('keeps system theme in sync with prefers-color-scheme changes', async () => {
@@ -130,9 +136,12 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
         }),
       }
     })
@@ -155,12 +164,21 @@ describe('useThemeApplicator', () => {
 
     render(<Test />)
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
 
     matchMedia.dispatchChange(false)
     expect(document.body.getAttribute('data-theme')).toBe('light')
+    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('amber')
 
     matchMedia.dispatchChange(true)
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
   })
 
   it('sets data-theme palettes when present in preferences', async () => {
@@ -170,9 +188,12 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'dark',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'blue',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeDarkBackground: 'slate',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
         }),
       }
     })
@@ -196,8 +217,8 @@ describe('useThemeApplicator', () => {
     render(<Test />)
 
     expect(document.body.getAttribute('data-theme')).toBe('dark')
-    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-background')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
     expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
   })
 })

@@ -29,14 +29,30 @@ const queryClient = new QueryClient()
 const OptionsContent = () => {
   const {
     theme,
-    themeBackground,
-    themeForeground,
-    themeAccent,
+    themeLightBackground,
+    themeLightForeground,
+    themeLightAccent,
+    themeDarkBackground,
+    themeDarkForeground,
+    themeDarkAccent,
     tabManagerCompactIconMode,
     tabManagerCompactLayout,
   } = usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
+
+  const activeThemeMode: 'light' | 'dark' = (() => {
+    if (theme === 'light' || theme === 'dark') return theme
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    return mediaQuery?.matches ? 'dark' : 'light'
+  })()
+
+  const activeThemeBackground =
+    activeThemeMode === 'light' ? themeLightBackground : themeDarkBackground
+  const activeThemeForeground =
+    activeThemeMode === 'light' ? themeLightForeground : themeDarkForeground
+  const activeThemeAccent =
+    activeThemeMode === 'light' ? themeLightAccent : themeDarkAccent
 
   const neutralPalettes: readonly ThemeNeutralPalette[] = [
     'slate',
@@ -108,21 +124,42 @@ const OptionsContent = () => {
 
   const randomizeColors = () => {
     void preferenceStorage.set((prev) => {
+      const currentBackground =
+        activeThemeMode === 'light'
+          ? prev.themeLightBackground
+          : prev.themeDarkBackground
+      const currentForeground =
+        activeThemeMode === 'light'
+          ? prev.themeLightForeground
+          : prev.themeDarkForeground
+      const currentAccent =
+        activeThemeMode === 'light'
+          ? prev.themeLightAccent
+          : prev.themeDarkAccent
+
       const nextBackground = pickRandomDifferent(
-        prev.themeBackground,
+        currentBackground,
         neutralPalettes,
       )
       const nextForeground = pickRandomDifferent(
-        prev.themeForeground,
+        currentForeground,
         neutralPalettes,
       )
-      const nextAccent = pickRandomDifferent(prev.themeAccent, accentPalettes)
+      const nextAccent = pickRandomDifferent(currentAccent, accentPalettes)
 
       return {
         ...prev,
-        themeBackground: nextBackground,
-        themeForeground: nextForeground,
-        themeAccent: nextAccent,
+        ...(activeThemeMode === 'light'
+          ? {
+              themeLightBackground: nextBackground,
+              themeLightForeground: nextForeground,
+              themeLightAccent: nextAccent,
+            }
+          : {
+              themeDarkBackground: nextBackground,
+              themeDarkForeground: nextForeground,
+              themeDarkAccent: nextAccent,
+            }),
       }
     })
   }
@@ -238,11 +275,19 @@ const OptionsContent = () => {
                       Background
                     </legend>
                     <Select
-                      value={themeBackground}
+                      value={activeThemeBackground}
                       onValueChange={(value) =>
                         preferenceStorage.set((prev) => ({
                           ...prev,
-                          themeBackground: value as ThemeNeutralPalette,
+                          ...(activeThemeMode === 'light'
+                            ? {
+                                themeLightBackground:
+                                  value as ThemeNeutralPalette,
+                              }
+                            : {
+                                themeDarkBackground:
+                                  value as ThemeNeutralPalette,
+                              }),
                         }))
                       }
                     >
@@ -275,11 +320,19 @@ const OptionsContent = () => {
                       Foreground
                     </legend>
                     <Select
-                      value={themeForeground}
+                      value={activeThemeForeground}
                       onValueChange={(value) =>
                         preferenceStorage.set((prev) => ({
                           ...prev,
-                          themeForeground: value as ThemeNeutralPalette,
+                          ...(activeThemeMode === 'light'
+                            ? {
+                                themeLightForeground:
+                                  value as ThemeNeutralPalette,
+                              }
+                            : {
+                                themeDarkForeground:
+                                  value as ThemeNeutralPalette,
+                              }),
                         }))
                       }
                     >
@@ -312,11 +365,13 @@ const OptionsContent = () => {
                       Accent
                     </legend>
                     <Select
-                      value={themeAccent}
+                      value={activeThemeAccent}
                       onValueChange={(value) =>
                         preferenceStorage.set((prev) => ({
                           ...prev,
-                          themeAccent: value as ThemeAccentPalette,
+                          ...(activeThemeMode === 'light'
+                            ? { themeLightAccent: value as ThemeAccentPalette }
+                            : { themeDarkAccent: value as ThemeAccentPalette }),
                         }))
                       }
                     >

@@ -8,12 +8,12 @@
   }
 
   [data-theme='light'][data-theme-background='slate'] {
-    --background: theme(colors.slate.50);
+    --background: theme(colors.slate.100);
     --card: theme(colors.slate.50);
     --popover: theme(colors.slate.50);
-    --muted: theme(colors.slate.100);
-    --border: theme(colors.slate.200);
-    --input: theme(colors.slate.200);
+    --muted: theme(colors.slate.200);
+    --border: theme(colors.slate.300);
+    --input: theme(colors.slate.300);
   }
 
   [data-theme='dark'][data-theme-background='slate'] {
@@ -26,12 +26,12 @@
   }
 
   [data-theme='light'][data-theme-background='gray'] {
-    --background: theme(colors.gray.50);
+    --background: theme(colors.gray.100);
     --card: theme(colors.gray.50);
     --popover: theme(colors.gray.50);
-    --muted: theme(colors.gray.100);
-    --border: theme(colors.gray.200);
-    --input: theme(colors.gray.200);
+    --muted: theme(colors.gray.200);
+    --border: theme(colors.gray.300);
+    --input: theme(colors.gray.300);
   }
 
   [data-theme='dark'][data-theme-background='gray'] {
@@ -44,12 +44,12 @@
   }
 
   [data-theme='light'][data-theme-background='zinc'] {
-    --background: theme(colors.zinc.50);
+    --background: theme(colors.zinc.100);
     --card: theme(colors.zinc.50);
     --popover: theme(colors.zinc.50);
-    --muted: theme(colors.zinc.100);
-    --border: theme(colors.zinc.200);
-    --input: theme(colors.zinc.200);
+    --muted: theme(colors.zinc.200);
+    --border: theme(colors.zinc.300);
+    --input: theme(colors.zinc.300);
   }
 
   [data-theme='dark'][data-theme-background='zinc'] {
@@ -62,12 +62,12 @@
   }
 
   [data-theme='light'][data-theme-background='neutral'] {
-    --background: theme(colors.neutral.50);
+    --background: theme(colors.neutral.100);
     --card: theme(colors.neutral.50);
     --popover: theme(colors.neutral.50);
-    --muted: theme(colors.neutral.100);
-    --border: theme(colors.neutral.200);
-    --input: theme(colors.neutral.200);
+    --muted: theme(colors.neutral.200);
+    --border: theme(colors.neutral.300);
+    --input: theme(colors.neutral.300);
   }
 
   [data-theme='dark'][data-theme-background='neutral'] {
@@ -80,12 +80,12 @@
   }
 
   [data-theme='light'][data-theme-background='stone'] {
-    --background: theme(colors.stone.50);
+    --background: theme(colors.stone.100);
     --card: theme(colors.stone.50);
     --popover: theme(colors.stone.50);
-    --muted: theme(colors.stone.100);
-    --border: theme(colors.stone.200);
-    --input: theme(colors.stone.200);
+    --muted: theme(colors.stone.200);
+    --border: theme(colors.stone.300);
+    --input: theme(colors.stone.300);
   }
 
   [data-theme='dark'][data-theme-background='stone'] {
