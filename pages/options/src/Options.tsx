@@ -135,11 +135,15 @@ const OptionsContent = () => {
     chrome.tabs.create({ url: 'chrome://settings/appearance' })
   }
 
+  const resetPreferences = () => {
+    chrome.storage.local.remove('preference-storage-key')
+  }
+
   return (
     <div className={cn('min-h-screen w-full', 'bg-background text-foreground')}>
-      <div className="mx-auto max-w-2xl px-6 py-12">
+      <div className="mx-auto max-w-2xl px-6 py-10">
         {/* Header */}
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center">
           <div className="mb-4 flex items-center justify-center gap-3">
             <img
               src={chrome.runtime.getURL('tabby-face.png')}
@@ -156,16 +160,16 @@ const OptionsContent = () => {
         </div>
 
         {/* Theme Section */}
-        <section className="mb-8">
+        <section className="mb-6">
           <h2 className="text-foreground mb-4 text-lg font-semibold">
             Appearance
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-foreground font-medium">Theme</h3>
                 <p className="text-muted-foreground text-sm">
-                  Choose System, Light, or Dark
+                  Match your system appearance, or override it
                 </p>
               </div>
               <fieldset className="flex shrink-0 items-center gap-2">
@@ -212,14 +216,14 @@ const OptionsContent = () => {
                 <div>
                   <h3 className="text-foreground font-medium">Colors</h3>
                   <p className="text-muted-foreground text-sm">
-                    Pick background, foreground, and accent palettes
+                    Controls Tabby’s neutral palettes and accent across the UI
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={randomizeColors}
                   className={cn(
-                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'flex-shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     'bg-muted text-foreground hover:bg-muted/70 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                   )}
                 >
@@ -227,145 +231,126 @@ const OptionsContent = () => {
                 </button>
               </div>
 
-              <div className="mt-4 space-y-6">
-                <fieldset>
-                  <legend className="text-foreground mb-2 text-sm font-medium">
-                    Background
-                  </legend>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                    {neutralPalettes.map((palette) => {
-                      return (
-                        <label key={palette} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            name="theme-background"
-                            className="peer sr-only"
-                            aria-label={`Select ${palette} background palette`}
-                            checked={themeBackground === palette}
-                            onChange={() =>
-                              preferenceStorage.set((prev) => ({
-                                ...prev,
-                                themeBackground: palette,
-                              }))
-                            }
-                          />
-                          <span
-                            className={cn(
-                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-                              'border-border hover:bg-muted/40',
-                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
-                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
-                            )}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className={cn(
-                                'h-4 w-4 rounded-sm',
-                                neutralSwatchByPalette[palette],
-                              )}
-                            />
-                            <span className="capitalize">{palette}</span>
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </fieldset>
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Background
+                    </legend>
+                    <Select
+                      value={themeBackground}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          themeBackground: value as ThemeNeutralPalette,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select background" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {neutralPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    neutralSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
 
-                <fieldset>
-                  <legend className="text-foreground mb-2 text-sm font-medium">
-                    Foreground
-                  </legend>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                    {neutralPalettes.map((palette) => {
-                      return (
-                        <label key={palette} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            name="theme-foreground"
-                            className="peer sr-only"
-                            aria-label={`Select ${palette} foreground palette`}
-                            checked={themeForeground === palette}
-                            onChange={() =>
-                              preferenceStorage.set((prev) => ({
-                                ...prev,
-                                themeForeground: palette,
-                              }))
-                            }
-                          />
-                          <span
-                            className={cn(
-                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-                              'border-border hover:bg-muted/40',
-                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
-                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
-                            )}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className={cn(
-                                'h-4 w-4 rounded-sm',
-                                neutralSwatchByPalette[palette],
-                              )}
-                            />
-                            <span className="capitalize">{palette}</span>
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </fieldset>
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Foreground
+                    </legend>
+                    <Select
+                      value={themeForeground}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          themeForeground: value as ThemeNeutralPalette,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select foreground" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {neutralPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    neutralSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
 
-                <fieldset>
-                  <legend className="text-foreground mb-2 text-sm font-medium">
-                    Accent
-                  </legend>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                    {accentPalettes.map((palette) => {
-                      return (
-                        <label key={palette} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            name="theme-accent"
-                            className="peer sr-only"
-                            aria-label={`Select ${palette} accent palette`}
-                            checked={themeAccent === palette}
-                            onChange={() =>
-                              preferenceStorage.set((prev) => ({
-                                ...prev,
-                                themeAccent: palette,
-                              }))
-                            }
-                          />
-                          <span
-                            className={cn(
-                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-                              'border-border hover:bg-muted/40',
-                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
-                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
-                            )}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className={cn(
-                                'h-4 w-4 rounded-sm',
-                                accentSwatchByPalette[palette],
-                              )}
-                            />
-                            <span className="capitalize">{palette}</span>
-                          </span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </fieldset>
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Accent
+                    </legend>
+                    <Select
+                      value={themeAccent}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          themeAccent: value as ThemeAccentPalette,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select accent" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {accentPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    accentSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Tab Manager Section */}
-        <section className="mb-8">
+        <section className="mb-6">
           <h2 className="text-foreground mb-4 text-lg font-semibold">
             Tab Manager
           </h2>
@@ -375,14 +360,14 @@ const OptionsContent = () => {
               'border-border bg-card',
             )}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-foreground font-medium">Window Icon</h3>
                 <p className="text-muted-foreground text-sm">
                   Choose which tab icon to display for windows
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 sm:justify-end">
                 <Select
                   value={tabManagerCompactIconMode}
                   onValueChange={(value) =>
@@ -392,7 +377,7 @@ const OptionsContent = () => {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Select icon" />
                   </SelectTrigger>
                   <SelectContent>
@@ -403,7 +388,7 @@ const OptionsContent = () => {
               </div>
             </div>
 
-            <div className="border-border flex items-center justify-between border-t pt-4">
+            <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-foreground font-medium">Sidebar Layout</h3>
                 <p className="text-muted-foreground text-sm">
@@ -438,25 +423,27 @@ const OptionsContent = () => {
         </section>
 
         {/* Keyboard Shortcuts Section */}
-        <section className="mb-8">
+        <section className="mb-6">
           <h2 className="text-foreground mb-4 text-lg font-semibold">
             Keyboard Shortcuts
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Configure keyboard shortcuts to quickly access Tabby's features.
-            </p>
-            <button
-              onClick={openShortcutsSettings}
-              className={cn(
-                'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-              )}
-            >
-              <ExternalLinkIcon className="h-4 w-4" />
-              Open Shortcut Settings
-            </button>
-            <div className={cn('rounded-md p-4', 'bg-muted/40')}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-muted-foreground text-sm">
+                Configure keyboard shortcuts to quickly access Tabby's features.
+              </p>
+              <button
+                onClick={openShortcutsSettings}
+                className={cn(
+                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
+              >
+                <ExternalLinkIcon className="h-4 w-4" />
+                Open Shortcut Settings
+              </button>
+            </div>
+            <div className={cn('mt-4 rounded-md p-4', 'bg-muted/40')}>
               <h4 className="text-foreground mb-3 text-sm font-medium">
                 Recommended Shortcuts
               </h4>
@@ -519,26 +506,28 @@ const OptionsContent = () => {
         </section>
 
         {/* Side Panel Settings Section */}
-        <section className="mb-8">
+        <section className="mb-6">
           <h2 className="text-foreground mb-4 text-lg font-semibold">
             Side Panel Position
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Move the Tab Manager between the left and right sides of your
-              browser.
-            </p>
-            <button
-              onClick={openSidePanelSettings}
-              className={cn(
-                'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-              )}
-            >
-              <ExternalLinkIcon className="h-4 w-4" />
-              Open Appearance Settings
-            </button>
-            <div className={cn('rounded-md p-4', 'bg-muted/40')}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-muted-foreground text-sm">
+                Move the Tab Manager between the left and right sides of your
+                browser.
+              </p>
+              <button
+                onClick={openSidePanelSettings}
+                className={cn(
+                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
+              >
+                <ExternalLinkIcon className="h-4 w-4" />
+                Open Appearance Settings
+              </button>
+            </div>
+            <div className={cn('mt-4 rounded-md p-4', 'bg-muted/40')}>
               <h4 className="text-foreground mb-2 text-sm font-medium">
                 How to change the side panel position:
               </h4>
@@ -556,6 +545,36 @@ const OptionsContent = () => {
                 </li>
                 <li>The Tab Manager will move to your chosen side</li>
               </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* Reset Section */}
+        <section>
+          <h2 className="text-foreground mb-4 text-lg font-semibold">Reset</h2>
+          <div
+            className={cn(
+              'rounded-lg border p-4',
+              'border-accent bg-accent/10',
+            )}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-foreground font-medium">Preferences</h3>
+                <p className="text-muted-foreground text-sm">
+                  Restores default settings for theme and Tab Manager.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resetPreferences}
+                className={cn(
+                  'shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/20 text-foreground hover:bg-accent/25 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
+              >
+                Reset preferences
+              </button>
             </div>
           </div>
         </section>

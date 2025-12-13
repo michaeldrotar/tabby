@@ -8,9 +8,9 @@ const storage = createStorage<PreferenceStateType>(
   'preference-storage-key',
   {
     theme: 'system',
-    themeBackground: 'stone',
-    themeForeground: 'slate',
-    themeAccent: 'red',
+    themeBackground: 'neutral',
+    themeForeground: 'zinc',
+    themeAccent: 'blue',
     tabManagerCompactIconMode: 'active',
     tabManagerCompactLayout: 'icon',
   },
