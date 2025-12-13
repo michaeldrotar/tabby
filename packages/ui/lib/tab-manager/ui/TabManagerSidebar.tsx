@@ -22,13 +22,13 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'bg-input/30 flex h-full flex-col transition-all duration-300 ease-in-out',
+        'bg-input/30 flex h-full flex-col overflow-x-clip transition-all duration-300 ease-in-out',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
     >
       {/* Top Sticky: Toggle Mode */}
-      <div className="border-border flex h-14 flex-shrink-0 items-center justify-between border-b px-3">
+      <div className="flex h-14 w-64 flex-shrink-0 items-center justify-between px-3">
         <button
           onClick={onToggleExpand}
           className="text-muted hover:bg-highlighted/50 hover:text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -41,12 +41,19 @@ export const TabManagerSidebar = ({
             <PanelLeftOpenIcon size={20} />
           )}
         </button>
-        {isExpanded && windowCount !== undefined && (
-          <span className="text-muted whitespace-nowrap text-xs font-medium">
+        {windowCount && (
+          <span
+            className={cn(
+              'text-muted whitespace-nowrap text-xs font-medium transition-[visibility] duration-300',
+              isExpanded ? 'visible' : 'invisible',
+            )}
+          >
             {windowCount} Windows
           </span>
         )}
       </div>
+
+      <div className="bg-border h-[1px] w-full"></div>
 
       {/* Middle Scrollable: Window List */}
       <ScrollArea className="flex-1 py-2" orientation="vertical">
