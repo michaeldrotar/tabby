@@ -255,7 +255,7 @@ const OptionsContent = () => {
                         className={cn(
                           'inline-flex rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                           'bg-input text-foreground hover:bg-input/70',
-                          'peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:text-foreground',
+                          'peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] peer-checked:text-foreground',
                           'peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
                         )}
                       >
@@ -517,7 +517,7 @@ const OptionsContent = () => {
                       }))
                     }
                   />
-                  <div className="border-border bg-input after:border-border after:bg-background peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)] peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus-visible:outline-none peer-focus-visible:ring-4"></div>
+                  <div className="border-border bg-input after:border-border after:bg-background peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:after:border-accent/[calc((var(--accent-strength)+5)*1%)] peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus-visible:outline-none peer-focus-visible:ring-4"></div>
                   <span className="text-foreground ml-3 text-sm font-medium">
                     {tabManagerCompactLayout === 'list'
                       ? 'Expanded'
@@ -543,7 +543,7 @@ const OptionsContent = () => {
                 onClick={openShortcutsSettings}
                 className={cn(
                   'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
                 <ExternalLinkIcon className="h-4 w-4" />
@@ -627,7 +627,7 @@ const OptionsContent = () => {
                 onClick={openSidePanelSettings}
                 className={cn(
                   'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
                 <ExternalLinkIcon className="h-4 w-4" />
@@ -677,7 +677,7 @@ const OptionsContent = () => {
                 onClick={resetPreferences}
                 className={cn(
                   'shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
                 Reset preferences
