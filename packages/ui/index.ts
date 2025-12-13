@@ -10,6 +10,7 @@ export * from './lib/Tooltip'
 export * from './lib/ContextMenu'
 export * from './lib/Select'
 export * from './lib/Slider'
+export * from './lib/Kbd'
 
 export * from './lib/tab-manager/ui/TabManagerShell'
 export * from './lib/tab-manager/ui/TabManagerSidebar'

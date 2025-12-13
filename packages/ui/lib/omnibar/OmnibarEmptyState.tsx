@@ -1,3 +1,5 @@
+import { CmdIcon, ShiftIcon } from '../icons'
+import { Kbd, KbdGroup } from '../Kbd'
 import { cn } from '../utils/cn'
 import { usePlatformInfo } from '@extension/chrome'
 
@@ -19,8 +21,7 @@ export const OmnibarEmptyState = ({
   hasResults,
   quickActions,
 }: OmnibarEmptyStateProps) => {
-  const { data: platformInfo } = usePlatformInfo()
-  const platformModifier = platformInfo?.os === 'mac' ? '⌘' : 'Ctrl'
+  const { data: { os } = {} } = usePlatformInfo()
 
   if (hasResults) return null
 
@@ -78,26 +79,42 @@ export const OmnibarEmptyState = ({
           <li className="flex items-start gap-2">
             <span className="text-muted mt-0.5">•</span>
             <span>
-              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
-                {platformModifier}
-              </kbd>
-              <span className="mx-1">+</span>
-              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
-                Enter
-              </kbd>
+              {os === 'mac' && (
+                <KbdGroup>
+                  <Kbd>
+                    <CmdIcon />
+                  </Kbd>
+                  <Kbd>Enter</Kbd>
+                </KbdGroup>
+              )}
+              {os !== 'mac' && (
+                <KbdGroup>
+                  <Kbd>Ctrl</Kbd>
+                  <span>+</span>
+                  <Kbd>Enter</Kbd>
+                </KbdGroup>
+              )}
               <span className="ml-1">to open in new tab</span>
             </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-muted mt-0.5">•</span>
             <span>
-              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
-                Shift
-              </kbd>
-              <span className="mx-1">+</span>
-              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
-                Enter
-              </kbd>
+              {os === 'mac' && (
+                <KbdGroup>
+                  <Kbd>
+                    <ShiftIcon />
+                  </Kbd>
+                  <Kbd>Enter</Kbd>
+                </KbdGroup>
+              )}
+              {os !== 'mac' && (
+                <KbdGroup>
+                  <Kbd>Shift</Kbd>
+                  <span>+</span>
+                  <Kbd>Enter</Kbd>
+                </KbdGroup>
+              )}
               <span className="ml-1">to open in new window</span>
             </span>
           </li>

@@ -1,4 +1,5 @@
 import { SearchIcon } from '../icons'
+import { Kbd } from '../Kbd'
 import { forwardRef } from 'react'
 
 type OmnibarInputProps = {
@@ -22,9 +23,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           onKeyDown={onKeyDown}
         />
         <div className="text-muted flex items-center gap-1 text-xs">
-          <kbd className="border-border bg-input text-muted rounded border px-1.5 py-0.5 font-sans">
-            ESC
-          </kbd>
+          <Kbd>Esc</Kbd>
           <span>to close</span>
         </div>
       </div>

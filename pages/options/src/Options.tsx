@@ -11,6 +11,7 @@ import {
   cn,
   ErrorDisplay,
   LoadingSpinner,
+  Kbd,
   Select,
   SelectContent,
   SelectItem,
@@ -18,6 +19,9 @@ import {
   SelectValue,
   Slider,
   ExternalLinkIcon,
+  KbdGroup,
+  CmdIcon,
+  ShiftIcon,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type {
@@ -41,8 +45,7 @@ const OptionsContent = () => {
     tabManagerCompactIconMode,
     tabManagerCompactLayout,
   } = usePreferenceStorage()
-  const { data: platformInfo } = usePlatformInfo()
-  const isMac = platformInfo?.os === 'mac'
+  const { data: { os } = {} } = usePlatformInfo()
 
   const activeThemeMode: 'light' | 'dark' = (() => {
     if (theme === 'light' || theme === 'dark') return theme
@@ -556,28 +559,36 @@ const OptionsContent = () => {
               </h4>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-input text-muted',
-                    )}
-                  >
-                    {isMac ? '⌘E' : 'Alt+E'}
-                  </kbd>
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />E
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+E</Kbd>
+                    </KbdGroup>
+                  )}
                   <span className="text-muted">
                     <strong className="text-foreground">Open Omnibar</strong> —
                     Quick access to search tabs, bookmarks, and history
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-input text-muted',
-                    )}
-                  >
-                    {isMac ? '⌘K' : 'Alt+K'}
-                  </kbd>
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />K
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+K</Kbd>
+                    </KbdGroup>
+                  )}
                   <span className="text-muted">
                     <strong className="text-foreground">
                       Open Omnibar Popup
@@ -586,14 +597,19 @@ const OptionsContent = () => {
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-input text-muted',
-                    )}
-                  >
-                    {isMac ? '⌘⇧E' : 'Alt+Shift+E'}
-                  </kbd>
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />
+                        <ShiftIcon />E
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+Shift+E</Kbd>
+                    </KbdGroup>
+                  )}
                   <span className="text-muted">
                     <strong className="text-foreground">
                       Open Tab Manager
@@ -602,7 +618,7 @@ const OptionsContent = () => {
                   </span>
                 </li>
               </ul>
-              {!isMac && (
+              {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
                   Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
                   so Alt-based shortcuts are used instead.

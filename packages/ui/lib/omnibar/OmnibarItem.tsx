@@ -182,10 +182,7 @@ export const OmnibarItem = ({
                 {isShiftPressed ? (
                   <span className="ml-1 opacity-50"> in New Window</span>
                 ) : isCmdCtrlPressed ? (
-                  <span className="ml-1 opacity-50">
-                    {' '}
-                    ({platformModifierLabel}↵ New Tab)
-                  </span>
+                  <span className="ml-1 opacity-50"> in New Tab</span>
                 ) : null}
               </>
             )}
