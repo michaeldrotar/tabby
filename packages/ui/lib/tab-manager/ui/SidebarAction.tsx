@@ -14,7 +14,6 @@ export const SidebarAction = ({
   label,
   onClick,
   isExpanded,
-  isActive,
 }: SidebarActionProps) => {
   const content = (
     <button
@@ -22,22 +21,18 @@ export const SidebarAction = ({
       data-nav-type="action"
       aria-label={label}
       className={cn(
-        'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background group flex w-full items-center gap-3 rounded-md p-2 transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-        isActive
-          ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-          : 'text-foreground hover:bg-highlighted/50',
+        'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
+        'focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        'group flex w-full items-center gap-3 rounded-md p-2 transition-colors',
+        'text-foreground hover:bg-highlighted/50 overflow-clip',
       )}
     >
-      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
         {icon}
       </div>
 
-      <div
-        className={cn(
-          'overflow-hidden whitespace-nowrap text-left text-sm transition-all duration-300',
-          isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
-        )}
-      >
+      {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
+      <div className={cn('w-44 whitespace-nowrap text-left text-sm')}>
         {label}
       </div>
     </button>

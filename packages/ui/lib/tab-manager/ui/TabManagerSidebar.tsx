@@ -22,7 +22,7 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'bg-input/30 flex h-full flex-col overflow-x-clip transition-all duration-300 ease-in-out',
+        'bg-input/30 flex h-full flex-col overflow-x-clip transition-[width] duration-300 ease-in-out',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}

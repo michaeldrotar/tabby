@@ -48,7 +48,9 @@ export const WindowRailItem = ({
         data-nav-id={id}
         data-selected={isSelected}
         className={cn(
-          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'flex w-full items-center gap-3 overflow-clip rounded-md p-2 outline-none',
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
             : 'text-foreground group-hover:bg-highlighted/50',
@@ -62,12 +64,8 @@ export const WindowRailItem = ({
           )}
         </div>
 
-        <div
-          className={cn(
-            'flex flex-1 flex-col overflow-hidden text-left transition-all duration-300',
-            isExpanded ? 'visible w-full' : 'w-0',
-          )}
-        >
+        {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
+        <div className={cn('w-full overflow-clip text-left')}>
           <div className="flex w-44 flex-1 flex-col group-hover:w-36">
             <span className="truncate text-sm font-medium leading-tight">
               {title}
