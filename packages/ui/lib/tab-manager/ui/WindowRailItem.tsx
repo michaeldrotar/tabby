@@ -80,6 +80,7 @@ export const WindowRailItem = ({
 
         {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
         <div className={cn('w-full overflow-clip text-left')}>
+          {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
           <div className="flex w-44 flex-1 flex-col group-hover:w-36">
             <span className="truncate text-sm font-medium leading-tight">
               {title}

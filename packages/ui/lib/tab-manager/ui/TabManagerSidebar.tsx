@@ -28,6 +28,7 @@ export const TabManagerSidebar = ({
       )}
     >
       {/* Top Sticky: Toggle Mode */}
+      {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
       <div className="flex h-14 w-64 flex-shrink-0 items-center justify-between px-3">
         <button
           onClick={onToggleExpand}

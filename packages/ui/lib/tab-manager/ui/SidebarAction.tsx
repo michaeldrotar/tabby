@@ -6,7 +6,6 @@ export type SidebarActionProps = {
   label: string
   onClick: () => void
   isExpanded: boolean
-  isActive?: boolean
 }
 
 export const SidebarAction = ({
@@ -32,6 +31,7 @@ export const SidebarAction = ({
       </div>
 
       {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
+      {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
       <div className={cn('w-44 whitespace-nowrap text-left text-sm')}>
         {label}
       </div>
