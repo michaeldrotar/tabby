@@ -54,12 +54,9 @@ export const WindowRailItem = ({
             : 'text-foreground group-hover:bg-highlighted/50',
         )}
       >
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
           {activeTabUrl ? (
-            <Favicon
-              pageUrl={activeTabUrl}
-              className="h-5 w-5 object-contain"
-            />
+            <Favicon pageUrl={activeTabUrl} size={24} />
           ) : (
             <div className="bg-muted/40 h-4 w-4 rounded-full" />
           )}
@@ -68,22 +65,23 @@ export const WindowRailItem = ({
         <div
           className={cn(
             'flex flex-1 flex-col overflow-hidden text-left transition-all duration-300',
-            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
+            isExpanded ? 'visible w-full' : 'w-0',
           )}
         >
-          <span className="truncate text-sm font-medium leading-tight">
-            {title}
-          </span>
-          <span
-            className={cn(
-              'truncate text-xs',
-              isSelected ? 'text-foreground/70' : 'text-muted',
-            )}
-          >
-            {tt('nTabs', tabCount)}
-          </span>
+          <div className="flex w-44 flex-1 flex-col group-hover:w-36">
+            <span className="truncate text-sm font-medium leading-tight">
+              {title}
+            </span>
+            <span
+              className={cn(
+                'text-xs',
+                isSelected ? 'text-foreground/70' : 'text-muted',
+              )}
+            >
+              {tt('nTabs', tabCount)}
+            </span>
+          </div>
         </div>
-        {isExpanded && <div className="hidden w-4 group-hover:flex" />}
       </button>
 
       {isExpanded && onClose && (
