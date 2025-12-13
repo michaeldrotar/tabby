@@ -1,7 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../tailwind.d.ts" />
 import { withPageConfig } from './index.js'
 import { IS_DEV } from '@extension/env'
 import { makeEntryPointPlugin } from '@extension/hmr'
-import { build as buildTW } from 'tailwindcss/lib/cli/build'
+import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
 import { readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -10,7 +12,7 @@ interface IContentBuilderProps {
   matchesDir: string
   srcDir: string
   rootDir: string
-  contentName: 'content' | 'content-ui' | 'content-runtime'
+  contentName: string
   withTw: boolean
 }
 
@@ -23,7 +25,7 @@ const getContentScriptEntries = (matchesDir: string) => {
   entries.forEach((folder: string) => {
     const filePath = resolve(matchesDir, folder)
     const isFolder = statSync(filePath).isDirectory()
-    const haveIndexTsFile = readdirSync(filePath).includes('config.ts')
+    const haveIndexTsFile = readdirSync(filePath).includes('index.ts')
     const haveIndexTsxFile = readdirSync(filePath).includes('index.tsx')
 
     if (isFolder && !(haveIndexTsFile || haveIndexTsxFile)) {
@@ -31,10 +33,10 @@ const getContentScriptEntries = (matchesDir: string) => {
         `${folder} in \`matches\` doesn't have index.ts or index.tsx file`,
       )
     } else {
-      entryPoints[folder] = resolve(
-        filePath,
-        haveIndexTsFile ? 'config.ts' : 'index.tsx',
-      )
+      let entryFile = 'index.tsx'
+      if (haveIndexTsFile) entryFile = 'index.ts'
+
+      entryPoints[folder] = resolve(filePath, entryFile)
     }
   })
 

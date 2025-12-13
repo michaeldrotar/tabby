@@ -1,5 +1,11 @@
 import { formatShortcut } from '@extension/shared'
-import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui'
+import {
+  cn,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  SearchIcon,
+} from '@extension/ui'
 import { useCallback, useState } from 'react'
 
 type SearchButtonProps = {
@@ -25,7 +31,7 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
   const tooltipContent = shortcut ? (
     <span>
       Search{' '}
-      <kbd className="ml-1 rounded bg-gray-700 px-1 py-0.5 font-sans dark:bg-gray-600">
+      <kbd className="border-border bg-muted text-muted-foreground ml-1 rounded border px-1 py-0.5 font-sans">
         {formatShortcut(shortcut)}
       </kbd>
     </span>
@@ -42,23 +48,10 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
           onClick={onClick}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-            'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-            'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+            'text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/30 focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           )}
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <SearchIcon className="h-4 w-4" />
         </button>
       </TooltipTrigger>
       <TooltipContent>{tooltipContent}</TooltipContent>

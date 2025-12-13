@@ -7,6 +7,7 @@ const translate = (
   substitutions?: string | string[],
 ) => {
   const localeValues = localeJSON[key] as I18nValueType
+  if (!localeValues) return ''
   let message = localeValues.message
   /**
    * This is a placeholder replacement logic. But it's not perfect.

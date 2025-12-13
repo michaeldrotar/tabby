@@ -32,15 +32,13 @@ export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
       <div
         className={cn(
           'absolute inset-0 rounded-md border-2 bg-gradient-to-br',
-          'border-gray-200 from-gray-50 to-gray-200',
-          'dark:border-gray-700 dark:from-gray-700 dark:to-gray-900',
+          'border-border from-muted/30 to-muted',
         )}
       />
       <div
         className={cn(
           'absolute rounded-md border-2',
-          'border-blue-500 bg-blue-200/40',
-          'dark:border-blue-400 dark:bg-blue-500/20',
+          'border-accent bg-accent/20',
         )}
         style={positionStyles}
       />

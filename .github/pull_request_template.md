@@ -1,26 +1,18 @@
-<!-- Note: Please ensure your PR is targeting the `dev` branch -->
+<!--
+  Note: Please ensure your PR is targeting the proper branch
+  next = new features for next release
+  main = bug fixes on the current release
+-->
 
-<!-- Describe what this PR is for in the title. -->
+## What
 
-> `*` denotes required fields
+Describe what this PR aims to accomplish.
+Include screenshots and videos if possible.
 
-## Priority\*
+## Why
 
-- [ ] High: This PR needs to be merged first, before other tasks.
-- [x] Medium: This PR should be merged quickly to prevent conflicts due to common changes. (default)
-- [ ] Low: This PR does not affect other tasks, so it can be merged later.
+Explain why it's being done.
 
-## Purpose of the PR\*
+## References
 
-<!-- Describe the purpose of the PR. -->
-
-## Changes\*
-
-## How to check the feature
-
-<!-- Describe how to check the feature in detail -->
-<!-- If there are any visual changes, please attach a screenshot for easy identification. -->
-
-## Reference
-
-<!-- Any helpful information for understanding the PR. -->
+Refer to any issues or other relevant materials.

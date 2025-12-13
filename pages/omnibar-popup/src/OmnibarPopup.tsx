@@ -5,17 +5,29 @@ import { useEffect } from 'react'
 
 const queryClient = new QueryClient()
 
+const onDismiss = () => {
+  window.close()
+}
+
 export const OmnibarPopup = () => {
   useThemeApplicator()
 
-  const onDismiss = () => {
-    window.close()
-  }
-
   // Close window on blur
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+        e.preventDefault()
+        e.stopPropagation()
+        onDismiss()
+      }
+    }
+
     window.addEventListener('blur', onDismiss)
-    return () => window.removeEventListener('blur', onDismiss)
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => {
+      window.removeEventListener('blur', onDismiss)
+      window.removeEventListener('keydown', handleKeyDown, true)
+    }
   }, [])
 
   return (

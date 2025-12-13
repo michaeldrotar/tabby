@@ -24,7 +24,7 @@ export const OmnibarOverlay = () => {
       <QueryClientProvider client={queryClient}>
         <Omnibar
           onDismiss={onDismiss}
-          className="max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-gray-300 shadow-2xl dark:border-gray-700"
+          className="border-border max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border shadow-2xl"
         />
       </QueryClientProvider>
     </div>

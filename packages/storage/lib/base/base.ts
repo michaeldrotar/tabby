@@ -144,6 +144,12 @@ export const createStorage = <D = string>(
     // Check if the key we are listening for is in the changes object
     if (changes[key] === undefined) return
 
+    if (changes[key].newValue === undefined) {
+      cache = fallback
+      _emitChange()
+      return
+    }
+
     const valueOrUpdate: ValueOrUpdateType<D> = deserialize(
       changes[key].newValue,
     )
