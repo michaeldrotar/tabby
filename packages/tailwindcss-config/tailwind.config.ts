@@ -6,6 +6,8 @@ export default {
       colors: {
         background: 'hsl(from var(--background) h s l / <alpha-value>)',
         foreground: 'hsl(from var(--foreground) h s l / <alpha-value>)',
+        highlighted: 'hsl(from var(--highlighted) h s l / <alpha-value>)',
+        input: 'hsl(from var(--input) h s l / <alpha-value>)',
 
         card: 'hsl(from var(--card) h s l / <alpha-value>)',
         'card-foreground':
@@ -15,15 +17,9 @@ export default {
         'popover-foreground':
           'hsl(from var(--popover-foreground) h s l / <alpha-value>)',
 
-        muted: 'hsl(from var(--muted) h s l / <alpha-value>)',
-        'muted-foreground':
-          'hsl(from var(--muted-foreground) h s l / <alpha-value>)',
-
         accent: 'hsl(from var(--accent) h s l / <alpha-value>)',
-
+        muted: 'hsl(from var(--muted) h s l / <alpha-value>)',
         border: 'hsl(from var(--border) h s l / <alpha-value>)',
-        input: 'hsl(from var(--input) h s l / <alpha-value>)',
-        ring: 'hsl(from var(--ring) h s l / <alpha-value>)',
       },
     },
   },

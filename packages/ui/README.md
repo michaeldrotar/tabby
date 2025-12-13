@@ -175,8 +175,8 @@ You can refer to the this [manual guide](https://ui.shadcn.com/docs/installation
            popover: 'hsl(var(--popover))',
            'popover-foreground': 'hsl(var(--popover-foreground))',
 
-           muted: 'hsl(var(--muted))',
-           'muted-foreground': 'hsl(var(--muted-foreground))',
+           muted: 'hsl(var(--input))',
+           'muted-foreground': 'hsl(var(--muted))',
 
            accent: 'hsl(var(--accent))',
 
@@ -227,8 +227,8 @@ You can refer to the this [manual guide](https://ui.shadcn.com/docs/installation
      :root {
        --background: 0 0% 100%;
        --foreground: 222.2 47.4% 11.2%;
-       --muted: 210 40% 96.1%;
-       --muted-foreground: 215.4 16.3% 46.9%;
+       --input: 210 40% 96.1%;
+       --muted: 215.4 16.3% 46.9%;
        --popover: 0 0% 100%;
        --popover-foreground: 222.2 47.4% 11.2%;
        --border: 214.3 31.8% 91.4%;
@@ -243,8 +243,8 @@ You can refer to the this [manual guide](https://ui.shadcn.com/docs/installation
      .dark {
        --background: 224 71% 4%;
        --foreground: 213 31% 91%;
-       --muted: 223 47% 11%;
-       --muted-foreground: 215.4 16.3% 56.9%;
+       --input: 223 47% 11%;
+       --muted: 215.4 16.3% 56.9%;
        --popover: 224 71% 4%;
        --popover-foreground: 215 20.2% 65.1%;
        --border: 216 34% 17%;

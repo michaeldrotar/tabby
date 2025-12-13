@@ -22,7 +22,7 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'bg-muted/30 flex h-full flex-col transition-all duration-300 ease-in-out',
+        'bg-input/30 flex h-full flex-col transition-all duration-300 ease-in-out',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
@@ -31,7 +31,7 @@ export const TabManagerSidebar = ({
       <div className="border-border flex h-14 flex-shrink-0 items-center justify-between border-b px-3">
         <button
           onClick={onToggleExpand}
-          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/30 focus-visible:ring-offset-background flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="text-muted hover:bg-highlighted/50 hover:text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           title={isExpanded ? 'Collapse' : 'Expand'}
           aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
@@ -42,7 +42,7 @@ export const TabManagerSidebar = ({
           )}
         </button>
         {isExpanded && windowCount !== undefined && (
-          <span className="text-muted-foreground whitespace-nowrap text-xs font-medium">
+          <span className="text-muted whitespace-nowrap text-xs font-medium">
             {windowCount} Windows
           </span>
         )}
@@ -50,7 +50,7 @@ export const TabManagerSidebar = ({
 
       {/* Middle Scrollable: Window List */}
       <ScrollArea className="flex-1 py-2" orientation="vertical">
-        <div className="flex flex-col gap-2 px-2">{windowList}</div>
+        <div className="flex flex-col gap-2 px-2 py-1">{windowList}</div>
       </ScrollArea>
 
       {/* Bottom Sticky: Actions */}

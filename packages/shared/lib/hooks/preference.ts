@@ -13,9 +13,11 @@ export const useThemeApplicator = () => {
     themeLightBackground,
     themeLightForeground,
     themeLightAccent,
+    themeLightAccentStrength,
     themeDarkBackground,
     themeDarkForeground,
     themeDarkAccent,
+    themeDarkAccentStrength,
   } = usePreferenceStorage()
   useEffect(() => {
     const body = document.body
@@ -30,6 +32,15 @@ export const useThemeApplicator = () => {
     const applyResolvedThemeAndPalettes = () => {
       const resolvedTheme = resolveTheme()
       body.setAttribute('data-theme', resolvedTheme)
+
+      const resolvedAccentStrength =
+        resolvedTheme === 'light'
+          ? themeLightAccentStrength
+          : themeDarkAccentStrength
+      body.style.setProperty(
+        '--accent-strength',
+        String(resolvedAccentStrength),
+      )
 
       const palettes =
         resolvedTheme === 'light'
@@ -61,8 +72,10 @@ export const useThemeApplicator = () => {
     themeDarkAccent,
     themeDarkBackground,
     themeDarkForeground,
+    themeDarkAccentStrength,
     themeLightAccent,
     themeLightBackground,
     themeLightForeground,
+    themeLightAccentStrength,
   ])
 }

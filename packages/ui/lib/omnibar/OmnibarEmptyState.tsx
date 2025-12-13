@@ -26,7 +26,7 @@ export const OmnibarEmptyState = ({
 
   if (query) {
     return (
-      <div className="text-muted-foreground px-4 py-8 text-center">
+      <div className="text-muted px-4 py-8 text-center">
         No results found for "{query}"
       </div>
     )
@@ -37,7 +37,7 @@ export const OmnibarEmptyState = ({
       {/* Quick Actions */}
       {quickActions && quickActions.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+          <h3 className="text-muted mb-2 text-xs font-medium uppercase tracking-wider">
             Quick Actions
           </h3>
           <div className="flex flex-col gap-1">
@@ -48,10 +48,10 @@ export const OmnibarEmptyState = ({
                 onClick={action.onClick}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
-                  'text-foreground hover:bg-muted/50 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'text-foreground hover:bg-highlighted/50 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
-                <span className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-md">
+                <span className="bg-input text-muted flex h-8 w-8 items-center justify-center rounded-md">
                   {action.icon}
                 </span>
                 <span className="font-medium">{action.label}</span>
@@ -63,39 +63,39 @@ export const OmnibarEmptyState = ({
 
       {/* Tips */}
       <div>
-        <h3 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
+        <h3 className="text-muted mb-2 text-xs font-medium uppercase tracking-wider">
           Tips
         </h3>
-        <ul className="text-muted-foreground space-y-1.5 text-sm">
+        <ul className="text-muted space-y-1.5 text-sm">
           <li className="flex items-start gap-2">
-            <span className="text-muted-foreground mt-0.5">•</span>
+            <span className="text-muted mt-0.5">•</span>
             <span>Type to search tabs, bookmarks, and history</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted-foreground mt-0.5">•</span>
+            <span className="text-muted mt-0.5">•</span>
             <span>Enter a URL to navigate directly</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted-foreground mt-0.5">•</span>
+            <span className="text-muted mt-0.5">•</span>
             <span>
-              <kbd className="border-border bg-muted text-muted-foreground rounded border px-1 py-0.5 font-sans text-xs">
+              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
                 {platformModifier}
               </kbd>
               <span className="mx-1">+</span>
-              <kbd className="border-border bg-muted text-muted-foreground rounded border px-1 py-0.5 font-sans text-xs">
+              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
                 Enter
               </kbd>
               <span className="ml-1">to open in new tab</span>
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted-foreground mt-0.5">•</span>
+            <span className="text-muted mt-0.5">•</span>
             <span>
-              <kbd className="border-border bg-muted text-muted-foreground rounded border px-1 py-0.5 font-sans text-xs">
+              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
                 Shift
               </kbd>
               <span className="mx-1">+</span>
-              <kbd className="border-border bg-muted text-muted-foreground rounded border px-1 py-0.5 font-sans text-xs">
+              <kbd className="border-border bg-input text-muted rounded border px-1 py-0.5 font-sans text-xs">
                 Enter
               </kbd>
               <span className="ml-1">to open in new window</span>

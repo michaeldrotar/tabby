@@ -48,12 +48,10 @@ export const WindowRailItem = ({
         data-nav-id={id}
         data-selected={isSelected}
         className={cn(
-          'focus-visible:ring-ring/30 focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-accent/15 text-foreground'
-            : isActive
-              ? 'bg-accent/10 text-foreground'
-              : 'text-foreground hover:bg-muted/50',
+            ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+            : 'text-foreground group-hover:bg-highlighted/50',
         )}
       >
         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
@@ -63,7 +61,7 @@ export const WindowRailItem = ({
               className="h-5 w-5 object-contain"
             />
           ) : (
-            <div className="bg-muted-foreground/40 h-4 w-4 rounded-full" />
+            <div className="bg-muted/40 h-4 w-4 rounded-full" />
           )}
         </div>
 
@@ -76,7 +74,12 @@ export const WindowRailItem = ({
           <span className="truncate text-sm font-medium leading-tight">
             {title}
           </span>
-          <span className="text-muted-foreground truncate text-xs">
+          <span
+            className={cn(
+              'truncate text-xs',
+              isSelected ? 'text-foreground/70' : 'text-muted',
+            )}
+          >
             {tt('nTabs', tabCount)}
           </span>
         </div>
@@ -90,7 +93,7 @@ export const WindowRailItem = ({
               e.stopPropagation()
               onClose()
             }}
-            className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1"
+            className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1"
             title="Close Window"
             aria-label="Close Window"
           >

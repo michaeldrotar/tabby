@@ -77,9 +77,11 @@ export interface PreferenceStateType {
   themeLightBackground: ThemeNeutralPalette
   themeLightForeground: ThemeNeutralPalette
   themeLightAccent: ThemeAccentPalette
+  themeLightAccentStrength: number
   themeDarkBackground: ThemeNeutralPalette
   themeDarkForeground: ThemeNeutralPalette
   themeDarkAccent: ThemeAccentPalette
+  themeDarkAccentStrength: number
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerCompactLayout: 'icon' | 'list'
 }
