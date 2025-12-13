@@ -179,9 +179,9 @@ export const Omnibar = ({
         'bg-card text-card-foreground flex h-full flex-col',
         className,
       )}
-      onClick={(e) => e.stopPropagation()}
       role="button"
       tabIndex={0}
+      onClick={(e) => e.stopPropagation()}
       onKeyDown={handleContainerKeyDown}
       onKeyUp={handleContainerKeyUp}
     >

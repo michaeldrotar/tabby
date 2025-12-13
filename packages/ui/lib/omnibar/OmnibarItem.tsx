@@ -79,9 +79,9 @@ export const OmnibarItem = ({
         ref={itemRef}
         type="button"
         className={cn(
-          'relative flex w-full items-center gap-3 px-4 py-2 text-left text-sm',
+          'focus-visible:ring-ring/30 focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-primary/10 text-foreground'
+            ? 'bg-accent/10 text-foreground'
             : 'text-foreground hover:bg-muted/50',
         )}
         onClick={(e) => {

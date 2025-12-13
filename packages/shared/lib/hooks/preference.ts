@@ -8,31 +8,32 @@ export const usePreferenceStorage = (): PreferenceStateType => {
 }
 
 export const useThemeApplicator = () => {
-  const { theme } = usePreferenceStorage()
+  const { theme, themeBackground, themeForeground, themeAccent } =
+    usePreferenceStorage()
   useEffect(() => {
     const body = document.body
     if (!body) return
 
-    if (theme) {
-      body.setAttribute('data-theme', theme)
-      return
-    }
+    body.setAttribute('data-theme-background', themeBackground)
+    body.setAttribute('data-theme-foreground', themeForeground)
+    body.setAttribute('data-theme-accent', themeAccent)
 
     const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
-    const applyFallbackTheme = () => {
-      if (mediaQuery?.matches) {
-        body.setAttribute('data-theme', 'dark')
-      } else {
-        body.removeAttribute('data-theme')
-      }
+    const resolveTheme = (): 'light' | 'dark' => {
+      if (theme === 'light' || theme === 'dark') return theme
+      return mediaQuery?.matches ? 'dark' : 'light'
     }
 
-    applyFallbackTheme()
+    const applyResolvedTheme = () => {
+      body.setAttribute('data-theme', resolveTheme())
+    }
 
-    if (!mediaQuery) return
-    const handleChange = () => applyFallbackTheme()
+    applyResolvedTheme()
+
+    if (theme !== 'system' || !mediaQuery) return
+    const handleChange = () => applyResolvedTheme()
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
+  }, [theme, themeBackground, themeForeground, themeAccent])
 }

@@ -48,11 +48,11 @@ export const WindowRailItem = ({
         data-nav-id={id}
         data-selected={isSelected}
         className={cn(
-          'flex w-full items-center gap-3 rounded-md p-2 outline-none transition-all focus:outline-none',
+          'focus-visible:ring-ring/30 focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-muted text-foreground'
+            ? 'bg-accent/15 text-foreground'
             : isActive
-              ? 'bg-primary/10 text-foreground'
+              ? 'bg-accent/10 text-foreground'
               : 'text-foreground hover:bg-muted/50',
         )}
       >
@@ -90,7 +90,7 @@ export const WindowRailItem = ({
               e.stopPropagation()
               onClose()
             }}
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-1"
+            className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1"
             title="Close Window"
             aria-label="Close Window"
           >

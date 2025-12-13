@@ -20,20 +20,10 @@ export default {
           'hsl(from var(--muted-foreground) h s l / <alpha-value>)',
 
         accent: 'hsl(from var(--accent) h s l / <alpha-value>)',
-        'accent-foreground':
-          'hsl(from var(--accent-foreground) h s l / <alpha-value>)',
 
         border: 'hsl(from var(--border) h s l / <alpha-value>)',
         input: 'hsl(from var(--input) h s l / <alpha-value>)',
         ring: 'hsl(from var(--ring) h s l / <alpha-value>)',
-
-        primary: 'hsl(from var(--primary) h s l / <alpha-value>)',
-        'primary-foreground':
-          'hsl(from var(--primary-foreground) h s l / <alpha-value>)',
-
-        destructive: 'hsl(from var(--destructive) h s l / <alpha-value>)',
-        'destructive-foreground':
-          'hsl(from var(--destructive-foreground) h s l / <alpha-value>)',
       },
     },
   },

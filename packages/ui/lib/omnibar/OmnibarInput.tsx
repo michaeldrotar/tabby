@@ -10,7 +10,7 @@ type OmnibarInputProps = {
 export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
   ({ query, onChange, onKeyDown }, ref) => {
     return (
-      <div className="border-border flex items-center border-b px-4 py-3">
+      <div className="border-border has-[input:focus-visible]:border-ring/50 flex items-center border-b px-4 py-3">
         <SearchIcon className="text-muted-foreground mr-3 h-5 w-5" />
         <input
           ref={ref}

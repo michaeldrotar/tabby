@@ -48,7 +48,7 @@ export const OmnibarEmptyState = ({
                 onClick={action.onClick}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
-                  'text-foreground hover:bg-muted/50',
+                  'text-foreground hover:bg-muted/50 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
                 <span className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-md">

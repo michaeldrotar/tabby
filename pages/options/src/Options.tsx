@@ -16,19 +16,116 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SunIcon,
-  MoonIcon,
   ExternalLinkIcon,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type {
+  ThemeAccentPalette,
+  ThemeNeutralPalette,
+} from '@extension/storage/lib/base/types.js'
 
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const { theme, tabManagerCompactIconMode, tabManagerCompactLayout } =
-    usePreferenceStorage()
+  const {
+    theme,
+    themeBackground,
+    themeForeground,
+    themeAccent,
+    tabManagerCompactIconMode,
+    tabManagerCompactLayout,
+  } = usePreferenceStorage()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
+
+  const neutralPalettes: readonly ThemeNeutralPalette[] = [
+    'slate',
+    'gray',
+    'zinc',
+    'neutral',
+    'stone',
+  ]
+
+  const accentPalettes: readonly ThemeAccentPalette[] = [
+    'red',
+    'orange',
+    'amber',
+    'yellow',
+    'lime',
+    'green',
+    'emerald',
+    'teal',
+    'cyan',
+    'sky',
+    'blue',
+    'indigo',
+    'violet',
+    'purple',
+    'fuchsia',
+    'pink',
+    'rose',
+  ]
+
+  const neutralSwatchByPalette = {
+    slate: 'bg-slate-500',
+    gray: 'bg-gray-500',
+    zinc: 'bg-zinc-500',
+    neutral: 'bg-neutral-500',
+    stone: 'bg-stone-500',
+  } satisfies Record<ThemeNeutralPalette, string>
+
+  const accentSwatchByPalette = {
+    red: 'bg-red-500',
+    orange: 'bg-orange-500',
+    amber: 'bg-amber-500',
+    yellow: 'bg-yellow-500',
+    lime: 'bg-lime-500',
+    green: 'bg-green-500',
+    emerald: 'bg-emerald-500',
+    teal: 'bg-teal-500',
+    cyan: 'bg-cyan-500',
+    sky: 'bg-sky-500',
+    blue: 'bg-blue-500',
+    indigo: 'bg-indigo-500',
+    violet: 'bg-violet-500',
+    purple: 'bg-purple-500',
+    fuchsia: 'bg-fuchsia-500',
+    pink: 'bg-pink-500',
+    rose: 'bg-rose-500',
+  } satisfies Record<ThemeAccentPalette, string>
+
+  const pickRandomDifferent = <T extends string>(
+    current: T,
+    options: readonly T[],
+  ): T => {
+    if (options.length <= 1) return current
+    let next = current
+    while (next === current) {
+      next = options[Math.floor(Math.random() * options.length)]
+    }
+    return next
+  }
+
+  const randomizeColors = () => {
+    void preferenceStorage.set((prev) => {
+      const nextBackground = pickRandomDifferent(
+        prev.themeBackground,
+        neutralPalettes,
+      )
+      const nextForeground = pickRandomDifferent(
+        prev.themeForeground,
+        neutralPalettes,
+      )
+      const nextAccent = pickRandomDifferent(prev.themeAccent, accentPalettes)
+
+      return {
+        ...prev,
+        themeBackground: nextBackground,
+        themeForeground: nextForeground,
+        themeAccent: nextAccent,
+      }
+    })
+  }
 
   const openShortcutsSettings = () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
@@ -64,32 +161,205 @@ const OptionsContent = () => {
             Appearance
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-foreground font-medium">Theme</h3>
                 <p className="text-muted-foreground text-sm">
-                  Choose between light and dark mode
+                  Choose System, Light, or Dark
                 </p>
               </div>
-              <button
-                onClick={preferenceStorage.toggleTheme}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                  'bg-muted text-foreground hover:bg-muted/70',
-                )}
-              >
-                {theme === 'light' ? (
-                  <>
-                    <SunIcon className="h-5 w-5" />
-                    Light
-                  </>
-                ) : (
-                  <>
-                    <MoonIcon className="h-5 w-5" />
-                    Dark
-                  </>
-                )}
-              </button>
+              <fieldset className="flex shrink-0 items-center gap-2">
+                <legend className="sr-only">Theme mode</legend>
+                {(
+                  [
+                    { value: 'system' as const, label: 'System' },
+                    { value: 'light' as const, label: 'Light' },
+                    { value: 'dark' as const, label: 'Dark' },
+                  ] as const
+                ).map((option) => {
+                  return (
+                    <label key={option.value} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="theme-mode"
+                        className="peer sr-only"
+                        checked={theme === option.value}
+                        onChange={() =>
+                          preferenceStorage.set((prev) => ({
+                            ...prev,
+                            theme: option.value,
+                          }))
+                        }
+                      />
+                      <span
+                        className={cn(
+                          'inline-flex rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          'bg-muted text-foreground hover:bg-muted/70',
+                          'peer-checked:bg-accent/15 peer-checked:text-foreground',
+                          'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                        )}
+                      >
+                        {option.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </fieldset>
+            </div>
+
+            <div className="border-border mt-4 border-t pt-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-foreground font-medium">Colors</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Pick background, foreground, and accent palettes
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={randomizeColors}
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'bg-muted text-foreground hover:bg-muted/70 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  )}
+                >
+                  Randomize colors
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-6">
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Background
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {neutralPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-background"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} background palette`}
+                            checked={themeBackground === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeBackground: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                neutralSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Foreground
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {neutralPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-foreground"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} foreground palette`}
+                            checked={themeForeground === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeForeground: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                neutralSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="text-foreground mb-2 text-sm font-medium">
+                    Accent
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {accentPalettes.map((palette) => {
+                      return (
+                        <label key={palette} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="theme-accent"
+                            className="peer sr-only"
+                            aria-label={`Select ${palette} accent palette`}
+                            checked={themeAccent === palette}
+                            onChange={() =>
+                              preferenceStorage.set((prev) => ({
+                                ...prev,
+                                themeAccent: palette,
+                              }))
+                            }
+                          />
+                          <span
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                              'border-border hover:bg-muted/40',
+                              'peer-checked:bg-accent/15 peer-checked:border-ring/50',
+                              'peer-focus-visible:ring-ring/30 peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                            )}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                'h-4 w-4 rounded-sm',
+                                accentSwatchByPalette[palette],
+                              )}
+                            />
+                            <span className="capitalize">{palette}</span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </fieldset>
+              </div>
             </div>
           </div>
         </section>
@@ -155,7 +425,7 @@ const OptionsContent = () => {
                       }))
                     }
                   />
-                  <div className="border-border bg-muted after:border-border after:bg-background peer-checked:bg-primary peer-checked:after:border-primary-foreground peer-focus:ring-ring/30 peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus:outline-none peer-focus:ring-4"></div>
+                  <div className="border-border bg-muted after:border-border after:bg-background peer-checked:bg-accent/15 peer-checked:after:border-ring/40 peer-focus-visible:ring-ring/30 peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus-visible:outline-none peer-focus-visible:ring-4"></div>
                   <span className="text-foreground ml-3 text-sm font-medium">
                     {tabManagerCompactLayout === 'list'
                       ? 'Expanded'
@@ -180,7 +450,7 @@ const OptionsContent = () => {
               onClick={openShortcutsSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-primary text-primary-foreground hover:bg-primary/90',
+                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               )}
             >
               <ExternalLinkIcon className="h-4 w-4" />
@@ -262,7 +532,7 @@ const OptionsContent = () => {
               onClick={openSidePanelSettings}
               className={cn(
                 'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-primary text-primary-foreground hover:bg-primary/90',
+                'bg-accent/15 text-foreground hover:bg-accent/20 focus-visible:ring-ring/30 focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
               )}
             >
               <ExternalLinkIcon className="h-4 w-4" />

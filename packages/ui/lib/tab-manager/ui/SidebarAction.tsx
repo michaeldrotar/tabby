@@ -22,9 +22,9 @@ export const SidebarAction = ({
       data-nav-type="action"
       aria-label={label}
       className={cn(
-        'group flex w-full items-center gap-3 rounded-md p-2 transition-all',
+        'focus-visible:ring-ring/30 focus-visible:ring-offset-background group flex w-full items-center gap-3 rounded-md p-2 transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         isActive
-          ? 'bg-primary/10 text-foreground'
+          ? 'bg-accent/10 text-foreground'
           : 'text-foreground hover:bg-muted/50',
       )}
     >

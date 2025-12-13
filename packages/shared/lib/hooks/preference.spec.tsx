@@ -41,15 +41,23 @@ beforeEach(() => {
   vi.resetModules()
   vi.clearAllMocks()
   document.body.removeAttribute('data-theme')
+  document.body.removeAttribute('data-theme-background')
+  document.body.removeAttribute('data-theme-foreground')
+  document.body.removeAttribute('data-theme-accent')
 })
 
 describe('useThemeApplicator', () => {
-  it('applies data-theme="dark" when theme is unset and system prefers dark', async () => {
+  it('applies data-theme="dark" when theme is system and system prefers dark', async () => {
     const matchMedia = createMatchMediaMock(true)
 
     vi.doMock('./use-storage.js', () => {
       return {
-        useStorage: () => ({ theme: undefined }),
+        useStorage: () => ({
+          theme: 'system',
+          themeBackground: 'stone',
+          themeForeground: 'slate',
+          themeAccent: 'red',
+        }),
       }
     })
 
@@ -72,14 +80,22 @@ describe('useThemeApplicator', () => {
     render(<Test />)
 
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
   })
 
-  it('removes data-theme when theme is unset and system prefers light', async () => {
+  it('applies data-theme="light" when theme is system and system prefers light', async () => {
     const matchMedia = createMatchMediaMock(false)
 
     vi.doMock('./use-storage.js', () => {
       return {
-        useStorage: () => ({ theme: undefined }),
+        useStorage: () => ({
+          theme: 'system',
+          themeBackground: 'stone',
+          themeForeground: 'slate',
+          themeAccent: 'red',
+        }),
       }
     })
 
@@ -94,8 +110,6 @@ describe('useThemeApplicator', () => {
     ;(window as unknown as { matchMedia: () => MediaQueryList }).matchMedia =
       () => matchMedia as unknown as MediaQueryList
 
-    document.body.setAttribute('data-theme', 'dark')
-
     const Test = () => {
       useThemeApplicator()
       return null
@@ -103,15 +117,23 @@ describe('useThemeApplicator', () => {
 
     render(<Test />)
 
-    expect(document.body.hasAttribute('data-theme')).toBe(false)
+    expect(document.body.getAttribute('data-theme')).toBe('light')
+    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
   })
 
-  it('keeps fallback in sync with prefers-color-scheme changes until a theme is set', async () => {
+  it('keeps system theme in sync with prefers-color-scheme changes', async () => {
     const matchMedia = createMatchMediaMock(true)
 
     vi.doMock('./use-storage.js', () => {
       return {
-        useStorage: () => ({ theme: undefined }),
+        useStorage: () => ({
+          theme: 'system',
+          themeBackground: 'stone',
+          themeForeground: 'slate',
+          themeAccent: 'red',
+        }),
       }
     })
 
@@ -135,9 +157,47 @@ describe('useThemeApplicator', () => {
     expect(document.body.getAttribute('data-theme')).toBe('dark')
 
     matchMedia.dispatchChange(false)
-    expect(document.body.hasAttribute('data-theme')).toBe(false)
+    expect(document.body.getAttribute('data-theme')).toBe('light')
 
     matchMedia.dispatchChange(true)
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+  })
+
+  it('sets data-theme palettes when present in preferences', async () => {
+    const matchMedia = createMatchMediaMock(false)
+
+    vi.doMock('./use-storage.js', () => {
+      return {
+        useStorage: () => ({
+          theme: 'dark',
+          themeBackground: 'stone',
+          themeForeground: 'slate',
+          themeAccent: 'blue',
+        }),
+      }
+    })
+
+    vi.doMock('@extension/storage', () => {
+      return {
+        preferenceStorage: {},
+      }
+    })
+
+    const { useThemeApplicator } = await import('./preference.js')
+
+    ;(window as unknown as { matchMedia: () => MediaQueryList }).matchMedia =
+      () => matchMedia as unknown as MediaQueryList
+
+    const Test = () => {
+      useThemeApplicator()
+      return null
+    }
+
+    render(<Test />)
+
+    expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
   })
 })

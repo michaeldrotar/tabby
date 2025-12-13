@@ -44,8 +44,39 @@ export type StorageConfigType<D = string> = {
   }
 }
 
+export type ThemeNeutralPalette =
+  | 'slate'
+  | 'gray'
+  | 'zinc'
+  | 'neutral'
+  | 'stone'
+
+export type ThemeAccentPalette =
+  | 'red'
+  | 'orange'
+  | 'amber'
+  | 'yellow'
+  | 'lime'
+  | 'green'
+  | 'emerald'
+  | 'teal'
+  | 'cyan'
+  | 'sky'
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'purple'
+  | 'fuchsia'
+  | 'pink'
+  | 'rose'
+
+export type ThemeMode = 'system' | 'light' | 'dark'
+
 export interface PreferenceStateType {
-  theme: 'light' | 'dark' | undefined
+  theme: ThemeMode
+  themeBackground: ThemeNeutralPalette
+  themeForeground: ThemeNeutralPalette
+  themeAccent: ThemeAccentPalette
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerCompactLayout: 'icon' | 'list'
 }

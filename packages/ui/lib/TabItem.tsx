@@ -35,18 +35,23 @@ export const TabItem = memo(
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div className="group relative overflow-hidden rounded-md" {...props}>
+          <div
+            className={cn(
+              'group relative overflow-hidden rounded-md',
+              'has-[button:focus-visible]:ring-ring/30 has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+            )}
+            {...props}
+          >
             <button
               type="button"
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                'focus:outline-none focus-visible:outline-none',
                 isActive
-                  ? 'bg-primary/15 text-foreground'
+                  ? 'bg-accent/15 text-foreground'
                   : isHighlighted
-                    ? 'bg-primary/10 text-foreground'
+                    ? 'bg-accent/10 text-foreground'
                     : 'text-foreground hover:bg-muted/50',
-                isDiscarded && 'opacity-60 grayscale',
-                'transition-all',
               )}
               onClick={onActivate}
               onKeyDown={(e) => {
@@ -84,7 +89,7 @@ export const TabItem = memo(
               <button
                 type="button"
                 onClick={onRemove}
-                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-1"
+                className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
                 title="Close Tab"
                 aria-label="Close Tab"
               >

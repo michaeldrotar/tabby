@@ -7,61 +7,334 @@
     color-scheme: light dark;
   }
 
-  body,
-  [data-theme='light'] {
+  [data-theme='light'][data-theme-background='slate'] {
+    --background: theme(colors.slate.50);
+    --card: theme(colors.slate.50);
+    --popover: theme(colors.slate.50);
+    --muted: theme(colors.slate.100);
+    --border: theme(colors.slate.200);
+    --input: theme(colors.slate.200);
+  }
+
+  [data-theme='dark'][data-theme-background='slate'] {
+    --background: theme(colors.slate.950);
+    --card: theme(colors.slate.900);
+    --popover: theme(colors.slate.950);
+    --muted: theme(colors.slate.800);
+    --border: theme(colors.slate.800);
+    --input: theme(colors.slate.800);
+  }
+
+  [data-theme='light'][data-theme-background='gray'] {
+    --background: theme(colors.gray.50);
+    --card: theme(colors.gray.50);
+    --popover: theme(colors.gray.50);
+    --muted: theme(colors.gray.100);
+    --border: theme(colors.gray.200);
+    --input: theme(colors.gray.200);
+  }
+
+  [data-theme='dark'][data-theme-background='gray'] {
+    --background: theme(colors.gray.950);
+    --card: theme(colors.gray.900);
+    --popover: theme(colors.gray.950);
+    --muted: theme(colors.gray.800);
+    --border: theme(colors.gray.800);
+    --input: theme(colors.gray.800);
+  }
+
+  [data-theme='light'][data-theme-background='zinc'] {
+    --background: theme(colors.zinc.50);
+    --card: theme(colors.zinc.50);
+    --popover: theme(colors.zinc.50);
+    --muted: theme(colors.zinc.100);
+    --border: theme(colors.zinc.200);
+    --input: theme(colors.zinc.200);
+  }
+
+  [data-theme='dark'][data-theme-background='zinc'] {
+    --background: theme(colors.zinc.950);
+    --card: theme(colors.zinc.900);
+    --popover: theme(colors.zinc.950);
+    --muted: theme(colors.zinc.800);
+    --border: theme(colors.zinc.800);
+    --input: theme(colors.zinc.800);
+  }
+
+  [data-theme='light'][data-theme-background='neutral'] {
+    --background: theme(colors.neutral.50);
+    --card: theme(colors.neutral.50);
+    --popover: theme(colors.neutral.50);
+    --muted: theme(colors.neutral.100);
+    --border: theme(colors.neutral.200);
+    --input: theme(colors.neutral.200);
+  }
+
+  [data-theme='dark'][data-theme-background='neutral'] {
+    --background: theme(colors.neutral.950);
+    --card: theme(colors.neutral.900);
+    --popover: theme(colors.neutral.950);
+    --muted: theme(colors.neutral.800);
+    --border: theme(colors.neutral.800);
+    --input: theme(colors.neutral.800);
+  }
+
+  [data-theme='light'][data-theme-background='stone'] {
     --background: theme(colors.stone.50);
-    --foreground: theme(colors.slate.900);
-
-    --card: theme(colors.white);
-    --card-foreground: theme(colors.slate.900);
-
-    --popover: theme(colors.white);
-    --popover-foreground: theme(colors.slate.900);
-
+    --card: theme(colors.stone.50);
+    --popover: theme(colors.stone.50);
     --muted: theme(colors.stone.100);
-    --muted-foreground: theme(colors.stone.500);
-
-    --accent: theme(colors.stone.100);
-    --accent-foreground: theme(colors.slate.900);
-
     --border: theme(colors.stone.200);
     --input: theme(colors.stone.200);
+  }
 
-    --primary: theme(colors.red.600);
-    --primary-foreground: theme(colors.white);
+  [data-theme='dark'][data-theme-background='stone'] {
+    --background: theme(colors.stone.950);
+    --card: theme(colors.stone.900);
+    --popover: theme(colors.stone.950);
+    --muted: theme(colors.stone.800);
+    --border: theme(colors.stone.800);
+    --input: theme(colors.stone.800);
+  }
 
-    --destructive: theme(colors.red.600);
-    --destructive-foreground: theme(colors.white);
+  [data-theme='light'][data-theme-foreground='slate'] {
+    --foreground: theme(colors.slate.900);
+    --card-foreground: theme(colors.slate.900);
+    --popover-foreground: theme(colors.slate.900);
+    --muted-foreground: theme(colors.slate.500);
+  }
 
+  [data-theme='dark'][data-theme-foreground='slate'] {
+    --foreground: theme(colors.slate.100);
+    --card-foreground: theme(colors.slate.100);
+    --popover-foreground: theme(colors.slate.100);
+    --muted-foreground: theme(colors.slate.400);
+  }
+
+  [data-theme='light'][data-theme-foreground='gray'] {
+    --foreground: theme(colors.gray.900);
+    --card-foreground: theme(colors.gray.900);
+    --popover-foreground: theme(colors.gray.900);
+    --muted-foreground: theme(colors.gray.500);
+  }
+
+  [data-theme='dark'][data-theme-foreground='gray'] {
+    --foreground: theme(colors.gray.100);
+    --card-foreground: theme(colors.gray.100);
+    --popover-foreground: theme(colors.gray.100);
+    --muted-foreground: theme(colors.gray.400);
+  }
+
+  [data-theme='light'][data-theme-foreground='zinc'] {
+    --foreground: theme(colors.zinc.900);
+    --card-foreground: theme(colors.zinc.900);
+    --popover-foreground: theme(colors.zinc.900);
+    --muted-foreground: theme(colors.zinc.500);
+  }
+
+  [data-theme='dark'][data-theme-foreground='zinc'] {
+    --foreground: theme(colors.zinc.100);
+    --card-foreground: theme(colors.zinc.100);
+    --popover-foreground: theme(colors.zinc.100);
+    --muted-foreground: theme(colors.zinc.400);
+  }
+
+  [data-theme='light'][data-theme-foreground='neutral'] {
+    --foreground: theme(colors.neutral.900);
+    --card-foreground: theme(colors.neutral.900);
+    --popover-foreground: theme(colors.neutral.900);
+    --muted-foreground: theme(colors.neutral.500);
+  }
+
+  [data-theme='dark'][data-theme-foreground='neutral'] {
+    --foreground: theme(colors.neutral.100);
+    --card-foreground: theme(colors.neutral.100);
+    --popover-foreground: theme(colors.neutral.100);
+    --muted-foreground: theme(colors.neutral.400);
+  }
+
+  [data-theme='light'][data-theme-foreground='stone'] {
+    --foreground: theme(colors.stone.900);
+    --card-foreground: theme(colors.stone.900);
+    --popover-foreground: theme(colors.stone.900);
+    --muted-foreground: theme(colors.stone.500);
+  }
+
+  [data-theme='dark'][data-theme-foreground='stone'] {
+    --foreground: theme(colors.stone.100);
+    --card-foreground: theme(colors.stone.100);
+    --popover-foreground: theme(colors.stone.100);
+    --muted-foreground: theme(colors.stone.400);
+  }
+
+  [data-theme='light'][data-theme-accent='red'] {
+    --accent: theme(colors.red.600);
     --ring: theme(colors.red.600);
   }
 
-  [data-theme='dark'] {
-    --background: theme(colors.slate.950);
-    --foreground: theme(colors.stone.100);
-
-    --card: theme(colors.slate.900);
-    --card-foreground: theme(colors.stone.100);
-
-    --popover: theme(colors.slate.900);
-    --popover-foreground: theme(colors.stone.100);
-
-    --muted: theme(colors.slate.800);
-    --muted-foreground: theme(colors.slate.400);
-
-    --accent: theme(colors.slate.800);
-    --accent-foreground: theme(colors.stone.100);
-
-    --border: theme(colors.slate.800);
-    --input: theme(colors.slate.800);
-
-    --primary: theme(colors.red.300);
-    --primary-foreground: theme(colors.slate.950);
-
-    --destructive: theme(colors.red.300);
-    --destructive-foreground: theme(colors.slate.950);
-
+  [data-theme='dark'][data-theme-accent='red'] {
+    --accent: theme(colors.red.300);
     --ring: theme(colors.red.300);
+  }
+
+  [data-theme='light'][data-theme-accent='orange'] {
+    --accent: theme(colors.orange.600);
+    --ring: theme(colors.orange.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='orange'] {
+    --accent: theme(colors.orange.300);
+    --ring: theme(colors.orange.300);
+  }
+
+  [data-theme='light'][data-theme-accent='amber'] {
+    --accent: theme(colors.amber.600);
+    --ring: theme(colors.amber.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='amber'] {
+    --accent: theme(colors.amber.300);
+    --ring: theme(colors.amber.300);
+  }
+
+  [data-theme='light'][data-theme-accent='yellow'] {
+    --accent: theme(colors.yellow.600);
+    --ring: theme(colors.yellow.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='yellow'] {
+    --accent: theme(colors.yellow.300);
+    --ring: theme(colors.yellow.300);
+  }
+
+  [data-theme='light'][data-theme-accent='lime'] {
+    --accent: theme(colors.lime.600);
+    --ring: theme(colors.lime.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='lime'] {
+    --accent: theme(colors.lime.300);
+    --ring: theme(colors.lime.300);
+  }
+
+  [data-theme='light'][data-theme-accent='green'] {
+    --accent: theme(colors.green.600);
+    --ring: theme(colors.green.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='green'] {
+    --accent: theme(colors.green.300);
+    --ring: theme(colors.green.300);
+  }
+
+  [data-theme='light'][data-theme-accent='emerald'] {
+    --accent: theme(colors.emerald.600);
+    --ring: theme(colors.emerald.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='emerald'] {
+    --accent: theme(colors.emerald.300);
+    --ring: theme(colors.emerald.300);
+  }
+
+  [data-theme='light'][data-theme-accent='teal'] {
+    --accent: theme(colors.teal.600);
+    --ring: theme(colors.teal.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='teal'] {
+    --accent: theme(colors.teal.300);
+    --ring: theme(colors.teal.300);
+  }
+
+  [data-theme='light'][data-theme-accent='cyan'] {
+    --accent: theme(colors.cyan.600);
+    --ring: theme(colors.cyan.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='cyan'] {
+    --accent: theme(colors.cyan.300);
+    --ring: theme(colors.cyan.300);
+  }
+
+  [data-theme='light'][data-theme-accent='sky'] {
+    --accent: theme(colors.sky.600);
+    --ring: theme(colors.sky.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='sky'] {
+    --accent: theme(colors.sky.300);
+    --ring: theme(colors.sky.300);
+  }
+
+  [data-theme='light'][data-theme-accent='blue'] {
+    --accent: theme(colors.blue.600);
+    --ring: theme(colors.blue.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='blue'] {
+    --accent: theme(colors.blue.300);
+    --ring: theme(colors.blue.300);
+  }
+
+  [data-theme='light'][data-theme-accent='indigo'] {
+    --accent: theme(colors.indigo.600);
+    --ring: theme(colors.indigo.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='indigo'] {
+    --accent: theme(colors.indigo.300);
+    --ring: theme(colors.indigo.300);
+  }
+
+  [data-theme='light'][data-theme-accent='violet'] {
+    --accent: theme(colors.violet.600);
+    --ring: theme(colors.violet.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='violet'] {
+    --accent: theme(colors.violet.300);
+    --ring: theme(colors.violet.300);
+  }
+
+  [data-theme='light'][data-theme-accent='purple'] {
+    --accent: theme(colors.purple.600);
+    --ring: theme(colors.purple.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='purple'] {
+    --accent: theme(colors.purple.300);
+    --ring: theme(colors.purple.300);
+  }
+
+  [data-theme='light'][data-theme-accent='fuchsia'] {
+    --accent: theme(colors.fuchsia.600);
+    --ring: theme(colors.fuchsia.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='fuchsia'] {
+    --accent: theme(colors.fuchsia.300);
+    --ring: theme(colors.fuchsia.300);
+  }
+
+  [data-theme='light'][data-theme-accent='pink'] {
+    --accent: theme(colors.pink.600);
+    --ring: theme(colors.pink.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='pink'] {
+    --accent: theme(colors.pink.300);
+    --ring: theme(colors.pink.300);
+  }
+
+  [data-theme='light'][data-theme-accent='rose'] {
+    --accent: theme(colors.rose.600);
+    --ring: theme(colors.rose.600);
+  }
+
+  [data-theme='dark'][data-theme-accent='rose'] {
+    --accent: theme(colors.rose.300);
+    --ring: theme(colors.rose.300);
   }
 
   body {

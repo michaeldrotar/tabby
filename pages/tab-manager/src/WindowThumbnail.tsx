@@ -38,7 +38,7 @@ export const WindowThumbnail = ({ browserWindow }: WindowThumbnailProps) => {
       <div
         className={cn(
           'absolute rounded-md border-2',
-          'border-primary bg-primary/20',
+          'border-accent bg-accent/20',
         )}
         style={positionStyles}
       />
