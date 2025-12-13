@@ -38,7 +38,7 @@ export const TabItem = memo(
           <div
             className={cn(
               'group relative overflow-hidden rounded-md',
-              'has-[button:focus-visible]:ring-ring/30 has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+              'has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)] has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
             )}
             {...props}
           >
@@ -48,10 +48,10 @@ export const TabItem = memo(
                 'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                 'focus:outline-none focus-visible:outline-none',
                 isActive
-                  ? 'bg-accent/15 text-foreground'
+                  ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
                   : isHighlighted
-                    ? 'bg-accent/10 text-foreground'
-                    : 'text-foreground hover:bg-muted/50',
+                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                    : 'text-foreground group-hover:bg-highlighted/50',
               )}
               onClick={onActivate}
               onKeyDown={(e) => {
@@ -75,7 +75,7 @@ export const TabItem = memo(
                   style={{ height: `20px`, width: `20px` }}
                 />
                 {isDiscarded && (
-                  <div className="border-background bg-muted-foreground absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
+                  <div className="border-background bg-muted absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
                 )}
               </div>
               <span
@@ -89,7 +89,7 @@ export const TabItem = memo(
               <button
                 type="button"
                 onClick={onRemove}
-                className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
+                className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
                 title="Close Tab"
                 aria-label="Close Tab"
               >

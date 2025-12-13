@@ -98,9 +98,9 @@ export const TabListGroup = ({
     color && GROUP_COLORS[color]
       ? GROUP_COLORS[color]
       : {
-          dot: 'bg-muted-foreground/70',
-          text: 'text-muted-foreground',
-          bg: 'bg-muted-foreground/10',
+          dot: 'bg-muted/70',
+          text: 'text-muted',
+          bg: 'bg-muted/10',
         }
 
   return (
@@ -108,7 +108,7 @@ export const TabListGroup = ({
       className={cn(
         'flex flex-col rounded-lg border border-transparent p-1 transition-colors',
         colorClasses.bg,
-        isActive && 'bg-accent/10',
+        isActive && 'bg-accent/[calc(var(--accent-strength)*1%)]',
       )}
     >
       <div className="mb-1 flex items-center gap-2 px-2 py-1">

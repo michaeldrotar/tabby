@@ -31,7 +31,7 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
   const tooltipContent = shortcut ? (
     <span>
       Search{' '}
-      <kbd className="border-border bg-muted text-muted-foreground ml-1 rounded border px-1 py-0.5 font-sans">
+      <kbd className="border-border bg-input text-muted ml-1 rounded border px-1 py-0.5 font-sans">
         {formatShortcut(shortcut)}
       </kbd>
     </span>
@@ -48,7 +48,7 @@ export const SearchButton = ({ onClick }: SearchButtonProps) => {
           onClick={onClick}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md transition-colors',
-            'text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/30 focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+            'text-muted hover:bg-input hover:text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           )}
         >
           <SearchIcon className="h-4 w-4" />

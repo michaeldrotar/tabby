@@ -79,10 +79,10 @@ export const OmnibarItem = ({
         ref={itemRef}
         type="button"
         className={cn(
-          'focus-visible:ring-ring/30 focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected
-            ? 'bg-accent/10 text-foreground'
-            : 'text-foreground hover:bg-muted/50',
+            ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+            : 'text-foreground hover:bg-highlighted/50',
         )}
         onClick={(e) => {
           let modifier: 'new-tab' | 'new-window' | undefined
@@ -93,7 +93,7 @@ export const OmnibarItem = ({
         onMouseMove={onMouseMove}
       >
         {item.type === 'command' ? (
-          <div className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded text-xs font-bold">
+          <div className="bg-input text-muted flex h-8 w-8 items-center justify-center rounded text-xs font-bold">
             &gt;
           </div>
         ) : item.type === 'search' ? (
@@ -140,25 +140,40 @@ export const OmnibarItem = ({
             </span>
 
             {item.tabCount && item.tabCount > 1 && (
-              <span className="text-muted-foreground flex-shrink-0">
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
                 (+{item.tabCount - 1} others)
               </span>
             )}
 
             {item.lastVisitTime && (
-              <span className="text-muted-foreground flex-shrink-0">
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
                 {formatTimeAgo(item.lastVisitTime)}
               </span>
             )}
 
-            <span className="text-muted-foreground truncate">
+            <span
+              className={cn(
+                'truncate',
+                isSelected ? 'text-foreground/70' : 'text-muted',
+              )}
+            >
               <HighlightMatch text={item.url} query={query} />
             </span>
           </div>
         </div>
 
         {isSelected && (
-          <span className="text-muted-foreground flex-shrink-0 text-xs">
+          <span className="text-muted flex-shrink-0 text-xs">
             {getOmnibarActionLabel(item)}
             {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
               item.type,

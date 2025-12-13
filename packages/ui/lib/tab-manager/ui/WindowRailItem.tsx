@@ -47,40 +47,54 @@ export const WindowRailItem = ({
         data-nav-type="window"
         data-nav-id={id}
         data-selected={isSelected}
+        data-active={isActive}
         className={cn(
-          'focus-visible:ring-ring/30 focus-visible:ring-offset-background flex w-full items-center gap-3 rounded-md p-2 outline-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'relative flex w-full items-center gap-3 overflow-clip rounded-md p-2 outline-none',
           isSelected
-            ? 'bg-accent/15 text-foreground'
+            ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
             : isActive
-              ? 'bg-accent/10 text-foreground'
-              : 'text-foreground hover:bg-muted/50',
+              ? 'bg-input/50'
+              : 'text-foreground group-hover:bg-highlighted/50',
         )}
       >
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
+        {isActive && (
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute left-0 top-1/2 -translate-y-1/2',
+              'bg-foreground/60 h-6 w-1 rounded-r-full',
+              isSelected ? 'bg-foreground/50' : 'bg-muted/20',
+            )}
+          />
+        )}
+
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
           {activeTabUrl ? (
-            <Favicon
-              pageUrl={activeTabUrl}
-              className="h-5 w-5 object-contain"
-            />
+            <Favicon pageUrl={activeTabUrl} size={24} />
           ) : (
-            <div className="bg-muted-foreground/40 h-4 w-4 rounded-full" />
+            <div className="bg-muted/40 h-4 w-4 rounded-full" />
           )}
         </div>
 
-        <div
-          className={cn(
-            'flex flex-1 flex-col overflow-hidden text-left transition-all duration-300',
-            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0',
-          )}
-        >
-          <span className="truncate text-sm font-medium leading-tight">
-            {title}
-          </span>
-          <span className="text-muted-foreground truncate text-xs">
-            {tt('nTabs', tabCount)}
-          </span>
+        {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
+        <div className={cn('w-full overflow-clip text-left')}>
+          {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
+          <div className="flex w-44 flex-1 flex-col group-hover:w-36">
+            <span className="truncate text-sm font-medium leading-tight">
+              {title}
+            </span>
+            <span
+              className={cn(
+                'text-xs',
+                isSelected ? 'text-foreground/70' : 'text-muted',
+              )}
+            >
+              {tt('nTabs', tabCount)}
+            </span>
+          </div>
         </div>
-        {isExpanded && <div className="hidden w-4 group-hover:flex" />}
       </button>
 
       {isExpanded && onClose && (
@@ -90,7 +104,7 @@ export const WindowRailItem = ({
               e.stopPropagation()
               onClose()
             }}
-            className="text-muted-foreground hover:bg-accent/15 hover:text-accent rounded p-1"
+            className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1"
             title="Close Window"
             aria-label="Close Window"
           >

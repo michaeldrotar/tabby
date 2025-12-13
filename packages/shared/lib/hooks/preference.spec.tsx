@@ -44,6 +44,7 @@ beforeEach(() => {
   document.body.removeAttribute('data-theme-background')
   document.body.removeAttribute('data-theme-foreground')
   document.body.removeAttribute('data-theme-accent')
+  document.body.style.removeProperty('--accent-strength')
 })
 
 describe('useThemeApplicator', () => {
@@ -54,9 +55,14 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeLightAccentStrength: 10,
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
+          themeDarkAccentStrength: 20,
         }),
       }
     })
@@ -80,9 +86,10 @@ describe('useThemeApplicator', () => {
     render(<Test />)
 
     expect(document.body.getAttribute('data-theme')).toBe('dark')
-    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
-    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('20')
   })
 
   it('applies data-theme="light" when theme is system and system prefers light', async () => {
@@ -92,9 +99,14 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeLightAccentStrength: 10,
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
+          themeDarkAccentStrength: 20,
         }),
       }
     })
@@ -119,8 +131,9 @@ describe('useThemeApplicator', () => {
 
     expect(document.body.getAttribute('data-theme')).toBe('light')
     expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
-    expect(document.body.getAttribute('data-theme-accent')).toBe('red')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('amber')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('10')
   })
 
   it('keeps system theme in sync with prefers-color-scheme changes', async () => {
@@ -130,9 +143,14 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'system',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'red',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeLightAccentStrength: 10,
+          themeDarkBackground: 'neutral',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
+          themeDarkAccentStrength: 20,
         }),
       }
     })
@@ -155,12 +173,24 @@ describe('useThemeApplicator', () => {
 
     render(<Test />)
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('20')
 
     matchMedia.dispatchChange(false)
     expect(document.body.getAttribute('data-theme')).toBe('light')
+    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('amber')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('10')
 
     matchMedia.dispatchChange(true)
     expect(document.body.getAttribute('data-theme')).toBe('dark')
+    expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
+    expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('20')
   })
 
   it('sets data-theme palettes when present in preferences', async () => {
@@ -170,9 +200,14 @@ describe('useThemeApplicator', () => {
       return {
         useStorage: () => ({
           theme: 'dark',
-          themeBackground: 'stone',
-          themeForeground: 'slate',
-          themeAccent: 'blue',
+          themeLightBackground: 'stone',
+          themeLightForeground: 'neutral',
+          themeLightAccent: 'amber',
+          themeLightAccentStrength: 10,
+          themeDarkBackground: 'slate',
+          themeDarkForeground: 'zinc',
+          themeDarkAccent: 'blue',
+          themeDarkAccentStrength: 75,
         }),
       }
     })
@@ -196,8 +231,9 @@ describe('useThemeApplicator', () => {
     render(<Test />)
 
     expect(document.body.getAttribute('data-theme')).toBe('dark')
-    expect(document.body.getAttribute('data-theme-background')).toBe('stone')
-    expect(document.body.getAttribute('data-theme-foreground')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-background')).toBe('slate')
+    expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')
     expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
+    expect(document.body.style.getPropertyValue('--accent-strength')).toBe('75')
   })
 })

@@ -8,15 +8,20 @@ export const usePreferenceStorage = (): PreferenceStateType => {
 }
 
 export const useThemeApplicator = () => {
-  const { theme, themeBackground, themeForeground, themeAccent } =
-    usePreferenceStorage()
+  const {
+    theme,
+    themeLightBackground,
+    themeLightForeground,
+    themeLightAccent,
+    themeLightAccentStrength,
+    themeDarkBackground,
+    themeDarkForeground,
+    themeDarkAccent,
+    themeDarkAccentStrength,
+  } = usePreferenceStorage()
   useEffect(() => {
     const body = document.body
     if (!body) return
-
-    body.setAttribute('data-theme-background', themeBackground)
-    body.setAttribute('data-theme-foreground', themeForeground)
-    body.setAttribute('data-theme-accent', themeAccent)
 
     const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
     const resolveTheme = (): 'light' | 'dark' => {
@@ -24,16 +29,53 @@ export const useThemeApplicator = () => {
       return mediaQuery?.matches ? 'dark' : 'light'
     }
 
-    const applyResolvedTheme = () => {
-      body.setAttribute('data-theme', resolveTheme())
+    const applyResolvedThemeAndPalettes = () => {
+      const resolvedTheme = resolveTheme()
+      body.setAttribute('data-theme', resolvedTheme)
+
+      const resolvedAccentStrength =
+        resolvedTheme === 'light'
+          ? themeLightAccentStrength
+          : themeDarkAccentStrength
+      body.style.setProperty(
+        '--accent-strength',
+        String(resolvedAccentStrength),
+      )
+
+      const palettes =
+        resolvedTheme === 'light'
+          ? {
+              background: themeLightBackground,
+              foreground: themeLightForeground,
+              accent: themeLightAccent,
+            }
+          : {
+              background: themeDarkBackground,
+              foreground: themeDarkForeground,
+              accent: themeDarkAccent,
+            }
+
+      body.setAttribute('data-theme-background', palettes.background)
+      body.setAttribute('data-theme-foreground', palettes.foreground)
+      body.setAttribute('data-theme-accent', palettes.accent)
     }
 
-    applyResolvedTheme()
+    applyResolvedThemeAndPalettes()
 
     if (theme !== 'system' || !mediaQuery) return
-    const handleChange = () => applyResolvedTheme()
+    const handleChange = () => applyResolvedThemeAndPalettes()
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme, themeBackground, themeForeground, themeAccent])
+  }, [
+    theme,
+    themeDarkAccent,
+    themeDarkBackground,
+    themeDarkForeground,
+    themeDarkAccentStrength,
+    themeLightAccent,
+    themeLightBackground,
+    themeLightForeground,
+    themeLightAccentStrength,
+  ])
 }

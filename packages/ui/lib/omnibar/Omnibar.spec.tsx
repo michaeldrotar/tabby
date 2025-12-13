@@ -100,14 +100,16 @@ describe('Omnibar', () => {
 
     // The first item (index 0) should be selected by default
     // Google search is usually first.
-    expect(items[0]).toHaveClass('bg-accent/10')
+    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
 
     // Move mouse to the second item
     fireEvent.mouseMove(items[1])
 
     // Second item should be selected
-    expect(items[1]).toHaveClass('bg-accent/10')
-    expect(items[0]).not.toHaveClass('bg-accent/10')
+    expect(items[1]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
+    expect(items[0]).not.toHaveClass(
+      'bg-accent/[calc(var(--accent-strength)*1%)]',
+    )
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
@@ -120,12 +122,14 @@ describe('Omnibar', () => {
     const items = await within(list).findAllByRole('button', { name: /Tab/i })
 
     // Select first item
-    expect(items[0]).toHaveClass('bg-accent/10')
+    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
 
     // Fire mouseEnter on second item (should NOT change selection)
     fireEvent.mouseEnter(items[1])
 
-    expect(items[0]).toHaveClass('bg-accent/10')
-    expect(items[1]).not.toHaveClass('bg-accent/10')
+    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
+    expect(items[1]).not.toHaveClass(
+      'bg-accent/[calc(var(--accent-strength)*1%)]',
+    )
   })
 })
