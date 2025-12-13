@@ -434,22 +434,12 @@ const OptionsContent = () => {
                             ...prev,
                             ...(activeThemeMode === 'light'
                               ? {
-                                  themeLightAccentStrength: Math.max(
-                                    0,
-                                    Math.min(
-                                      100,
-                                      value[0] ?? prev.themeLightAccentStrength,
-                                    ),
-                                  ),
+                                  themeLightAccentStrength:
+                                    value[0] ?? prev.themeLightAccentStrength,
                                 }
                               : {
-                                  themeDarkAccentStrength: Math.max(
-                                    0,
-                                    Math.min(
-                                      100,
-                                      value[0] ?? prev.themeDarkAccentStrength,
-                                    ),
-                                  ),
+                                  themeDarkAccentStrength:
+                                    value[0] ?? prev.themeDarkAccentStrength,
                                 }),
                           }))
                         }
