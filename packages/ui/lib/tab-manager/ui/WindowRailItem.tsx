@@ -1,9 +1,3 @@
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '../../ContextMenu'
 import { Favicon } from '../../Favicon'
 import { CloseIcon } from '../../icons'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'
@@ -115,26 +109,17 @@ export const WindowRailItem = ({
     </div>
   )
 
-  const trigger = <ContextMenuTrigger asChild>{button}</ContextMenuTrigger>
+  if (isExpanded) return button
 
   return (
-    <ContextMenu>
-      {isExpanded ? (
-        trigger
-      ) : (
-        <Tooltip>
-          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-          <TooltipContent side="right">
-            <div>{title}</div>
-            <div className="text-tooltip-foreground/50 text-xs">
-              {tt('nTabs', tabCount)}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      <ContextMenuContent>
-        <ContextMenuItem onSelect={onClose}>Close Window</ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent side="right">
+        <div>{title}</div>
+        <div className="text-tooltip-foreground/50 text-xs">
+          {tt('nTabs', tabCount)}
+        </div>
+      </TooltipContent>
+    </Tooltip>
   )
 }

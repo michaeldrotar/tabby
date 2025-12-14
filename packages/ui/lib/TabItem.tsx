@@ -1,9 +1,3 @@
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from './ContextMenu'
 import { CloseIcon } from './icons'
 import { cn } from './utils/cn'
 import { memo } from 'react'
@@ -33,75 +27,66 @@ export const TabItem = memo(
     console.count('TabItem.render')
 
     return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
+      <div
+        className={cn(
+          'group relative overflow-hidden rounded-md',
+          'has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)] has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+        )}
+        {...props}
+      >
+        <button
+          type="button"
+          className={cn(
+            'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+            'focus:outline-none focus-visible:outline-none',
+            isActive
+              ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+              : isHighlighted
+                ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                : 'text-foreground group-hover:bg-highlighted/50',
+          )}
+          onClick={onActivate}
+          onKeyDown={(e) => {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove()
+            }
+          }}
+        >
           <div
             className={cn(
-              'group relative overflow-hidden rounded-md',
-              'has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)] has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+              'relative flex h-5 w-5 flex-shrink-0 items-center justify-center',
+              isDiscarded && 'opacity-70',
             )}
-            {...props}
           >
-            <button
-              type="button"
-              className={cn(
-                'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                'focus:outline-none focus-visible:outline-none',
-                isActive
-                  ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-                  : isHighlighted
-                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-                    : 'text-foreground group-hover:bg-highlighted/50',
-              )}
-              onClick={onActivate}
-              onKeyDown={(e) => {
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onRemove()
-                }
-              }}
-            >
-              <div
-                className={cn(
-                  'relative flex h-5 w-5 flex-shrink-0 items-center justify-center',
-                  isDiscarded && 'opacity-70',
-                )}
-              >
-                <img
-                  src={iconUrl}
-                  alt=""
-                  className="h-5 w-5 transition-transform group-hover:scale-110"
-                  style={{ height: `20px`, width: `20px` }}
-                />
-                {isDiscarded && (
-                  <div className="border-background bg-muted absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
-                )}
-              </div>
-              <span
-                className={cn('flex-1 truncate', isActive && 'font-medium')}
-              >
-                {label}
-              </span>
-              <div className="hidden w-4 group-hover:flex"></div>
-            </button>
-            <div className="absolute right-2 top-0 hidden h-full group-hover:flex">
-              <button
-                type="button"
-                onClick={onRemove}
-                className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
-                title="Close Tab"
-                aria-label="Close Tab"
-              >
-                <CloseIcon className="size-3.5" />
-              </button>
-            </div>
+            <img
+              src={iconUrl}
+              alt=""
+              className="h-5 w-5 transition-transform group-hover:scale-110"
+              style={{ height: `20px`, width: `20px` }}
+            />
+            {isDiscarded && (
+              <div className="border-background bg-muted absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
+            )}
           </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onSelect={onRemove}>Close Tab</ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+          <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
+            {label}
+          </span>
+          <div className="hidden w-4 group-hover:flex"></div>
+        </button>
+        <div className="absolute right-2 top-0 hidden h-full group-hover:flex">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
+            title="Close Tab"
+            aria-label="Close Tab"
+          >
+            <CloseIcon className="size-3.5" />
+          </button>
+        </div>
+      </div>
     )
   },
 )
