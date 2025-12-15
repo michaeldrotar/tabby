@@ -12,8 +12,6 @@ import {
   SidebarAction,
   SearchIcon,
   SettingsIcon,
-  ScrollToActiveIcon,
-  PlusIcon,
 } from '@extension/ui'
 import type { BrowserWindow } from '@extension/chrome'
 
@@ -130,7 +128,7 @@ export const TabManagerSidebarContainer = ({
 
   const actions = (
     <>
-      <SidebarAction
+      {/* <SidebarAction
         icon={<PlusIcon className="size-5" />}
         label="New Window"
         onClick={openNewWindow}
@@ -141,7 +139,7 @@ export const TabManagerSidebarContainer = ({
         label="Scroll to active"
         onClick={onOpenTarget}
         isExpanded={isExpanded}
-      />
+      /> */}
       <SidebarAction
         icon={<SearchIcon className="size-5" />}
         label="Search"

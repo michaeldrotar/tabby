@@ -1,5 +1,14 @@
 import 'webextension-polyfill'
 
+const FEATURES_SEEN_VERSION_KEY = 'tabby-features-seen-version'
+const NEW_FEATURES_NOTIFICATION_ID = 'tabby-new-features'
+
+const openFeaturesPage = async () => {
+  await chrome.tabs.create({
+    url: chrome.runtime.getURL('features/index.html'),
+  })
+}
+
 let focusedWindowId: number | undefined = undefined
 const loadFocusedWindowId = async () => {
   const focusedWindow = await chrome.windows.getLastFocused()
@@ -7,8 +16,44 @@ const loadFocusedWindowId = async () => {
 }
 loadFocusedWindowId()
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+
+  const currentVersion = chrome.runtime.getManifest().version
+
+  if (details.reason === 'install') {
+    await chrome.storage.local.set({
+      [FEATURES_SEEN_VERSION_KEY]: currentVersion,
+    })
+    await chrome.action.setBadgeText({ text: '' })
+    return
+  }
+
+  if (details.reason === 'update') {
+    const res = await chrome.storage.local.get(FEATURES_SEEN_VERSION_KEY)
+    const seenVersion = res[FEATURES_SEEN_VERSION_KEY] as string | undefined
+
+    if (seenVersion !== currentVersion) {
+      await chrome.action.setBadgeText({ text: 'NEW' })
+
+      try {
+        await chrome.notifications.create(NEW_FEATURES_NOTIFICATION_ID, {
+          type: 'basic',
+          iconUrl: 'tabby-face.png',
+          title: 'Tabby updated',
+          message: 'Check out the new Features page for interactive demos.',
+        })
+      } catch {
+        // Notifications can fail if permission is missing or unsupported.
+      }
+    }
+  }
+})
+
+chrome.notifications.onClicked.addListener((id) => {
+  if (id === NEW_FEATURES_NOTIFICATION_ID) {
+    void openFeaturesPage()
+  }
 })
 
 chrome.windows.onFocusChanged.addListener((id) => {

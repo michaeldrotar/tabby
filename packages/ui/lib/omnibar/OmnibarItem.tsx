@@ -4,7 +4,6 @@ import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import { Favicon } from '../Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
-import { usePlatformInfo } from '@extension/chrome'
 import { useEffect, useRef } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
@@ -42,6 +41,8 @@ const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
 type OmnibarItemProps = {
   item: OmnibarSearchResult
   isSelected: boolean
+  tabIndex?: number
+  disableScrollIntoView?: boolean
   onSelect: (
     item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
@@ -55,6 +56,8 @@ type OmnibarItemProps = {
 export const OmnibarItem = ({
   item,
   isSelected,
+  tabIndex,
+  disableScrollIntoView,
   onSelect,
   onMouseMove,
   isShiftPressed,
@@ -62,22 +65,21 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
-  const { data: platformInfo } = usePlatformInfo()
-  const platformModifierLabel = platformInfo?.os === 'mac' ? '⌘' : 'Ctrl'
 
   useEffect(() => {
-    if (isSelected) {
+    if (!disableScrollIntoView && isSelected) {
       itemRef.current?.scrollIntoView({
         block: 'nearest',
       })
     }
-  }, [isSelected])
+  }, [disableScrollIntoView, isSelected])
 
   return (
     <li>
       <button
         ref={itemRef}
         type="button"
+        tabIndex={tabIndex}
         className={cn(
           'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isSelected

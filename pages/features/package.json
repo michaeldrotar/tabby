@@ -1,0 +1,36 @@
+{
+  "name": "@extension/features",
+  "version": "0.0.0",
+  "description": "chrome extension - features",
+  "type": "module",
+  "private": true,
+  "sideEffects": true,
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "clean:node_modules": "pnpx rimraf node_modules",
+    "clean:turbo": "rimraf .turbo",
+    "clean": "pnpm clean:turbo && pnpm clean:node_modules",
+    "build": "vite build",
+    "dev": "vite build --mode development",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/chrome": "workspace:*",
+    "@extension/shared": "workspace:*",
+    "@extension/ui": "workspace:*",
+    "@tanstack/react-query": "5.90.7"
+  },
+  "devDependencies": {
+    "@extension/tailwindcss-config": "workspace:*",
+    "@extension/tsconfig": "workspace:*",
+    "@extension/vite-config": "workspace:*"
+  },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
+  }
+}

@@ -48,6 +48,7 @@ const manifest = {
     'bookmarks',
     'history',
     'sessions',
+    'notifications',
   ],
   options_page: 'options/index.html',
   background: {

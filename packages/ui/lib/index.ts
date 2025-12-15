@@ -8,3 +8,6 @@ export * from './utils/cn'
 export * from './utils/formatTimeAgo'
 export * from './with-ui'
 export * from './omnibar/Omnibar'
+export * from './omnibar/OmnibarDemo'
+
+export * from './SettingsNav'

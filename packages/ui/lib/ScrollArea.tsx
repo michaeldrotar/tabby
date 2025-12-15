@@ -49,6 +49,7 @@ export const ScrollArea = ({
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        tabIndex={-1} // fixes an issue where demos can tab to this, although the real implementation does not
         className={cn(
           'size-full overscroll-none rounded-[inherit]',
           orientation === 'vertical' && '[&>div]:!block',

@@ -12,6 +12,7 @@ import {
   ErrorDisplay,
   LoadingSpinner,
   Kbd,
+  SettingsNav,
   Select,
   SelectContent,
   SelectItem,
@@ -24,12 +25,15 @@ import {
   ShiftIcon,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 import type {
   ThemeAccentPalette,
   ThemeNeutralPalette,
 } from '@extension/storage/lib/base/types.js'
 
 const queryClient = new QueryClient()
+
+const FEATURES_SEEN_VERSION_KEY = 'tabby-features-seen-version'
 
 const OptionsContent = () => {
   const {
@@ -46,6 +50,45 @@ const OptionsContent = () => {
     tabManagerCompactLayout,
   } = usePreferenceStorage()
   const { data: { os } = {} } = usePlatformInfo()
+
+  const [hasNewFeatures, setHasNewFeatures] = useState(false)
+
+  const optionsHref = useMemo(
+    () => chrome.runtime.getURL('options/index.html'),
+    [],
+  )
+  const featuresHref = useMemo(
+    () => chrome.runtime.getURL('features/index.html'),
+    [],
+  )
+
+  useEffect(() => {
+    const version = chrome.runtime.getManifest().version
+
+    const sync = async () => {
+      const res = await chrome.storage.local.get(FEATURES_SEEN_VERSION_KEY)
+      const seenVersion = res[FEATURES_SEEN_VERSION_KEY] as string | undefined
+      setHasNewFeatures(seenVersion !== version)
+    }
+
+    void sync()
+
+    const handleChanged = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ) => {
+      if (areaName !== 'local') return
+      if (FEATURES_SEEN_VERSION_KEY in changes) {
+        const next = changes[FEATURES_SEEN_VERSION_KEY]?.newValue as
+          | string
+          | undefined
+        setHasNewFeatures(next !== version)
+      }
+    }
+
+    chrome.storage.onChanged.addListener(handleChanged)
+    return () => chrome.storage.onChanged.removeListener(handleChanged)
+  }, [])
 
   const activeThemeMode: 'light' | 'dark' = (() => {
     if (theme === 'light' || theme === 'dark') return theme
@@ -217,6 +260,13 @@ const OptionsContent = () => {
           </div>
           <p className="text-muted">Your friendly tab manager for Chrome</p>
         </div>
+
+        <SettingsNav
+          active="options"
+          optionsHref={optionsHref}
+          featuresHref={featuresHref}
+          hasNewFeatures={hasNewFeatures}
+        />
 
         {/* Theme Section */}
         <section className="mb-6">
