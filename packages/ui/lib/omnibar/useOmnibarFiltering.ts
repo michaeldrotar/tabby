@@ -8,6 +8,27 @@ import { calculateScore } from './scoring'
 import { useMemo, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
+type OmnibarScoredItem = {
+  item: OmnibarSearchResult
+  score: number
+}
+
+const compareOmnibarScoredItems = (
+  a: OmnibarScoredItem,
+  b: OmnibarScoredItem,
+) => {
+  const scoreDiff = b.score - a.score
+  if (scoreDiff !== 0) return scoreDiff
+
+  const aLastVisitTime = a.item.lastVisitTime ?? -1
+  const bLastVisitTime = b.item.lastVisitTime ?? -1
+  if (aLastVisitTime !== bLastVisitTime) {
+    return bLastVisitTime - aLastVisitTime
+  }
+
+  return String(a.item.id).localeCompare(String(b.item.id))
+}
+
 export const useOmnibarFiltering = (
   query: string,
   tabs: OmnibarSearchResult[],
@@ -33,10 +54,14 @@ export const useOmnibarFiltering = (
 
     const scoredItems = rankedItems.map((item) => ({
       item,
+      // item: {
+      //   ...item,
+      //   title: `${calculateScore(item, query).toFixed(2)} ${item.title}`,
+      // },
       score: calculateScore(item, query),
     }))
 
-    scoredItems.sort((a, b) => b.score - a.score)
+    scoredItems.sort(compareOmnibarScoredItems)
 
     return [...pinnedItems, ...scoredItems.map((i) => i.item)]
   }, [query, tabs, externalResults])
