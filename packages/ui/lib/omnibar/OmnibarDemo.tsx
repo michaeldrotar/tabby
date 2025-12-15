@@ -2,7 +2,7 @@ import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
 import { OmnibarItem } from './OmnibarItem'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
-import { Kbd } from '../Kbd'
+import { Kbd, KbdGroup } from '../Kbd'
 import { ScrollArea } from '../ScrollArea'
 import { cn } from '../utils/cn'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -140,6 +140,23 @@ const noop = async () => {}
 
 const getCmdCtrlLabel = (os: DemoControls['os']) =>
   os === 'mac' ? '⌘' : 'Ctrl'
+
+const getActiveSourcesForScenario = (scenario: DemoScenario) => {
+  const types = new Set(scenario.externalResults.map((r) => r.type))
+  const sources: Array<{ id: string; label: string }> = [
+    { id: 'pinned', label: 'Pinned: Open URL • Search Web' },
+    { id: 'commands', label: 'Commands' },
+    { id: 'tabs', label: 'Tabs' },
+  ]
+
+  if (types.has('recently-closed'))
+    sources.push({ id: 'recently-closed', label: 'Recently closed' })
+  if (types.has('bookmark'))
+    sources.push({ id: 'bookmark', label: 'Bookmarks' })
+  if (types.has('history')) sources.push({ id: 'history', label: 'History' })
+
+  return sources
+}
 
 const makeSearchEverythingScenario = (): DemoScenario => {
   const n = now()
@@ -623,6 +640,11 @@ export const OmnibarDemo = ({ className, scenarioId }: OmnibarDemoProps) => {
     [scenario.externalResults],
   )
 
+  const activeSources = useMemo(
+    () => getActiveSourcesForScenario(scenario),
+    [scenario],
+  )
+
   const { filteredItems, selectedIndex, setSelectedIndex } =
     useOmnibarFiltering(query, tabs, externalResults)
 
@@ -677,6 +699,7 @@ export const OmnibarDemo = ({ className, scenarioId }: OmnibarDemoProps) => {
     <div
       className={cn(
         'bg-card text-card-foreground pointer-events-none relative flex h-full select-none flex-col',
+        '[&_button]:transition-colors [&_button]:duration-150 [&_button]:ease-out',
         '[&_button]:focus:outline-none [&_button]:focus-visible:outline-none [&_button]:focus-visible:ring-0 [&_button]:focus-visible:ring-offset-0',
         className,
       )}
@@ -693,6 +716,99 @@ export const OmnibarDemo = ({ className, scenarioId }: OmnibarDemoProps) => {
           // demo is non-interactive
         }}
       />
+
+      {/* Mode line */}
+      <div className="border-border bg-background flex items-center justify-between gap-3 border-b px-4 py-2">
+        <div className="min-w-0">
+          <div className="text-muted text-[11px] font-medium uppercase tracking-wider">
+            Mode
+          </div>
+          <div className="text-foreground flex min-w-0 items-center gap-2 text-sm">
+            <span className="text-muted flex-shrink-0 font-mono">&gt;</span>
+            <span className="truncate font-medium">
+              {activeSources
+                .filter((s) => s.id !== 'pinned')
+                .map((s) => s.label)
+                .join(' • ')}
+            </span>
+            <span
+              className={cn(
+                'bg-foreground/70 inline-block h-4 w-0.5 flex-shrink-0',
+                query.length > 0 ? 'animate-pulse' : 'opacity-30',
+              )}
+              aria-hidden
+            />
+          </div>
+          <div className="text-muted mt-0.5 truncate text-xs">
+            {activeSources.find((s) => s.id === 'pinned')?.label}
+          </div>
+        </div>
+
+        <div className="flex flex-shrink-0 flex-col items-end gap-1">
+          <div className="text-muted text-[11px] font-medium uppercase tracking-wider">
+            Capabilities
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <KbdGroup>
+              <Kbd
+                className={cn(
+                  isCmdCtrlPressed
+                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                    : undefined,
+                )}
+              >
+                {getCmdCtrlLabel(os)}
+              </Kbd>
+              <Kbd
+                className={cn(
+                  isCmdCtrlPressed
+                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                    : undefined,
+                )}
+              >
+                Enter
+              </Kbd>
+              <span
+                className={cn(
+                  'text-muted',
+                  isCmdCtrlPressed ? 'text-foreground/80' : undefined,
+                )}
+              >
+                New tab
+              </span>
+            </KbdGroup>
+            <span className="text-muted">•</span>
+            <KbdGroup>
+              <Kbd
+                className={cn(
+                  isShiftPressed
+                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                    : undefined,
+                )}
+              >
+                Shift
+              </Kbd>
+              <Kbd
+                className={cn(
+                  isShiftPressed
+                    ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+                    : undefined,
+                )}
+              >
+                Enter
+              </Kbd>
+              <span
+                className={cn(
+                  'text-muted',
+                  isShiftPressed ? 'text-foreground/80' : undefined,
+                )}
+              >
+                New window
+              </span>
+            </KbdGroup>
+          </div>
+        </div>
+      </div>
 
       <ScrollArea orientation="vertical" className="flex-1">
         {filteredItems.length > 0 && (
