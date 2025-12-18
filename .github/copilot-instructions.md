@@ -22,10 +22,21 @@ This file contains instructions for GitHub Copilot to follow when working on thi
   - Major feature additions should update \`README.md\`.
 - **Release Process:** When asked about releases, version bumps, or preparing for release, refer to \`RELEASE.md\` for the complete release process.
 
-## Limitations
+## Command Execution Guidelines
 
-- Do not run builds unless asked or working specifically on changes to the build.
-- Do not run tests unless asked or working specifically on test changes.
+**DO NOT run these commands automatically:**
+
+- `pnpm dev` - Never run this
+- `pnpm build` - Only run when explicitly asked
+- `pnpm test` or `pnpm test:watch` - Only run when explicitly asked or when working specifically on test changes
+
+**You MAY run these commands when appropriate:**
+
+- `pnpm type-check` - Use to verify TypeScript changes
+- `pnpm lint:fix` - Use to automatically fix linting issues
+- `pnpm format` - Use to format code
+
+**Rationale:** Build and dev server commands are resource-intensive and time-consuming. The user will run them when ready. Focus on making code changes and using lightweight verification commands.
 
 ## Project Overview
 
