@@ -62,13 +62,21 @@ pnpm zip
 This will create a new clean build in `dist/` and zip the release into `dist-zip/`.
 Load the extension from `dist/` (or reload it) to verify the new build before submitting the zip to the chrome web store.
 
-### 5. Merge to Main and Tag
+### 5. Create PR to Main and Tag
+
+```bash
+git push origin next
+```
+
+Then:
+
+1. Create a Pull Request from `next` to `main` on GitHub
+2. Review and merge the PR
+3. After the PR is merged, tag the release:
 
 ```bash
 git checkout main
 git pull origin main
-git merge next
-git push origin main
 git tag vVERSION
 git push origin vVERSION
 ```
@@ -136,13 +144,21 @@ pnpm zip
 This will create a new clean build in `dist/` and zip the release into `dist-zip/`.
 Load the extension from `dist/` (or reload it) to verify the new build before submitting the zip to the chrome web store.
 
-### 5. Merge to Main and Tag
+### 5. Create PR to Main and Tag
+
+```bash
+git push origin hotfix
+```
+
+Then:
+
+1. Create a Pull Request from `hotfix` to `main` on GitHub
+2. Review and merge the PR
+3. After the PR is merged, tag the release:
 
 ```bash
 git checkout main
 git pull origin main
-git merge hotfix
-git push origin main
 git tag vVERSION
 git push origin vVERSION
 ```
