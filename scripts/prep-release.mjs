@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Prepares a release by updating the version in the root package.json.
+ * Prepares a release by updating the version in the root package.json
+ * and creating a release notes template if needed.
  *
  * Usage:
  *   pnpm prep patch   - Bump patch version (1.0.0 -> 1.0.1)
@@ -10,9 +11,16 @@
  *   pnpm prep 2.0.0   - Set specific version
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import {
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+} from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import dedent from 'dedent'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = resolve(__dirname, '..')
@@ -100,6 +108,55 @@ function main() {
   writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 
   console.log(`✓ Updated version: ${currentVersion} → ${newVersion}`)
+
+  // Create release notes file if it doesn't exist
+  const releasesDir = resolve(rootDir, 'product', 'releases')
+
+  // Ensure releases directory exists
+  if (!existsSync(releasesDir)) {
+    mkdirSync(releasesDir, { recursive: true })
+  }
+
+  // Check if a release notes file already exists for this version
+  const existingFiles = readdirSync(releasesDir)
+  const versionPrefix = `v${newVersion}-`
+  const existingFile = existingFiles.find((file) =>
+    file.startsWith(versionPrefix),
+  )
+
+  if (existingFile) {
+    console.log(`✓ Release notes file already exists: ${existingFile}`)
+  } else {
+    // Create a new release notes template
+    const slug = input === 'patch' ? 'patch-release' : 'new-release'
+    const filename = `v${newVersion}-${slug}.md`
+    const filepath = resolve(releasesDir, filename)
+
+    const template = dedent(`
+      # Release ${newVersion}
+
+      **Version:** ${newVersion}
+      **Release Date:** TBD
+
+      ## Highlights
+
+      - Add your highlights here
+
+      ## Improvements
+
+      - List improvements here
+
+      ## Fixes
+
+      - List bug fixes here
+    `)
+
+    writeFileSync(filepath, template + '\n')
+    console.log(
+      `✓ Created release notes template: product/releases/${filename}`,
+    )
+  }
+
   console.log('')
   console.log('Next steps:')
   console.log(
