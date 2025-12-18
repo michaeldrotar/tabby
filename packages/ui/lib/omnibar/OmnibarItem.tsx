@@ -4,7 +4,6 @@ import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import { Favicon } from '../Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
-import { usePlatformInfo } from '@extension/chrome'
 import { useEffect, useRef } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
@@ -62,8 +61,6 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
-  const { data: platformInfo } = usePlatformInfo()
-  const platformModifierLabel = platformInfo?.os === 'mac' ? '⌘' : 'Ctrl'
 
   useEffect(() => {
     if (isSelected) {

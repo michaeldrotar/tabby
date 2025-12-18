@@ -117,6 +117,7 @@ const TabManager = () => {
     }, 50)
 
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBrowserWindow?.id, activeTab?.id]) // Only run when these change (e.g. mount or window switch)
 
   useEffect(() => {
