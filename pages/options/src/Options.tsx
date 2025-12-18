@@ -1,21 +1,192 @@
 import '@src/Options.css'
 import { usePlatformInfo } from '@extension/chrome'
 import {
+  usePreferenceStorage,
   useThemeApplicator,
-  useThemeStorage,
   withErrorBoundary,
   withSuspense,
 } from '@extension/shared'
-import { themeStorage } from '@extension/storage'
-import { cn, ErrorDisplay, LoadingSpinner } from '@extension/ui'
+import { preferenceStorage } from '@extension/storage'
+import {
+  cn,
+  ErrorDisplay,
+  LoadingSpinner,
+  Kbd,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Slider,
+  ExternalLinkIcon,
+  KbdGroup,
+  CmdIcon,
+  ShiftIcon,
+} from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type {
+  ThemeAccentPalette,
+  ThemeNeutralPalette,
+} from '@extension/storage/lib/base/types.js'
 
 const queryClient = new QueryClient()
 
 const OptionsContent = () => {
-  const { theme } = useThemeStorage()
-  const { data: platformInfo } = usePlatformInfo()
-  const isMac = platformInfo?.os === 'mac'
+  const {
+    theme,
+    themeLightBackground,
+    themeLightForeground,
+    themeLightAccent,
+    themeLightAccentStrength,
+    themeDarkBackground,
+    themeDarkForeground,
+    themeDarkAccent,
+    themeDarkAccentStrength,
+    tabManagerCompactIconMode,
+    tabManagerCompactLayout,
+  } = usePreferenceStorage()
+  const { data: { os } = {} } = usePlatformInfo()
+
+  const activeThemeMode: 'light' | 'dark' = (() => {
+    if (theme === 'light' || theme === 'dark') return theme
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    return mediaQuery?.matches ? 'dark' : 'light'
+  })()
+
+  const activeThemeBackground =
+    activeThemeMode === 'light' ? themeLightBackground : themeDarkBackground
+  const activeThemeForeground =
+    activeThemeMode === 'light' ? themeLightForeground : themeDarkForeground
+  const activeThemeAccent =
+    activeThemeMode === 'light' ? themeLightAccent : themeDarkAccent
+
+  const activeThemeAccentStrength =
+    activeThemeMode === 'light'
+      ? themeLightAccentStrength
+      : themeDarkAccentStrength
+
+  const neutralPalettes: readonly ThemeNeutralPalette[] = [
+    'slate',
+    'gray',
+    'zinc',
+    'neutral',
+    'stone',
+  ]
+
+  const accentPalettes: readonly ThemeAccentPalette[] = [
+    'red',
+    'orange',
+    'amber',
+    'yellow',
+    'lime',
+    'green',
+    'emerald',
+    'teal',
+    'cyan',
+    'sky',
+    'blue',
+    'indigo',
+    'violet',
+    'purple',
+    'fuchsia',
+    'pink',
+    'rose',
+  ]
+
+  const neutralSwatchByPalette = {
+    slate: 'bg-slate-500',
+    gray: 'bg-gray-500',
+    zinc: 'bg-zinc-500',
+    neutral: 'bg-neutral-500',
+    stone: 'bg-stone-500',
+  } satisfies Record<ThemeNeutralPalette, string>
+
+  const accentSwatchByPalette = {
+    red: 'bg-red-500',
+    orange: 'bg-orange-500',
+    amber: 'bg-amber-500',
+    yellow: 'bg-yellow-500',
+    lime: 'bg-lime-500',
+    green: 'bg-green-500',
+    emerald: 'bg-emerald-500',
+    teal: 'bg-teal-500',
+    cyan: 'bg-cyan-500',
+    sky: 'bg-sky-500',
+    blue: 'bg-blue-500',
+    indigo: 'bg-indigo-500',
+    violet: 'bg-violet-500',
+    purple: 'bg-purple-500',
+    fuchsia: 'bg-fuchsia-500',
+    pink: 'bg-pink-500',
+    rose: 'bg-rose-500',
+  } satisfies Record<ThemeAccentPalette, string>
+
+  const pickRandomDifferent = <T extends string>(
+    current: T,
+    options: readonly T[],
+  ): T => {
+    if (options.length <= 1) return current
+    let next = current
+    while (next === current) {
+      next = options[Math.floor(Math.random() * options.length)]
+    }
+    return next
+  }
+
+  const randomizeColors = () => {
+    void preferenceStorage.set((prev) => {
+      const currentBackground =
+        activeThemeMode === 'light'
+          ? prev.themeLightBackground
+          : prev.themeDarkBackground
+      const currentForeground =
+        activeThemeMode === 'light'
+          ? prev.themeLightForeground
+          : prev.themeDarkForeground
+      const currentAccent =
+        activeThemeMode === 'light'
+          ? prev.themeLightAccent
+          : prev.themeDarkAccent
+
+      const nextBackground = pickRandomDifferent(
+        currentBackground,
+        neutralPalettes,
+      )
+      const nextForeground = pickRandomDifferent(
+        currentForeground,
+        neutralPalettes,
+      )
+      const nextAccent = pickRandomDifferent(currentAccent, accentPalettes)
+
+      const strengthOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50] as const
+
+      const currentAccentStrength =
+        activeThemeMode === 'light'
+          ? prev.themeLightAccentStrength
+          : prev.themeDarkAccentStrength
+      const nextAccentStrength = pickRandomDifferent(
+        String(currentAccentStrength),
+        strengthOptions.map(String),
+      )
+
+      return {
+        ...prev,
+        ...(activeThemeMode === 'light'
+          ? {
+              themeLightBackground: nextBackground,
+              themeLightForeground: nextForeground,
+              themeLightAccent: nextAccent,
+              themeLightAccentStrength: Number(nextAccentStrength),
+            }
+          : {
+              themeDarkBackground: nextBackground,
+              themeDarkForeground: nextForeground,
+              themeDarkAccent: nextAccent,
+              themeDarkAccentStrength: Number(nextAccentStrength),
+            }),
+      }
+    })
+  }
 
   const openShortcutsSettings = () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
@@ -25,194 +196,430 @@ const OptionsContent = () => {
     chrome.tabs.create({ url: 'chrome://settings/appearance' })
   }
 
+  const resetPreferences = () => {
+    chrome.storage.local.remove('preference-storage-key')
+  }
+
   return (
-    <div
-      className={cn(
-        'min-h-screen w-full',
-        'bg-slate-50 text-gray-900',
-        'dark:bg-gray-900 dark:text-gray-100',
-      )}
-    >
-      <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className={cn('min-h-screen w-full', 'bg-background text-foreground')}>
+      <div className="mx-auto max-w-2xl px-6 py-10">
         {/* Header */}
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center">
           <div className="mb-4 flex items-center justify-center gap-3">
             <img
               src={chrome.runtime.getURL('tabby-face.png')}
               className="h-12 w-12"
               alt="Tabby logo"
             />
-            <h1
-              className={cn(
-                'text-3xl font-bold',
-                'text-gray-800 dark:text-gray-100',
-              )}
-            >
+            <h1 className={cn('text-3xl font-bold', 'text-foreground')}>
               Tabby
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Your friendly tab manager for Chrome
-          </p>
+          <p className="text-muted">Your friendly tab manager for Chrome</p>
         </div>
 
         {/* Theme Section */}
-        <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <section className="mb-6">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Appearance
+          </h2>
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-foreground font-medium">Theme</h3>
+                <p className="text-muted text-sm">
+                  Match your system appearance, or override it
+                </p>
+              </div>
+              <fieldset className="flex shrink-0 items-center gap-2">
+                <legend className="sr-only">Theme mode</legend>
+                {(
+                  [
+                    { value: 'system' as const, label: 'System' },
+                    { value: 'light' as const, label: 'Light' },
+                    { value: 'dark' as const, label: 'Dark' },
+                  ] as const
+                ).map((option) => {
+                  return (
+                    <label key={option.value} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="theme-mode"
+                        className="peer sr-only"
+                        checked={theme === option.value}
+                        onChange={() =>
+                          preferenceStorage.set((prev) => ({
+                            ...prev,
+                            theme: option.value,
+                          }))
+                        }
+                      />
+                      <span
+                        className={cn(
+                          'inline-flex rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          'bg-input text-foreground hover:bg-input/70',
+                          'peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] peer-checked:text-foreground',
+                          'peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer-focus-visible:ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2',
+                        )}
+                      >
+                        {option.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </fieldset>
+            </div>
+
+            <div className="border-border mt-4 border-t pt-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-foreground font-medium">Colors</h3>
+                  <p className="text-muted text-sm">
+                    Controls Tabby’s neutral palettes and accent across the UI
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={randomizeColors}
+                  className={cn(
+                    'flex-shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'bg-input text-foreground hover:bg-input/70 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  )}
+                >
+                  Randomize colors
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Background
+                    </legend>
+                    <Select
+                      value={activeThemeBackground}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          ...(activeThemeMode === 'light'
+                            ? {
+                                themeLightBackground:
+                                  value as ThemeNeutralPalette,
+                              }
+                            : {
+                                themeDarkBackground:
+                                  value as ThemeNeutralPalette,
+                              }),
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select background" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {neutralPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    neutralSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
+
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Foreground
+                    </legend>
+                    <Select
+                      value={activeThemeForeground}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          ...(activeThemeMode === 'light'
+                            ? {
+                                themeLightForeground:
+                                  value as ThemeNeutralPalette,
+                              }
+                            : {
+                                themeDarkForeground:
+                                  value as ThemeNeutralPalette,
+                              }),
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select foreground" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {neutralPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    neutralSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
+
+                  <fieldset className="min-w-0">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Accent
+                    </legend>
+                    <Select
+                      value={activeThemeAccent}
+                      onValueChange={(value) =>
+                        preferenceStorage.set((prev) => ({
+                          ...prev,
+                          ...(activeThemeMode === 'light'
+                            ? { themeLightAccent: value as ThemeAccentPalette }
+                            : { themeDarkAccent: value as ThemeAccentPalette }),
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select accent" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {accentPalettes.map((palette) => {
+                          return (
+                            <SelectItem key={palette} value={palette}>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={cn(
+                                    'h-3.5 w-3.5 rounded-sm',
+                                    accentSwatchByPalette[palette],
+                                  )}
+                                />
+                                <span className="capitalize">{palette}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </fieldset>
+
+                  <fieldset className="min-w-0 sm:col-span-3">
+                    <legend className="text-foreground mb-2 text-sm font-medium">
+                      Accent strength
+                    </legend>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        aria-label="Accent strength"
+                        value={[activeThemeAccentStrength]}
+                        min={10}
+                        max={50}
+                        step={5}
+                        onValueChange={(value) =>
+                          preferenceStorage.set((prev) => ({
+                            ...prev,
+                            ...(activeThemeMode === 'light'
+                              ? {
+                                  themeLightAccentStrength:
+                                    value[0] ?? prev.themeLightAccentStrength,
+                                }
+                              : {
+                                  themeDarkAccentStrength:
+                                    value[0] ?? prev.themeDarkAccentStrength,
+                                }),
+                          }))
+                        }
+                        className="flex-1"
+                      />
+                      <span className="text-muted w-12 shrink-0 text-right text-sm tabular-nums">
+                        {activeThemeAccentStrength}%
+                      </span>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Tab Manager Section */}
+        <section className="mb-6">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
+            Tab Manager
           </h2>
           <div
             className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'flex flex-col gap-4 rounded-lg border p-4',
+              'border-border bg-card',
             )}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  Theme
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Choose between light and dark mode
+                <h3 className="text-foreground font-medium">Window Icon</h3>
+                <p className="text-muted text-sm">
+                  Choose which tab icon to display for windows
                 </p>
               </div>
-              <button
-                onClick={themeStorage.toggle}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                  'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                  'dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600',
-                )}
-              >
-                {theme === 'light' ? (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8 1.8-1.8zM1 13h3v-2H1v2zm10 9h2v-3h-2v3zm7.24-2.16l1.79 1.79 1.79-1.79-1.79-1.8-1.79 1.8zM20 11v2h3v-2h-3zM11 1h2v3h-2V1zm4.24 3.76l1.79-1.8-1.79-1.79-1.8 1.79 1.8 1.8zM12 6a6 6 0 100 12 6 6 0 000-12z" />
-                    </svg>
-                    Light
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      className="h-5 w-5"
-                      fill="currentColor"
-                    >
-                      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                    Dark
-                  </>
-                )}
-              </button>
+              <div className="flex gap-2 sm:justify-end">
+                <Select
+                  value={tabManagerCompactIconMode}
+                  onValueChange={(value) =>
+                    preferenceStorage.set((prev) => ({
+                      ...prev,
+                      tabManagerCompactIconMode: value as 'active' | 'first',
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue placeholder="Select icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active Tab</SelectItem>
+                    <SelectItem value="first">First Tab</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-foreground font-medium">Sidebar Layout</h3>
+                <p className="text-muted text-sm">
+                  Toggle between collapsed (icon only) and expanded (list) views
+                </p>
+              </div>
+              <div className="flex items-center">
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={tabManagerCompactLayout === 'list'}
+                    onChange={(e) =>
+                      preferenceStorage.set((prev) => ({
+                        ...prev,
+                        tabManagerCompactLayout: e.target.checked
+                          ? 'list'
+                          : 'icon',
+                      }))
+                    }
+                  />
+                  <div className="border-border bg-input after:border-border after:bg-background peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:after:border-accent/[calc((var(--accent-strength)+5)*1%)] peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer h-6 w-11 rounded-full border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-focus-visible:outline-none peer-focus-visible:ring-4"></div>
+                  <span className="text-foreground ml-3 text-sm font-medium">
+                    {tabManagerCompactLayout === 'list'
+                      ? 'Expanded'
+                      : 'Collapsed'}
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Keyboard Shortcuts Section */}
-        <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <section className="mb-6">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Keyboard Shortcuts
           </h2>
-          <div
-            className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
-            )}
-          >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Configure keyboard shortcuts to quickly access Tabby's features.
-            </p>
-            <button
-              onClick={openShortcutsSettings}
-              className={cn(
-                'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
-              )}
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-muted text-sm">
+                Configure keyboard shortcuts to quickly access Tabby's features.
+              </p>
+              <button
+                onClick={openShortcutsSettings}
+                className={cn(
+                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-              Open Shortcut Settings
-            </button>
-            <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
-            >
-              <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <ExternalLinkIcon className="h-4 w-4" />
+                Open Shortcut Settings
+              </button>
+            </div>
+            <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
+              <h4 className="text-foreground mb-3 text-sm font-medium">
                 Recommended Shortcuts
               </h4>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
-                    )}
-                  >
-                    {isMac ? '⌘E' : 'Alt+E'}
-                  </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
-                      Open Omnibar
-                    </strong>{' '}
-                    — Quick access to search tabs, bookmarks, and history
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />E
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+E</Kbd>
+                    </KbdGroup>
+                  )}
+                  <span className="text-muted">
+                    <strong className="text-foreground">Open Omnibar</strong> —
+                    Quick access to search tabs, bookmarks, and history
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
-                    )}
-                  >
-                    {isMac ? '⌘K' : 'Alt+K'}
-                  </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />K
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+K</Kbd>
+                    </KbdGroup>
+                  )}
+                  <span className="text-muted">
+                    <strong className="text-foreground">
                       Open Omnibar Popup
                     </strong>{' '}
                     — Opens in a popup window instead of in-page overlay
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <kbd
-                    className={cn(
-                      'inline-flex shrink-0 items-center rounded px-2 py-1 font-mono text-xs',
-                      'bg-gray-200 text-gray-700',
-                      'dark:bg-gray-700 dark:text-gray-300',
-                    )}
-                  >
-                    {isMac ? '⌘⇧E' : 'Alt+Shift+E'}
-                  </kbd>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    <strong className="text-gray-800 dark:text-gray-200">
+                  {os === 'mac' && (
+                    <KbdGroup>
+                      <Kbd>
+                        <CmdIcon />
+                        <ShiftIcon />E
+                      </Kbd>
+                    </KbdGroup>
+                  )}
+                  {os !== 'mac' && (
+                    <KbdGroup>
+                      <Kbd>Alt+Shift+E</Kbd>
+                    </KbdGroup>
+                  )}
+                  <span className="text-muted">
+                    <strong className="text-foreground">
                       Open Tab Manager
                     </strong>{' '}
                     — Opens the side panel
                   </span>
                 </li>
               </ul>
-              {!isMac && (
-                <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
+              {os !== 'mac' && (
+                <p className="text-muted mt-3 text-xs">
                   Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
                   so Alt-based shortcuts are used instead.
                 </p>
@@ -222,63 +629,75 @@ const OptionsContent = () => {
         </section>
 
         {/* Side Panel Settings Section */}
-        <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <section className="mb-6">
+          <h2 className="text-foreground mb-4 text-lg font-semibold">
             Side Panel Position
           </h2>
-          <div
-            className={cn(
-              'rounded-lg border p-4',
-              'border-gray-200 bg-white',
-              'dark:border-gray-700 dark:bg-gray-800',
-            )}
-          >
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Move the Tab Manager between the left and right sides of your
-              browser.
-            </p>
-            <button
-              onClick={openSidePanelSettings}
-              className={cn(
-                'mb-4 flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors',
-                'bg-blue-600 text-white hover:bg-blue-700',
-              )}
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+          <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-muted text-sm">
+                Move the Tab Manager between the left and right sides of your
+                browser.
+              </p>
+              <button
+                onClick={openSidePanelSettings}
+                className={cn(
+                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-              Open Appearance Settings
-            </button>
-            <div
-              className={cn('rounded-md p-4', 'bg-gray-50 dark:bg-gray-900')}
-            >
-              <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <ExternalLinkIcon className="h-4 w-4" />
+                Open Appearance Settings
+              </button>
+            </div>
+            <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
+              <h4 className="text-foreground mb-2 text-sm font-medium">
                 How to change the side panel position:
               </h4>
-              <ol className="list-inside list-decimal space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <ol className="text-muted list-inside list-decimal space-y-2 text-sm">
                 <li>Scroll down to the "Side panel" section</li>
                 <li>
                   Choose{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-foreground">
                     "Show on left side"
                   </strong>{' '}
                   or{' '}
-                  <strong className="text-gray-800 dark:text-gray-200">
+                  <strong className="text-foreground">
                     "Show on right side"
                   </strong>
                 </li>
                 <li>The Tab Manager will move to your chosen side</li>
               </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* Reset Section */}
+        <section>
+          <h2 className="text-foreground mb-4 text-lg font-semibold">Reset</h2>
+          <div
+            className={cn(
+              'rounded-lg border p-4',
+              'border-accent/[calc(var(--accent-strength)*1%)] bg-accent/[calc(var(--accent-strength)*1%)]',
+            )}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-foreground font-medium">Preferences</h3>
+                <p className="text-foreground/70 text-sm">
+                  Restores default settings for Tabby.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resetPreferences}
+                className={cn(
+                  'shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'bg-accent/[calc(var(--accent-strength)*1%)] hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
+              >
+                Reset preferences
+              </button>
             </div>
           </div>
         </section>

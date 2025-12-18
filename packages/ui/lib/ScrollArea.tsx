@@ -1,4 +1,4 @@
-import { cn } from '../utils/cn'
+import { cn } from './utils/cn'
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 import type { ComponentProps } from 'react'
 
@@ -25,7 +25,7 @@ const ScrollBar = ({
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-slate-400 dark:bg-slate-500" />
+      <ScrollAreaPrimitive.Thumb className="bg-muted/60 relative flex-1 rounded-full" />
     </ScrollAreaPrimitive.Scrollbar>
   )
 }

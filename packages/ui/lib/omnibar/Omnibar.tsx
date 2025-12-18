@@ -5,7 +5,8 @@ import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
-import { ScrollArea } from '../components/ScrollArea'
+import { LayoutGridIcon, SettingsIcon } from '../icons'
+import { ScrollArea } from '../ScrollArea'
 import { cn } from '../utils/cn'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
@@ -93,20 +94,7 @@ export const Omnibar = ({
     if (!hideTabManagerAction) {
       actions.push({
         id: 'open-tab-manager',
-        icon: (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            className="h-4 w-4"
-          >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-        ),
+        icon: <LayoutGridIcon className="h-4 w-4" />,
         label: 'Open Tab Manager',
         onClick: async () => {
           const windowId =
@@ -123,26 +111,7 @@ export const Omnibar = ({
 
     actions.push({
       id: 'open-options',
-      icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          className="h-4 w-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      ),
+      icon: <SettingsIcon className="h-4 w-4" />,
       label: 'Open Options',
       onClick: async () => {
         chrome.runtime.openOptionsPage()
@@ -207,12 +176,12 @@ export const Omnibar = ({
   return (
     <div
       className={cn(
-        'flex h-full flex-col bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100',
+        'bg-card text-card-foreground flex h-full flex-col',
         className,
       )}
-      onClick={(e) => e.stopPropagation()}
       role="button"
       tabIndex={0}
+      onClick={(e) => e.stopPropagation()}
       onKeyDown={handleContainerKeyDown}
       onKeyUp={handleContainerKeyUp}
     >

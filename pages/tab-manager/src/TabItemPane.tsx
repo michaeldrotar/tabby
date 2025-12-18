@@ -1,7 +1,56 @@
 import { useTabListItems } from '@extension/chrome'
-import { cn } from '@extension/ui'
-import { TabItem } from '@src/TabItem'
-import type { BrowserWindowID } from '@extension/chrome'
+import {
+  TabItem,
+  TabList,
+  TabListItem,
+  TabListGroup,
+  getFaviconUrl,
+} from '@extension/ui'
+import { memo, useCallback } from 'react'
+import type {
+  BrowserTab,
+  BrowserTabID,
+  BrowserWindowID,
+} from '@extension/chrome'
+
+const onActivateTab = async (
+  windowId: BrowserWindowID,
+  tabId: BrowserTabID,
+): Promise<void> => {
+  await chrome.windows.update(windowId, { focused: true })
+  await chrome.tabs.update(tabId, { active: true })
+}
+
+const onRemoveTab = async (tabId: BrowserTabID): Promise<void> => {
+  if (tabId) {
+    await chrome.tabs.remove(tabId)
+  }
+}
+
+const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
+  console.count('TabItemForTab.render')
+
+  const onActivate = useCallback(
+    () => onActivateTab(tab.windowId, tab.id),
+    [tab.windowId, tab.id],
+  )
+  const onRemove = useCallback(() => onRemoveTab(tab.id), [tab.id])
+
+  return (
+    <TabItem
+      label={tab.title || 'Untitled'}
+      iconUrl={getFaviconUrl(tab.url || '', { size: 32 })}
+      isActive={tab.active}
+      isDiscarded={tab.discarded}
+      isHighlighted={tab.highlighted}
+      onActivate={onActivate}
+      onRemove={onRemove}
+      data-tab-item={tab.id}
+      data-nav-type="tab"
+      data-active={tab.active}
+    />
+  )
+})
 
 export type TabItemPaneProps = {
   browserWindowId?: BrowserWindowID
@@ -13,58 +62,37 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   return (
     <div key={`window-tabs-${browserWindowId}`} className="pb-4">
       <div className="space-y-4 p-2">
-        <ol className="flex flex-col gap-1">
+        <TabList>
           {items.map((item) => {
             if (item.type === 'tab') {
               return (
-                <li key={item.tab.id} className="flex w-full flex-col">
-                  <TabItem tab={item.tab} isActive={item.tab.active} />
-                </li>
+                <TabListItem key={item.tab.id}>
+                  <TabItemForTab tab={item.tab} />
+                </TabListItem>
               )
             }
 
             const active = item.tabs.some((t) => t.active)
 
             return (
-              <li key={item.group.id} className="flex w-full flex-col">
-                <div
-                  className={cn(
-                    'flex flex-col rounded-lg border border-transparent bg-gray-50/50 p-1 transition-colors dark:bg-gray-900/30',
-                    active && 'bg-blue-50/50 dark:bg-blue-900/10',
-                  )}
+              <TabListItem key={item.group.id}>
+                <TabListGroup
+                  title={item.group.title}
+                  color={item.group.color}
+                  isActive={active}
                 >
-                  <div className="mb-1 flex items-center gap-2 px-2 py-1">
-                    <div
-                      className={cn(
-                        'h-3 w-3 rounded-full',
-                        item.group.color
-                          ? `bg-${item.group.color}-500`
-                          : 'bg-gray-400',
-                      )}
-                    />
-                    <h4
-                      className={cn(
-                        'text-xs font-bold uppercase tracking-wider opacity-80',
-                        item.group.color
-                          ? `text-${item.group.color}-700 dark:text-${item.group.color}-400`
-                          : 'text-gray-600 dark:text-gray-400',
-                      )}
-                    >
-                      {item.group.title || 'Group'}
-                    </h4>
-                  </div>
-                  <ol className="flex flex-col gap-0.5 pl-2">
-                    {item.tabs.map((tab) => (
-                      <li key={tab.id} className="flex flex-col">
-                        <TabItem tab={tab} isActive={tab.active} />
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </li>
+                  {item.tabs.map((tab) => {
+                    return (
+                      <TabListItem key={tab.id}>
+                        <TabItemForTab tab={tab} />
+                      </TabListItem>
+                    )
+                  })}
+                </TabListGroup>
+              </TabListItem>
             )
           })}
-        </ol>
+        </TabList>
       </div>
     </div>
   )

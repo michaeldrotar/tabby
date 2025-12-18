@@ -7,9 +7,6 @@
     "description": "Extension name",
     "message": "Tabby"
   },
-  "toggleTheme": {
-    "message": "Toggle theme"
-  },
   "displayErrorInfo": {
     "message": "Error occur"
   },
@@ -24,5 +21,18 @@
   },
   "displayErrorReset": {
     "message": "Run Again"
+  },
+  "nTabs": {
+    "message": "$COUNT$ tabs",
+    "description": "Shows how many tabs belong to the window",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": 1
+      }
+    }
+  },
+  "nTabs_one": {
+    "message": "1 tab"
   }
 }

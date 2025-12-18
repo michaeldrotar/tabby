@@ -44,10 +44,46 @@ export type StorageConfigType<D = string> = {
   }
 }
 
-export interface ThemeStateType {
-  theme: 'light' | 'dark' | undefined
+export type ThemeNeutralPalette =
+  | 'slate'
+  | 'gray'
+  | 'zinc'
+  | 'neutral'
+  | 'stone'
+
+export type ThemeAccentPalette =
+  | 'red'
+  | 'orange'
+  | 'amber'
+  | 'yellow'
+  | 'lime'
+  | 'green'
+  | 'emerald'
+  | 'teal'
+  | 'cyan'
+  | 'sky'
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'purple'
+  | 'fuchsia'
+  | 'pink'
+  | 'rose'
+
+export type ThemeMode = 'system' | 'light' | 'dark'
+
+export interface PreferenceStateType {
+  theme: ThemeMode
+  themeLightBackground: ThemeNeutralPalette
+  themeLightForeground: ThemeNeutralPalette
+  themeLightAccent: ThemeAccentPalette
+  themeLightAccentStrength: number
+  themeDarkBackground: ThemeNeutralPalette
+  themeDarkForeground: ThemeNeutralPalette
+  themeDarkAccent: ThemeAccentPalette
+  themeDarkAccentStrength: number
+  tabManagerCompactIconMode: 'active' | 'first'
+  tabManagerCompactLayout: 'icon' | 'list'
 }
 
-export type ThemeStorageType = BaseStorageType<ThemeStateType> & {
-  toggle: () => Promise<void>
-}
+export type PreferenceStorageType = BaseStorageType<PreferenceStateType>
