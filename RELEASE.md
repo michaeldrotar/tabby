@@ -182,6 +182,23 @@ This ensures the patch is included in the next feature release.
   - For feature releases: Organize by user-facing value, not chronological order of development
   - For patch releases: List only the bugs that existed in previous releases
 
+### Writing Release Notes (Product Owner Perspective)
+
+When writing or editing release notes, adopt a **product owner mindset** focused on customer value:
+
+- **Audience**: End users, not developers. Avoid technical jargon and implementation details.
+- **Focus on Benefits**: Explain what users can do now that they couldn't before, or what problems are solved.
+- **User Problems First**: Frame features around the user need they address, not the technical solution.
+- **Avoid Tedious Details**:
+  - ✅ "Choose from over 15 color options"
+  - ❌ "Choose from Blue, Violet, Purple, Pink, Red, Orange, Amber, Yellow, Lime, Green, Emerald, Teal, Cyan, Sky, Indigo, Fuchsia, or Rose"
+- **Skip Technical Implementation**:
+  - ✅ "Themes adapt automatically to your system's light or dark mode"
+  - ❌ "Separate palette storage for light and dark mode themes"
+- **Be Concise**: Every sentence should deliver value. Remove filler and redundancy.
+- **Highlight Impact**: Lead with what's most impactful to users, not what was built first.
+- **Use Plain Language**: Write like you're explaining to a friend, not documenting an API.
+
 ## Tips
 
 - Always pull before merging to avoid conflicts

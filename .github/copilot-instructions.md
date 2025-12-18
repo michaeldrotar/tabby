@@ -15,6 +15,7 @@ This file contains instructions for GitHub Copilot to follow when working on thi
   - **One File Per Version:** Do not create multiple release note files for the same version. Append your notes to the existing \`v<version>-\*.md\` file for the current version.
   - **Bug Fixes:** Only document fixes for bugs that existed in previous releases. Do not document fixes for issues introduced and resolved during current development.
   - **File Naming:** The slug in the filename (e.g., \`v1.2.0-tab-manager-settings.md\`) is set during the release process, not during development. The initial template uses a generic slug that gets renamed when finalizing the release.
+  - **Writing Guidelines:** See the "Release Notes" section in \`RELEASE.md\` for how to write effective, user-focused release notes.
   - Do not mark the task as complete until this is done.
 - **Documentation:**
   - Permission or privacy changes should update both \`README.md\` (permissions table) and \`PRIVACY.md\`.
