@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
-    "description": "Extension description",
-    "message": "Cat friendly Omnibar and Tab Manager"
+    "message": "Cat friendly Omnibar and Tab Manager",
+    "description": "Extension description"
   },
   "extensionName": {
-    "description": "Extension name",
-    "message": "Tabby"
+    "message": "Tabby",
+    "description": "Extension name"
   },
   "displayErrorInfo": {
     "message": "Error occur"
@@ -28,7 +28,7 @@
     "placeholders": {
       "count": {
         "content": "$1",
-        "example": 1
+        "example": "1"
       }
     }
   },
