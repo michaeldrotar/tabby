@@ -57,7 +57,7 @@
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/parser": "^8.48.1",
     "autoprefixer": "^10.4.22",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "dedent": "^1.7.0",
     "deepmerge": "^4.3.1",
     "eslint": "^9.39.1",
