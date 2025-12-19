@@ -30,7 +30,7 @@ export const TabItem = memo(
       <div
         className={cn(
           'group relative overflow-hidden rounded-md',
-          'has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)] has-[button:focus-visible]:ring-offset-background has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2',
+          'has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)] has-[button:focus-visible]:ring-offset-2 has-[button:focus-visible]:ring-offset-background',
         )}
         {...props}
       >
@@ -67,7 +67,7 @@ export const TabItem = memo(
               style={{ height: `20px`, width: `20px` }}
             />
             {isDiscarded && (
-              <div className="border-background bg-muted absolute -bottom-1 -right-1 h-2 w-2 rounded-full border" />
+              <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full border border-background bg-muted" />
             )}
           </div>
           <span className={cn('flex-1 truncate', isActive && 'font-medium')}>
@@ -79,7 +79,7 @@ export const TabItem = memo(
           <button
             type="button"
             onClick={onRemove}
-            className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1 focus:outline-none focus-visible:outline-none"
+            className="rounded p-1 text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent focus:outline-none focus-visible:outline-none"
             title="Close Tab"
             aria-label="Close Tab"
           >

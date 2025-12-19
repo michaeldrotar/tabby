@@ -58,7 +58,7 @@ export const WindowRailItem = ({
             aria-hidden
             className={cn(
               'pointer-events-none absolute left-0 top-1/2 -translate-y-1/2',
-              'bg-foreground/60 h-6 w-1 rounded-r-full',
+              'h-6 w-1 rounded-r-full bg-foreground/60',
               isSelected ? 'bg-foreground/50' : 'bg-muted/20',
             )}
           />
@@ -68,7 +68,7 @@ export const WindowRailItem = ({
           {activeTabUrl ? (
             <Favicon pageUrl={activeTabUrl} size={24} />
           ) : (
-            <div className="bg-muted/40 h-4 w-4 rounded-full" />
+            <div className="h-4 w-4 rounded-full bg-muted/40" />
           )}
         </div>
 
@@ -98,7 +98,7 @@ export const WindowRailItem = ({
               e.stopPropagation()
               onClose()
             }}
-            className="text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent rounded p-1"
+            className="rounded p-1 text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent"
             title="Close Window"
             aria-label="Close Window"
           >
@@ -116,7 +116,7 @@ export const WindowRailItem = ({
       <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side="right">
         <div>{title}</div>
-        <div className="text-tooltip-foreground/50 text-xs">
+        <div className="text-xs text-tooltip-foreground/50">
           {tt('nTabs', tabCount)}
         </div>
       </TooltipContent>

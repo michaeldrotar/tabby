@@ -27,7 +27,7 @@ export const OmnibarEmptyState = ({
 
   if (query) {
     return (
-      <div className="text-muted px-4 py-8 text-center">
+      <div className="px-4 py-8 text-center text-muted">
         No results found for "{query}"
       </div>
     )
@@ -38,7 +38,7 @@ export const OmnibarEmptyState = ({
       {/* Quick Actions */}
       {quickActions && quickActions.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-muted mb-2 text-xs font-medium uppercase tracking-wider">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">
             Quick Actions
           </h3>
           <div className="flex flex-col gap-1">
@@ -49,10 +49,10 @@ export const OmnibarEmptyState = ({
                 onClick={action.onClick}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
-                  'text-foreground hover:bg-highlighted/50 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'text-foreground hover:bg-highlighted/50 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 )}
               >
-                <span className="bg-input text-muted flex h-8 w-8 items-center justify-center rounded-md">
+                <span className="flex h-8 w-8 items-center justify-center rounded-md bg-input text-muted">
                   {action.icon}
                 </span>
                 <span className="font-medium">{action.label}</span>
@@ -64,20 +64,20 @@ export const OmnibarEmptyState = ({
 
       {/* Tips */}
       <div>
-        <h3 className="text-muted mb-2 text-xs font-medium uppercase tracking-wider">
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">
           Tips
         </h3>
-        <ul className="text-muted space-y-1.5 text-sm">
+        <ul className="space-y-1.5 text-sm text-muted">
           <li className="flex items-start gap-2">
-            <span className="text-muted mt-0.5">•</span>
+            <span className="mt-0.5 text-muted">•</span>
             <span>Type to search tabs, bookmarks, and history</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted mt-0.5">•</span>
+            <span className="mt-0.5 text-muted">•</span>
             <span>Enter a URL to navigate directly</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted mt-0.5">•</span>
+            <span className="mt-0.5 text-muted">•</span>
             <span>
               {os === 'mac' && (
                 <KbdGroup>
@@ -98,7 +98,7 @@ export const OmnibarEmptyState = ({
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-muted mt-0.5">•</span>
+            <span className="mt-0.5 text-muted">•</span>
             <span>
               {os === 'mac' && (
                 <KbdGroup>

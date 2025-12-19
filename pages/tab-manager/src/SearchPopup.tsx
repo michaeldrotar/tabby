@@ -17,7 +17,7 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
       <Omnibar
         onDismiss={onClose}
         hideTabManagerAction
-        className="border-border max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl border shadow-2xl"
+        className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl border border-border shadow-2xl"
       />
     </div>
   )

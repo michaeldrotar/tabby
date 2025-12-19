@@ -22,7 +22,7 @@ export const TabManagerSidebar = ({
   return (
     <div
       className={cn(
-        'bg-input/30 flex h-full flex-col overflow-x-clip transition-[width] duration-300 ease-in-out',
+        'flex h-full flex-col overflow-x-clip bg-input/30 transition-[width] duration-300 ease-in-out',
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
@@ -32,7 +32,7 @@ export const TabManagerSidebar = ({
       <div className="flex h-14 w-64 flex-shrink-0 items-center justify-between px-3">
         <button
           onClick={onToggleExpand}
-          className="text-muted hover:bg-highlighted/50 hover:text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-highlighted/50 hover:text-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           title={isExpanded ? 'Collapse' : 'Expand'}
           aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
         >
@@ -45,7 +45,7 @@ export const TabManagerSidebar = ({
         {windowCount && (
           <span
             className={cn(
-              'text-muted whitespace-nowrap text-xs font-medium transition-[visibility] duration-300',
+              'whitespace-nowrap text-xs font-medium text-muted transition-[visibility] duration-300',
               isExpanded ? 'visible' : 'invisible',
             )}
           >
@@ -54,7 +54,7 @@ export const TabManagerSidebar = ({
         )}
       </div>
 
-      <div className="bg-border h-[1px] w-full"></div>
+      <div className="h-[1px] w-full bg-border"></div>
 
       {/* Middle Scrollable: Window List */}
       <ScrollArea className="flex-1 py-2" orientation="vertical">
@@ -62,7 +62,7 @@ export const TabManagerSidebar = ({
       </ScrollArea>
 
       {/* Bottom Sticky: Actions */}
-      <div className="border-border flex flex-shrink-0 flex-col gap-1 border-t p-2">
+      <div className="flex flex-shrink-0 flex-col gap-1 border-t border-border p-2">
         {actions}
       </div>
     </div>

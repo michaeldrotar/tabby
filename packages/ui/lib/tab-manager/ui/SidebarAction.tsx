@@ -23,7 +23,7 @@ export const SidebarAction = ({
         'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
         'focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         'group flex w-full items-center gap-3 rounded-md p-2 transition-colors',
-        'text-foreground hover:bg-highlighted/50 overflow-clip',
+        'overflow-clip text-foreground hover:bg-highlighted/50',
       )}
     >
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">

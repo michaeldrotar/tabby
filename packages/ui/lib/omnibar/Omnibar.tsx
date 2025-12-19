@@ -176,7 +176,7 @@ export const Omnibar = ({
   return (
     <div
       className={cn(
-        'bg-card text-card-foreground flex h-full flex-col',
+        'flex h-full flex-col bg-card text-card-foreground',
         className,
       )}
       role="button"

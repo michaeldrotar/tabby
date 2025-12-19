@@ -25,7 +25,7 @@ const ScrollBar = ({
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.Thumb className="bg-muted/60 relative flex-1 rounded-full" />
+      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-muted/60" />
     </ScrollAreaPrimitive.Scrollbar>
   )
 }
