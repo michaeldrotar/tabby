@@ -5,13 +5,13 @@ export const useOmnibarSearch = (
   query: string,
   onSearch?: (query: string) => Promise<OmnibarSearchResult[]>,
 ) => {
+  const [emptyResults] = useState<OmnibarSearchResult[]>([])
   const [externalResults, setExternalResults] = useState<OmnibarSearchResult[]>(
     [],
   )
 
   useEffect(() => {
     if (!query || !onSearch) {
-      setExternalResults([])
       return
     }
     const timer = setTimeout(() => {
@@ -20,5 +20,8 @@ export const useOmnibarSearch = (
     return () => clearTimeout(timer)
   }, [query, onSearch])
 
+  if (!query) {
+    return emptyResults
+  }
   return externalResults
 }

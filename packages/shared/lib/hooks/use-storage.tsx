@@ -50,8 +50,10 @@ export const useStorage = <
     storageMap.set(storage, wrapPromise(storage.get()))
   }
 
+  // eslint-disable-next-line react-hooks/refs
   if (_data || initializedRef.current) {
     storageMap.set(storage, { read: () => _data })
+    // eslint-disable-next-line react-hooks/refs
     initializedRef.current = true
   }
 

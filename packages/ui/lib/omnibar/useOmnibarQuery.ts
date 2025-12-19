@@ -30,7 +30,6 @@ export const useOmnibarQuery = (
         }, 50)
       })
     } else {
-      setIsLoaded(true)
       setTimeout(() => {
         inputRef.current?.focus()
       }, 50)
@@ -38,12 +37,7 @@ export const useOmnibarQuery = (
   }, [inputRef])
 
   useEffect(() => {
-    if (
-      isLoaded &&
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
+    if (isLoaded) {
       chrome.storage.local.set({ lastQuery: query })
     }
   }, [query, isLoaded])

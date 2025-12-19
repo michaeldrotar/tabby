@@ -1,30 +1,32 @@
 import localRules from './eslint-rules/index.js'
-import { fixupConfigRules } from '@eslint/compat'
-import { FlatCompat } from '@eslint/eslintrc'
-import js from '@eslint/js'
+import eslint from '@eslint/js'
+import pluginQuery from '@tanstack/eslint-plugin-query'
+import { defineConfig } from 'eslint/config'
 import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import reactPlugin from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
 import unusedImports from 'eslint-plugin-unused-imports'
 import { browser, es2020, node } from 'globals'
 import { configs as tsConfigs, parser as tsParser } from 'typescript-eslint'
-import type { FixupConfigArray } from '@eslint/compat'
 
-export default [
+export default defineConfig([
   // Shared configs
-  js.configs.recommended,
+  eslint.configs.recommended,
+  ...pluginQuery.configs['flat/recommended'],
   ...tsConfigs.recommended,
+  reactHooks.configs.flat.recommended,
   jsxA11y.flatConfigs.recommended,
   importXFlatConfig.recommended,
   importXFlatConfig.typescript,
   eslintPluginPrettierRecommended,
-  ...fixupConfigRules(
-    new FlatCompat().extends(
-      'plugin:@tanstack/eslint-plugin-query/recommended',
-      'plugin:react-hooks/recommended',
-    ) as FixupConfigArray,
-  ),
+  // ...fixupConfigRules(
+  //   new FlatCompat().extends(
+  //     // 'plugin:@tanstack/eslint-plugin-query/recommended',
+  //     'plugin:react-hooks/recommended',
+  //   ) as FixupConfigArray,
+  // ),
   {
     files: ['**/*.{ts,tsx}'],
     ...reactPlugin.configs.flat.recommended,
@@ -160,4 +162,4 @@ export default [
       },
     },
   },
-]
+])
