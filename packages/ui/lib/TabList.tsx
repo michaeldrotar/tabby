@@ -106,7 +106,10 @@ export const TabListGroup = ({
   return (
     <div
       className={cn(
-        'flex flex-col rounded-lg border border-transparent p-1 transition-colors',
+        `
+          flex flex-col rounded-lg border border-transparent p-1
+          transition-colors
+        `,
         colorClasses.bg,
         isActive && 'bg-accent/[calc(var(--accent-strength)*1%)]',
       )}

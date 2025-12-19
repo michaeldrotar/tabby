@@ -2,6 +2,7 @@ import localRules from './eslint-rules/index.js'
 import eslint from '@eslint/js'
 import pluginQuery from '@tanstack/eslint-plugin-query'
 import { defineConfig } from 'eslint/config'
+import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
@@ -65,15 +66,21 @@ export default defineConfig([
       },
     },
     plugins: {
+      'better-tailwindcss': eslintPluginBetterTailwindcss,
       'unused-imports': unusedImports,
       local: localRules,
     },
     settings: {
+      'better-tailwindcss': {
+        tailwindConfig: 'packages/tailwindcss-config/tailwind.config.ts',
+      },
       react: {
         version: 'detect',
       },
     },
     rules: {
+      ...eslintPluginBetterTailwindcss.configs['recommended-warn'].rules,
+      ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'no-unused-vars': 'off',
@@ -141,6 +148,7 @@ export default defineConfig([
       'import-x/consistent-type-specifier-style': 'error',
       'import-x/exports-last': 'off',
       'import-x/first': 'error',
+      'better-tailwindcss/no-unregistered-classes': 'off',
     },
     linterOptions: {
       reportUnusedDisableDirectives: 'error',

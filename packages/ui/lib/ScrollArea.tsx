@@ -15,8 +15,10 @@ const ScrollBar = ({
     <ScrollAreaPrimitive.Scrollbar
       orientation={orientation}
       className={cn(
-        'flex touch-none select-none p-px opacity-50',
-        'transition-opacity hover:opacity-100',
+        `
+          flex touch-none select-none p-px opacity-50 transition-opacity
+          hover:opacity-100
+        `,
         orientation === 'vertical' &&
           'h-full w-2.5 border-l border-l-transparent',
         orientation === 'horizontal' &&
@@ -25,7 +27,9 @@ const ScrollBar = ({
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-muted/60" />
+      <ScrollAreaPrimitive.Thumb
+        className={`relative flex-1 rounded-full bg-muted/60`}
+      />
     </ScrollAreaPrimitive.Scrollbar>
   )
 }

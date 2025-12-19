@@ -43,14 +43,21 @@ export const WindowRailItem = ({
         data-selected={isSelected}
         data-active={isActive}
         className={cn(
-          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          'relative flex w-full items-center gap-3 overflow-clip rounded-md p-2 outline-none',
+          `
+            relative flex w-full items-center gap-3 overflow-clip rounded-md p-2
+            outline-none
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+            focus-visible:ring-offset-2 focus-visible:ring-offset-background
+          `,
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
             : isActive
               ? 'bg-input/50'
-              : 'text-foreground group-hover:bg-highlighted/50',
+              : `
+                text-foreground
+                group-hover:bg-highlighted/50
+              `,
         )}
       >
         {isActive && (
@@ -75,7 +82,12 @@ export const WindowRailItem = ({
         {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
         <div className={cn('w-full overflow-clip text-left')}>
           {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
-          <div className="flex w-44 flex-1 flex-col group-hover:w-36">
+          <div
+            className={`
+              flex w-44 flex-1 flex-col
+              group-hover:w-36
+            `}
+          >
             <span className="truncate text-sm font-medium leading-tight">
               {title}
             </span>
@@ -92,13 +104,22 @@ export const WindowRailItem = ({
       </button>
 
       {isExpanded && onClose && (
-        <div className="absolute right-2 top-1/2 hidden -translate-y-1/2 group-hover:flex">
+        <div
+          className={`
+            absolute right-2 top-1/2 hidden -translate-y-1/2
+            group-hover:flex
+          `}
+        >
           <button
             onClick={(e) => {
               e.stopPropagation()
               onClose()
             }}
-            className="rounded p-1 text-muted hover:bg-accent/[calc(var(--accent-strength)*1%)] hover:text-accent"
+            className={`
+              rounded p-1 text-muted
+              hover:bg-accent/[calc(var(--accent-strength)*1%)]
+              hover:text-accent
+            `}
             title="Close Window"
             aria-label="Close Window"
           >

@@ -76,10 +76,20 @@ export const OmnibarItem = ({
         ref={itemRef}
         type="button"
         className={cn(
-          'relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          `
+            relative flex w-full items-center gap-3 rounded-md px-4 py-2
+            text-left text-sm
+            focus:outline-none
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+            focus-visible:ring-offset-2 focus-visible:ring-offset-background
+          `,
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-            : 'text-foreground hover:bg-highlighted/50',
+            : `
+              text-foreground
+              hover:bg-highlighted/50
+            `,
         )}
         onClick={(e) => {
           let modifier: 'new-tab' | 'new-window' | undefined
@@ -90,11 +100,21 @@ export const OmnibarItem = ({
         onMouseMove={onMouseMove}
       >
         {item.type === 'command' ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-input text-xs font-bold text-muted">
+          <div
+            className={`
+              flex h-8 w-8 items-center justify-center rounded bg-input text-xs
+              font-bold text-muted
+            `}
+          >
             &gt;
           </div>
         ) : item.type === 'search' ? (
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-card p-0.5 shadow-sm ring-1 ring-border">
+          <div
+            className={`
+              flex h-8 w-8 flex-shrink-0 items-center justify-center
+              rounded-full bg-card p-0.5 shadow-sm ring-1 ring-border
+            `}
+          >
             <svg viewBox="0 0 24 24" className="h-full w-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

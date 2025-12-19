@@ -6,7 +6,7 @@
   "printWidth": 80,
   "bracketSameLine": false,
   "htmlWhitespaceSensitivity": "strict",
-  "plugins": ["prettier-plugin-tailwindcss"],
+  "plugins": [],
   "overrides": [
     {
       "files": ["*.yml", "*.yaml"],

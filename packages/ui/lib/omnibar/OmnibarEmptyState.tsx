@@ -38,7 +38,11 @@ export const OmnibarEmptyState = ({
       {/* Quick Actions */}
       {quickActions && quickActions.length > 0 && (
         <div className="mb-4">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">
+          <h3
+            className={`
+              mb-2 text-xs font-medium uppercase tracking-wider text-muted
+            `}
+          >
             Quick Actions
           </h3>
           <div className="flex flex-col gap-1">
@@ -48,11 +52,24 @@ export const OmnibarEmptyState = ({
                 type="button"
                 onClick={action.onClick}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
-                  'text-foreground hover:bg-highlighted/50 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  `
+                    flex items-center gap-3 rounded-lg px-3 py-2 text-left
+                    text-foreground transition-colors
+                    hover:bg-highlighted/50
+                    focus:outline-none
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-2
+                    focus-visible:ring-offset-background
+                  `,
                 )}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-md bg-input text-muted">
+                <span
+                  className={`
+                    flex h-8 w-8 items-center justify-center rounded-md bg-input
+                    text-muted
+                  `}
+                >
                   {action.icon}
                 </span>
                 <span className="font-medium">{action.label}</span>
@@ -64,7 +81,11 @@ export const OmnibarEmptyState = ({
 
       {/* Tips */}
       <div>
-        <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted">
+        <h3
+          className={`
+            mb-2 text-xs font-medium uppercase tracking-wider text-muted
+          `}
+        >
           Tips
         </h3>
         <ul className="space-y-1.5 text-sm text-muted">

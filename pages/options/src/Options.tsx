@@ -224,7 +224,12 @@ const OptionsContent = () => {
             Appearance
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-4
+                sm:flex-row sm:items-center sm:justify-between
+              `}
+            >
               <div>
                 <h3 className="font-medium text-foreground">Theme</h3>
                 <p className="text-sm text-muted">
@@ -256,10 +261,18 @@ const OptionsContent = () => {
                       />
                       <span
                         className={cn(
-                          'inline-flex rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                          'bg-input text-foreground hover:bg-input/70',
-                          'peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:text-foreground peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]',
-                          'peer-focus-visible:ring-2 peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background',
+                          `
+                            inline-flex rounded-lg bg-input px-3 py-2 text-sm
+                            font-medium text-foreground transition-colors
+                            hover:bg-input/70
+                            peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
+                            peer-checked:text-foreground
+                            peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
+                            peer-focus-visible:ring-2
+                            peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                            peer-focus-visible:ring-offset-2
+                            peer-focus-visible:ring-offset-background
+                          `,
                         )}
                       >
                         {option.label}
@@ -282,8 +295,15 @@ const OptionsContent = () => {
                   type="button"
                   onClick={randomizeColors}
                   className={cn(
-                    'flex-shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                    'bg-input text-foreground hover:bg-input/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    `
+                      flex-shrink-0 rounded-lg bg-input px-3 py-2 text-sm
+                      font-medium text-foreground transition-colors
+                      hover:bg-input/70
+                      focus-visible:outline-none focus-visible:ring-2
+                      focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                      focus-visible:ring-offset-2
+                      focus-visible:ring-offset-background
+                    `,
                   )}
                 >
                   Randomize colors
@@ -291,7 +311,12 @@ const OptionsContent = () => {
               </div>
 
               <div className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div
+                  className={`
+                    grid gap-4
+                    sm:grid-cols-3
+                  `}
+                >
                   <fieldset className="min-w-0">
                     <legend className="mb-2 text-sm font-medium text-foreground">
                       Background
@@ -421,7 +446,12 @@ const OptionsContent = () => {
                     </Select>
                   </fieldset>
 
-                  <fieldset className="min-w-0 sm:col-span-3">
+                  <fieldset
+                    className={`
+                      min-w-0
+                      sm:col-span-3
+                    `}
+                  >
                     <legend className="mb-2 text-sm font-medium text-foreground">
                       Accent strength
                     </legend>
@@ -448,7 +478,12 @@ const OptionsContent = () => {
                         }
                         className="flex-1"
                       />
-                      <span className="w-12 shrink-0 text-right text-sm tabular-nums text-muted">
+                      <span
+                        className={`
+                          w-12 shrink-0 text-right text-sm tabular-nums
+                          text-muted
+                        `}
+                      >
                         {activeThemeAccentStrength}%
                       </span>
                     </div>
@@ -470,14 +505,24 @@ const OptionsContent = () => {
               'border-border bg-card',
             )}
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-3
+                sm:flex-row sm:items-center sm:justify-between
+              `}
+            >
               <div>
                 <h3 className="font-medium text-foreground">Window Icon</h3>
                 <p className="text-sm text-muted">
                   Choose which tab icon to display for windows
                 </p>
               </div>
-              <div className="flex gap-2 sm:justify-end">
+              <div
+                className={`
+                  flex gap-2
+                  sm:justify-end
+                `}
+              >
                 <Select
                   value={tabManagerCompactIconMode}
                   onValueChange={(value) =>
@@ -487,7 +532,12 @@ const OptionsContent = () => {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger
+                    className={`
+                      w-full
+                      sm:w-[160px]
+                    `}
+                  >
                     <SelectValue placeholder="Select icon" />
                   </SelectTrigger>
                   <SelectContent>
@@ -498,7 +548,12 @@ const OptionsContent = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-3 border-t border-border pt-4
+                sm:flex-row sm:items-center sm:justify-between
+              `}
+            >
               <div>
                 <h3 className="font-medium text-foreground">Sidebar Layout</h3>
                 <p className="text-sm text-muted">
@@ -506,7 +561,9 @@ const OptionsContent = () => {
                 </p>
               </div>
               <div className="flex items-center">
-                <label className="relative inline-flex cursor-pointer items-center">
+                <label
+                  className={`relative inline-flex cursor-pointer items-center`}
+                >
                   <input
                     type="checkbox"
                     className="peer sr-only"
@@ -520,7 +577,22 @@ const OptionsContent = () => {
                       }))
                     }
                   />
-                  <div className="peer h-6 w-11 rounded-full border border-border bg-input after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-border after:bg-background after:transition-all after:content-[''] peer-checked:bg-accent/[calc(var(--accent-strength)*1%)] peer-checked:after:translate-x-full peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)] peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] peer-checked:hover:after:border-accent/[calc((var(--accent-strength)+5)*1%)] peer-focus-visible:outline-none peer-focus-visible:ring-4 peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]"></div>
+                  <div
+                    className={`
+                      peer h-6 w-11 rounded-full border border-border bg-input
+                      after:absolute after:left-[2px] after:top-[2px] after:h-5
+                      after:w-5 after:rounded-full after:border
+                      after:border-border after:bg-background
+                      after:transition-all after:content-['']
+                      peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
+                      peer-checked:after:translate-x-full
+                      peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)]
+                      peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
+                      peer-checked:hover:after:border-accent/[calc((var(--accent-strength)+5)*1%)]
+                      peer-focus-visible:outline-none peer-focus-visible:ring-4
+                      peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    `}
+                  ></div>
                   <span className="ml-3 text-sm font-medium text-foreground">
                     {tabManagerCompactLayout === 'list'
                       ? 'Expanded'
@@ -538,15 +610,28 @@ const OptionsContent = () => {
             Keyboard Shortcuts
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-3
+                sm:flex-row sm:items-start sm:justify-between
+              `}
+            >
               <p className="text-sm text-muted">
                 Configure keyboard shortcuts to quickly access Tabby's features.
               </p>
               <button
                 onClick={openShortcutsSettings}
                 className={cn(
-                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  `
+                    flex shrink-0 items-center gap-2 whitespace-nowrap
+                    rounded-lg bg-accent/[calc(var(--accent-strength)*1%)] px-4
+                    py-2 text-sm font-medium text-foreground transition-colors
+                    hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-2
+                    focus-visible:ring-offset-background
+                  `,
                 )}
               >
                 <ExternalLinkIcon className="h-4 w-4" />
@@ -634,7 +719,12 @@ const OptionsContent = () => {
             Side Panel Position
           </h2>
           <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-3
+                sm:flex-row sm:items-start sm:justify-between
+              `}
+            >
               <p className="text-sm text-muted">
                 Move the Tab Manager between the left and right sides of your
                 browser.
@@ -642,8 +732,16 @@ const OptionsContent = () => {
               <button
                 onClick={openSidePanelSettings}
                 className={cn(
-                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  `
+                    flex shrink-0 items-center gap-2 whitespace-nowrap
+                    rounded-lg bg-accent/[calc(var(--accent-strength)*1%)] px-4
+                    py-2 text-sm font-medium text-foreground transition-colors
+                    hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-2
+                    focus-visible:ring-offset-background
+                  `,
                 )}
               >
                 <ExternalLinkIcon className="h-4 w-4" />
@@ -654,7 +752,11 @@ const OptionsContent = () => {
               <h4 className="mb-2 text-sm font-medium text-foreground">
                 How to change the side panel position:
               </h4>
-              <ol className="list-inside list-decimal space-y-2 text-sm text-muted">
+              <ol
+                className={`
+                  list-inside list-decimal space-y-2 text-sm text-muted
+                `}
+              >
                 <li>Scroll down to the "Side panel" section</li>
                 <li>
                   Choose{' '}
@@ -677,11 +779,19 @@ const OptionsContent = () => {
           <h2 className="mb-4 text-lg font-semibold text-foreground">Reset</h2>
           <div
             className={cn(
-              'rounded-lg border p-4',
-              'border-accent/[calc(var(--accent-strength)*1%)] bg-accent/[calc(var(--accent-strength)*1%)]',
+              `
+                rounded-lg border
+                border-accent/[calc(var(--accent-strength)*1%)]
+                bg-accent/[calc(var(--accent-strength)*1%)] p-4
+              `,
             )}
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div
+              className={`
+                flex flex-col gap-3
+                sm:flex-row sm:items-start sm:justify-between
+              `}
+            >
               <div>
                 <h3 className="font-medium text-foreground">Preferences</h3>
                 <p className="text-sm text-foreground/70">
@@ -692,8 +802,16 @@ const OptionsContent = () => {
                 type="button"
                 onClick={resetPreferences}
                 className={cn(
-                  'shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground hover:bg-accent/[calc((var(--accent-strength)+5)*1%)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  `
+                    shrink-0 whitespace-nowrap rounded-lg
+                    bg-accent/[calc(var(--accent-strength)*1%)] px-4 py-2
+                    text-sm font-medium text-foreground transition-colors
+                    hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-2
+                    focus-visible:ring-offset-background
+                  `,
                 )}
               >
                 Reset preferences
