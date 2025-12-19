@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.90.7",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
