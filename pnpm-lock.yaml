@@ -254,8 +254,8 @@ importers:
         specifier: ^8.18.1
         version: 8.18.1
       esbuild:
-        specifier: ^0.25.12
-        version: 0.25.12
+        specifier: ^0.27.1
+        version: 0.27.1
       esm:
         specifier: ^3.2.25
         version: 3.2.25
