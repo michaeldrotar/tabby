@@ -8,6 +8,9 @@ export const createBrowserWindow = async (
   options?: chrome.windows.CreateData,
 ): Promise<BrowserWindow> => {
   const newChromeWindow = await chrome.windows.create(options || {})
+  if (!newChromeWindow) {
+    throw new Error('createBrowserWindow failed to create a window')
+  }
   if (!newChromeWindow.id) {
     throw new Error('createBrowserWindow created a window without an ID')
   }

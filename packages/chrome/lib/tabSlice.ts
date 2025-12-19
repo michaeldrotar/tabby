@@ -29,7 +29,7 @@ export type TabSlice = {
   /**
    * Removes a browser tab from the store.
    */
-  removeTabById: (id: BrowserTabID, options?: chrome.tabs.TabRemoveInfo) => void
+  removeTabById: (id: BrowserTabID, options?: chrome.tabs.OnRemovedInfo) => void
 
   /**
    * Moves a tab within byWindowId by shifting indexes.

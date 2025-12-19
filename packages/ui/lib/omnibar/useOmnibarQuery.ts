@@ -15,7 +15,7 @@ export const useOmnibarQuery = (
     ) {
       chrome.storage.local.get('lastQuery').then((res) => {
         if (res.lastQuery) {
-          setQuery(res.lastQuery)
+          setQuery(res.lastQuery as string)
         }
         setIsLoaded(true)
 

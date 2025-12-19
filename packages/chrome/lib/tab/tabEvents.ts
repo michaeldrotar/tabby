@@ -4,7 +4,9 @@ import { useBrowserStore } from '../useBrowserStore.js'
 /**
  * Handles when a tab becomes active in a window.
  */
-const onChromeTabActivated = (activeInfo: chrome.tabs.TabActiveInfo): void => {
+const onChromeTabActivated = (
+  activeInfo: chrome.tabs.OnActivatedInfo,
+): void => {
   const { tabId, windowId } = activeInfo
   const state = useBrowserStore.getState()
 
@@ -27,7 +29,7 @@ const onChromeTabActivated = (activeInfo: chrome.tabs.TabActiveInfo): void => {
  */
 const onChromeTabAttached = (
   tabId: number,
-  attachInfo: chrome.tabs.TabAttachInfo,
+  attachInfo: chrome.tabs.OnAttachedInfo,
 ): void => {
   const state = useBrowserStore.getState()
   state.updateTabById(tabId, {
@@ -51,7 +53,7 @@ const onChromeTabCreated = (newChromeTab: chrome.tabs.Tab): void => {
  */
 const onChromeTabDetached = (
   tabId: number,
-  detachInfo: chrome.tabs.TabDetachInfo,
+  detachInfo: chrome.tabs.OnDetachedInfo,
 ): void => {
   const state = useBrowserStore.getState()
   state.updateTabById(tabId, {
@@ -64,7 +66,7 @@ const onChromeTabDetached = (
  * Handles when the highlighted tab selection changes within a window.
  */
 const onChromeTabHighlighted = (
-  highlightInfo: chrome.tabs.TabHighlightInfo,
+  highlightInfo: chrome.tabs.OnHighlightedInfo,
 ): void => {
   const state = useBrowserStore.getState()
   const { tabIds, windowId } = highlightInfo
@@ -87,7 +89,7 @@ const onChromeTabHighlighted = (
  */
 const onChromeTabMoved = (
   tabId: number,
-  moveInfo: chrome.tabs.TabMoveInfo,
+  moveInfo: chrome.tabs.OnMovedInfo,
 ): void => {
   const state = useBrowserStore.getState()
   state.moveTabById(tabId, { toIndex: moveInfo.toIndex })
@@ -98,7 +100,7 @@ const onChromeTabMoved = (
  */
 const onChromeTabRemoved = (
   removedTabId: number,
-  removeInfo: chrome.tabs.TabRemoveInfo,
+  removeInfo: chrome.tabs.OnRemovedInfo,
 ): void => {
   const state = useBrowserStore.getState()
   state.removeTabById(removedTabId, removeInfo)
@@ -131,7 +133,7 @@ const onChromeTabReplaced = (
  */
 const onChromeTabUpdated = (
   tabId: number,
-  changeInfo: chrome.tabs.TabChangeInfo,
+  changeInfo: chrome.tabs.OnUpdatedInfo,
   tab: chrome.tabs.Tab,
 ): void => {
   const browserTab = toBrowserTab(tab)
