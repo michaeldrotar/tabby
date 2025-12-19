@@ -1,2 +1,3 @@
 dist
 pnpm-lock.yaml
+packages/i18n/lib/i18n.ts

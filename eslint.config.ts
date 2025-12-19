@@ -43,6 +43,8 @@ export default defineConfig([
       'chrome-extension/manifest.js',
       'eslint-rules/**',
       'scripts/**',
+      // Generated i18n file - skip linting
+      'packages/i18n/lib/i18n.ts',
     ],
   },
   {
