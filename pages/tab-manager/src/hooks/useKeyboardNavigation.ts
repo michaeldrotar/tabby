@@ -118,6 +118,16 @@ export const useKeyboardNavigation = (
             focusNavigableItem(nextItem.element, nextItem.type)
           }
         }
+      } else if (
+        e.key === 'ContextMenu' ||
+        (e.key === 'F10' && e.shiftKey) ||
+        (e.key === 'Enter' && e.shiftKey)
+      ) {
+        // Open context menu for the focused item
+        // Shift+F10 is the standard Windows shortcut, ContextMenu is the dedicated key
+        // Shift+Enter is an alternative that works well on Mac
+        e.preventDefault()
+        openContextMenuForElement(navItem)
       } else if (e.key === 'Enter') {
         if (navType === 'window' && onActivateWindow) {
           const windowId = navItem.getAttribute('data-nav-id')
@@ -240,4 +250,20 @@ const focusNavigableItem = (element: HTMLElement, type: 'tab' | 'group') => {
     }
   }
   element.scrollIntoView({ block: 'nearest' })
+}
+
+/**
+ * Opens a context menu for the given element by dispatching a synthetic
+ * contextmenu event. The event is positioned at the element's center.
+ */
+const openContextMenuForElement = (element: HTMLElement) => {
+  const rect = element.getBoundingClientRect()
+  const contextMenuEvent = new MouseEvent('contextmenu', {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+  })
+  element.dispatchEvent(contextMenuEvent)
 }
