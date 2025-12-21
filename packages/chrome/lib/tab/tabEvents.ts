@@ -26,15 +26,33 @@ const onChromeTabActivated = (
 
 /**
  * Handles when a chrome tab is attached to a window.
+ *
+ * When a tab is attached at a position, all existing tabs at that position
+ * or higher need to have their indexes shifted up by 1.
  */
 const onChromeTabAttached = (
   tabId: number,
   attachInfo: chrome.tabs.OnAttachedInfo,
 ): void => {
   const state = useBrowserStore.getState()
+  const { newWindowId, newPosition } = attachInfo
+
+  // Shift indexes of existing tabs in the target window that are at or after the new position
+  const tabsToShift = Object.values(state.tabById).filter(
+    (tab) =>
+      tab.windowId === newWindowId &&
+      tab.id !== tabId &&
+      tab.index >= newPosition,
+  )
+
+  for (const tab of tabsToShift) {
+    state.updateTabById(tab.id, { index: tab.index + 1 })
+  }
+
+  // Update the attached tab's window and position
   state.updateTabById(tabId, {
-    windowId: attachInfo.newWindowId,
-    index: attachInfo.newPosition,
+    windowId: newWindowId,
+    index: newPosition,
   })
 }
 
@@ -50,15 +68,33 @@ const onChromeTabCreated = (newChromeTab: chrome.tabs.Tab): void => {
 
 /**
  * Handles when a chrome tab is detached from its window.
+ *
+ * When a tab is detached from a position, all tabs after that position
+ * need to have their indexes shifted down by 1.
  */
 const onChromeTabDetached = (
   tabId: number,
   detachInfo: chrome.tabs.OnDetachedInfo,
 ): void => {
   const state = useBrowserStore.getState()
+  const { oldWindowId, oldPosition } = detachInfo
+
+  // Shift indexes of tabs in the old window that were after the detached position
+  const tabsToShift = Object.values(state.tabById).filter(
+    (tab) =>
+      tab.windowId === oldWindowId &&
+      tab.id !== tabId &&
+      tab.index > oldPosition,
+  )
+
+  for (const tab of tabsToShift) {
+    state.updateTabById(tab.id, { index: tab.index - 1 })
+  }
+
+  // Mark the tab as detached (windowId = WINDOW_ID_NONE)
   state.updateTabById(tabId, {
     windowId: chrome.windows.WINDOW_ID_NONE,
-    index: detachInfo.oldPosition,
+    index: oldPosition,
   })
 }
 
