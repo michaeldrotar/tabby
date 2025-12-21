@@ -1,3 +1,9 @@
+import {
+  moveTabBack,
+  moveTabForward,
+  moveGroupBack,
+  moveGroupForward,
+} from './moveOperations'
 import { useEffect, useRef } from 'react'
 
 /**
@@ -59,6 +65,16 @@ export const useKeyboardNavigation = (
             ) as HTMLElement
             firstWindow?.focus()
           }
+        }
+        return
+      }
+
+      // Alt+Arrow keys for moving tabs/groups
+      if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        if (navType === 'tab' || navType === 'group') {
+          e.preventDefault()
+          const direction = e.key === 'ArrowUp' ? 'back' : 'forward'
+          moveItem(navItem, navType, direction)
         }
         return
       }
@@ -266,4 +282,35 @@ const openContextMenuForElement = (element: HTMLElement) => {
     clientY: rect.top + rect.height / 2,
   })
   element.dispatchEvent(contextMenuEvent)
+}
+
+/**
+ * Moves a tab or group in the specified direction using the Chrome API.
+ */
+const moveItem = async (
+  element: HTMLElement,
+  type: 'tab' | 'group',
+  direction: 'back' | 'forward',
+) => {
+  if (type === 'tab') {
+    const tabId = element.getAttribute('data-tab-item')
+    if (!tabId) return
+
+    const tabIdNum = parseInt(tabId, 10)
+    if (direction === 'back') {
+      await moveTabBack(tabIdNum)
+    } else {
+      await moveTabForward(tabIdNum)
+    }
+  } else if (type === 'group') {
+    const groupId = element.getAttribute('data-group-id')
+    if (!groupId) return
+
+    const groupIdNum = parseInt(groupId, 10)
+    if (direction === 'back') {
+      await moveGroupBack(groupIdNum)
+    } else {
+      await moveGroupForward(groupIdNum)
+    }
+  }
 }

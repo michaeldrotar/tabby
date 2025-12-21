@@ -1,3 +1,4 @@
+import { moveTabBack, moveTabForward } from './moveOperations'
 import { useCallback } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 
@@ -60,6 +61,10 @@ export const useTabActions = (tab: BrowserTab) => {
     }
   }, [tabId, tab.windowId])
 
+  const moveBack = useCallback(() => moveTabBack(tabId), [tabId])
+
+  const moveForward = useCallback(() => moveTabForward(tabId), [tabId])
+
   const copyUrl = useCallback(async () => {
     if (tab.url) {
       await navigator.clipboard.writeText(tab.url)
@@ -121,5 +126,7 @@ export const useTabActions = (tab: BrowserTab) => {
     removeFromGroup,
     moveToWindow,
     moveToNewWindow,
+    moveBack,
+    moveForward,
   }
 }

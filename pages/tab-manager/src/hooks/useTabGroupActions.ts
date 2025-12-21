@@ -1,3 +1,4 @@
+import { moveGroupBack, moveGroupForward } from './moveOperations'
 import { useCallback } from 'react'
 import type { BrowserTabGroup } from '@extension/chrome'
 import type { TabGroupColor } from '@extension/ui'
@@ -64,6 +65,10 @@ export const useTabGroupActions = (
     }
   }, [tabIds])
 
+  const moveBack = useCallback(() => moveGroupBack(groupId), [groupId])
+
+  const moveForward = useCallback(() => moveGroupForward(groupId), [groupId])
+
   const close = useCallback(async () => {
     if (tabIds.length > 0) {
       await chrome.tabs.remove(tabIds)
@@ -77,6 +82,8 @@ export const useTabGroupActions = (
     ungroup,
     copyUrls,
     moveToNewWindow,
+    moveBack,
+    moveForward,
     close,
   }
 }
