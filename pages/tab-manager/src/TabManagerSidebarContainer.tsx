@@ -1,3 +1,4 @@
+import { useWindowActions } from './hooks/useWindowActions'
 import {
   useBrowserWindows,
   useCurrentBrowserWindow,
@@ -14,6 +15,7 @@ import {
   SettingsIcon,
   ScrollToActiveIcon,
   PlusIcon,
+  WindowContextMenu,
 } from '@extension/ui'
 import type { BrowserWindow } from '@extension/chrome'
 
@@ -37,32 +39,49 @@ const WindowItemContainer = ({
   isSelected,
   isExpanded,
   onSelect,
-  onClose,
 }: {
   window: BrowserWindow
   isCurrent: boolean
   isSelected: boolean
   isExpanded: boolean
   onSelect: (window: BrowserWindow) => void
-  onClose: () => void
 }) => {
   const displayTabUrl = useDisplayTabUrl(window.id)
   const tabs = useBrowserTabsByWindowId(window.id)
   const activeTab = tabs.find((tab) => tab.active)
   const title = activeTab?.title || `Window ${window.id}`
 
+  const hasAudibleTabs = tabs.some((t) => t.audible)
+  const hasMutedTabs = tabs.some((t) => t.mutedInfo?.muted)
+
+  const actions = useWindowActions(window, tabs)
+
   return (
-    <WindowRailItem
-      id={window.id}
-      title={title}
-      activeTabUrl={displayTabUrl}
+    <WindowContextMenu
+      window={window}
       tabCount={tabs.length}
-      isActive={isCurrent}
-      isSelected={isSelected}
-      isExpanded={isExpanded}
-      onClick={() => onSelect(window)}
-      onClose={onClose}
-    />
+      hasAudibleTabs={hasAudibleTabs}
+      hasMutedTabs={hasMutedTabs}
+      isCurrent={isCurrent}
+      onFocus={actions.focus}
+      onMuteAll={actions.muteAll}
+      onUnmuteAll={actions.unmuteAll}
+      onReloadAll={actions.reloadAll}
+      onCopyAllUrls={actions.copyAllUrls}
+      onClose={actions.close}
+    >
+      <WindowRailItem
+        id={window.id}
+        title={title}
+        activeTabUrl={displayTabUrl}
+        tabCount={tabs.length}
+        isActive={isCurrent}
+        isSelected={isSelected}
+        isExpanded={isExpanded}
+        onClick={() => onSelect(window)}
+        onClose={actions.close}
+      />
+    </WindowContextMenu>
   )
 }
 
@@ -89,10 +108,6 @@ export const TabManagerSidebarContainer = ({
       ...prev,
       tabManagerCompactLayout: isExpanded ? 'icon' : 'list',
     }))
-
-  const closeWindow = (windowId: number) => {
-    chrome.windows.remove(windowId)
-  }
 
   const openNewWindow = async () => {
     if (!currentBrowserWindow) {
@@ -122,7 +137,6 @@ export const TabManagerSidebarContainer = ({
           isSelected={window.id === selectedWindowId}
           isExpanded={isExpanded}
           onSelect={onSelectWindow}
-          onClose={() => closeWindow(window.id)}
         />
       ))}
     </>

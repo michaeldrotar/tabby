@@ -1,17 +1,27 @@
-import { useTabListItems } from '@extension/chrome'
+import { useTabActions } from './hooks/useTabActions'
+import { useTabGroupActions } from './hooks/useTabGroupActions'
+import { TabGroupHeader } from './TabGroupHeader'
+import { TabItemRow } from './TabItemRow'
 import {
-  TabItem,
+  useTabListItems,
+  useBrowserTabGroupsByWindowId,
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+} from '@extension/chrome'
+import {
   TabList,
   TabListItem,
-  TabListGroup,
-  getFaviconUrl,
+  TabContextMenu,
+  TabGroupContextMenu,
 } from '@extension/ui'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 import type {
   BrowserTab,
+  BrowserTabGroup,
   BrowserTabID,
   BrowserWindowID,
 } from '@extension/chrome'
+import type { TabGroupColor } from '@extension/ui'
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
@@ -21,36 +31,134 @@ const onActivateTab = async (
   await chrome.tabs.update(tabId, { active: true })
 }
 
-const onRemoveTab = async (tabId: BrowserTabID): Promise<void> => {
-  if (tabId) {
-    await chrome.tabs.remove(tabId)
-  }
-}
+const TabItemWithContextMenu = memo(
+  ({
+    tab,
+    groups,
+    currentWindowId,
+  }: {
+    tab: BrowserTab
+    groups: BrowserTabGroup[]
+    currentWindowId?: number
+  }) => {
+    const actions = useTabActions(tab)
+    const windows = useBrowserWindows()
 
-const TabItemForTab = memo(({ tab }: { tab: BrowserTab }) => {
-  console.count('TabItemForTab.render')
+    const onActivate = useCallback(
+      () => onActivateTab(tab.windowId, tab.id),
+      [tab.windowId, tab.id],
+    )
 
-  const onActivate = useCallback(
-    () => onActivateTab(tab.windowId, tab.id),
-    [tab.windowId, tab.id],
-  )
-  const onRemove = useCallback(() => onRemoveTab(tab.id), [tab.id])
+    return (
+      <TabContextMenu
+        tab={tab}
+        groups={groups}
+        windows={windows}
+        currentWindowId={currentWindowId}
+        onPin={actions.pin}
+        onUnpin={actions.unpin}
+        onMute={actions.mute}
+        onUnmute={actions.unmute}
+        onDuplicate={actions.duplicate}
+        onReload={actions.reload}
+        onClose={actions.close}
+        onCloseOther={actions.closeOther}
+        onCloseAfter={actions.closeAfter}
+        onCopyUrl={actions.copyUrl}
+        onCopyTitle={actions.copyTitle}
+        onCopyTitleAndUrl={actions.copyTitleAndUrl}
+        onAddToGroup={actions.addToGroup}
+        onAddToNewGroup={actions.addToNewGroup}
+        onRemoveFromGroup={actions.removeFromGroup}
+        onMoveToWindow={actions.moveToWindow}
+        onMoveToNewWindow={actions.moveToNewWindow}
+      >
+        <TabItemRow tab={tab} onActivate={onActivate} onClose={actions.close} />
+      </TabContextMenu>
+    )
+  },
+)
 
-  return (
-    <TabItem
-      label={tab.title || 'Untitled'}
-      iconUrl={getFaviconUrl(tab.url || '', { size: 32 })}
-      isActive={tab.active}
-      isDiscarded={tab.discarded}
-      isHighlighted={tab.highlighted}
-      onActivate={onActivate}
-      onRemove={onRemove}
-      data-tab-item={tab.id}
-      data-nav-type="tab"
-      data-active={tab.active}
-    />
-  )
-})
+const TabGroupWithContextMenu = memo(
+  ({
+    group,
+    tabs,
+    currentWindowId,
+    groups,
+  }: {
+    group: BrowserTabGroup
+    tabs: BrowserTab[]
+    currentWindowId?: number
+    groups: BrowserTabGroup[]
+  }) => {
+    const tabIds = tabs.map((t) => t.id)
+    const actions = useTabGroupActions(group, tabIds)
+    const [isRenaming, setIsRenaming] = useState(false)
+
+    const handleRename = useCallback(() => {
+      setIsRenaming(true)
+    }, [])
+
+    const handleRenameComplete = useCallback(
+      (newTitle: string) => {
+        actions.rename(newTitle)
+        setIsRenaming(false)
+      },
+      [actions],
+    )
+
+    const handleRenameCancel = useCallback(() => {
+      setIsRenaming(false)
+    }, [])
+
+    const handleChangeColor = useCallback(
+      (color: TabGroupColor) => {
+        actions.changeColor(color)
+      },
+      [actions],
+    )
+
+    const isActive = tabs.some((t) => t.active)
+
+    return (
+      <TabGroupContextMenu
+        group={group}
+        isCollapsed={group.collapsed}
+        onToggleCollapse={actions.toggleCollapse}
+        onRename={handleRename}
+        onChangeColor={handleChangeColor}
+        onUngroup={actions.ungroup}
+        onCopyUrls={actions.copyUrls}
+        onMoveToNewWindow={actions.moveToNewWindow}
+        onClose={actions.close}
+      >
+        <TabGroupHeader
+          group={group}
+          isActive={isActive}
+          isRenaming={isRenaming}
+          onRenameComplete={handleRenameComplete}
+          onRenameCancel={handleRenameCancel}
+          onToggleCollapse={actions.toggleCollapse}
+          onClose={actions.close}
+        >
+          {!group.collapsed && (
+            <TabList className="gap-0.5 pl-2">
+              {tabs.map((tab) => (
+                <TabListItem key={tab.id}>
+                  <TabItemWithContextMenu
+                    tab={tab}
+                    groups={groups}
+                    currentWindowId={currentWindowId}
+                  />
+                </TabListItem>
+              ))}
+            </TabList>
+          )}
+        </TabGroupHeader>
+      </TabGroupContextMenu>
+    )
+  },
+)
 
 export type TabItemPaneProps = {
   browserWindowId?: BrowserWindowID
@@ -58,37 +166,35 @@ export type TabItemPaneProps = {
 
 export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   const items = useTabListItems(browserWindowId)
+  const groups = useBrowserTabGroupsByWindowId(browserWindowId)
+  const currentWindow = useCurrentBrowserWindow()
+  const currentWindowId = currentWindow?.id
 
   return (
-    <div key={`window-tabs-${browserWindowId}`} className="pb-4">
+    <div key={`window-tabs-${browserWindowId}`} className="pb-4" data-tab-pane>
       <div className="space-y-4 p-2">
         <TabList>
           {items.map((item) => {
             if (item.type === 'tab') {
               return (
                 <TabListItem key={item.tab.id}>
-                  <TabItemForTab tab={item.tab} />
+                  <TabItemWithContextMenu
+                    tab={item.tab}
+                    groups={groups}
+                    currentWindowId={currentWindowId}
+                  />
                 </TabListItem>
               )
             }
 
-            const active = item.tabs.some((t) => t.active)
-
             return (
               <TabListItem key={item.group.id}>
-                <TabListGroup
-                  title={item.group.title}
-                  color={item.group.color}
-                  isActive={active}
-                >
-                  {item.tabs.map((tab) => {
-                    return (
-                      <TabListItem key={tab.id}>
-                        <TabItemForTab tab={tab} />
-                      </TabListItem>
-                    )
-                  })}
-                </TabListGroup>
+                <TabGroupWithContextMenu
+                  group={item.group}
+                  tabs={item.tabs}
+                  currentWindowId={currentWindowId}
+                  groups={groups}
+                />
               </TabListItem>
             )
           })}

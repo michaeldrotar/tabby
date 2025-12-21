@@ -121,8 +121,14 @@ const TabManager = () => {
   }, [currentBrowserWindow?.id, activeTab?.id]) // Only run when these change (e.g. mount or window switch)
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Check after keyup - if context menu was open, Radix already closed it
+        const contextMenu = document.querySelector('[data-radix-menu-content]')
+        if (contextMenu) {
+          return
+        }
+
         if (isSearchOpen) {
           setIsSearchOpen(false)
         } else {
@@ -130,10 +136,10 @@ const TabManager = () => {
         }
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
     }
   }, [isSearchOpen])
 

@@ -1,14 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
+/**
+ * Hook for keyboard navigation in the tab manager.
+ * Handles arrow keys for navigation between windows, groups, and tabs.
+ * Respects context menu state to avoid conflicts.
+ */
 export const useKeyboardNavigation = (
   onSelectWindow?: (windowId: number) => void,
   onActivateWindow?: (windowId: number) => void,
 ) => {
+  const isContextMenuOpen = useRef(false)
+
   useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const contextMenuContent = document.querySelector(
+        '[data-radix-menu-content]',
+      )
+      isContextMenuOpen.current = !!contextMenuContent
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isContextMenuOpen.current) {
+        return
+      }
+
       const activeElement = document.activeElement as HTMLElement
 
-      // Ignore if typing in an input
       if (
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
@@ -21,7 +43,6 @@ export const useKeyboardNavigation = (
       const navItem = activeElement?.closest('[data-nav-type]') as HTMLElement
       const navType = navItem?.getAttribute('data-nav-type')
 
-      // Global trap: If nothing relevant is focused, focus the sidebar on arrow keys
       if (!navType) {
         if (
           ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)
@@ -42,51 +63,59 @@ export const useKeyboardNavigation = (
         return
       }
 
-      // Navigation logic when an item is focused
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
-        const selector = `[data-nav-type="${navType}"]`
-        // We need to query all focusable elements of this type
-        // Note: This assumes all items of the same type are siblings or in a flat list order in DOM
-        const elements = Array.from(
-          document.querySelectorAll(selector),
-        ) as HTMLElement[]
 
-        // Find the index of the current item (or the closest parent that matches)
-        const currentIndex = elements.indexOf(navItem)
+        if (navType === 'window') {
+          const elements = Array.from(
+            document.querySelectorAll('[data-nav-type="window"]'),
+          ) as HTMLElement[]
 
-        let nextIndex = currentIndex
-        if (e.key === 'ArrowUp') {
-          nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex
-        } else {
-          nextIndex =
-            currentIndex < elements.length - 1 ? currentIndex + 1 : currentIndex
-        }
+          const currentIndex = elements.indexOf(navItem)
+          let nextIndex = currentIndex
 
-        const target = elements[nextIndex]
-        if (target) {
-          // If the target itself is a button or input, focus it.
-          // Otherwise, look for a button inside it (e.g. for TabItem where data-nav-type is on the wrapper)
-          if (
-            target.tagName === 'BUTTON' ||
-            target.tagName === 'A' ||
-            target.getAttribute('tabindex')
-          ) {
-            target.focus()
+          if (e.key === 'ArrowUp') {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex
           } else {
-            const focusableChild = target.querySelector(
-              'button, a, [tabindex]',
-            ) as HTMLElement
-            focusableChild?.focus()
+            nextIndex =
+              currentIndex < elements.length - 1
+                ? currentIndex + 1
+                : currentIndex
           }
-          target.scrollIntoView({ block: 'nearest' })
 
-          // If navigating windows, select the new window
-          if (navType === 'window' && onSelectWindow) {
-            const windowId = target.getAttribute('data-nav-id')
-            if (windowId) {
-              onSelectWindow(parseInt(windowId, 10))
+          const target = elements[nextIndex]
+          if (target) {
+            target.focus()
+            target.scrollIntoView({ block: 'nearest' })
+
+            if (onSelectWindow) {
+              const windowId = target.getAttribute('data-nav-id')
+              if (windowId) {
+                onSelectWindow(parseInt(windowId, 10))
+              }
             }
+          }
+        } else if (navType === 'tab' || navType === 'group') {
+          const allNavigableItems = getNavigableTabItems()
+          const currentIndex = allNavigableItems.findIndex(
+            (item) => item.element === navItem,
+          )
+
+          if (currentIndex === -1) return
+
+          let nextIndex = currentIndex
+          if (e.key === 'ArrowUp') {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex
+          } else {
+            nextIndex =
+              currentIndex < allNavigableItems.length - 1
+                ? currentIndex + 1
+                : currentIndex
+          }
+
+          const nextItem = allNavigableItems[nextIndex]
+          if (nextItem) {
+            focusNavigableItem(nextItem.element, nextItem.type)
           }
         }
       } else if (e.key === 'Enter') {
@@ -100,27 +129,21 @@ export const useKeyboardNavigation = (
       } else if (e.key === 'ArrowRight') {
         if (navType === 'window') {
           e.preventDefault()
-          // Move to active tab or first tab
-          // We look for the wrapper first, then the button inside
-          const activeTabWrapper = document.querySelector(
-            '[data-nav-type="tab"][data-active="true"]',
-          ) as HTMLElement
-
-          if (activeTabWrapper) {
-            const btn = activeTabWrapper.querySelector('button') as HTMLElement
-            btn?.focus()
-          } else {
-            const firstTabWrapper = document.querySelector(
-              '[data-nav-type="tab"]',
-            ) as HTMLElement
-            const btn = firstTabWrapper?.querySelector('button') as HTMLElement
-            btn?.focus()
+          const items = getNavigableTabItems()
+          const activeItem = items.find(
+            (item) =>
+              item.type === 'tab' &&
+              item.element.getAttribute('data-active') === 'true',
+          )
+          if (activeItem) {
+            focusNavigableItem(activeItem.element, activeItem.type)
+          } else if (items.length > 0) {
+            focusNavigableItem(items[0].element, items[0].type)
           }
         }
       } else if (e.key === 'ArrowLeft') {
-        if (navType === 'tab') {
+        if (navType === 'tab' || navType === 'group') {
           e.preventDefault()
-          // Move to selected window
           const selectedWindow = document.querySelector(
             '[data-nav-type="window"][data-selected="true"]',
           ) as HTMLElement
@@ -137,6 +160,84 @@ export const useKeyboardNavigation = (
     }
 
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      observer.disconnect()
+    }
   }, [onSelectWindow, onActivateWindow])
+}
+
+type NavigableItem = {
+  element: HTMLElement
+  type: 'tab' | 'group'
+}
+
+/**
+ * Returns navigable items (tabs and groups) in visual order.
+ * Tabs inside groups are listed individually after their group header.
+ */
+const getNavigableTabItems = (): NavigableItem[] => {
+  const items: NavigableItem[] = []
+
+  const tabPane = document.querySelector('[data-tab-pane]')
+  if (!tabPane) {
+    const allGroups = document.querySelectorAll('[data-nav-type="group"]')
+    const allTabs = document.querySelectorAll('[data-nav-type="tab"]')
+
+    allGroups.forEach((group) => {
+      items.push({ element: group as HTMLElement, type: 'group' })
+      const tabsInGroup = group.querySelectorAll('[data-nav-type="tab"]')
+      tabsInGroup.forEach((tab) => {
+        items.push({ element: tab as HTMLElement, type: 'tab' })
+      })
+    })
+
+    allTabs.forEach((tab) => {
+      if (!tab.closest('[data-nav-type="group"]')) {
+        items.push({ element: tab as HTMLElement, type: 'tab' })
+      }
+    })
+
+    return items
+  }
+
+  const walker = document.createTreeWalker(tabPane, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      const el = node as HTMLElement
+      const navType = el.getAttribute('data-nav-type')
+      if (navType === 'tab' || navType === 'group') {
+        return NodeFilter.FILTER_ACCEPT
+      }
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+
+  let node: Node | null = walker.nextNode()
+  while (node) {
+    const el = node as HTMLElement
+    const navType = el.getAttribute('data-nav-type') as 'tab' | 'group'
+    items.push({ element: el, type: navType })
+    node = walker.nextNode()
+  }
+
+  return items
+}
+
+const focusNavigableItem = (element: HTMLElement, type: 'tab' | 'group') => {
+  if (type === 'group') {
+    const btn = element.querySelector('button') as HTMLElement
+    if (btn) {
+      btn.focus()
+    } else {
+      element.focus()
+    }
+  } else {
+    const btn = element.querySelector('button') as HTMLElement
+    if (btn) {
+      btn.focus()
+    } else {
+      element.focus()
+    }
+  }
+  element.scrollIntoView({ block: 'nearest' })
 }
