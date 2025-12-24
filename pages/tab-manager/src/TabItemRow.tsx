@@ -1,29 +1,90 @@
+import { useDragDropContext, makeItemKey } from './hooks/DragDropContext'
 import { cn, Favicon } from '@extension/ui'
 import { Volume2, VolumeOff, Pin } from 'lucide-react'
-import { forwardRef, memo } from 'react'
+import { forwardRef, memo, useCallback } from 'react'
 import type { BrowserTab } from '@extension/chrome'
-import type { HTMLAttributes } from 'react'
+import type { DragEvent, HTMLAttributes } from 'react'
 
 export type TabItemRowProps = HTMLAttributes<HTMLDivElement> & {
   tab: BrowserTab
+  prevItemKey: string | null
+  /** Group ID if the previous item is inside a group */
+  prevInsideGroupId?: number
   onActivate: () => void
   onClose?: () => void
 }
 
 /**
  * A row component for displaying a single tab in the tab list.
- * This is designed to be wrapped by TabContextMenu for context menu functionality.
- * Uses forwardRef to allow ContextMenuTrigger to attach event handlers when using asChild.
+ * Uses item keys for position tracking in drag-and-drop.
  */
 export const TabItemRow = memo(
   forwardRef<HTMLDivElement, TabItemRowProps>(
-    ({ tab, onActivate, onClose, className, ...props }, ref) => {
+    (
+      {
+        tab,
+        prevItemKey,
+        prevInsideGroupId,
+        onActivate,
+        onClose,
+        className,
+        ...props
+      },
+      ref,
+    ) => {
       const isPinned = tab.pinned
       const isMuted = tab.mutedInfo?.muted ?? false
       const isAudible = tab.audible ?? false
       const isDiscarded = tab.discarded ?? false
       const isActive = tab.active
       const isHighlighted = tab.highlighted
+
+      const {
+        draggedItem,
+        handleDragStart,
+        handleDragEnd,
+        handleDragOver,
+        handleDragEnter,
+        handleDragLeave,
+        handleDrop,
+      } = useDragDropContext()
+
+      const itemKey = makeItemKey('tab', tab.id)
+      const isDragging =
+        draggedItem?.type === 'tab' && draggedItem?.id === tab.id
+
+      // Determine if this tab is inside a group
+      const insideGroupId =
+        tab.groupId !== undefined && tab.groupId !== -1
+          ? tab.groupId
+          : undefined
+
+      const onDragStart = useCallback(
+        (e: DragEvent) => {
+          e.stopPropagation()
+          handleDragStart(e, { type: 'tab', id: tab.id, groupId: tab.groupId })
+        },
+        [handleDragStart, tab.id, tab.groupId],
+      )
+
+      const onDragOver = useCallback(
+        (e: DragEvent) => {
+          handleDragOver(
+            e,
+            itemKey,
+            prevItemKey,
+            insideGroupId,
+            prevInsideGroupId,
+          )
+        },
+        [
+          handleDragOver,
+          itemKey,
+          prevItemKey,
+          insideGroupId,
+          prevInsideGroupId,
+        ],
+      )
 
       const handleKeyDown = (e: React.KeyboardEvent) => {
         if ((e.key === 'Delete' || e.key === 'Backspace') && onClose) {
@@ -38,6 +99,13 @@ export const TabItemRow = memo(
           data-tab-item={tab.id}
           data-nav-type="tab"
           data-active={isActive}
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={onDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={cn(
             `
               group relative overflow-hidden rounded-md
@@ -46,6 +114,7 @@ export const TabItemRow = memo(
               has-[button:focus-visible]:ring-offset-2
               has-[button:focus-visible]:ring-offset-background
             `,
+            isDragging && 'opacity-50',
             className,
           )}
           {...props}

@@ -1,3 +1,4 @@
+import { useDragDropContext, makeItemKey } from './hooks/DragDropContext'
 import { cn } from '@extension/ui'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
@@ -9,7 +10,7 @@ import {
   useState,
 } from 'react'
 import type { BrowserTabGroup } from '@extension/chrome'
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { DragEvent, HTMLAttributes, ReactNode } from 'react'
 
 const GROUP_COLORS: Record<string, { dot: string; text: string; bg: string }> =
   {
@@ -62,6 +63,9 @@ const GROUP_COLORS: Record<string, { dot: string; text: string; bg: string }> =
 
 export type TabGroupHeaderProps = HTMLAttributes<HTMLDivElement> & {
   group: BrowserTabGroup
+  prevItemKey: string | null
+  /** Group ID if the previous item is inside a group */
+  prevInsideGroupId?: number
   isActive?: boolean
   isRenaming?: boolean
   onRenameComplete?: (newTitle: string) => void
@@ -76,6 +80,8 @@ export const TabGroupHeader = memo(
     (
       {
         group,
+        prevItemKey,
+        prevInsideGroupId,
         isActive = false,
         isRenaming = false,
         onRenameComplete,
@@ -90,6 +96,36 @@ export const TabGroupHeader = memo(
     ) => {
       const inputRef = useRef<HTMLInputElement>(null)
       const [renameValue, setRenameValue] = useState('')
+
+      const {
+        draggedItem,
+        handleDragStart,
+        handleDragEnd,
+        handleDragOver,
+        handleDragEnter,
+        handleDragLeave,
+        handleDrop,
+      } = useDragDropContext()
+
+      const itemKey = makeItemKey('group', group.id)
+      const isDragging =
+        draggedItem?.type === 'group' && draggedItem?.id === group.id
+
+      const onDragStart = useCallback(
+        (e: DragEvent) => {
+          handleDragStart(e, { type: 'group', id: group.id })
+        },
+        [handleDragStart, group.id],
+      )
+
+      const onDragOver = useCallback(
+        (e: DragEvent) => {
+          // Groups don't have insideGroupId since groups can't be nested
+          // prevInsideGroupId tells us if the item before is in a group
+          handleDragOver(e, itemKey, prevItemKey, undefined, prevInsideGroupId)
+        },
+        [handleDragOver, itemKey, prevItemKey, prevInsideGroupId],
+      )
 
       const colorClasses =
         group.color && GROUP_COLORS[group.color]
@@ -117,7 +153,6 @@ export const TabGroupHeader = memo(
         onRenameComplete?.(renameValue)
       }, [renameValue, onRenameComplete])
 
-      // Initialize rename value on focus (avoids setState in effect)
       const handleFocus = useCallback(() => {
         setRenameValue(group.title ?? '')
       }, [group.title])
@@ -132,10 +167,8 @@ export const TabGroupHeader = memo(
         [onClose],
       )
 
-      // Focus and select input when entering rename mode
       useEffect(() => {
         if (isRenaming && inputRef.current) {
-          // Use requestAnimationFrame to ensure DOM is ready
           requestAnimationFrame(() => {
             inputRef.current?.focus()
             inputRef.current?.select()
@@ -146,9 +179,17 @@ export const TabGroupHeader = memo(
       return (
         <div
           ref={ref}
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={onDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={cn(
             `relative flex flex-col rounded-lg p-1 transition-colors`,
             colorClasses.bg,
+            isDragging && 'opacity-50',
             className,
           )}
           data-nav-type="group"
@@ -159,7 +200,7 @@ export const TabGroupHeader = memo(
             <div
               className={cn(
                 'absolute bottom-2 left-0 top-2 w-0.5 rounded-full',
-                'bg-accent',
+                'bg-accent/[calc(var(--accent-strength)*1%)]',
               )}
             />
           )}

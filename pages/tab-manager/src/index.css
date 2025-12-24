@@ -1,1 +1,9 @@
 @import '@extension/ui/global.css';
+/* Drag and drop styles */
+[draggable='true'] {
+  cursor: grab;
+}
+
+[draggable='true']:active {
+  cursor: grabbing;
+}

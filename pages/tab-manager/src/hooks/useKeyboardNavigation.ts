@@ -4,7 +4,12 @@ import {
   moveGroupBack,
   moveGroupForward,
 } from './moveOperations'
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+
+type PendingFocus = {
+  type: 'tab' | 'group'
+  id: string
+}
 
 /**
  * Hook for keyboard navigation in the tab manager.
@@ -16,6 +21,23 @@ export const useKeyboardNavigation = (
   onActivateWindow?: (windowId: number) => void,
 ) => {
   const isContextMenuOpen = useRef(false)
+  const pendingFocusRef = useRef<PendingFocus | null>(null)
+
+  // Restore focus after move operations, before browser paint
+  useLayoutEffect(() => {
+    const pendingFocus = pendingFocusRef.current
+    if (!pendingFocus) return
+
+    const selector =
+      pendingFocus.type === 'tab'
+        ? `[data-tab-item="${pendingFocus.id}"]`
+        : `[data-group-id="${pendingFocus.id}"]`
+    const element = document.querySelector(selector) as HTMLElement
+    if (element) {
+      focusNavigableItem(element, pendingFocus.type)
+    }
+    pendingFocusRef.current = null
+  })
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -74,8 +96,13 @@ export const useKeyboardNavigation = (
         if (navType === 'tab' || navType === 'group') {
           e.preventDefault()
           const direction = e.key === 'ArrowUp' ? 'back' : 'forward'
-          moveItem(navItem, navType, direction)
+          moveItem(navItem, navType, direction, pendingFocusRef)
         }
+        return
+      }
+
+      // Ignore Alt+Left/Right - Alt is reserved for move operations
+      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         return
       }
 
@@ -286,31 +313,39 @@ const openContextMenuForElement = (element: HTMLElement) => {
 
 /**
  * Moves a tab or group in the specified direction using the Chrome API.
+ * Sets pending focus ref before the API call so it's ready when React re-renders.
  */
-const moveItem = async (
+const moveItem = (
   element: HTMLElement,
   type: 'tab' | 'group',
   direction: 'back' | 'forward',
+  pendingFocusRef: React.RefObject<PendingFocus | null>,
 ) => {
   if (type === 'tab') {
     const tabId = element.getAttribute('data-tab-item')
     if (!tabId) return
 
+    // Set pending focus before the API call - the re-render from the data
+    // change may complete before the await would return
+    pendingFocusRef.current = { type: 'tab', id: tabId }
+
     const tabIdNum = parseInt(tabId, 10)
     if (direction === 'back') {
-      await moveTabBack(tabIdNum)
+      moveTabBack(tabIdNum)
     } else {
-      await moveTabForward(tabIdNum)
+      moveTabForward(tabIdNum)
     }
   } else if (type === 'group') {
     const groupId = element.getAttribute('data-group-id')
     if (!groupId) return
 
+    pendingFocusRef.current = { type: 'group', id: groupId }
+
     const groupIdNum = parseInt(groupId, 10)
     if (direction === 'back') {
-      await moveGroupBack(groupIdNum)
+      moveGroupBack(groupIdNum)
     } else {
-      await moveGroupForward(groupIdNum)
+      moveGroupForward(groupIdNum)
     }
   }
 }
