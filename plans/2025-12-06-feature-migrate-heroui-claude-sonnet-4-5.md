@@ -1,16 +1,37 @@
----
-goal: Migrate UI to HeroUI and enable robust multi-theme + user-defined overlay themes
-version: 1.0
-date_created: 2025-12-06
-last_updated: 2025-12-06
-owner: UI/Front-end
-status: Planned
-tags: [feature, migration, heroui, theming]
----
+# Feature: Migrate to HeroUI
 
-# Introduction
+**Date:** December 6, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Planned
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+## Checklist
+
+### Phase 1: Discovery & Mapping
+
+- [ ] Scan packages/ui/lib and pages for shadcn components
+- [ ] Generate theme-token-map.json
+- [ ] Create generate-theme-coverage-report.ts script
+
+### Phase 2: HeroUI Theming & Token Adapter
+
+- [ ] Create heroui-adapter.ts
+- [ ] Add HeroUI theme JSON files (default, light, dark, secondary)
+- [ ] Implement convert-heroui-theme-to-css-vars.ts
+- [ ] Provide ThemeProvider.tsx with scope support
+
+### Phase 3: Multi-theme Strategy & User Overlays
+
+- [ ] Add packages/ui/lib/themes/index.ts for theme registration
+- [ ] Implement theme-overlay.ts with mergeTheme() and setThemeVars()
+- [ ] Extend ThemeProvider to accept userTheme and scope
+
+### Phase 4: Progressive Component Migration
+
+- [ ] Create migration plan for shadcn to HeroUI components
+- [ ] Build codemods for automated component migration
+- [ ] Migrate components incrementally with API parity
+
+## Introduction
 
 This plan describes a deterministic, incremental migration from the existing shadcn/Tailwind-based UI to HeroUI components while adding first-class support for multi-theme handling (beyond light/dark) and user-defined theme overlays. The goal is to provide a low-risk migration path that ensures visual parity, retains runtime performance, and supports user-supplied theme overrides applied on top of a chosen base theme.
 

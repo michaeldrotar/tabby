@@ -1,7 +1,33 @@
 # Tab Manager Design Improvement Plans
 
 **Date:** December 17, 2025  
-**Purpose:** Three distinct design concepts to transform the Tab Manager into a bold, playful, and premium experience that makes managing many tabs delightful rather than overwhelming.
+**Model:** Claude Sonnet 4.5  
+**Status:** Planning
+
+## Checklist
+
+### Plan A: "The Gallery" - Visual-First, Magazine Layout
+
+- [ ] Phase 1: Window card redesign + floating sidebar
+- [ ] Phase 2: Tab grid layout with thumbnails
+- [ ] Phase 3: Micro-interactions and animations
+- [ ] Phase 4: Empty states and feedback
+
+### Plan B: "The Command Center" - Data-Dense, Information-Rich
+
+- [ ] Phase 1: Compact layout with data columns
+- [ ] Phase 2: Advanced filtering and sorting
+- [ ] Phase 3: Quick actions and keyboard shortcuts
+- [ ] Phase 4: Bulk operations and multi-select
+
+### Plan C: "The Zen Garden" - Minimal, Focus-Oriented
+
+- [ ] Phase 1: Simplified visual hierarchy
+- [ ] Phase 2: Focus mode implementation
+- [ ] Phase 3: Breathing animations and transitions
+- [ ] Phase 4: Distraction-free experience
+
+## Overview
 
 **Context:** The extension targets users with tab overload (especially power users) and should help them manage tabs without shame. Upcoming features include context menus, multi-selection, and bulk operations. Window identification remains limited to browser defaults (no custom names/icons).
 

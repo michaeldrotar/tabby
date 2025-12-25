@@ -4,6 +4,35 @@
 **Author:** Claude Sonnet 4.5 (Product Owner AI)  
 **Current Version:** 1.3.0
 
+## Checklist
+
+### Phase 1: Power User Essentials (Q1 2026)
+
+- [ ] Context Menus & Bulk Actions (P0)
+- [ ] Tab Group Management (P0)
+- [ ] Advanced Search & Filtering (P1)
+- [ ] Tab Sorting & Organization (P1)
+
+### Phase 2: Efficiency & Automation (Q2 2026)
+
+- [ ] Keyboard Shortcut Customization (P0)
+- [ ] Tab Hibernation / Auto-Discard (P1)
+- [ ] Session Management (P1)
+- [ ] Duplicate Tab Detection (P2)
+
+### Phase 3: Premium Experience (Q3 2026)
+
+- [ ] Tab Previews / Thumbnails (P2)
+- [ ] Pin/Unpin Management (P2)
+- [ ] Window Management (P2)
+- [ ] Tab Muting Controls (P2)
+
+### Phase 4: Advanced Features (Q4 2026)
+
+- [ ] Tab Notes & Annotations (P3)
+- [ ] Tab Analytics & Insights (P3)
+- [ ] Reading List Integration (P3)
+
 ## Executive Summary
 
 Tabby is a privacy-first Chrome extension that provides a superior vertical tab management experience and powerful universal search. Built with React 19, TypeScript, and modern web technologies, it offers keyboard-centric navigation and local-only processing that respects user privacy.

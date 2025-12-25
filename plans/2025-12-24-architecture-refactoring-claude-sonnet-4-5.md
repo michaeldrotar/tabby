@@ -4,6 +4,41 @@
 **Model:** Claude Sonnet 4.5  
 **Status:** Proposed
 
+## Checklist
+
+### Phase 0: Immediate Wins (1-2 days)
+
+- [ ] Remove dead code (TabItem.tsx) - 2 hours
+- [ ] Remove console.count statements - 30 min
+- [ ] Add memo() to WindowRailItem - 1 hour
+- [ ] Add memo() to TabManagerSidebar - 1 hour
+
+### Phase 1: Foundation (3-4 weeks) ⭐ CRITICAL
+
+- [ ] Centralized Keyboard System (Objective #1) - 3-4 days **HIGHEST PRIORITY**
+- [ ] Extract GROUP_COLORS (Objective #5) - 2 days
+- [ ] Verify Favicon URL (Objective #6) - 1 day
+- [ ] Complete memoization audit (Objective #3) - 3 days
+
+### Phase 2: Actions Layer (3-4 weeks)
+
+- [ ] Create actions layer (Objectives #7, #11) - 1 week
+- [ ] Consolidate Omnibar Chrome API (Objective #9) - 1 week
+
+### Phase 3: Component Refinement (2-3 weeks)
+
+- [ ] Simplify TabItemRow (Objective #8) - 1 week
+- [ ] Extract TabGroupHeader logic (Objective #10) - 1 week
+
+### Phase 4: API & Performance (3-4 weeks)
+
+- [ ] Standardize context menu props (Objective #12) - 2 weeks
+- [ ] Performance optimizations (Objective #4) - 1 week
+
+### Phase 5: Documentation (1 week)
+
+- [ ] Architecture documentation (Objective #13) - 1 week
+
 ## Executive Summary
 
 This document presents a comprehensive architectural analysis of the Tabby Chrome Extension codebase, identifying areas for improvement based on industry-standard principles: DRY (Don't Repeat Yourself), Separation of Concerns, Loose Coupling, High Cohesion, Modularity, Simplicity (KISS), and Code Readability.

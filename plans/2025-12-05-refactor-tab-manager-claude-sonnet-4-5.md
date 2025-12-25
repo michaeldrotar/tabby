@@ -1,14 +1,42 @@
----
-goal: Refactor Tab Manager into modular, testable, and theme-ready components
-version: 1.0
-date_created: 2025-12-05
-status: Planned
-tags: [refactor, ui, testing, tab-manager]
----
+# Refactor Tab Manager
 
-# Introduction
+**Date:** December 5, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Planned
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+## Checklist
+
+### Phase 1: Atomic Display Components
+
+- [ ] Create TabManagerShell component
+- [ ] Create TabManagerSidebar component
+- [ ] Create WindowRailItem component
+- [ ] Create TabList component
+- [ ] Create TabItem component
+- [ ] Create TabManagerHeader component
+- [ ] Add basic unit tests for rendering each display component
+
+### Phase 2: Logic & State Hooks
+
+- [ ] Create useTabManagerData hook
+- [ ] Create useTabManagerSelection hook
+- [ ] Create useTabManagerActions hook
+- [ ] Write unit tests for useTabManagerData (mocking chrome API)
+- [ ] Write unit tests for useTabManagerSelection and Actions
+
+### Phase 3: Integration & Smart Component
+
+- [ ] Create new TabManager smart component integrating hooks and UI components
+- [ ] Connect TabManager to real data sources
+- [ ] Ensure theming support is wired up
+
+### Phase 4: Comprehensive Testing
+
+- [ ] Create integration test for Window switching
+- [ ] Create integration test for Tab actions (close, activate)
+- [ ] Verify mock data support for guided tours (render with fixtures)
+
+## Introduction
 
 This plan outlines the refactoring of the Tab Manager component to separate concerns between display and logic, improve testability, and prepare for future theming capabilities. The goal is to have small, pure display components and robust, testable logic hooks, enabling reuse for guided tours and easier maintenance.
 

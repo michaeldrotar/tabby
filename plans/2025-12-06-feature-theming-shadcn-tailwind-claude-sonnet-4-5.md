@@ -1,16 +1,37 @@
----
-goal: Add robust, multi-theme support for shadcn-based components with Tailwind and optional migration path to an alternative (Stitches)
-version: 1.0
-date_created: 2025-12-06
-last_updated: 2025-12-06
-owner: UI/Front-end
-status: Planned
-tags: [feature, theming, ui, shadcn, tailwind, stitches]
----
+# Feature: Theming with shadcn and Tailwind
 
-# Introduction
+**Date:** December 6, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Planned
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+## Checklist
+
+### Phase 1: Discovery & Tokenization
+
+- [ ] Scan all components in packages/ui for repeated Tailwind usage
+- [ ] Produce theme-tokens.json with canonical tokens
+- [ ] Add tooling script to convert JSON to CSS variables
+
+### Phase 2: Theming Infrastructure
+
+- [ ] Introduce packages/ui/lib/themes with default/light/dark.json
+- [ ] Implement convert-theme-to-css-vars.ts and setup build step
+- [ ] Update packages/ui/tailwind.config.ts to reference CSS variables
+- [ ] Add ThemeProvider component
+
+### Phase 3: Integrate with shadcn Components
+
+- [ ] Identify shadcn components that hard-code colors
+- [ ] Replace concrete class names with token-aware utilities
+- [ ] Add useThemeTokens() hook
+
+### Phase 4: Custom/Third-party Theme Injection
+
+- [ ] Implement setThemeVars() API in packages/ui/lib/theming
+- [ ] Namespace all CSS variables with --tabby- prefix
+- [ ] Create doc page showing how to create a user theme
+
+## Introduction
 
 This proposal describes a practical, incremental plan to provide first-class multi-theme support for shadcn components built on Tailwind, while also providing a clear transition path to an alternative styling solution (Stitches) if needed. The plan focuses on:
 

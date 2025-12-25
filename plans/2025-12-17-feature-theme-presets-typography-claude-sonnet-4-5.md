@@ -1,9 +1,58 @@
 # Theme Presets & Typography System
 
-**Status**: Planning  
-**Priority**: High  
-**Estimated Effort**: 5 days  
-**Created**: 2025-12-17
+**Date:** December 17, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Planning  
+**Priority:** High  
+**Estimated Effort:** 5 days
+
+## Checklist
+
+### Data Structures & Storage
+
+- [ ] Define ThemePreset interface
+- [ ] Update PreferenceStateType with preset fields
+- [ ] Add typography fields (fontFamily, lineHeight)
+
+### Built-in Presets
+
+- [ ] Create 8-12 curated theme presets
+- [ ] Document preset design decisions
+- [ ] Test presets across all surfaces
+
+### Preset UI
+
+- [ ] Add preset dropdown to Options page
+- [ ] Implement "Custom" indicator when modified
+- [ ] Add "Randomize" button integration
+- [ ] Build preset preview cards
+
+### Custom Presets
+
+- [ ] Implement save custom preset functionality
+- [ ] Add rename/delete preset controls
+- [ ] Show custom preset list in dropdown
+
+### Typography Controls
+
+- [ ] Add font family dropdown (system/rounded/mono/serif/display)
+- [ ] Add line height selector (tight/normal/relaxed)
+- [ ] Implement custom font URL support
+- [ ] Apply typography CSS variables globally
+
+### Import/Export
+
+- [ ] Build theme export to JSON
+- [ ] Build theme import from JSON
+- [ ] Add shareable theme URL generation
+- [ ] Implement URL-based theme loading
+
+### Testing & Documentation
+
+- [ ] Write unit tests for preset management
+- [ ] Test typography rendering across components
+- [ ] Document theme preset format
+- [ ] Create user guide for sharing themes
 
 ## Overview
 

@@ -1,14 +1,43 @@
----
-goal: Refactor Omnibar into modular, testable, and theme-ready components
-version: 2.0
-date_created: 2025-12-05
-status: Planned
-tags: [refactor, ui, testing, omnibar]
----
+# Refactor Omnibar
 
-# Introduction
+**Date:** December 5, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Planned
 
-![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
+## Checklist
+
+### Phase 1: Atomic Display Components
+
+- [ ] Create OmnibarShell component (container/layout)
+- [ ] Create OmnibarInput component (visual input field)
+- [ ] Create OmnibarList component (scrollable list container)
+- [ ] Create OmnibarItem component (individual result item)
+- [ ] Create OmnibarGroup component (optional group headers)
+- [ ] Create OmnibarEmpty component (empty state display)
+- [ ] Add basic unit tests for rendering each display component
+
+### Phase 2: Logic & State Hooks
+
+- [ ] Refactor useOmnibarSearch to be deterministic and testable
+- [ ] Create/Refactor useOmnibarNavigation for keyboard selection state
+- [ ] Create/Refactor useOmnibarActivation for handling execution actions
+- [ ] Write unit tests for useOmnibarSearch (mocking search sources)
+- [ ] Write unit tests for useOmnibarNavigation (state transitions)
+
+### Phase 3: Integration & Smart Component
+
+- [ ] Create new Omnibar smart component integrating hooks and UI components
+- [ ] Connect Omnibar to real data sources (tabs, bookmarks, etc.)
+- [ ] Ensure theming support is wired up (passing classes/styles)
+
+### Phase 4: Comprehensive Testing
+
+- [ ] Create integration test for Search flow (input -> results)
+- [ ] Create integration test for Keyboard Navigation (Arrow keys -> selection)
+- [ ] Create integration test for Activation (Enter keys -> action)
+- [ ] Verify mock data support for guided tours (render with fixtures)
+
+## Introduction
 
 This plan outlines the refactoring of the Omnibar component to separate concerns between display and logic, improve testability, and prepare for future theming capabilities. The goal is to have small, pure display components and robust, testable logic hooks.
 

@@ -1,10 +1,39 @@
----
-title: Tab Manager Functionality
-status: draft
-created: 2025-12-13
----
+# Tab Manager Functionality
 
-# Tab Manager functionality (mouse, keyboard, context menus)
+**Date:** December 13, 2025  
+**Model:** Claude Sonnet 4.5  
+**Status:** Draft
+
+## Checklist
+
+### Core Interaction Model
+
+- [ ] Implement mouse interaction (click selects mode)
+- [ ] Implement optional mouse interaction (click activates mode)
+- [ ] Implement baseline keyboard navigation (Up/Down/Left/Right)
+- [ ] Implement keyboard selection (Space to toggle)
+- [ ] Implement keyboard activation (Enter)
+
+### Shortcut Policy
+
+- [ ] Implement default modifier shortcuts mode
+- [ ] Implement optional no-modifier shortcuts mode
+- [ ] Add search activation shortcuts
+
+### Context Menu Actions
+
+- [ ] Define context menu for windows
+- [ ] Define context menu for tab groups
+- [ ] Define context menu for tabs
+- [ ] Implement multi-selection context menu behavior
+
+### Configuration Options
+
+- [ ] Add setting for click behavior (select vs activate)
+- [ ] Add setting for shortcut style (modifier vs no-modifier)
+- [ ] Add setting for selection mode (single-window vs cross-window)
+
+## Overview
 
 This plan consolidates proposed tab-management behaviors across multiple outlines, with Tabby-specific constraints:
 
