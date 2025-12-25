@@ -13,8 +13,6 @@ import { useCallback, useEffect, useState } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 
 const TabManager = () => {
-  console.count('TabManager.render')
-
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()

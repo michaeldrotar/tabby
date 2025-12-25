@@ -1,6 +1,7 @@
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from '../../icons'
 import { ScrollArea } from '../../ScrollArea'
 import { cn } from '../../utils/cn'
+import { memo } from 'react'
 
 export type TabManagerSidebarProps = {
   isExpanded: boolean
@@ -11,14 +12,14 @@ export type TabManagerSidebarProps = {
   className?: string
 }
 
-export const TabManagerSidebar = ({
+export const TabManagerSidebar = memo(function TabManagerSidebar({
   isExpanded,
   onToggleExpand,
   windowList,
   actions,
   windowCount,
   className,
-}: TabManagerSidebarProps) => {
+}: TabManagerSidebarProps) {
   return (
     <div
       className={cn(
@@ -89,4 +90,4 @@ export const TabManagerSidebar = ({
       </div>
     </div>
   )
-}
+})

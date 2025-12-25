@@ -2,16 +2,16 @@
 
 **Date:** December 24, 2025  
 **Model:** Claude Sonnet 4.5  
-**Status:** Proposed
+**Status:** In Progress
 
 ## Checklist
 
 ### Phase 0: Immediate Wins (1-2 days)
 
-- [ ] Remove dead code (TabItem.tsx) - 2 hours
-- [ ] Remove console.count statements - 30 min
-- [ ] Add memo() to WindowRailItem - 1 hour
-- [ ] Add memo() to TabManagerSidebar - 1 hour
+- [x] Remove dead code (TabItem.tsx) - 2 hours
+- [x] Remove console.count statements - 30 min
+- [x] Add memo() to WindowRailItem - 1 hour
+- [x] Add memo() to TabManagerSidebar - 1 hour
 
 ### Phase 1: Foundation (3-4 weeks) ⭐ CRITICAL
 
