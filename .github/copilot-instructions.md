@@ -37,6 +37,12 @@ These specialized instruction files provide focused guidance for different aspec
 - **[typescript-5-es2022.instructions.md](.github/instructions/typescript-5-es2022.instructions.md)** - TypeScript guidelines and conventions
 - **[testing.instructions.md](.github/instructions/testing.instructions.md)** - Testing practices, when to test, test structure
 
+### Role-Specific
+
+- **[design-ux.instructions.md](.github/instructions/design-ux.instructions.md)** - Design philosophy, UX principles, accessibility, shadcn components
+- **[product-owner.instructions.md](.github/instructions/product-owner.instructions.md)** - Discovering user needs, feature validation, persona-driven development
+- **[marketing.instructions.md](.github/instructions/marketing.instructions.md)** - Messaging, positioning, outcomes over features, Chrome Web Store optimization
+
 ### Meta
 
 - **[meta-instructions.instructions.md](.github/instructions/meta-instructions.instructions.md)** - How to create and maintain instruction files
