@@ -26,7 +26,7 @@ These specialized instruction files provide focused guidance for different aspec
 
 ### Core Development
 
-- **[workflow.instructions.md](.github/instructions/workflow.instructions.md)** - Planning, release management, documentation updates, definition of done
+- **[workflow.instructions.md](.github/instructions/workflow.instructions.md)** - Planning, creating plan documents in the plans folder, release management, documentation updates, definition of done
 - **[commands.instructions.md](.github/instructions/commands.instructions.md)** - Which commands to run when, development workflow
 - **[architecture.instructions.md](.github/instructions/architecture.instructions.md)** - Code organization, component design patterns, package structure
 - **[chrome-extension.instructions.md](.github/instructions/chrome-extension.instructions.md)** - Chrome extension architecture, permissions, storage patterns
