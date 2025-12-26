@@ -81,6 +81,56 @@ Instructions for building high-quality ReactJS applications with modern patterns
 - Implement virtual scrolling for large lists
 - Profile components with React DevTools to identify performance bottlenecks
 
+### Memoization Guidelines
+
+**When to use `memo()`:**
+
+- Components rendered in lists (e.g., `TabItemRow`, `WindowRailItem`)
+- Components with expensive render logic
+- Components that receive stable props but parent re-renders frequently
+
+**When NOT to use `memo()`:**
+
+- Components that always receive new props anyway
+- Simple components with cheap render logic
+- Top-level page components (re-render infrequently)
+
+**Hooks returning objects:**
+
+When a custom hook returns an object with multiple callbacks, wrap the return in `useMemo()` so consumers get a stable reference:
+
+```typescript
+// ✅ Good: Stable reference for the actions object
+export const useTabActions = (tab: BrowserTab) => {
+  const close = useCallback(() => chrome.tabs.remove(tab.id), [tab.id])
+  const reload = useCallback(() => chrome.tabs.reload(tab.id), [tab.id])
+
+  return useMemo(() => ({ close, reload }), [close, reload])
+}
+
+// ❌ Bad: New object reference every render
+export const useTabActions = (tab: BrowserTab) => {
+  const close = useCallback(() => chrome.tabs.remove(tab.id), [tab.id])
+  return { close } // breaks memoization for consumers
+}
+```
+
+**Array dependencies:**
+
+When passing arrays to hooks or memoized components, memoize the array:
+
+```typescript
+// ✅ Good: Stable array reference
+const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
+useTabGroupActions(group, tabIds)
+
+// ❌ Bad: New array every render
+useTabGroupActions(
+  group,
+  tabs.map((t) => t.id),
+)
+```
+
 ### Data Fetching
 
 - Use modern data fetching libraries (React Query, SWR, Apollo Client)
