@@ -10,6 +10,8 @@ import {
   ContextMenuTrigger,
 } from './ContextMenu'
 import { Kbd } from '../Kbd'
+import { getGroupColorClasses } from '../tab-group/tabGroupColors'
+import { cn } from '../utils/cn'
 import { usePlatformInfo } from '@extension/chrome'
 import {
   Pin,
@@ -160,10 +162,10 @@ export const TabContextMenu = ({
                     onSelect={() => onAddToGroup?.(group.id)}
                   >
                     <div
-                      className="size-3 rounded-full"
-                      style={{
-                        backgroundColor: getGroupColor(group.color),
-                      }}
+                      className={cn(
+                        'size-3 rounded-full',
+                        getGroupColorClasses(group.color).dot,
+                      )}
                     />
                     <span>{group.title || 'Untitled Group'}</span>
                   </ContextMenuItem>
@@ -260,22 +262,6 @@ export const TabContextMenu = ({
       </ContextMenuContent>
     </ContextMenu>
   )
-}
-
-const GROUP_COLORS: Record<string, string> = {
-  grey: '#5f6368',
-  blue: '#1a73e8',
-  red: '#d93025',
-  yellow: '#f9ab00',
-  green: '#1e8e3e',
-  pink: '#d01884',
-  purple: '#a142f4',
-  cyan: '#007b83',
-  orange: '#fa903e',
-}
-
-const getGroupColor = (color: string): string => {
-  return GROUP_COLORS[color] ?? GROUP_COLORS.grey
 }
 
 const getWindowLabel = (window: BrowserWindow, isMac: boolean): string => {

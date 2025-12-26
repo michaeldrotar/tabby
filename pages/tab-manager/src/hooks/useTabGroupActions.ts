@@ -1,7 +1,7 @@
 import { moveGroupBack, moveGroupForward } from './moveOperations'
 import { useCallback } from 'react'
 import type { BrowserTabGroup } from '@extension/chrome'
-import type { TabGroupColor } from '@extension/ui'
+import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 
 /**
  * Actions for managing tab groups via context menu.
@@ -25,7 +25,7 @@ export const useTabGroupActions = (
   )
 
   const changeColor = useCallback(
-    async (color: TabGroupColor) => {
+    async (color: BrowserTabGroupColor) => {
       await chrome.tabGroups.update(groupId, { color })
     },
     [groupId],

@@ -11,3 +11,5 @@ export type BrowserTabGroup = Omit<chrome.tabGroups.TabGroup, 'id'> & {
    */
   id: BrowserTabGroupID
 }
+
+export type BrowserTabGroupColor = chrome.tabGroups.TabGroup['color']

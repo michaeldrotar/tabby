@@ -21,7 +21,7 @@ import type {
   BrowserTabID,
   BrowserWindowID,
 } from '@extension/chrome'
-import type { TabGroupColor } from '@extension/ui'
+import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
@@ -112,7 +112,7 @@ const TabGroupWithContextMenu = memo(
     }, [])
 
     const handleChangeColor = useCallback(
-      (color: TabGroupColor) => {
+      (color: BrowserTabGroupColor) => {
         actions.changeColor(color)
       },
       [actions],

@@ -11,6 +11,11 @@ import {
   ContextMenuRadioItem,
 } from './ContextMenu'
 import {
+  TAB_GROUP_COLOR_IDS,
+  getGroupColorClasses,
+} from '../tab-group/tabGroupColors'
+import { cn } from '../utils/cn'
+import {
   ChevronDown,
   ChevronUp,
   Pencil,
@@ -21,30 +26,8 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import type { BrowserTabGroup } from '@extension/chrome'
+import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 import type { ReactNode } from 'react'
-
-export type TabGroupColor =
-  | 'grey'
-  | 'blue'
-  | 'red'
-  | 'yellow'
-  | 'green'
-  | 'pink'
-  | 'purple'
-  | 'cyan'
-  | 'orange'
-
-const GROUP_COLORS: { value: TabGroupColor; label: string; hex: string }[] = [
-  { value: 'grey', label: 'Grey', hex: '#5f6368' },
-  { value: 'blue', label: 'Blue', hex: '#1a73e8' },
-  { value: 'red', label: 'Red', hex: '#d93025' },
-  { value: 'yellow', label: 'Yellow', hex: '#f9ab00' },
-  { value: 'green', label: 'Green', hex: '#1e8e3e' },
-  { value: 'pink', label: 'Pink', hex: '#d01884' },
-  { value: 'purple', label: 'Purple', hex: '#a142f4' },
-  { value: 'cyan', label: 'Cyan', hex: '#007b83' },
-  { value: 'orange', label: 'Orange', hex: '#fa903e' },
-]
 
 export type TabGroupContextMenuProps = {
   children: ReactNode
@@ -52,7 +35,7 @@ export type TabGroupContextMenuProps = {
   isCollapsed?: boolean
   onToggleCollapse?: () => void
   onRename?: () => void
-  onChangeColor?: (color: TabGroupColor) => void
+  onChangeColor?: (color: BrowserTabGroupColor) => void
   onUngroup?: () => void
   onCopyUrls?: () => void
   onMoveToNewWindow?: () => void
@@ -104,17 +87,19 @@ export const TabGroupContextMenu = ({
           <ContextMenuSubContent className="w-40">
             <ContextMenuRadioGroup
               value={group.color}
-              onValueChange={(value) => onChangeColor?.(value as TabGroupColor)}
+              onValueChange={(value) =>
+                onChangeColor?.(value as BrowserTabGroupColor)
+              }
             >
-              {GROUP_COLORS.map((color) => (
-                <ContextMenuRadioItem key={color.value} value={color.value}>
-                  <div
-                    className="size-3 rounded-full"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <span>{color.label}</span>
-                </ContextMenuRadioItem>
-              ))}
+              {TAB_GROUP_COLOR_IDS.map((id) => {
+                const config = getGroupColorClasses(id)
+                return (
+                  <ContextMenuRadioItem key={id} value={id}>
+                    <div className={cn('size-3 rounded-full', config.dot)} />
+                    <span>{config.label}</span>
+                  </ContextMenuRadioItem>
+                )
+              })}
             </ContextMenuRadioGroup>
           </ContextMenuSubContent>
         </ContextMenuSub>

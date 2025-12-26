@@ -20,6 +20,7 @@ export * from './lib/tab-manager/ui/WindowRailItem'
 export * from './lib/tab-manager/ui/SidebarAction'
 
 export * from './lib/getFaviconUrl'
+export * from './lib/tab-group/tabGroupColors'
 export * from './lib/utils/cn'
 export * from './lib/utils/formatTimeAgo'
 export * from './lib/with-ui'
