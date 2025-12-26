@@ -9,6 +9,8 @@ These principles guide all development and refactoring decisions:
 - Eliminate code duplication by extracting shared logic into reusable functions or components
 - Always check for existing implementations before creating new ones
 - If you find duplicated code, refactor it into a shared location
+- **Derive, don't duplicate:** When consolidating similar definitions, derive one from another rather than maintaining parallel structures (e.g., derive a type from an array using `typeof arr[number]` instead of maintaining both separately)
+- **Single source of truth for constants:** When platform APIs define enums/constants (like `chrome.tabGroups.Color`), ensure your definitions align with them
 
 ### Separation of Concerns (SoC)
 
@@ -66,6 +68,8 @@ export const TabManager = () => {
 - **YAGNI (You Aren't Gonna Need It):** Only introduce abstractions when clearly warranted by current needs
 - Avoid premature optimization or building for hypothetical future requirements
 - If a simple solution works, prefer it over a clever one
+- **Consolidate fallback logic:** When refactoring, ensure fallback/default handling exists in ONE place, not duplicated across callers and helpers
+- **Question existing patterns:** When consolidating code, don't blindly preserve existing structure—ask if the original approach was optimal
 
 ### Readability & Understandability
 
@@ -119,6 +123,31 @@ Custom components should have minimal properties. Avoid extending full HTML attr
 - Doc comments (JSDoc) are encouraged for components and utilities to explain their purpose and usage.
 - Avoid inline comments within function bodies. Code should be self-documenting with clear variable and function names.
 - If logic is complex enough to warrant a comment, consider refactoring into well-named functions or variables that explain the intent.
+
+## Styling Guidelines
+
+### Tailwind-First Approach
+
+- **Prefer Tailwind classes over inline styles:** Use `className="bg-blue-500"` instead of `style={{ backgroundColor: '#3b82f6' }}`
+- **Use Tailwind's color palette:** When defining color constants, use Tailwind class names rather than hex values
+- **Consistency:** All visual styling should go through Tailwind to ensure theme compatibility and dark mode support
+- **Avoid style prop for colors:** The `style` prop with hardcoded colors breaks theme consistency and dark mode
+
+### Color Constants Pattern
+
+When defining color-related constants:
+
+```typescript
+// ✅ Good: Tailwind classes that work with theme
+const COLORS = {
+  blue: { bg: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400' },
+} as const
+
+// ❌ Bad: Hex values that ignore theme
+const COLORS = {
+  blue: { hex: '#3b82f6' },
+}
+```
 
 ## Working with Workspace Packages
 

@@ -107,6 +107,16 @@ applyTo: '**/*.ts,**/*.tsx'
 - Batch or debounce high-frequency events to reduce thrash.
 - Track resource lifetimes to prevent leaks.
 
+## Refactoring Best Practices
+
+When consolidating or refactoring code:
+
+- **Derive types from data:** Use `typeof arr[number]` or `keyof typeof obj` to derive types from constants, avoiding parallel maintenance
+- **Single fallback location:** Default/fallback logic should exist in ONE place—either the helper or the caller, not both
+- **Verify against platform APIs:** When wrapping platform types (e.g., `chrome.tabGroups.Color`), verify your definitions match the source
+- **Simplify, don't just move:** Consolidation should reduce total complexity, not just relocate it
+- **Challenge assumptions:** Ask "why was it done this way?" before preserving patterns from the original code
+
 ## Documentation & Comments
 
 - Add JSDoc to public APIs; include `@remarks` or `@example` when helpful.
