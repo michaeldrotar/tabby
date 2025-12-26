@@ -14,7 +14,7 @@ import {
   TabContextMenu,
   TabGroupContextMenu,
 } from '@extension/ui'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import type {
   BrowserTab,
   BrowserTabGroup,
@@ -91,7 +91,8 @@ const TabGroupWithContextMenu = memo(
     currentWindowId?: number
     groups: BrowserTabGroup[]
   }) => {
-    const tabIds = tabs.map((t) => t.id)
+    // Memoize tabIds array to maintain stable reference
+    const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
     const actions = useTabGroupActions(group, tabIds)
     const [isRenaming, setIsRenaming] = useState(false)
 

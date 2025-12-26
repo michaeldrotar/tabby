@@ -1,5 +1,5 @@
 import { moveTabBack, moveTabForward } from './moveOperations'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 
 /**
@@ -7,8 +7,7 @@ import type { BrowserTab } from '@extension/chrome'
  * All actions are async and handle errors gracefully.
  */
 export const useTabActions = (tab: BrowserTab) => {
-  const tabId = tab.id
-
+  const { id: tabId, windowId } = tab
   const pin = useCallback(async () => {
     await chrome.tabs.update(tabId, { pinned: true })
   }, [tabId])
@@ -38,7 +37,7 @@ export const useTabActions = (tab: BrowserTab) => {
   }, [tabId])
 
   const closeOther = useCallback(async () => {
-    const allTabs = await chrome.tabs.query({ windowId: tab.windowId })
+    const allTabs = await chrome.tabs.query({ windowId })
     const otherTabIds = allTabs
       .filter((t) => t.id !== tabId && !t.pinned)
       .map((t) => t.id)
@@ -46,10 +45,10 @@ export const useTabActions = (tab: BrowserTab) => {
     if (otherTabIds.length > 0) {
       await chrome.tabs.remove(otherTabIds)
     }
-  }, [tabId, tab.windowId])
+  }, [tabId, windowId])
 
   const closeAfter = useCallback(async () => {
-    const allTabs = await chrome.tabs.query({ windowId: tab.windowId })
+    const allTabs = await chrome.tabs.query({ windowId })
     const currentIndex = allTabs.findIndex((t) => t.id === tabId)
     const afterTabIds = allTabs
       .slice(currentIndex + 1)
@@ -59,28 +58,31 @@ export const useTabActions = (tab: BrowserTab) => {
     if (afterTabIds.length > 0) {
       await chrome.tabs.remove(afterTabIds)
     }
-  }, [tabId, tab.windowId])
+  }, [tabId, windowId])
 
   const moveBack = useCallback(() => moveTabBack(tabId), [tabId])
 
   const moveForward = useCallback(() => moveTabForward(tabId), [tabId])
 
   const copyUrl = useCallback(async () => {
+    const tab = await chrome.tabs.get(tabId)
     if (tab.url) {
       await navigator.clipboard.writeText(tab.url)
     }
-  }, [tab.url])
+  }, [tabId])
 
   const copyTitle = useCallback(async () => {
+    const tab = await chrome.tabs.get(tabId)
     if (tab.title) {
       await navigator.clipboard.writeText(tab.title)
     }
-  }, [tab.title])
+  }, [tabId])
 
   const copyTitleAndUrl = useCallback(async () => {
+    const tab = await chrome.tabs.get(tabId)
     const text = `${tab.title ?? ''}\n${tab.url ?? ''}`
     await navigator.clipboard.writeText(text.trim())
-  }, [tab.title, tab.url])
+  }, [tabId])
 
   const addToGroup = useCallback(
     async (groupId: number) => {
@@ -98,8 +100,8 @@ export const useTabActions = (tab: BrowserTab) => {
   }, [tabId])
 
   const moveToWindow = useCallback(
-    async (windowId: number) => {
-      await chrome.tabs.move(tabId, { windowId, index: -1 })
+    async (targetWindowId: number) => {
+      await chrome.tabs.move(tabId, { windowId: targetWindowId, index: -1 })
     },
     [tabId],
   )
@@ -108,25 +110,48 @@ export const useTabActions = (tab: BrowserTab) => {
     await chrome.windows.create({ tabId })
   }, [tabId])
 
-  return {
-    pin,
-    unpin,
-    mute,
-    unmute,
-    duplicate,
-    reload,
-    close,
-    closeOther,
-    closeAfter,
-    copyUrl,
-    copyTitle,
-    copyTitleAndUrl,
-    addToGroup,
-    addToNewGroup,
-    removeFromGroup,
-    moveToWindow,
-    moveToNewWindow,
-    moveBack,
-    moveForward,
-  }
+  return useMemo(
+    () => ({
+      pin,
+      unpin,
+      mute,
+      unmute,
+      duplicate,
+      reload,
+      close,
+      closeOther,
+      closeAfter,
+      copyUrl,
+      copyTitle,
+      copyTitleAndUrl,
+      addToGroup,
+      addToNewGroup,
+      removeFromGroup,
+      moveToWindow,
+      moveToNewWindow,
+      moveBack,
+      moveForward,
+    }),
+    [
+      pin,
+      unpin,
+      mute,
+      unmute,
+      duplicate,
+      reload,
+      close,
+      closeOther,
+      closeAfter,
+      copyUrl,
+      copyTitle,
+      copyTitleAndUrl,
+      addToGroup,
+      addToNewGroup,
+      removeFromGroup,
+      moveToWindow,
+      moveToNewWindow,
+      moveBack,
+      moveForward,
+    ],
+  )
 }

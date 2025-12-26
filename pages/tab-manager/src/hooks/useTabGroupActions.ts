@@ -1,6 +1,6 @@
 import { moveGroupBack, moveGroupForward } from './moveOperations'
-import { useCallback } from 'react'
-import type { BrowserTabGroup } from '@extension/chrome'
+import { useCallback, useMemo } from 'react'
+import type { BrowserTabGroup, BrowserTabID } from '@extension/chrome'
 import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 
 /**
@@ -9,13 +9,13 @@ import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/Browse
  */
 export const useTabGroupActions = (
   group: BrowserTabGroup,
-  tabIds: number[],
+  tabIds: readonly BrowserTabID[],
 ) => {
-  const groupId = group.id
+  const { id: groupId, collapsed } = group
 
   const toggleCollapse = useCallback(async () => {
-    await chrome.tabGroups.update(groupId, { collapsed: !group.collapsed })
-  }, [groupId, group.collapsed])
+    await chrome.tabGroups.update(groupId, { collapsed: !collapsed })
+  }, [groupId, collapsed])
 
   const rename = useCallback(
     async (title: string) => {
@@ -71,19 +71,32 @@ export const useTabGroupActions = (
 
   const close = useCallback(async () => {
     if (tabIds.length > 0) {
-      await chrome.tabs.remove(tabIds)
+      await chrome.tabs.remove([...tabIds])
     }
   }, [tabIds])
 
-  return {
-    toggleCollapse,
-    rename,
-    changeColor,
-    ungroup,
-    copyUrls,
-    moveToNewWindow,
-    moveBack,
-    moveForward,
-    close,
-  }
+  return useMemo(
+    () => ({
+      toggleCollapse,
+      rename,
+      changeColor,
+      ungroup,
+      copyUrls,
+      moveToNewWindow,
+      moveBack,
+      moveForward,
+      close,
+    }),
+    [
+      toggleCollapse,
+      rename,
+      changeColor,
+      ungroup,
+      copyUrls,
+      moveToNewWindow,
+      moveBack,
+      moveForward,
+      close,
+    ],
+  )
 }
