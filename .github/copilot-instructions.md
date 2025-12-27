@@ -2,6 +2,31 @@
 
 This is the main entry point for AI assistant guidance on this project. For detailed instructions on specific topics, refer to the specialized instruction files below.
 
+## Reading Instructions and Plans Completely
+
+### Critical: Read Files in Their Entirety
+
+When reading instruction files, plan documents, or any substantial documentation:
+
+- **Read ALL lines:** Instruction files can be hundreds of lines long, plan documents can be thousands
+- **Don't stop at 100-200 lines:** Important context and guidance can appear anywhere in the file
+- **Continue reading to the end:** If you start reading a file, read it completely before making decisions
+- **Build complete context:** Partial reads lead to missing critical information
+
+### Why This Matters
+
+- Early sections often provide overview and context
+- Middle sections contain detailed implementation guidance
+- Later sections may include critical edge cases, gotchas, or important constraints
+- Missing any section can lead to incomplete or incorrect implementations
+
+### How to Read Large Files
+
+1. Read the entire file from start to finish
+2. If the file is very long, read it in complete sections (not arbitrary cutoffs)
+3. Take note of cross-references to other files that should also be read
+4. After reading, synthesize the complete picture before taking action
+
 ## Project: Tabby
 
 **Tabby** is a Chrome Extension that provides keyboard-centric tab and bookmark management. Built as a monorepo using **pnpm workspaces** and **Turborepo**.
