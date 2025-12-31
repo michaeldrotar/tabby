@@ -1,7 +1,20 @@
-import { moveGroupBack, moveGroupForward } from './moveOperations'
+import {
+  toggleTabGroupCollapsed,
+  renameTabGroup,
+  changeTabGroupColor,
+  ungroupTabs,
+  copyTabGroupUrls,
+  moveTabGroupToNewWindow,
+  moveTabGroupBackward,
+  moveTabGroupForward,
+  closeTabs,
+} from '@extension/chrome'
 import { useCallback, useMemo } from 'react'
-import type { BrowserTabGroup, BrowserTabID } from '@extension/chrome'
-import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
+import type {
+  BrowserTabGroupColor,
+  BrowserTabGroup,
+  BrowserTabID,
+} from '@extension/chrome'
 
 /**
  * Actions for managing tab groups via context menu.
@@ -14,66 +27,41 @@ export const useTabGroupActions = (
   const { id: groupId, collapsed } = group
 
   const toggleCollapse = useCallback(async () => {
-    await chrome.tabGroups.update(groupId, { collapsed: !collapsed })
+    await toggleTabGroupCollapsed(groupId, collapsed)
   }, [groupId, collapsed])
 
   const rename = useCallback(
     async (title: string) => {
-      await chrome.tabGroups.update(groupId, { title })
+      await renameTabGroup(groupId, title)
     },
     [groupId],
   )
 
   const changeColor = useCallback(
     async (color: BrowserTabGroupColor) => {
-      await chrome.tabGroups.update(groupId, { color })
+      await changeTabGroupColor(groupId, color)
     },
     [groupId],
   )
 
   const ungroup = useCallback(async () => {
-    if (tabIds.length > 0) {
-      // Chrome API requires at least one tab
-      await chrome.tabs.ungroup(tabIds as [number, ...number[]])
-    }
+    await ungroupTabs(tabIds)
   }, [tabIds])
 
   const copyUrls = useCallback(async () => {
-    const tabs = await chrome.tabs.query({ groupId })
-    const urls = tabs
-      .map((tab) => tab.url)
-      .filter((url): url is string => !!url)
-    await navigator.clipboard.writeText(urls.join('\n'))
+    await copyTabGroupUrls(groupId)
   }, [groupId])
 
   const moveToNewWindow = useCallback(async () => {
-    const firstTabId = tabIds[0]
-    if (firstTabId !== undefined) {
-      // Move the first tab to a new window, then move the rest
-      const restTabIds = tabIds.slice(1)
-      const newWindow = await chrome.windows.create({ tabId: firstTabId })
-      if (newWindow?.id && restTabIds.length > 0) {
-        await chrome.tabs.move(restTabIds, {
-          windowId: newWindow.id,
-          index: -1,
-        })
-        // Re-create the group in the new window
-        await chrome.tabs.group({
-          tabIds: [firstTabId, ...restTabIds],
-          createProperties: { windowId: newWindow.id },
-        })
-      }
-    }
+    await moveTabGroupToNewWindow(tabIds)
   }, [tabIds])
 
-  const moveBack = useCallback(() => moveGroupBack(groupId), [groupId])
+  const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
 
-  const moveForward = useCallback(() => moveGroupForward(groupId), [groupId])
+  const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])
 
   const close = useCallback(async () => {
-    if (tabIds.length > 0) {
-      await chrome.tabs.remove([...tabIds])
-    }
+    await closeTabs(tabIds)
   }, [tabIds])
 
   return useMemo(

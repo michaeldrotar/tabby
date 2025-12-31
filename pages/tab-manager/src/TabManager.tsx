@@ -7,6 +7,7 @@ import {
   useSelectedWindowId,
   useSetSelectedWindowId,
   useBrowserTabsByWindowId,
+  focusWindow,
 } from '@extension/chrome'
 import { TabManagerShell } from '@extension/ui'
 import { useCallback, useEffect, useState } from 'react'
@@ -27,7 +28,7 @@ const TabManager = () => {
 
   const onActivateWindow = useCallback(
     async (windowId: number) => {
-      await chrome.windows.update(windowId, { focused: true })
+      await focusWindow(windowId)
       setSelectedWindowId(windowId)
 
       // Notify other windows that this window has been activated via Tab Manager

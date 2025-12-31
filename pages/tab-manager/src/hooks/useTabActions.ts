@@ -1,4 +1,24 @@
-import { moveTabBack, moveTabForward } from './moveOperations'
+import {
+  pinTab,
+  unpinTab,
+  muteTab,
+  unmuteTab,
+  duplicateTab,
+  reloadTab,
+  closeTab,
+  closeOtherTabs,
+  closeTabsAfter,
+  copyTabUrl,
+  copyTabTitle,
+  copyTabTitleAndUrl,
+  addTabToGroup,
+  addTabToNewGroup,
+  removeTabFromGroup,
+  moveTabToWindow,
+  moveTabToNewWindow,
+  moveTabBackward,
+  moveTabForward,
+} from '@extension/chrome'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 
@@ -9,105 +29,81 @@ import type { BrowserTab } from '@extension/chrome'
 export const useTabActions = (tab: BrowserTab) => {
   const { id: tabId, windowId } = tab
   const pin = useCallback(async () => {
-    await chrome.tabs.update(tabId, { pinned: true })
+    await pinTab(tabId)
   }, [tabId])
 
   const unpin = useCallback(async () => {
-    await chrome.tabs.update(tabId, { pinned: false })
+    await unpinTab(tabId)
   }, [tabId])
 
   const mute = useCallback(async () => {
-    await chrome.tabs.update(tabId, { muted: true })
+    await muteTab(tabId)
   }, [tabId])
 
   const unmute = useCallback(async () => {
-    await chrome.tabs.update(tabId, { muted: false })
+    await unmuteTab(tabId)
   }, [tabId])
 
   const duplicate = useCallback(async () => {
-    await chrome.tabs.duplicate(tabId)
+    await duplicateTab(tabId)
   }, [tabId])
 
   const reload = useCallback(async () => {
-    await chrome.tabs.reload(tabId)
+    await reloadTab(tabId)
   }, [tabId])
 
   const close = useCallback(async () => {
-    await chrome.tabs.remove(tabId)
+    await closeTab(tabId)
   }, [tabId])
 
   const closeOther = useCallback(async () => {
-    const allTabs = await chrome.tabs.query({ windowId })
-    const otherTabIds = allTabs
-      .filter((t) => t.id !== tabId && !t.pinned)
-      .map((t) => t.id)
-      .filter((id): id is number => id !== undefined)
-    if (otherTabIds.length > 0) {
-      await chrome.tabs.remove(otherTabIds)
-    }
+    await closeOtherTabs(tabId, windowId)
   }, [tabId, windowId])
 
   const closeAfter = useCallback(async () => {
-    const allTabs = await chrome.tabs.query({ windowId })
-    const currentIndex = allTabs.findIndex((t) => t.id === tabId)
-    const afterTabIds = allTabs
-      .slice(currentIndex + 1)
-      .filter((t) => !t.pinned)
-      .map((t) => t.id)
-      .filter((id): id is number => id !== undefined)
-    if (afterTabIds.length > 0) {
-      await chrome.tabs.remove(afterTabIds)
-    }
+    await closeTabsAfter(tabId, windowId)
   }, [tabId, windowId])
 
-  const moveBack = useCallback(() => moveTabBack(tabId), [tabId])
+  const moveBack = useCallback(() => moveTabBackward(tabId), [tabId])
 
   const moveForward = useCallback(() => moveTabForward(tabId), [tabId])
 
   const copyUrl = useCallback(async () => {
-    const tab = await chrome.tabs.get(tabId)
-    if (tab.url) {
-      await navigator.clipboard.writeText(tab.url)
-    }
+    await copyTabUrl(tabId)
   }, [tabId])
 
   const copyTitle = useCallback(async () => {
-    const tab = await chrome.tabs.get(tabId)
-    if (tab.title) {
-      await navigator.clipboard.writeText(tab.title)
-    }
+    await copyTabTitle(tabId)
   }, [tabId])
 
   const copyTitleAndUrl = useCallback(async () => {
-    const tab = await chrome.tabs.get(tabId)
-    const text = `${tab.title ?? ''}\n${tab.url ?? ''}`
-    await navigator.clipboard.writeText(text.trim())
+    await copyTabTitleAndUrl(tabId)
   }, [tabId])
 
   const addToGroup = useCallback(
     async (groupId: number) => {
-      await chrome.tabs.group({ tabIds: tabId, groupId })
+      await addTabToGroup(tabId, groupId)
     },
     [tabId],
   )
 
   const addToNewGroup = useCallback(async () => {
-    await chrome.tabs.group({ tabIds: tabId })
+    await addTabToNewGroup(tabId)
   }, [tabId])
 
   const removeFromGroup = useCallback(async () => {
-    await chrome.tabs.ungroup(tabId)
+    await removeTabFromGroup(tabId)
   }, [tabId])
 
   const moveToWindow = useCallback(
     async (targetWindowId: number) => {
-      await chrome.tabs.move(tabId, { windowId: targetWindowId, index: -1 })
+      await moveTabToWindow(tabId, targetWindowId)
     },
     [tabId],
   )
 
   const moveToNewWindow = useCallback(async () => {
-    await chrome.windows.create({ tabId })
+    await moveTabToNewWindow(tabId)
   }, [tabId])
 
   return useMemo(

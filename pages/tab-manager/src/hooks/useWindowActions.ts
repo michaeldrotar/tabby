@@ -1,3 +1,11 @@
+import {
+  focusWindow,
+  closeWindow,
+  muteAllTabsInWindow,
+  unmuteAllTabsInWindow,
+  reloadAllTabsInWindow,
+  copyAllUrlsInWindow,
+} from '@extension/chrome'
 import { useCallback } from 'react'
 import type { BrowserWindow, BrowserTab } from '@extension/chrome'
 
@@ -7,39 +15,30 @@ import type { BrowserWindow, BrowserTab } from '@extension/chrome'
  */
 export const useWindowActions = (window: BrowserWindow, tabs: BrowserTab[]) => {
   const windowId = window.id
+  const tabIds = tabs.map((t) => t.id)
 
   const focus = useCallback(async () => {
-    await chrome.windows.update(windowId, { focused: true })
+    await focusWindow(windowId)
   }, [windowId])
 
   const muteAll = useCallback(async () => {
-    const tabIds = tabs.map((t) => t.id)
-    await Promise.all(
-      tabIds.map((id) => chrome.tabs.update(id, { muted: true })),
-    )
-  }, [tabs])
+    await muteAllTabsInWindow(tabIds)
+  }, [tabIds])
 
   const unmuteAll = useCallback(async () => {
-    const tabIds = tabs.map((t) => t.id)
-    await Promise.all(
-      tabIds.map((id) => chrome.tabs.update(id, { muted: false })),
-    )
-  }, [tabs])
+    await unmuteAllTabsInWindow(tabIds)
+  }, [tabIds])
 
   const reloadAll = useCallback(async () => {
-    const tabIds = tabs.map((t) => t.id)
-    await Promise.all(tabIds.map((id) => chrome.tabs.reload(id)))
-  }, [tabs])
+    await reloadAllTabsInWindow(tabIds)
+  }, [tabIds])
 
   const copyAllUrls = useCallback(async () => {
-    const urls = tabs
-      .map((tab) => tab.url)
-      .filter((url): url is string => !!url)
-    await navigator.clipboard.writeText(urls.join('\n'))
+    await copyAllUrlsInWindow(tabs)
   }, [tabs])
 
   const close = useCallback(async () => {
-    await chrome.windows.remove(windowId)
+    await closeWindow(windowId)
   }, [windowId])
 
   return {
