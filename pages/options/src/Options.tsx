@@ -128,7 +128,10 @@ const OptionsContent = () => {
     if (options.length <= 1) return current
     let next = current
     while (next === current) {
-      next = options[Math.floor(Math.random() * options.length)]
+      const randomElement = options[Math.floor(Math.random() * options.length)]
+      if (randomElement !== undefined) {
+        next = randomElement
+      }
     }
     return next
   }

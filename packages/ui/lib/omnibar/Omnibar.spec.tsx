@@ -103,7 +103,9 @@ describe('Omnibar', () => {
     expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
 
     // Move mouse to the second item
-    fireEvent.mouseMove(items[1])
+    const secondItem = items[1]
+    expect(secondItem).toBeDefined()
+    fireEvent.mouseMove(secondItem!)
 
     // Second item should be selected
     expect(items[1]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
@@ -125,7 +127,9 @@ describe('Omnibar', () => {
     expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
 
     // Fire mouseEnter on second item (should NOT change selection)
-    fireEvent.mouseEnter(items[1])
+    const secondItem = items[1]
+    expect(secondItem).toBeDefined()
+    fireEvent.mouseEnter(secondItem!)
 
     expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
     expect(items[1]).not.toHaveClass(

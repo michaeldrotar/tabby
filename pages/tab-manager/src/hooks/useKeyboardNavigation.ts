@@ -190,8 +190,11 @@ export const useKeyboardNavigation = (
           )
           if (activeItem) {
             focusNavigableItem(activeItem.element, activeItem.type)
-          } else if (items.length > 0) {
-            focusNavigableItem(items[0].element, items[0].type)
+          } else {
+            const firstItem = items[0]
+            if (firstItem) {
+              focusNavigableItem(firstItem.element, firstItem.type)
+            }
           }
         }
       } else if (e.key === 'ArrowLeft') {

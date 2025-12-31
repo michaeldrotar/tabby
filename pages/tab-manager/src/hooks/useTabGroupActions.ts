@@ -47,9 +47,10 @@ export const useTabGroupActions = (
   }, [groupId])
 
   const moveToNewWindow = useCallback(async () => {
-    if (tabIds.length > 0) {
+    const firstTabId = tabIds[0]
+    if (firstTabId !== undefined) {
       // Move the first tab to a new window, then move the rest
-      const [firstTabId, ...restTabIds] = tabIds
+      const restTabIds = tabIds.slice(1)
       const newWindow = await chrome.windows.create({ tabId: firstTabId })
       if (newWindow?.id && restTabIds.length > 0) {
         await chrome.tabs.move(restTabIds, {

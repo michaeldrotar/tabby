@@ -32,7 +32,7 @@ describe('useOmnibarFiltering', () => {
       (item) => item.type === 'tab',
     )
     expect(tabResults).toHaveLength(1)
-    expect(tabResults[0].title).toBe('Open Houses - 17 Upcoming | Zillow')
+    expect(tabResults[0]?.title).toBe('Open Houses - 17 Upcoming | Zillow')
   })
 
   it('should filter tabs by single term', () => {
@@ -44,7 +44,7 @@ describe('useOmnibarFiltering', () => {
       (item) => item.type === 'tab',
     )
     expect(tabResults).toHaveLength(1)
-    expect(tabResults[0].title).toBe('Open Houses - 17 Upcoming | Zillow')
+    expect(tabResults[0]?.title).toBe('Open Houses - 17 Upcoming | Zillow')
   })
 
   it('should not find non-matching tabs', () => {

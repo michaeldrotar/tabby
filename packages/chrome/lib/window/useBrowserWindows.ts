@@ -16,6 +16,10 @@ import type { BrowserWindow } from './BrowserWindow.js'
  */
 export const useBrowserWindows = (): BrowserWindow[] => {
   return useBrowserStore(
-    useShallow((state) => state.windowIds.map((id) => state.windowById[id])),
+    useShallow((state) =>
+      state.windowIds
+        .map((id) => state.windowById[id])
+        .filter((w): w is BrowserWindow => w !== undefined),
+    ),
   )
 }

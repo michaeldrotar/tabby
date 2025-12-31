@@ -20,9 +20,9 @@ const openOmnibarPopup = async (windowId?: number) => {
     `omnibar-popup/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
   )
   const existingTabs = await chrome.tabs.query({ url: searchUrl })
-
-  if (existingTabs.length > 0 && existingTabs[0].windowId) {
-    await chrome.windows.update(existingTabs[0].windowId, { focused: true })
+  const firstExistingTab = existingTabs[0]
+  if (firstExistingTab) {
+    await chrome.windows.update(firstExistingTab.windowId, { focused: true })
     return
   }
 
