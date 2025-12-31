@@ -34,8 +34,8 @@ export const useTabGroupActions = (
   const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
   const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])
   const moveToNewWindow = useCallback(
-    () => moveTabGroupToNewWindow(tabIds),
-    [tabIds],
+    () => moveTabGroupToNewWindow(groupId),
+    [groupId],
   )
   const rename = useCallback(
     (title: string) => renameTabGroup(groupId, title),

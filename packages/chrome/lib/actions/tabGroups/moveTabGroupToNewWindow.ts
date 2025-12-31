@@ -1,27 +1,21 @@
-import type { BrowserTabID } from '../../tab/BrowserTabID.js'
-import type { BrowserWindowID } from '../../window/BrowserWindowID.js'
+import type { BrowserTabGroupID } from '../../tabGroup/BrowserTabGroupID.js'
 
 /**
  * Moves a tab group to a new window.
- * Creates a new window with the first tab, then moves the rest and recreates the group.
+ * Creates a new window, moves the entire group to it (preserving name and color),
+ * then closes the blank tab that was created with the new window.
  */
 export const moveTabGroupToNewWindow = async (
-  tabIds: readonly BrowserTabID[],
+  groupId: BrowserTabGroupID,
 ): Promise<void> => {
-  const firstTabId = tabIds[0]
-  if (firstTabId !== undefined) {
-    const restTabIds = tabIds.slice(1)
-    const newWindow = await chrome.windows.create({ tabId: firstTabId })
-    if (newWindow?.id && restTabIds.length > 0) {
-      await chrome.tabs.move(restTabIds as number[], {
-        windowId: newWindow.id as BrowserWindowID,
-        index: -1,
-      })
-      // Re-create the group in the new window
-      await chrome.tabs.group({
-        tabIds: [firstTabId, ...restTabIds],
-        createProperties: { windowId: newWindow.id },
-      })
-    }
+  const newWindow = await chrome.windows.create({})
+  if (!newWindow?.id) return
+
+  const blankTabId = newWindow.tabs?.[0]?.id
+
+  await chrome.tabGroups.move(groupId, { windowId: newWindow.id, index: -1 })
+
+  if (blankTabId) {
+    await chrome.tabs.remove(blankTabId)
   }
 }
