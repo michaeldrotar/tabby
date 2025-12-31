@@ -1,9 +1,9 @@
 import {
-  moveTabBack,
+  moveTabBackward,
   moveTabForward,
-  moveGroupBack,
-  moveGroupForward,
-} from './moveOperations'
+  moveTabGroupBackward,
+  moveTabGroupForward,
+} from '@extension/chrome'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
 type PendingFocus = {
@@ -334,7 +334,7 @@ const moveItem = (
 
     const tabIdNum = parseInt(tabId, 10)
     if (direction === 'back') {
-      moveTabBack(tabIdNum)
+      moveTabBackward(tabIdNum)
     } else {
       moveTabForward(tabIdNum)
     }
@@ -346,9 +346,9 @@ const moveItem = (
 
     const groupIdNum = parseInt(groupId, 10)
     if (direction === 'back') {
-      moveGroupBack(groupIdNum)
+      moveTabGroupBackward(groupIdNum)
     } else {
-      moveGroupForward(groupIdNum)
+      moveTabGroupForward(groupIdNum)
     }
   }
 }

@@ -7,6 +7,8 @@ import {
   useBrowserTabGroupsByWindowId,
   useBrowserWindows,
   useCurrentBrowserWindow,
+  activateTab,
+  focusWindow,
 } from '@extension/chrome'
 import {
   TabList,
@@ -16,19 +18,19 @@ import {
 } from '@extension/ui'
 import { memo, useCallback, useMemo, useState } from 'react'
 import type {
+  BrowserTabGroupColor,
   BrowserTab,
   BrowserTabGroup,
   BrowserTabID,
   BrowserWindowID,
 } from '@extension/chrome'
-import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
   tabId: BrowserTabID,
 ): Promise<void> => {
-  await chrome.windows.update(windowId, { focused: true })
-  await chrome.tabs.update(tabId, { active: true })
+  await focusWindow(windowId)
+  await activateTab(tabId)
 }
 
 const TabItemWithContextMenu = memo(

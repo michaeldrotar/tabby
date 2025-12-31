@@ -1,11 +1,23 @@
-import { moveGroupBack, moveGroupForward } from './moveOperations'
+import {
+  changeTabGroupColor,
+  closeTabs,
+  copyTabGroupUrls,
+  moveTabGroupBackward,
+  moveTabGroupForward,
+  moveTabGroupToNewWindow,
+  renameTabGroup,
+  toggleTabGroupCollapsed,
+  ungroupTabs,
+} from '@extension/chrome'
 import { useCallback, useMemo } from 'react'
-import type { BrowserTabGroup, BrowserTabID } from '@extension/chrome'
-import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
+import type {
+  BrowserTabGroup,
+  BrowserTabGroupColor,
+  BrowserTabID,
+} from '@extension/chrome'
 
 /**
  * Actions for managing tab groups via context menu.
- * All actions are async and handle errors gracefully.
  */
 export const useTabGroupActions = (
   group: BrowserTabGroup,
@@ -13,91 +25,50 @@ export const useTabGroupActions = (
 ) => {
   const { id: groupId, collapsed } = group
 
-  const toggleCollapse = useCallback(async () => {
-    await chrome.tabGroups.update(groupId, { collapsed: !collapsed })
-  }, [groupId, collapsed])
-
-  const rename = useCallback(
-    async (title: string) => {
-      await chrome.tabGroups.update(groupId, { title })
-    },
-    [groupId],
-  )
-
   const changeColor = useCallback(
-    async (color: BrowserTabGroupColor) => {
-      await chrome.tabGroups.update(groupId, { color })
-    },
+    (color: BrowserTabGroupColor) => changeTabGroupColor(groupId, color),
     [groupId],
   )
-
-  const ungroup = useCallback(async () => {
-    if (tabIds.length > 0) {
-      // Chrome API requires at least one tab
-      await chrome.tabs.ungroup(tabIds as [number, ...number[]])
-    }
-  }, [tabIds])
-
-  const copyUrls = useCallback(async () => {
-    const tabs = await chrome.tabs.query({ groupId })
-    const urls = tabs
-      .map((tab) => tab.url)
-      .filter((url): url is string => !!url)
-    await navigator.clipboard.writeText(urls.join('\n'))
-  }, [groupId])
-
-  const moveToNewWindow = useCallback(async () => {
-    const firstTabId = tabIds[0]
-    if (firstTabId !== undefined) {
-      // Move the first tab to a new window, then move the rest
-      const restTabIds = tabIds.slice(1)
-      const newWindow = await chrome.windows.create({ tabId: firstTabId })
-      if (newWindow?.id && restTabIds.length > 0) {
-        await chrome.tabs.move(restTabIds, {
-          windowId: newWindow.id,
-          index: -1,
-        })
-        // Re-create the group in the new window
-        await chrome.tabs.group({
-          tabIds: [firstTabId, ...restTabIds],
-          createProperties: { windowId: newWindow.id },
-        })
-      }
-    }
-  }, [tabIds])
-
-  const moveBack = useCallback(() => moveGroupBack(groupId), [groupId])
-
-  const moveForward = useCallback(() => moveGroupForward(groupId), [groupId])
-
-  const close = useCallback(async () => {
-    if (tabIds.length > 0) {
-      await chrome.tabs.remove([...tabIds])
-    }
-  }, [tabIds])
+  const close = useCallback(() => closeTabs(tabIds), [tabIds])
+  const copyUrls = useCallback(() => copyTabGroupUrls(groupId), [groupId])
+  const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
+  const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])
+  const moveToNewWindow = useCallback(
+    () => moveTabGroupToNewWindow(groupId),
+    [groupId],
+  )
+  const rename = useCallback(
+    (title: string) => renameTabGroup(groupId, title),
+    [groupId],
+  )
+  const toggleCollapse = useCallback(
+    () => toggleTabGroupCollapsed(groupId, collapsed),
+    [groupId, collapsed],
+  )
+  const ungroup = useCallback(() => ungroupTabs(tabIds), [tabIds])
 
   return useMemo(
     () => ({
-      toggleCollapse,
-      rename,
       changeColor,
-      ungroup,
+      close,
       copyUrls,
-      moveToNewWindow,
       moveBack,
       moveForward,
-      close,
+      moveToNewWindow,
+      rename,
+      toggleCollapse,
+      ungroup,
     }),
     [
-      toggleCollapse,
-      rename,
       changeColor,
-      ungroup,
+      close,
       copyUrls,
-      moveToNewWindow,
       moveBack,
       moveForward,
-      close,
+      moveToNewWindow,
+      rename,
+      toggleCollapse,
+      ungroup,
     ],
   )
 }
