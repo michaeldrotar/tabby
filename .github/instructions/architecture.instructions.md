@@ -90,12 +90,65 @@ General utilities that don't belong to a specific feature should be placed in a 
 
 ### Single File Exports
 
-Prefer single file exports for everything, including types and utils:
+**Core principle:** One export per file for everything—types, utilities, components, Chrome API wrappers, actions, hooks.
 
-- Components with a props type can export both the component function and prop type.
-- Avoid creating "bag" files like `utils.ts` or `types.ts` that contain multiple unrelated exports.
-- Types should also follow this rule. For example, `DataAttributes` should be in `DataAttributes.ts`, not `types.ts`.
-- **ESLint Enforcement:** The custom `prefer-inline-export` rule automatically transforms standalone exports into inline exports (e.g., `export const foo = ...` instead of `const foo = ...; export { foo }`).
+**Rules:**
+
+1. **File name matches export name exactly** - `pinTab.ts` exports `pinTab`, `DataAttributes.ts` exports `DataAttributes`
+2. **Use specific, unambiguous names** - `pinTab` not `pin`, `OmnibarSearchItem` not `SearchItem` (prevents naming conflicts, improves searchability)
+3. **Organize with folders for domain grouping** - Group by domain (`tabs/`, `groups/`, `windows/`) not by type or complexity
+4. **Alphabetical ordering in barrel files** - `index.ts` files re-export in alphabetical order (no subjective ordering)
+5. **Shared utilities are public exports within package** - Discoverable and reusable within the package, but not re-exported in `index.ts` (package-internal only)
+6. **External API via barrel files** - Package consumers import from `index.ts` barrel files
+
+**Why this pattern:**
+
+- ✅ **Cmd+P workflow** - Searching "pinTab" finds `pinTab.ts` directly (file name search works)
+- ✅ **Zero ambiguity** - No decisions about where code goes or how to group it
+- ✅ **Perfect consistency** - Same rule applies regardless of size or complexity
+- ✅ **Infinite scalability** - Files grow vertically only, never need splitting
+- ✅ **Clean diffs** - One import per line, minimal formatting churn
+- ✅ **Discoverable** - Scanning folder shows all available exports at a glance
+
+**Examples:**
+
+```typescript
+// packages/chrome/lib/api/tabs/pinTab.ts
+export const pinTab = async (id: number): Promise<void> => {
+  await chrome.tabs.update(id, { pinned: true })
+}
+
+// packages/chrome/lib/api/tabs/getOtherTabs.ts (package-internal)
+export const getOtherTabs = async (
+  excludeTabId: number,
+  windowId: number,
+): Promise<number[]> => {
+  // ... implementation
+}
+
+// packages/chrome/lib/api/tabs/index.ts (alphabetical)
+export { closeTab } from './closeTab'
+export { muteTab } from './muteTab'
+export { pinTab } from './pinTab'
+export { unpinTab } from './unpinTab'
+// NOTE: getOtherTabs is NOT re-exported (package-internal utility)
+
+// packages/shared/lib/types/DataAttributes.ts
+export type DataAttributes = {
+  /* ... */
+}
+```
+
+**Co-location exception:** Tightly coupled components (e.g., `TabList`, `TabListItem`) or a component with its props type can share a file when they're inseparable.
+
+**Anti-patterns to avoid:**
+
+- ❌ "Bag" files like `utils.ts` or `types.ts` with multiple unrelated exports
+- ❌ Grouping by size ("simple" vs "complex") - subjective and leads to refactoring churn
+- ❌ Generic names like `pin` when context-specific names like `pinTab` prevent conflicts
+- ❌ Exporting package-internal utilities from barrel files
+
+**ESLint enforcement:** The custom `prefer-inline-export` rule automatically enforces inline exports (`export const foo = ...` instead of `const foo = ...; export { foo }`).
 
 ### Co-location
 
