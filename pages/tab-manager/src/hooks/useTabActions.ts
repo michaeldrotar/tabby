@@ -32,37 +32,37 @@ import type {
 export const useTabActions = (tab: BrowserTab) => {
   const { id: tabId, windowId } = tab
 
-  const pin = useCallback(() => pinTab(tabId), [tabId])
-  const unpin = useCallback(() => unpinTab(tabId), [tabId])
-  const mute = useCallback(() => muteTab(tabId), [tabId])
-  const unmute = useCallback(() => unmuteTab(tabId), [tabId])
-  const duplicate = useCallback(() => duplicateTab(tabId), [tabId])
-  const reload = useCallback(() => reloadTab(tabId), [tabId])
-  const close = useCallback(() => closeTab(tabId), [tabId])
-  const closeOther = useCallback(
-    () => closeOtherTabs(tabId, windowId),
-    [tabId, windowId],
-  )
-  const closeAfter = useCallback(
-    () => closeTabsAfter(tabId, windowId),
-    [tabId, windowId],
-  )
-  const moveBack = useCallback(() => moveTabBackward(tabId), [tabId])
-  const moveForward = useCallback(() => moveTabForward(tabId), [tabId])
-  const copyUrl = useCallback(() => copyTabUrl(tabId), [tabId])
-  const copyTitle = useCallback(() => copyTabTitle(tabId), [tabId])
-  const copyTitleAndUrl = useCallback(() => copyTabTitleAndUrl(tabId), [tabId])
   const addToGroup = useCallback(
     (groupId: BrowserTabGroupID) => addTabToGroup(tabId, groupId),
     [tabId],
   )
   const addToNewGroup = useCallback(() => addTabToNewGroup(tabId), [tabId])
-  const removeFromGroup = useCallback(() => removeTabFromGroup(tabId), [tabId])
+  const close = useCallback(() => closeTab(tabId), [tabId])
+  const closeAfter = useCallback(
+    () => closeTabsAfter(tabId, windowId),
+    [tabId, windowId],
+  )
+  const closeOther = useCallback(
+    () => closeOtherTabs(tabId, windowId),
+    [tabId, windowId],
+  )
+  const copyTitle = useCallback(() => copyTabTitle(tabId), [tabId])
+  const copyTitleAndUrl = useCallback(() => copyTabTitleAndUrl(tabId), [tabId])
+  const copyUrl = useCallback(() => copyTabUrl(tabId), [tabId])
+  const duplicate = useCallback(() => duplicateTab(tabId), [tabId])
+  const moveBack = useCallback(() => moveTabBackward(tabId), [tabId])
+  const moveForward = useCallback(() => moveTabForward(tabId), [tabId])
+  const moveToNewWindow = useCallback(() => moveTabToNewWindow(tabId), [tabId])
   const moveToWindow = useCallback(
     (targetWindowId: BrowserWindowID) => moveTabToWindow(tabId, targetWindowId),
     [tabId],
   )
-  const moveToNewWindow = useCallback(() => moveTabToNewWindow(tabId), [tabId])
+  const mute = useCallback(() => muteTab(tabId), [tabId])
+  const pin = useCallback(() => pinTab(tabId), [tabId])
+  const reload = useCallback(() => reloadTab(tabId), [tabId])
+  const removeFromGroup = useCallback(() => removeTabFromGroup(tabId), [tabId])
+  const unmute = useCallback(() => unmuteTab(tabId), [tabId])
+  const unpin = useCallback(() => unpinTab(tabId), [tabId])
 
   return useMemo(
     () => ({
