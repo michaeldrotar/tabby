@@ -1,52 +1,30 @@
 import {
-  focusWindow,
   closeWindow,
-  muteAllTabsInWindow,
-  unmuteAllTabsInWindow,
-  reloadAllTabsInWindow,
   copyAllUrlsInWindow,
+  focusWindow,
+  muteAllTabsInWindow,
+  reloadAllTabsInWindow,
+  unmuteAllTabsInWindow,
 } from '@extension/chrome'
-import { useCallback } from 'react'
-import type { BrowserWindow, BrowserTab } from '@extension/chrome'
+import { useCallback, useMemo } from 'react'
+import type { BrowserTab, BrowserWindow } from '@extension/chrome'
 
 /**
  * Actions for managing browser windows via context menu.
- * All actions are async and handle errors gracefully.
  */
 export const useWindowActions = (window: BrowserWindow, tabs: BrowserTab[]) => {
   const windowId = window.id
-  const tabIds = tabs.map((t) => t.id)
+  const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
 
-  const focus = useCallback(async () => {
-    await focusWindow(windowId)
-  }, [windowId])
+  const close = useCallback(() => closeWindow(windowId), [windowId])
+  const copyAllUrls = useCallback(() => copyAllUrlsInWindow(tabs), [tabs])
+  const focus = useCallback(() => focusWindow(windowId), [windowId])
+  const muteAll = useCallback(() => muteAllTabsInWindow(tabIds), [tabIds])
+  const reloadAll = useCallback(() => reloadAllTabsInWindow(tabIds), [tabIds])
+  const unmuteAll = useCallback(() => unmuteAllTabsInWindow(tabIds), [tabIds])
 
-  const muteAll = useCallback(async () => {
-    await muteAllTabsInWindow(tabIds)
-  }, [tabIds])
-
-  const unmuteAll = useCallback(async () => {
-    await unmuteAllTabsInWindow(tabIds)
-  }, [tabIds])
-
-  const reloadAll = useCallback(async () => {
-    await reloadAllTabsInWindow(tabIds)
-  }, [tabIds])
-
-  const copyAllUrls = useCallback(async () => {
-    await copyAllUrlsInWindow(tabs)
-  }, [tabs])
-
-  const close = useCallback(async () => {
-    await closeWindow(windowId)
-  }, [windowId])
-
-  return {
-    focus,
-    muteAll,
-    unmuteAll,
-    reloadAll,
-    copyAllUrls,
-    close,
-  }
+  return useMemo(
+    () => ({ close, copyAllUrls, focus, muteAll, reloadAll, unmuteAll }),
+    [close, copyAllUrls, focus, muteAll, reloadAll, unmuteAll],
+  )
 }

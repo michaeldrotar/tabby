@@ -1,24 +1,23 @@
 import {
-  toggleTabGroupCollapsed,
-  renameTabGroup,
   changeTabGroupColor,
-  ungroupTabs,
+  closeTabs,
   copyTabGroupUrls,
-  moveTabGroupToNewWindow,
   moveTabGroupBackward,
   moveTabGroupForward,
-  closeTabs,
+  moveTabGroupToNewWindow,
+  renameTabGroup,
+  toggleTabGroupCollapsed,
+  ungroupTabs,
 } from '@extension/chrome'
 import { useCallback, useMemo } from 'react'
 import type {
-  BrowserTabGroupColor,
   BrowserTabGroup,
+  BrowserTabGroupColor,
   BrowserTabID,
 } from '@extension/chrome'
 
 /**
  * Actions for managing tab groups via context menu.
- * All actions are async and handle errors gracefully.
  */
 export const useTabGroupActions = (
   group: BrowserTabGroup,
@@ -26,66 +25,50 @@ export const useTabGroupActions = (
 ) => {
   const { id: groupId, collapsed } = group
 
-  const toggleCollapse = useCallback(async () => {
-    await toggleTabGroupCollapsed(groupId, collapsed)
-  }, [groupId, collapsed])
-
-  const rename = useCallback(
-    async (title: string) => {
-      await renameTabGroup(groupId, title)
-    },
-    [groupId],
-  )
-
   const changeColor = useCallback(
-    async (color: BrowserTabGroupColor) => {
-      await changeTabGroupColor(groupId, color)
-    },
+    (color: BrowserTabGroupColor) => changeTabGroupColor(groupId, color),
     [groupId],
   )
-
-  const ungroup = useCallback(async () => {
-    await ungroupTabs(tabIds)
-  }, [tabIds])
-
-  const copyUrls = useCallback(async () => {
-    await copyTabGroupUrls(groupId)
-  }, [groupId])
-
-  const moveToNewWindow = useCallback(async () => {
-    await moveTabGroupToNewWindow(tabIds)
-  }, [tabIds])
-
+  const close = useCallback(() => closeTabs(tabIds), [tabIds])
+  const copyUrls = useCallback(() => copyTabGroupUrls(groupId), [groupId])
   const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
-
   const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])
-
-  const close = useCallback(async () => {
-    await closeTabs(tabIds)
-  }, [tabIds])
+  const moveToNewWindow = useCallback(
+    () => moveTabGroupToNewWindow(tabIds),
+    [tabIds],
+  )
+  const rename = useCallback(
+    (title: string) => renameTabGroup(groupId, title),
+    [groupId],
+  )
+  const toggleCollapse = useCallback(
+    () => toggleTabGroupCollapsed(groupId, collapsed),
+    [groupId, collapsed],
+  )
+  const ungroup = useCallback(() => ungroupTabs(tabIds), [tabIds])
 
   return useMemo(
     () => ({
-      toggleCollapse,
-      rename,
       changeColor,
-      ungroup,
+      close,
       copyUrls,
-      moveToNewWindow,
       moveBack,
       moveForward,
-      close,
+      moveToNewWindow,
+      rename,
+      toggleCollapse,
+      ungroup,
     }),
     [
-      toggleCollapse,
-      rename,
       changeColor,
-      ungroup,
+      close,
       copyUrls,
-      moveToNewWindow,
       moveBack,
       moveForward,
-      close,
+      moveToNewWindow,
+      rename,
+      toggleCollapse,
+      ungroup,
     ],
   )
 }
