@@ -15,28 +15,37 @@
 
 ### Phase 1: Foundation (3-4 weeks) ⭐ CRITICAL
 
-- [ ] Centralized Keyboard System (Objective #1) - 3-4 days **HIGHEST PRIORITY**
-- [x] Extract GROUP_COLORS (Objective #5) - 2 days
-- [x] Verify Favicon URL (Objective #6) - 1 day
-- [x] Complete memoization audit (Objective #3) - 3 days
+- [x] Extract GROUP_COLORS (Objective #4) - 2 days
+- [x] Verify Favicon URL (Objective #5) - 1 day
+- [x] Complete memoization audit (Objective #2) - 3 days
+- [ ] Type Safety Audit (Objective #14) - 2-3 days
 
 ### Phase 2: Actions Layer (3-4 weeks)
 
-- [ ] Create actions layer (Objectives #7, #11) - 1 week
+- [ ] Create tab/group actions layer (Objective #6) - 1 week
+- [ ] Create window actions (Objective #12) - 1 week
 - [ ] Consolidate Omnibar Chrome API (Objective #9) - 1 week
 
-### Phase 3: Component Refinement (2-3 weeks)
+### Phase 3: Component Refinement (3-4 weeks)
 
-- [ ] Simplify TabItemRow (Objective #8) - 1 week
+- [ ] Simplify TabItemRow (Objective #7) - 1 week
 - [ ] Extract TabGroupHeader logic (Objective #10) - 1 week
+- [ ] Standardize context menu props (Objective #11) - 2 weeks
 
-### Phase 4: API & Performance (3-4 weeks)
+### Phase 4: Performance & Quality (4-5 weeks)
 
-- [ ] Standardize context menu props (Objective #12) - 2 weeks
-- [ ] Performance optimizations (Objective #4) - 1 week
+- [ ] Additional performance optimizations (Objective #3) - 1-2 weeks
+- [ ] Error handling & user feedback (Objective #17) - 2 weeks
+- [ ] Bundle size optimization (Objective #18) - 1 week
 
-### Phase 5: Documentation (1 week)
+### Phase 5: Accessibility & i18n (2-3 weeks)
 
+- [ ] Accessibility audit (Objective #15) - 1 week
+- [ ] i18n completion (Objective #16) - 1.5 weeks
+
+### Phase 6: Testing & Documentation (4 weeks)
+
+- [ ] Testing strategy (Objective #19) - 3 weeks
 - [ ] Architecture documentation (Objective #13) - 1 week
 
 ## Executive Summary
@@ -45,28 +54,17 @@ This document presents a comprehensive architectural analysis of the Tabby Chrom
 
 ### Key Findings
 
-**🔴 Critical Issue: Fragmented Keyboard Handling**
-The keyboard/shortcut system is the **most significant architectural problem** requiring immediate attention:
-
-- 352 lines in one file (`useKeyboardNavigation.ts`)
-- DOM mutation observers to detect context menu state (anti-pattern)
-- Event handlers scattered across 10+ files
-- No way to discover available shortcuts
-- Difficult to test, maintain, and extend
-
-**Recommendation:** Implement VSCode-style centralized keyboard system (Objective #1, RICE: 288)
-
-**🟡 Quick Wins Available:**
+** Quick Wins Available:**
 
 - Dead code: `TabItem.tsx` is unused and should be removed (2 hours)
 - Missing optimization: `WindowRailItem` needs `memo()` wrapper (30 minutes)
 - Code duplication: `GROUP_COLORS` defined 4 times (2 days)
 
-**🟢 Overall Assessment:**
+** Overall Assessment:**
 
 - Strong foundation with good package structure and type safety
 - Modern React patterns consistently applied
-- Main issues are: keyboard handling complexity, some missing optimizations, code duplication
+- Main issues are: some missing optimizations, code duplication
 
 ### RICE Method Scoring
 
@@ -78,20 +76,28 @@ Each objective is ranked using the **RICE method**:
 - **Effort**: Developer weeks needed (1-10)
 - **RICE Score** = (Reach × Impact × Confidence) / Effort
 
-### Top 10 Priorities by RICE Score
+### All Priorities by RICE Score
 
-| Rank | Objective                   | RICE | Effort    | Why                                                        |
-| ---- | --------------------------- | ---- | --------- | ---------------------------------------------------------- |
-| 1    | Centralized Keyboard System | 288  | 3-4 days  | Biggest architectural improvement, enables everything else |
-| 2    | Extract GROUP_COLORS        | 210  | 2 days    | Classic DRY violation, low risk                            |
-| 3    | Favicon URL Verification    | 150  | 1 day     | Separation of concerns                                     |
-| 4    | Chrome API Actions Layer    | 144  | 1 week    | Foundation for testable architecture                       |
-| 5    | Simplify TabItemRow         | 120  | 1 week    | Component complexity reduction                             |
-| 6    | Type Safety Audit           | 100  | 2-3 days  | Low effort, high value, better error catching              |
-| 7    | Dead Code Removal           | 100  | 2 hours   | Quick win, reduces confusion                               |
-| 8    | Memoization Audit           | 90   | 3-5 days  | Performance optimization for list rendering                |
-| 9    | Accessibility Audit         | 43   | 1 week    | Critical for screen reader users                           |
-| 10   | i18n Completion             | 37   | 1.5 weeks | Expand to non-English users                                |
+| Rank | Objective                      | #   | RICE | Effort    | Why                                           |
+| ---- | ------------------------------ | --- | ---- | --------- | --------------------------------------------- |
+| 1    | Extract GROUP_COLORS           | #4  | 210  | 2 days    | Classic DRY violation, low risk               |
+| 2    | Favicon URL Verification       | #5  | 150  | 1 day     | Separation of concerns                        |
+| 3    | Chrome API Actions Layer       | #6  | 144  | 1 week    | Foundation for testable architecture          |
+| 4    | Simplify TabItemRow            | #7  | 120  | 1 week    | Component complexity reduction                |
+| 5    | Type Safety Audit              | #14 | 100  | 2-3 days  | Low effort, high value, better error catching |
+| 6    | Dead Code Removal              | #1  | 100  | 2 hours   | Quick win, reduces confusion                  |
+| 7    | Consolidate Omnibar Chrome API | #9  | 96   | 1 week    | Consistency with reactive data layer          |
+| 8    | Memoization Audit              | #2  | 90   | 3-5 days  | Performance optimization for list rendering   |
+| 9    | Additional Performance Opts    | #3  | 72   | 1-2 weeks | Virtual scrolling, debouncing                 |
+| 10   | Extract TabGroupHeader Logic   | #10 | 72   | 1 week    | Separate business logic from presentation     |
+| 11   | Standardize Context Menu Props | #11 | 60   | 2 weeks   | Reduce props explosion (21 → 1 object)        |
+| 12   | Create Window Actions Module   | #12 | 54   | 2 weeks   | Complete the actions layer pattern            |
+| 13   | Document Architecture          | #13 | 50   | 1 week    | Onboarding and consistency                    |
+| 14   | Accessibility Audit            | #15 | 43   | 1 week    | Screen readers, ARIA live regions             |
+| 15   | i18n Completion                | #16 | 37   | 1.5 weeks | RTL support, more locales                     |
+| 16   | Error Handling & User Feedback | #17 | 32   | 2 weeks   | Toasts, retry logic, loading states           |
+| 17   | Bundle Size Optimization       | #18 | 28   | 1 week    | Tree shaking, lazy loading                    |
+| 18   | Testing Strategy               | #19 | 24   | 3 weeks   | E2E tests, visual regression                  |
 
 **Immediate Actions (This Week):**
 
@@ -102,35 +108,14 @@ Each objective is ranked using the **RICE method**:
 
 **Next Sprint Priority:**
 
-- **Keyboard System** - Do this first, it unlocks everything else
 - **GROUP_COLORS Extraction** - Classic refactoring, clear benefit
+- **Chrome API Actions Layer** - Foundation for testable architecture
 
 ---
 
 ## Critical Architectural Issues
 
-### 🔴 Priority 1: Keyboard/Shortcut Handling (Most Critical)
-
-The keyboard system is the **biggest architectural problem** requiring immediate attention:
-
-**Current State:**
-
-- 352 lines in `useKeyboardNavigation.ts` alone
-- DOM mutation observers to detect context menu state (anti-pattern)
-- Escape key has 4+ different contexts with competing handlers
-- Delete/Backspace handling in 4+ different files
-- preventDefault/stopPropagation scattered across 10+ components
-- No single source of truth for shortcuts
-- Impossible to discover available shortcuts
-- Very difficult to test
-
-**Proposed Solution:** VSCode-style command system with declarative shortcuts and context stack (see Objective #1 below for full implementation)
-
-**Impact:** Will reduce keyboard code by ~60%, enable shortcut discovery, make testing possible
-
----
-
-### 🟡 Priority 2: Dead Code Removal
+### 🟡 Priority 1: Dead Code Removal
 
 **Finding:** `TabItem.tsx` is completely unused except for test file
 
@@ -144,7 +129,7 @@ The keyboard system is the **biggest architectural problem** requiring immediate
 
 ---
 
-### 🟡 Priority 3: Inconsistent Memoization
+### 🟡 Priority 2: Inconsistent Memoization
 
 **Findings:**
 
@@ -155,7 +140,7 @@ The keyboard system is the **biggest architectural problem** requiring immediate
 
 ---
 
-### 🟢 Priority 4: Code Duplication
+### 🟢 Priority 3: Code Duplication
 
 **Finding:** `GROUP_COLORS` constant duplicated in 4 files with different structures
 
@@ -166,762 +151,7 @@ The keyboard system is the **biggest architectural problem** requiring immediate
 
 ## Detailed Objectives
 
-### Objective #1: Centralized Keyboard Shortcut System
-
-**RICE Score: 288** (12 × 10 × 80% / 3.3)
-
-**Current Problems in Detail:**
-
-Keyboard handling is fragmented across the codebase with competing event handlers:
-
-```tsx
-// useKeyboardNavigation.ts (352 lines!)
-const observer = new MutationObserver(() => {
-  const contextMenuContent = document.querySelector('[data-radix-menu-content]')
-  isContextMenuOpen.current = !!contextMenuContent
-})
-
-// TabManager.tsx
-useEffect(() => {
-  const handleKeyUp = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      const contextMenu = document.querySelector('[data-radix-menu-content]')
-      if (contextMenu) return
-      if (isSearchOpen) {
-        setIsSearchOpen(false)
-      } else {
-        window.close()
-      }
-    }
-  }
-}, [isSearchOpen])
-
-// TabItemRow.tsx
-const handleKeyDown = (e: React.KeyboardEvent) => {
-  if ((e.key === 'Delete' || e.key === 'Backspace') && onClose) {
-    e.preventDefault()
-    onClose()
-  }
-}
-
-// TabGroupHeader.tsx - rename mode
-const handleKeyDown = useCallback(
-  (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      onRenameComplete(renameValue)
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      onRenameCancel()
-    }
-  },
-  [renameValue, onRenameComplete, onRenameCancel],
-)
-```
-
-**Proposed Solution: First-Match-Wins Keyboard System**
-
-Simplified state tracking with declarative shortcuts ordered by specificity. Uses positive conditions in `when` clauses—first match wins. Platform-specific keys (not shortcuts).
-
-**Phase 1: Keyboard State Management**
-
-```typescript
-// /packages/shared/lib/keyboard/KeyboardState.tsx
-
-/**
- * Simple state tracking for keyboard shortcuts using 'when' clauses.
- * Components update these flags as UI state changes.
- */
-type KeyboardState = {
-  // UI state flags (set by components as they mount/unmount or open/close)
-  contextMenuOpen: boolean
-  omnibarOpen: boolean
-  renameInputActive: boolean
-
-  // Current selection context
-  selection: {
-    type: 'window' | 'tab' | 'group' | null
-    id: number | null
-  }
-
-  // Page context (set once on mount, determines which shortcuts are available)
-  page: 'tab-manager' | 'omnibar-overlay' | 'omnibar-popup' | 'options' | null
-
-  // Methods to update state
-  setContextMenuOpen: (open: boolean) => void
-  setOmnibarOpen: (open: boolean) => void
-  setRenameInputActive: (active: boolean) => void
-  setSelection: (
-    type: 'window' | 'tab' | 'group' | null,
-    id: number | null,
-  ) => void
-  setPage: (page: KeyboardState['page']) => void
-}
-
-export const useKeyboardState = create<KeyboardState>((set) => ({
-  contextMenuOpen: false,
-  omnibarOpen: false,
-  renameInputActive: false,
-  selection: { type: null, id: null },
-  page: null,
-
-  setContextMenuOpen: (open) => set({ contextMenuOpen: open }),
-  setOmnibarOpen: (open) => set({ omnibarOpen: open }),
-  setRenameInputActive: (active) => set({ renameInputActive: active }),
-  setSelection: (type, id) => set({ selection: { type, id } }),
-  setPage: (page) => set({ page }),
-}))
-```
-
-**Phase 2: Declarative Shortcuts**
-
-````typescript
-// /packages/shared/lib/keyboard/shortcuts.ts
-
-/**
- * Shortcut definition matching Chrome extension manifest.json style.
- * All shortcuts apply to all platforms, but key bindings are platform-specific.
- */
-export type Shortcut = {
-  id: string // Unique identifier (e.g., 'closeTab', 'duplicateTab')
-  label: string // User-facing label for UI
-  description?: string
-
-  // Platform-specific key bindings (like Chrome manifest.json)
-  keys: {
-    default: string // e.g., 'Ctrl+W' or 'Delete'
-    mac?: string // Optional Mac override, e.g., 'Cmd+W'
-    windows?: string // Optional Windows override
-    linux?: string // Optional Linux override
-  }
-
-  // When clause - first match wins, ordered most to least specific
-  when?: string | ((state: KeyboardState) => boolean)
-
-  // Action to perform
-  action: (state: KeyboardState) => void | Promise<void>
-}
-
-/**
- * FIRST MATCH WINS: Shortcuts are ordered from most to least specific.
- * The keyboard manager iterates in order and executes the first matching shortcut.
- * This avoids negative conditions and makes adding new features safer.
- */
-export const shortcuts: Shortcut[] = [
-  // ============================================================================
-  // ESC KEY - Ordered by specificity (first match wins)
-  // ============================================================================
-
-  {
-    id: 'closeContextMenu',
-    label: 'Close Context Menu',
-    keys: { default: 'Escape' },
-    when: (state) => state.contextMenuOpen,
-    action: (state) => {
-      state.setContextMenuOpen(false)
-      // Radix UI may handle this automatically, but we track state
-    },
-  },
-
-  {
-    id: 'closeOmnibar',
-    label: 'Close Omnibar',
-    keys: { default: 'Escape' },
-    when: (state) => state.omnibarOpen,
-    action: (state) => {
-      state.setOmnibarOpen(false)
-      window.dispatchEvent(new CustomEvent('close-omnibar'))
-    },
-  },
-
-  {
-    id: 'cancelRename',
-    label: 'Cancel Rename',
-    keys: { default: 'Escape' },
-    when: (state) => state.renameInputActive,
-    action: (state) => {
-      state.setRenameInputActive(false)
-      window.dispatchEvent(new CustomEvent('cancel-rename'))
-    },
-  },
-
-  {
-    id: 'closeTabManager',
-    label: 'Close Tab Manager',
-    keys: { default: 'Escape' },
-    when: (state) => state.page === 'tab-manager',
-    action: () => window.close(),
-  },
-
-  {
-    id: 'closeOmnibarOverlay',
-    label: 'Close Omnibar',
-    keys: { default: 'Escape' },
-    when: (state) => state.page === 'omnibar-overlay',
-    action: () => window.parent.postMessage({ type: 'CLOSE_OMNIBAR' }, '*'),
-  },
-
-  {
-    id: 'closeOmnibarPopup',
-    label: 'Close Omnibar',
-    keys: { default: 'Escape' },
-    when: (state) => state.page === 'omnibar-popup',
-    action: () => window.close(),
-  },
-
-  // ============================================================================
-  // DELETE/BACKSPACE - Selection-aware closing (first match wins)
-  // ============================================================================
-
-  {
-    id: 'closeSelectedTab',
-    label: 'Close Tab',
-    keys: { default: 'Delete' },
-    when: (state) => state.page === 'tab-manager' && state.selection.type === 'tab',
-    action: async (state) => {
-      if (state.selection.id) await chrome.tabs.remove(state.selection.id)
-    },
-  },
-
-  {
-    id: 'closeSelectedWindow',
-    label: 'Close Window',
-    keys: { default: 'Delete' },
-    when: (state) => state.page === 'tab-manager' && state.selection.type === 'window',
-    action: async (state) => {
-      if (state.selection.id) await chrome.windows.remove(state.selection.id)
-    },
-  },
-
-  {
-    id: 'closeSelectedGroup',
-    label: 'Close Tab Group',
-    keys: { default: 'Delete' },
-    when: (state) => state.page === 'tab-manager' && state.selection.type === 'group',
-    action: async (state) => {
-      if (!state.selection.id) return
-      const tabs = await chrome.tabs.query({ groupId: state.selection.id })
-      const tabIds = tabs.map((t) => t.id).filter((id): id is number => id !== undefined)
-      if (tabIds.length > 0) await chrome.tabs.remove(tabIds)
-    },
-  },
-
-  // ============================================================================
-  // PLATFORM-SPECIFIC KEY BINDINGS (not platform-specific shortcuts!)
-  // All shortcuts work on all platforms, but keys differ
-  // ============================================================================
-
-  {
-    id: 'closeWindow',
-    label: 'Close Window',
-    keys: {
-      default: 'Ctrl+W',
-      mac: 'Cmd+W', // Mac uses Cmd instead of Ctrl
-    },
-    when: (state) => state.page === 'tab-manager',
-    action: () => window.close(),
-  },
-
-  {
-    id: 'openOmnibar',
-    label: 'Open Omnibar',
-    keys: {
-      default: 'Ctrl+K',
-      mac: 'Cmd+K',
-    },
-    when: (state) => state.page === 'tab-manager',
-    action: (state) => {
-      state.setOmnibarOpen(true)
-      window.dispatchEvent(new CustomEvent('open-omnibar'))
-    },
-  },
-
-  // ============================================================================
-  // CONTEXT MENU SHORTCUTS - Type-specific actions
-  // Note: Duplicate (D) works for tabs but not windows
-  // ============================================================================
-
-  {
-    id: 'duplicateTab',
-    label: 'Duplicate Tab',
-    keys: { default: 'D' },
-    when: (state) => state.contextMenuOpen && state.selection.type === 'tab',
-    action: async (state) => {
-      if (state.selection.id) await chrome.tabs.duplicate(state.selection.id)
-    },
-  },
-
-  {
-    id: 'pinTab',
-    label: 'Pin Tab',
-    keys: { default: 'P' },
-    when: (state) => state.contextMenuOpen && state.selection.type === 'tab',
-    action: async (state) => {
-      if (state.selection.id) await chrome.tabs.update(state.selection.id, { pinned: true })
-    },
-  },
-
-  {
-    id: 'muteTab',
-    label: 'Mute Tab',
-    keys: { default: 'M' },
-    when: (state) => state.contextMenuOpen && state.selection.type === 'tab',
-    action: async (state) => {
-      if (state.selection.id) await chrome.tabs.update(state.selection.id, { muted: true })
-    },
-  },
-
-  // Window context menu - different actions available
-  {
-    id: 'minimizeWindow',
-    label: 'Minimize Window',
-    keys: { default: 'M' },
-    when: (state) => state.contextMenuOpen && state.selection.type === 'window',
-    action: async (state) => {
-      if (state.selection.id) {
-        await chrome.windows.update(state.selection.id, { state: 'minimized' })
-      }
-    },
-  },
-
-  // ============================================================================
-  // NAVIGATION SHORTCUTS
-  // ============================================================================
-
-  {
-    id: 'moveTabUp',
-    label: 'Move Tab Up',
-    keys: { default: 'Alt+ArrowUp' },
-    when: (state) => state.page === 'tab-manager' && state.selection.type === 'tab',
-    action: async (state) => {
-      if (state.selection.id) await moveTabBack(state.selection.id)
-    },
-  },
-
-  {
-    id: 'navigateUp',
-    label: 'Navigate Up',
-    keys: { default: 'ArrowUp' },
-    when: (state) => state.page === 'tab-manager' && !state.omnibarOpen,
-    action: () => window.dispatchEvent(new CustomEvent('navigate-up')),
-  },
-]
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Get the shortcut for a given action ID.
- * Used by context menus to display keyboard shortcuts next to actions.
- */
-export const getShortcutForAction = (actionId: string): string | null => {
-  const shortcut = shortcuts.find((s) => s.id === actionId)
-  if (!shortcut) return null
-
-  const platform = detectPlatform()
-  const keys = shortcut.keys[platform] ?? shortcut.keys.default
-  return keys
-}
-
-/**
- * Example: Context menu rendering
- */
-const TabContextMenu = () => {
-  const duplicateShortcut = getShortcutForAction('duplicateTab') // Returns 'D'
-  const pinShortcut = getShortcutForAction('pinTab') // Returns 'P'
-
-  return (
-    <ContextMenu>
-      <ContextMenuItem>
-        Duplicate Tab
-        {duplicateShortcut && <Shortcut>{duplicateShortcut}</Shortcut>}
-      </ContextMenuItem>
-      <ContextMenuItem>
-        Pin Tab
-        {pinShortcut && <Shortcut>{pinShortcut}</Shortcut>}
-      </ContextMenuItem>
-    </ContextMenu>
-  )
-}
-
-// ============================================================================
-// HOW IT WORKS: FIRST MATCH WINS
-// ============================================================================
-
-/**
- * EXECUTION FLOW:
- *
- * 1. User presses a key (e.g., 'Escape')
- * 2. KeyboardManager parses key event → string (e.g., 'Escape', 'Ctrl+W')
- * 3. Iterate shortcuts array IN ORDER from top to bottom
- * 4. For each shortcut:
- *    a. Key matches? (accounting for platform-specific keys)
- *    b. `when` clause true or missing?
- *    c. If both YES → EXECUTE and STOP
- * 5. No match found → do nothing (let event bubble)
- *
- * Example 1: ESC with state = { omnibarOpen: true, page: 'tab-manager' }
- *
- *   Shortcut #1: when: contextMenuOpen → NO (false)
- *   Shortcut #2: when: omnibarOpen → YES ✓ → Execute, STOP
- *
- * Shortcuts #3-6 never evaluated—first match already found.
- *
- * Example 2: Delete with state = { selection: { type: 'tab' }, page: 'tab-manager' }
- *
- *   Shortcut #1: when: page === 'tab-manager' && selection.type === 'tab' → YES ✓
- *   Execute closeSelectedTab, STOP
- */
-
-/**
- * WHY FIRST MATCH WINS (NOT LAST):
- *
- * Ordering most-to-least specific makes the system:
- * - Predictable: Specific conditions naturally checked first
- * - Maintainable: Adding features doesn't break existing shortcuts
- * - Safe: No need for negative conditions that can miss edge cases
- *
- * BAD (negative conditions):
- *   when: !omnibarOpen && !contextMenuOpen  // Breaks when modalOpen added!
- *
- * GOOD (positive conditions, ordered):
- *   1. when: modalOpen
- *   2. when: contextMenuOpen
- *   3. when: omnibarOpen
- *   4. when: page === 'tab-manager'  // Catch-all
- */
-
-/**
- * PLATFORM-SPECIFIC KEYS (NOT SHORTCUTS):
- *
- * All shortcuts work on all platforms, but keys differ per platform:
- *
- * ```typescript
- * keys: {
- *   default: 'Ctrl+K',  // Windows/Linux
- *   mac: 'Cmd+K'        // Mac override
- * }
- * ```
- *
- * At runtime:
- * 1. Detect platform once on mount
- * 2. For each shortcut: pick keys[platform] ?? keys.default
- * 3. Compare against pressed key
- */
-
-/**
- * CONTEXT MENUS QUERYING SHORTCUTS:
- *
- * Context menus display shortcuts by querying the shortcuts array:
- *
- * ```tsx
- * const TabContextMenu = ({ tabId }) => {
- *   const duplicateKey = getShortcutForAction('duplicateTab') // 'D'
- *   const pinKey = getShortcutForAction('pinTab') // 'P'
- *
- *   return (
- *     <Menu>
- *       <MenuItem onClick={() => duplicate(tabId)}>
- *         Duplicate Tab <Shortcut>{duplicateKey}</Shortcut>
- *       </MenuItem>
- *       <MenuItem onClick={() => pin(tabId)}>
- *         Pin Tab <Shortcut>{pinKey}</Shortcut>
- *       </MenuItem>
- *     </Menu>
- *   )
- * }
- * ```
- *
- * Different menu types show different shortcuts:
- * - Tab menu: D for duplicate, P for pin, M for mute
- * - Window menu: M for minimize (no duplicate—windows can't be duplicated)
- * - Group menu: Different actions entirely
- *
- * The `when` clause handles this:
- * ```typescript
- * { id: 'duplicateTab', when: state => state.selection.type === 'tab' }
- * { id: 'minimizeWindow', when: state => state.selection.type === 'window' }
- * ```
- *
- * When 'D' is pressed:
- * - If tab selected: duplicateTab matches first → duplicates tab
- * - If window selected: duplicateTab when fails → no action
- */
-
-/**
- * ONE HANDLER, ZERO RACE CONDITIONS:
- *
- * Only ONE keydown handler per page.
- * No preventDefault/stopPropagation battles.
- * All logic centralized and testable.
- *
- * Benefits:
- * - Can log matched shortcuts for debugging
- * - Can build help UI from definitions
- * - Easy to test (check when clauses)
- * - No hidden handlers in components
- */
-````
-
-**Phase 3: Central Keyboard Manager**
-
-```typescript
-// /packages/shared/lib/keyboard/KeyboardManager.tsx
-
-const detectPlatform = (): 'mac' | 'windows' | 'linux' => {
-  const platform = navigator.platform.toLowerCase()
-  if (platform.includes('mac')) return 'mac'
-  if (platform.includes('win')) return 'windows'
-  return 'linux'
-}
-
-/**
- * Parses a KeyboardEvent into a key string like 'Ctrl+K' or 'Escape'.
- */
-const parseKey = (e: KeyboardEvent): string => {
-  const parts: string[] = []
-
-  if (e.ctrlKey) parts.push('Ctrl')
-  if (e.altKey) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  if (e.metaKey) parts.push('Cmd')
-
-  parts.push(e.key)
-
-  return parts.join('+')
-}
-
-/**
- * Gets the appropriate key binding for the current platform.
- */
-const getKeyForPlatform = (shortcut: Shortcut, platform: string): string => {
-  return (
-    shortcut.keys[platform as keyof typeof shortcut.keys] ??
-    shortcut.keys.default
-  )
-}
-
-export const KeyboardManager = () => {
-  const state = useKeyboardState()
-  const platformRef = useRef(detectPlatform())
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const pressedKey = parseKey(e) // e.g., 'Ctrl+K' or 'Escape'
-
-      // Iterate shortcuts in order—FIRST MATCH WINS
-      for (const shortcut of shortcuts) {
-        // 1. Get platform-appropriate key binding
-        const targetKey = getKeyForPlatform(shortcut, platformRef.current)
-
-        // 2. Does the pressed key match?
-        if (pressedKey !== targetKey) continue
-
-        // 3. Does the `when` clause pass?
-        if (shortcut.when) {
-          const passes =
-            typeof shortcut.when === 'function'
-              ? shortcut.when(state)
-              : eval(shortcut.when) // String when clauses like 'omnibarOpen'
-          if (!passes) continue
-        }
-
-        // MATCH FOUND! Execute and stop
-        if (__DEV__) {
-          console.log(`[Keyboard] ${shortcut.label}`, { pressedKey, shortcut })
-        }
-
-        e.preventDefault()
-        e.stopPropagation()
-        shortcut.action(state)
-        return // Stop after first match
-      }
-
-      // No match—let event bubble normally
-    }
-
-    window.addEventListener('keydown', handleKeyDown, { capture: true })
-    return () =>
-      window.removeEventListener('keydown', handleKeyDown, { capture: true })
-  }, [state])
-
-  return null // No UI
-}
-```
-
-**How First-Match-Wins Works:**
-
-```typescript
-/**
- * EXAMPLE: ESC pressed with state = { omnibarOpen: true, page: 'tab-manager' }
- *
- * Iteration:
- *   Shortcut 1: 'closeContextMenu', when: contextMenuOpen → NO (false)
- *   Shortcut 2: 'closeOmnibar', when: omnibarOpen → YES ✓
- *   → Execute closeOmnibar, preventDefault, STOP
- *
- * Shortcuts 3-6 never checked.
- *
- * After omnibar closes, state.omnibarOpen = false.
- * Press ESC again:
- *   Shortcut 1: when: contextMenuOpen → NO
- *   Shortcut 2: when: omnibarOpen → NO (now false!)
- *   Shortcut 3: when: renameInputActive → NO
- *   Shortcut 4: when: page === 'tab-manager' → YES ✓
- *   → Execute closeTabManager, STOP
- */
-
-/**
- * EXAMPLE: Platform-specific keys
- *
- * Shortcut defined as:
- * {
- *   id: 'closeWindow',
- *   keys: { default: 'Ctrl+W', mac: 'Cmd+W' },
- *   ...
- * }
- *
- * On Mac:
- *   User presses Cmd+W → parseKey returns 'Cmd+W'
- *   getKeyForPlatform returns 'Cmd+W' (from keys.mac)
- *   Match! Execute.
- *
- * On Windows:
- *   User presses Ctrl+W → parseKey returns 'Ctrl+W'
- *   getKeyForPlatform returns 'Ctrl+W' (from keys.default)
- *   Match! Execute.
- */
-```
-
-**Phase 4: Component Refactoring**
-
-Components no longer handle keyboard events—they only update state:
-
-```tsx
-// TabManager.tsx - Set page context
-export const TabManager = () => {
-  const { setPage } = useKeyboardState()
-
-  useEffect(() => {
-    setPage('tab-manager')
-  }, [])
-
-  return <KeyboardManager /> {/* Single manager handles all keys */}
-}
-
-// TabItemRow.tsx - Track selection, no keyboard handlers
-const TabItemRow = ({ tab }) => {
-  const { setSelection } = useKeyboardState()
-
-  return (
-    <button onFocus={() => setSelection('tab', tab.id)}>
-      {/* No onKeyDown! */}
-    </button>
-  )
-}
-
-// SearchPopup.tsx - Update omnibar state
-const SearchPopup = ({ isOpen }) => {
-  const { setOmnibarOpen } = useKeyboardState()
-
-  useEffect(() => {
-    setOmnibarOpen(isOpen)
-  }, [isOpen])
-
-  return <Omnibar />
-}
-
-// ContextMenu.tsx - Update menu state
-const ContextMenu = ({ children, ...props }) => {
-  const { setContextMenuOpen } = useKeyboardState()
-
-  return (
-    <RadixContextMenu
-      {...props}
-      onOpenChange={setContextMenuOpen}
-    >
-      {children}
-    </RadixContextMenu>
-  )
-}
-```
-
----
-
-**Summary: Complete Flow**
-
-User journey showing how state changes enable correct shortcut matching:
-
-1. **Tab Manager opens** → `page: 'tab-manager'` → ESC closes tab manager
-2. **User focuses tab** → `selection: { type: 'tab', id: 123 }` → Delete closes tab
-3. **Omnibar opens** → `omnibarOpen: true` → ESC now closes omnibar (first match)
-4. **Context menu opens** → `contextMenuOpen: true` → ESC now closes menu (first match), D duplicates tab
-5. **Menu closes** → `contextMenuOpen: false` → ESC reverts to closing omnibar
-6. **Omnibar closes** → `omnibarOpen: false` → ESC reverts to closing tab manager
-
-First-match-wins ensures the most specific action always executes.
-
----
-
-**Benefits Summary:**
-
-✅ **60% Less Code**: 500 LOC → 200 LOC  
-✅ **Zero DOM Queries**: No more `querySelector` anti-patterns  
-✅ **No Race Conditions**: Single handler, clear priority  
-✅ **Discoverable**: Generate help UI from shortcuts array  
-✅ **Testable**: Unit test `when` clauses without rendering  
-✅ **Maintainable**: Add shortcuts by editing one file  
-✅ **Professional**: Matches VSCode/Figma architecture
-
-**Effort: 3-4 weeks** (phased implementation)
-
--
-- Keyboard handler filters:
-- 1.  All shortcuts with key = 'Escape'
-- 2.  Filter by context overlap:
--      - contexts: ['context-menu'] → MATCH ✓
--      - contexts: ['omnibar'] → MATCH ✓
--      - contexts: ['tab-manager'], when: no omnibar → NO MATCH ✗
-- 3.  Two shortcuts match!
--
-- Priority resolution:
-- Take LAST match = context-menu shortcut
-- (More specific contexts defined later in array)
--
-- Action executes:
-- Radix closes context menu
-- popContext('context-menu')
--
-- Context state:
-- contexts: Set(['global', 'tab-manager', 'omnibar'])
--
-- ============================================================================
-- STEP 6: User Presses ESC Again
-- ============================================================================
--
-- Now only ONE shortcut matches:
-- contexts: ['omnibar'] ✓
--
-- Action executes:
-- popContext('omnibar')
-- Close omnibar UI
--
-- Context state:
-- contexts: Set(['global', 'tab-manager'])
--
-- ============================================================================
-- STEP 7: User Presses ESC Third Time
-- ============================================================================
--
-- Now only ONE shortcut matches:
-- contexts: ['tab-manager'], when: no omnibar ✓
--
-- Action executes:
-
----
-
-### Objective #2: Remove Dead Code
+### Objective #1: Remove Dead Code
 
 **RICE Score: 100** (8 × 10 × 100% / 0.8)
 
@@ -942,13 +172,13 @@ First-match-wins ensures the most specific action always executes.
 **Other Candidates:**
 
 - `EventLog.tsx` - if dev-only, add `if (__DEV__)` guard
-- `console.count()` calls (see Objective #5 from original plan)
+- `console.count()` calls
 
 **Effort: 1-2 hours**
 
 ---
 
-### Objective #3: Audit and Optimize Memoization
+### Objective #2: Audit and Optimize Memoization
 
 **RICE Score: 90** (10 × 9 × 100% / 10)
 
@@ -1002,7 +232,7 @@ const actions = useTabActions(id, windowId) // ✅ Stable
 
 ---
 
-### Objective #4: Additional Performance Optimizations
+### Objective #3: Additional Performance Optimizations
 
 **RICE Score: 72** (9 × 8 × 100% / 10)
 
@@ -1057,7 +287,7 @@ unstable_batchedUpdates(() => {
 
 **Priority Order:**
 
-1. Fix memoization (Objective #3) - highest ROI
+1. Fix memoization (Objective #2) - highest ROI
 2. Debounce search - quick win
 3. Profile with React DevTools - find real bottlenecks
 4. Virtual scrolling - only if profiling shows need
@@ -1066,9 +296,7 @@ unstable_batchedUpdates(() => {
 
 ---
 
-## Original Objectives (Renumbered)
-
-### Objective #5: Extract GROUP_COLORS Constants
+### Objective #4: Extract GROUP_COLORS Constants
 
 **RICE Score: 210** (9 × 7 × 100% / 3)
 
@@ -1103,7 +331,7 @@ The `GROUP_COLORS` constant is duplicated in 4 different locations with slight v
 
 ---
 
-### 2. Create Shared getFaviconUrl Utility
+### Objective #5: Create Shared getFaviconUrl Utility
 
 **RICE Score: 150** (10 × 5 × 100% / 3.3)
 
@@ -1138,7 +366,7 @@ The `Favicon` component exists in `/packages/ui/lib/Favicon.tsx` but contains bu
 
 ---
 
-### 3. Extract Chrome API Calls from Tab Manager Hooks
+### Objective #6: Extract Chrome API Calls from Tab Manager Hooks
 
 **RICE Score: 144** (8 × 9 × 100% / 5)
 
@@ -1226,7 +454,7 @@ export const useTabActions = (tab: BrowserTab) => {
 
 ---
 
-### 4. Simplify TabItemRow Component
+### Objective #7: Simplify TabItemRow Component
 
 **RICE Score: 120** (6 × 10 × 100% / 5)
 
@@ -1308,7 +536,7 @@ export const TabItemRow = ({ tab, onActivate, onClose }: TabItemRowProps) => {
 
 ---
 
-### 5. Remove Development Console.count Statements
+### Objective #8: Remove Development Console.count Statements
 
 **RICE Score: 100** (10 × 10 × 100% / 1)
 
@@ -1346,7 +574,7 @@ if (__DEV__) {
 
 ---
 
-### 6. Consolidate Omnibar Chrome API Usage
+### Objective #9: Consolidate Omnibar Chrome API Usage
 
 **RICE Score: 96** (8 × 6 × 100% / 5)
 
@@ -1419,7 +647,7 @@ export const useOpenSidePanel = () => {
 
 ---
 
-### 7. Extract TabGroupHeader Business Logic
+### Objective #10: Extract TabGroupHeader Business Logic
 
 **RICE Score: 72** (6 × 6 × 100% / 5)
 
@@ -1480,7 +708,7 @@ export const useTabGroupRename = (
 }
 ```
 
-**Step 2:** Move `GROUP_COLORS` to shared location (see Objective #1)
+**Step 2:** Move `GROUP_COLORS` to shared location (see Objective #4)
 
 **Step 3:** Create a dumb `TabGroupHeader` component in `/packages/ui/`:
 
@@ -1509,7 +737,7 @@ export const TabGroupHeader = ({
 
 ---
 
-### 8. Standardize Context Menu Props Pattern
+### Objective #11: Standardize Context Menu Props Pattern
 
 **RICE Score: 60** (10 × 6 × 100% / 10)
 
@@ -1617,7 +845,7 @@ const actions = useTabActions(tab)
 
 ---
 
-### 9. Create Window Actions Module
+### Objective #12: Create Window Actions Module
 
 **RICE Score: 54** (6 × 9 × 100% / 10)
 
@@ -1668,7 +896,7 @@ Then update `useWindowActions` to use these functions.
 
 ---
 
-### 10. Document Component Hierarchy and Data Flow
+### Objective #13: Document Component Hierarchy and Data Flow
 
 **RICE Score: 50** (10 × 10 × 50% / 10)
 
@@ -1800,258 +1028,7 @@ Also create a diagram using Mermaid or ASCII:
 
 ---
 
-## Critical Findings
-
-### Keyboard Handling (Most Critical Issue)
-
-The keyboard/shortcut system is the **biggest architectural problem** in the codebase:
-
-- 352 lines in `useKeyboardNavigation.ts` alone
-- DOM mutation observers to detect context menu state (anti-pattern)
-- Complex preventDefault/stopPropagation logic scattered across 10+ files
-- No single source of truth for shortcuts
-- Impossible to discover what shortcuts are available
-- Difficult to add new shortcuts without breaking existing ones
-
-**Recommendation:** Prioritize Objective #1 (Centralized Keyboard System) as it will:
-
-- Reduce keyboard-related code by ~60%
-- Make the app feel more professional and polished
-- Enable features like shortcut help palette
-- Make keyboard interactions actually testable
-
-### Dead Code
-
-- `TabItem.tsx` is completely unused except for its test file
-- Should be removed immediately (Objective #10)
-- Quick win, zero risk
-
-### Performance
-
-- Memoization is used but not consistently
-- Missing `memo()` on `WindowRailItem` (rendered in lists)
-- Some callbacks not properly memoized
-- No virtualization for long tab lists
-- Overall: Good foundation, needs refinement
-
-### Code Duplication
-
-- `GROUP_COLORS` duplicated 4 times (Objective #2)
-- Similar components (`TabItem` vs `TabItemRow`)
-- High priority to fix
-
-## Summary of Findings
-
-### Strengths
-
-1. ✅ **Good package structure**: Clear separation between `chrome`, `ui`, `shared`, etc.
-2. ✅ **Consistent naming**: Components, hooks, and types follow conventions
-3. ✅ **Type safety**: Strong TypeScript usage throughout
-4. ✅ **Reactive state**: Zustand + React Query for data management
-5. ✅ **Modern React**: Functional components, hooks, memo where appropriate
-6. ✅ **Accessibility**: Good ARIA attributes and keyboard navigation
-
-### Areas for Improvement
-
-#### DRY Violations
-
-- **Critical**: `GROUP_COLORS` duplicated 4× (Objective #1)
-- **Medium**: Similar tab item components (`TabItem.tsx` vs `TabItemRow.tsx`)
-- **Minor**: Color utility functions scattered
-
-#### Separation of Concerns
-
-- **Critical**: Chrome API calls in hooks instead of separate actions layer (Objective #3)
-- **Medium**: Business logic in UI components (Omnibar, TabGroupHeader)
-- **Medium**: Context menus with 20+ callback props (Objective #8)
-
-#### Coupling Issues
-
-- **Medium**: Direct Chrome API dependencies in page-level hooks
-- **Medium**: Tight coupling between context menus and parent components
-
-#### Complexity
-
-- **Medium**: Large components with multiple responsibilities (TabItemRow, TabGroupHeader)
-- **Minor**: Complex conditional rendering that could be extracted
-
-#### Documentation
-
-- **Low**: No architecture documentation (Objective #10)
-- **Good**: Most components have JSDoc comments
-
----
-
-## Implementation Roadmap
-
-### Phase 0: Immediate Wins (1-2 days)
-
-1. **Remove dead code** (Objective #2) - 2 hours
-   - Delete `TabItem.tsx` and test
-   - Remove console.count statements
-2. **Add missing memo()** (Objective #3) - 2 hours
-   - `WindowRailItem`
-   - `TabManagerSidebar`
-
-### Phase 1: Foundation (3-4 weeks) ⭐ CRITICAL
-
-3. **Centralized Keyboard System** (Objective #1) - 3-4 days
-   - Build context system - 1 day
-   - Define shortcuts declaratively - 1 day
-   - Refactor components - 1-2 days
-   - **HIGHEST PRIORITY** - biggest architectural impact
-4. **Extract GROUP_COLORS** (Objective #5) - 2 days
-5. **Verify Favicon URL** (Objective #6) - 1 day
-6. **Complete memoization audit** (Objective #3) - 3 days
-
-### Phase 2: Actions Layer (3-4 weeks)
-
-7. **Create actions layer** (Objectives #7, #11) - 1 week
-8. **Consolidate Omnibar Chrome API** (Objective #9) - 1 week
-
-### Phase 3: Component Refinement (2-3 weeks)
-
-9. **Simplify TabItemRow** (Objective #8) - 1 week
-10. **Extract TabGroupHeader logic** (Objective #10) - 1 week
-
-### Phase 4: API & Performance (3-4 weeks)
-
-11. **Standardize context menu props** (Objective #12) - 2 weeks
-12. **Performance optimizations** (Objective #4) - 1 week
-
-### Phase 5: Documentation (1 week)
-
-13. **Architecture documentation** (Objective #13) - 1 week
-
-**Total Estimated Effort:** 13-17 weeks
-
-**Critical Path:**
-
-1. **Week 1:** Remove dead code, fix obvious memoization ← Quick wins
-2. **Weeks 2-4:** Keyboard system ← Highest value, enables everything else
-3. **Weeks 5-8:** Actions layer ← Foundational refactor
-4. **Weeks 9-17:** Component improvements & polish
-
----
-
-## Recommendations
-
-### This Week (Do Immediately)
-
-1. ✅ **Remove dead code** - TabItem.tsx, console.count (2 hours)
-2. ✅ **Fix WindowRailItem memo** - Add missing memo() (30 min)
-3. ✅ **Extract GROUP_COLORS** - DRY violation fix (2 days)
-
-### Next Sprint (Weeks 2-4) - CRITICAL
-
-4. ⭐ **Implement keyboard system** (Objective #1)
-   - This is THE most important refactor
-   - Will reduce complexity by 60% in keyboard handling
-   - Makes app feel professional like VSCode
-   - Enables all future refactors to be cleaner
-   - **Do this before anything else major**
-
-### After Keyboard System (Weeks 5+)
-
-5. **Actions layer** - Natural progression
-6. **Component cleanup** - Now simpler without keyboard code
-7. **Polish & optimize** - Final improvements
-
-### Success Metrics
-
-Track weekly:
-
-- Keyboard handling LOC: Start ~500, Target ~200 (-60%)
-- preventDefault/stopPropagation count: Start ~20, Target ~4 (-80%)
-- Component render counts in profiler: Target -30%
-- Time to add new shortcut: Should drop from 30min to 2min
-
----
-
-### Phase 1: Quick Wins (1-2 weeks)
-
-1. Remove console.count statements (Objective #5) - 1 hour
-2. Extract GROUP_COLORS (Objective #1) - 2 days
-3. Verify Favicon URL usage (Objective #2) - 1 day
-
-### Phase 2: Architecture Foundation (3-4 weeks)
-
-4. Create actions layer for tabs/groups (Objective #3) - 1 week
-5. Create window actions (Objective #9) - 3 days
-6. Consolidate Omnibar Chrome API usage (Objective #6) - 1 week
-
-### Phase 3: Component Refinement (2-3 weeks)
-
-7. Simplify TabItemRow (Objective #4) - 1 week
-8. Extract TabGroupHeader logic (Objective #7) - 1 week
-
-### Phase 4: API Improvement (2-3 weeks)
-
-9. Standardize context menu props (Objective #8) - 2 weeks
-
-### Phase 5: Documentation (1 week)
-
-10. Write architecture documentation (Objective #10) - 1 week
-
-**Total Estimated Effort:** 10-13 weeks
-
----
-
-## Risk Assessment
-
-### Low Risk
-
-- Objectives #1, #2, #5: Pure refactoring, no behavior changes
-- Well-tested with type system
-
-### Medium Risk
-
-- Objectives #3, #6, #9: Changes to data layer
-- Requires careful testing of Chrome API interactions
-- May reveal race conditions or timing issues
-
-### High Risk
-
-- Objective #8: Large API change affecting many components
-- Requires coordinated updates across multiple files
-- High chance of breaking existing functionality
-
----
-
-## Recommendations
-
-### Immediate Actions (Do This Week)
-
-1. **Remove dead code** (Objective #10) - TabItem.tsx, console.count
-2. **Fix obvious memoization issues** - Add memo() to WindowRailItem
-3. **Extract GROUP_COLORS** (Objective #2) - Quick DRY win
-
-### Next Sprint (2-4 Weeks)
-
-4. **Implement keyboard system** (Objective #1) - HIGHEST PRIORITY
-   - This is the biggest architectural improvement
-   - Will simplify every subsequent refactor
-   - Makes the app feel significantly more professional
-   - Consider this your "north star" refactor
-
-### After Keyboard System
-
-5. **Actions layer** (Objectives #4, #12) - Natural next step
-6. **Component simplification** (Objectives #5, #8) - Now easier without keyboard handlers
-7. **API improvements** (Objective #9) - Final polish
-
-### Measure Progress
-
-Track these metrics:
-
-- Lines of code in keyboard handling files (target: -60%)
-- Number of preventDefault/stopPropagation calls (target: -80%)
-- Component render counts (target: -30% in lists)
-- Time to add new feature (should decrease by ~40%)
-
----
-
-### Objective #5: Type Safety Audit
+### Objective #14: Type Safety Audit
 
 **RICE Score: 100** (10 × 5 × 100% / 0.5)
 
@@ -2082,6 +1059,19 @@ const tab = await chrome.tabs.get(tabId) // chrome.tabs.Tab | undefined
 if (!tab) throw new Error('Tab not found')
 ```
 
+**TypeScript Config Settings:**
+
+```json
+{
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictPropertyInitialization": true
+  }
+}
+```
+
 **Benefits:**
 
 - Catch more errors at compile time
@@ -2093,13 +1083,13 @@ if (!tab) throw new Error('Tab not found')
 
 ---
 
-### Objective #6: Accessibility (a11y) Audit
+### Objective #15: Accessibility (a11y) Audit
 
 **RICE Score: 43** (6 × 9 × 80% / 1)
 
 **Current State:**
 
-Keyboard navigation will improve with Objective #1, but other a11y concerns remain:
+Basic accessibility is good, but improvements needed:
 
 **Action Items:**
 
@@ -2118,11 +1108,24 @@ Keyboard navigation will improve with Objective #1, but other a11y concerns rema
    - Return focus to trigger after closing dialogs
    - Visible focus indicators on all interactive elements
 
-4. **Keyboard Navigation**
-   - Already covered by Objective #1
-   - Verify Tab/Shift+Tab order is logical
+4. **Color Contrast**
+   - Audit color contrast ratios (WCAG AA minimum)
+   - Ensure text is readable in both light and dark modes
 
-**Example:**
+**Example - ARIA Live Regions:**
+
+```tsx
+// Add to TabManager for screen reader announcements
+;<div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+  {statusMessage}
+</div>
+
+// Usage:
+setStatusMessage(`Closed ${tab.title}`)
+setStatusMessage(`Moved tab to ${groupName}`)
+```
+
+**Example - Icon Button Labels:**
 
 ```tsx
 // Before
@@ -2141,12 +1144,13 @@ Keyboard navigation will improve with Objective #1, but other a11y concerns rema
 - Usable by screen reader users
 - Better keyboard-only navigation
 - Compliance with WCAG standards
+- Professional quality
 
 **Effort: 1 week**
 
 ---
 
-### Objective #7: Internationalization (i18n) Completion
+### Objective #16: Internationalization (i18n) Completion
 
 **RICE Score: 37** (8 × 7 × 100% / 1.5)
 
@@ -2170,6 +1174,7 @@ Keyboard navigation will improve with Objective #1, but other a11y concerns rema
    - Test with Arabic (ar), Hebrew (he)
    - Verify Tailwind RTL utilities work correctly
    - Check icon flipping for directional icons
+   - Add `dir="rtl"` attribute handling
 
 4. **Documentation**
    - Document how contributors add translations
@@ -2186,17 +1191,27 @@ Keyboard navigation will improve with Objective #1, but other a11y concerns rema
 <button>{t('closeTab')}</button>
 ```
 
+**RTL Example:**
+
+```tsx
+// Tailwind RTL classes
+<div className="ml-2 rtl:ml-0 rtl:mr-2">
+  <ChevronRightIcon className="rtl:rotate-180" />
+</div>
+```
+
 **Benefits:**
 
 - Accessible to non-English users
 - Easier to add new languages
 - Professional polish
+- Expanded market reach
 
 **Effort: 1.5 weeks**
 
 ---
 
-### Objective #8: Error Handling & User Feedback
+### Objective #17: Error Handling & User Feedback
 
 **RICE Score: 32** (10 × 7 × 90% / 2)
 
@@ -2213,7 +1228,10 @@ ErrorBoundary and ErrorDisplay components exist, but user feedback could be enha
      try {
        return await fn()
      } catch (error) {
-       if (retries > 0) return withRetry(fn, retries - 1)
+       if (retries > 0) {
+         await new Promise((resolve) => setTimeout(resolve, 100))
+         return withRetry(fn, retries - 1)
+       }
        throw error
      }
    }
@@ -2235,6 +1253,22 @@ ErrorBoundary and ErrorDisplay components exist, but user feedback could be enha
    - Show helpful messages when Chrome APIs fail
    - Recover from errors without full reload
 
+**Example - Toast Usage:**
+
+```tsx
+import { toast } from 'sonner'
+
+// Success feedback
+const closeTab = async (tabId: number) => {
+  try {
+    await chrome.tabs.remove(tabId)
+    toast.success('Tab closed')
+  } catch (error) {
+    toast.error('Failed to close tab')
+  }
+}
+```
+
 **Benefits:**
 
 - Better user experience
@@ -2246,7 +1280,7 @@ ErrorBoundary and ErrorDisplay components exist, but user feedback could be enha
 
 ---
 
-### Objective #9: Bundle Size Optimization
+### Objective #18: Bundle Size Optimization
 
 **RICE Score: 28** (10 × 4 × 70% / 1)
 
@@ -2276,27 +1310,39 @@ Extension size is reasonable, but optimization opportunities exist:
    - Consider lighter alternatives for utilities
    - Remove unused dev dependencies from production
 
-**Example:**
+**Example - Tree Shaking:**
 
 ```typescript
-// Before
-import { ContextMenu } from '@radix-ui/react-context-menu'
+// Before (imports entire library)
+import * as ContextMenu from '@radix-ui/react-context-menu'
 
-// After (if not needed everywhere)
-const ContextMenu = lazy(() => import('@radix-ui/react-context-menu'))
+// After (tree-shakeable)
+import { Root, Trigger, Content } from '@radix-ui/react-context-menu'
+```
+
+**Example - Lazy Loading:**
+
+```typescript
+// For rarely-used components
+const SettingsDialog = lazy(() => import('./SettingsDialog'))
+
+<Suspense fallback={<Spinner />}>
+  {showSettings && <SettingsDialog />}
+</Suspense>
 ```
 
 **Benefits:**
 
 - Faster install/update
 - Lower memory usage
-- Better performance
+- Better performance on low-end devices
+- Quicker load times
 
 **Effort: 1 week**
 
 ---
 
-### Objective #10: Testing Strategy
+### Objective #19: Testing Strategy
 
 **RICE Score: 24** (10 × 8 × 90% / 3)
 
@@ -2308,8 +1354,8 @@ Unit tests exist for some components, but broader testing strategy needed:
 
 1. **E2E Tests (Playwright)**
    - Critical flows: Open tab manager, search tabs, close tabs
-   - Test keyboard shortcuts
    - Test across Chrome/Edge/Brave
+   - Automate extension loading in test browser
 
 2. **Integration Tests**
    - Mock Chrome APIs properly
@@ -2326,102 +1372,270 @@ Unit tests exist for some components, but broader testing strategy needed:
    - Visual testing
    - Documentation for components
 
-**Example:**
+**Example - E2E Test:**
 
 ```typescript
-// E2E test
-test('user can close tab with Delete key', async ({ page, extensionId }) => {
+import { test, expect } from '@playwright/test'
+
+test('user can close tab with context menu', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/tab-manager.html`)
-  await page.locator('[data-testid="tab-item"]').first().focus()
-  await page.keyboard.press('Delete')
+
+  // Right-click on tab
+  await page
+    .locator('[data-testid="tab-item"]')
+    .first()
+    .click({ button: 'right' })
+
+  // Click "Close Tab" in context menu
+  await page.locator('text=Close Tab').click()
+
+  // Verify tab is removed
   await expect(page.locator('[data-testid="tab-item"]')).toHaveCount(0)
 })
+```
+
+**Example - Chrome API Mocking:**
+
+```typescript
+// In test setup
+const mockChrome = {
+  tabs: {
+    remove: vi.fn().mockResolvedValue(undefined),
+    query: vi.fn().mockResolvedValue([]),
+  },
+}
+global.chrome = mockChrome as any
 ```
 
 **Benefits:**
 
 - Catch regressions early
 - Confidence in refactoring
-- Better documentation
-- Faster development
+- Better documentation through tests
+- Faster development iteration
 
 **Effort: 3 weeks**
 
 ---
 
-## Original Objectives (Renumbered)
+## Critical Findings
 
-### Objective #11: Extract GROUP_COLORS Constants
+### Dead Code
 
-**RICE Score: 210** (9 × 7 × 100% / 3)
+- `TabItem.tsx` is completely unused except for its test file
+- Should be removed immediately (Objective #1)
+- Quick win, zero risk
 
-**Problem:**
-The `GROUP_COLORS` constant is duplicated in 4 different locations with slight variations:
+### Performance
 
-1. `/pages/tab-manager/src/TabGroupHeader.tsx` - full color classes (dot, text, bg)
-2. `/packages/ui/lib/TabList.tsx` - full color classes (dot, text, bg)
-3. `/packages/ui/lib/context-menu/TabContextMenu.tsx` - hex values only
-4. `/packages/ui/lib/context-menu/TabGroupContextMenu.tsx` - structured array with labels
+- Memoization is used but not consistently
+- Missing `memo()` on `WindowRailItem` (rendered in lists)
+- Some callbacks not properly memoized
+- No virtualization for long tab lists
+- Overall: Good foundation, needs refinement
 
-**Issues:**
+### Code Duplication
 
-- **Violates DRY**: 4 different definitions of the same color system
-- **Inconsistent**: Different structures make maintenance difficult
-- **Type safety**: No shared TypeScript types for color definitions
+- `GROUP_COLORS` duplicated 4 times (Objective #4)
+- Similar components (`TabItem` vs `TabItemRow`)
+- High priority to fix
 
-**Solution:**
+## Summary of Findings
 
-- Create `/packages/ui/lib/tab-group/groupColors.ts` with:
-  - Single source of truth for all group colors
-  - Unified type: `TabGroupColorDefinition` with hex, Tailwind classes, and labels
-  - Exported constants: `GROUP_COLOR_CONFIG`, `getGroupColor()`, `getGroupColorClasses()`
-- Update all 4 locations to import from this module
+### Strengths
 
-**Impact:**
+1. ✅ **Good package structure**: Clear separation between `chrome`, `ui`, `shared`, etc.
+2. ✅ **Consistent naming**: Components, hooks, and types follow conventions
+3. ✅ **Type safety**: Strong TypeScript usage throughout
+4. ✅ **Reactive state**: Zustand + React Query for data management
+5. ✅ **Modern React**: Functional components, hooks, memo where appropriate
+6. ✅ **Accessibility**: Good ARIA attributes and keyboard navigation
 
-- Eliminates 3 duplicate definitions
-- Provides type-safe color system
-- Makes color updates require changes in only one place
-- Improves testability
+### Areas for Improvement
 
----
+#### DRY Violations
 
-### Objective #12: Create Shared getFaviconUrl Utility
+- **Critical**: `GROUP_COLORS` duplicated 4× (Objective #4)
+- **Medium**: Similar tab item components (`TabItem.tsx` vs `TabItemRow.tsx`)
+- **Minor**: Color utility functions scattered
 
-**RICE Score: 150** (10 × 5 × 100% / 3.3)
+#### Separation of Concerns
 
-**Problem:**
-The `Favicon` component exists in `/packages/ui/lib/Favicon.tsx` but contains business logic for generating favicon URLs. Similar logic may be duplicated elsewhere.
+- **Critical**: Chrome API calls in hooks instead of separate actions layer (Objective #5)
+- **Medium**: Business logic in UI components (Omnibar, TabGroupHeader)
+- **Medium**: Context menus with 20+ callback props (Objective #9)
 
-**Current State:**
+#### Coupling Issues
 
-```tsx
-// Favicon.tsx has internal logic to generate favicon URLs
-// This is used in: TabItemRow, OmnibarItem, WindowRailItem
-```
+- **Medium**: Direct Chrome API dependencies in page-level hooks
+- **Medium**: Tight coupling between context menus and parent components
 
-**Issues:**
+#### Complexity
 
-- **Mixed concerns**: Visual component contains URL generation logic
-- **Reusability**: Cannot use favicon logic without the entire component
-- **Testing**: Harder to test URL generation independently
+- **Medium**: Large components with multiple responsibilities (TabItemRow, TabGroupHeader)
+- **Minor**: Complex conditional rendering that could be extracted
 
-**Solution:**
+#### Documentation
 
-- Already exists: `/packages/ui/lib/getFaviconUrl.ts` (discovered during analysis)
-- **Verify**: Ensure all components use this utility consistently
-- **Refactor** `Favicon.tsx` to be purely presentational
-- Move any remaining URL logic to the utility
-
-**Impact:**
-
-- Cleaner separation between presentation and logic
-- Better testability
-- More reusable favicon URL generation
+- **Low**: No architecture documentation (Objective #11)
+- **Good**: Most components have JSDoc comments
 
 ---
 
-### Objective #13: Extract Chrome API Calls from Tab Manager Hooks
+## Implementation Roadmap
+
+### Phase 0: Immediate Wins (1-2 days)
+
+1. **Remove dead code** (Objective #2) - 2 hours
+   - Delete `TabItem.tsx` and test
+   - Remove console.count statements
+2. **Add missing memo()** (Objective #3) - 2 hours
+   - `WindowRailItem`
+   - `TabManagerSidebar`
+
+### Phase 1: Foundation (1-2 weeks)
+
+3. **Extract GROUP_COLORS** (Objective #4) - 2 days
+4. **Complete memoization audit** (Objective #2) - 3 days
+
+### Phase 2: Actions Layer (2-3 weeks)
+
+5. **Create actions layer** (Objectives #5) - 1 week
+6. **Consolidate Omnibar Chrome API** (Objective #6) - 1 week
+
+### Phase 3: Component Refinement (2-3 weeks)
+
+7. **Simplify TabItemRow** (Objective #7) - 1 week
+8. **Extract TabGroupHeader logic** (Objective #8) - 1 week
+
+### Phase 4: API & Performance (3-4 weeks)
+
+9. **Standardize context menu props** (Objective #9) - 2 weeks
+10. **Performance optimizations** (Objective #3) - 1 week
+
+### Phase 5: Documentation (1 week)
+
+11. **Architecture documentation** (Objective #11) - 1 week
+
+**Total Estimated Effort:** 9-13 weeks
+
+**Critical Path:**
+
+1. **Week 1:** Remove dead code, fix obvious memoization ← Quick wins
+2. **Weeks 2-4:** GROUP_COLORS extraction, complete memoization audit
+3. **Weeks 5-7:** Actions layer ← Foundational refactor
+4. **Weeks 8-13:** Component improvements & polish
+
+---
+
+## Recommendations
+
+### This Week (Do Immediately)
+
+1. ✅ **Remove dead code** - TabItem.tsx, console.count (2 hours)
+2. ✅ **Fix WindowRailItem memo** - Add missing memo() (30 min)
+3. ✅ **Extract GROUP_COLORS** - DRY violation fix (2 days)
+
+### Next Sprint (Weeks 2-4)
+
+4. **Complete memoization audit** (Objective #2) - Improve performance
+5. **Create actions layer** (Objective #5) - Foundation for testability
+
+### After Foundation (Weeks 5+)
+
+6. **Component cleanup** - Simplify TabItemRow, TabGroupHeader
+7. **API improvements** - Standardize context menu props
+8. **Polish & optimize** - Final improvements
+
+### Success Metrics
+
+Track weekly:
+
+- Component render counts in profiler: Target -30%
+- Code duplication: Remove GROUP_COLORS duplicates
+- Chrome API centralization: All calls through actions layer
+
+---
+
+### Phase 1: Quick Wins (1-2 weeks)
+
+1. Remove console.count statements (Objective #1) - 1 hour
+2. Extract GROUP_COLORS (Objective #4) - 2 days
+3. Complete memoization audit (Objective #2) - 3 days
+
+### Phase 2: Architecture Foundation (2-3 weeks)
+
+4. Create actions layer for tabs/groups (Objective #5) - 1 week
+5. Consolidate Omnibar Chrome API usage (Objective #6) - 1 week
+
+### Phase 3: Component Refinement (2-3 weeks)
+
+6. Simplify TabItemRow (Objective #7) - 1 week
+7. Extract TabGroupHeader logic (Objective #8) - 1 week
+
+### Phase 4: API Improvement (2-3 weeks)
+
+8. Standardize context menu props (Objective #9) - 2 weeks
+9. Performance optimizations (Objective #3) - 1 week
+
+### Phase 5: Documentation (1 week)
+
+10. Write architecture documentation (Objective #11) - 1 week
+
+**Total Estimated Effort:** 9-12 weeks
+
+---
+
+## Risk Assessment
+
+### Low Risk
+
+- Objectives #1, #2, #5: Pure refactoring, no behavior changes
+- Well-tested with type system
+
+### Medium Risk
+
+- Objectives #3, #6, #9: Changes to data layer
+- Requires careful testing of Chrome API interactions
+- May reveal race conditions or timing issues
+
+### High Risk
+
+- Objective #8: Large API change affecting many components
+- Requires coordinated updates across multiple files
+- High chance of breaking existing functionality
+
+---
+
+## Recommendations
+
+### Immediate Actions (Do This Week)
+
+1. **Remove dead code** (Objective #1) - TabItem.tsx, console.count
+2. **Fix obvious memoization issues** (Objective #2) - Add memo() to WindowRailItem
+3. **Extract GROUP_COLORS** (Objective #4) - Quick DRY win
+
+### Next Sprint (2-4 Weeks)
+
+4. **Complete memoization audit** (Objective #2) - HIGHEST PRIORITY
+   - This is an important performance improvement
+   - Will reduce unnecessary re-renders
+   - Makes the app feel more responsive
+
+### After Foundation
+
+5. **Actions layer** (Objective #5) - Natural next step
+6. **Component simplification** (Objectives #7, #8) - Cleaner, more maintainable code
+7. **API improvements** (Objective #9) - Final polish
+
+### Measure Progress
+
+Track these metrics:
+
+- Component render counts (target: -30% in lists)
+- Code duplication instances (target: 0 for GROUP_COLORS)
+- Chrome API call centralization (target: 100% through actions layer)
+- Time to add new feature (should decrease by ~20%)
 
 ---
 
@@ -2454,18 +1668,6 @@ The `Favicon` component exists in `/packages/ui/lib/Favicon.tsx` but contains bu
 BEFORE: Fragmented Architecture
 ═══════════════════════════════════════════════════════
 
-Keyboard Handling (500+ LOC scattered)
-├─ useKeyboardNavigation.ts (352 lines)
-├─ TabManager.tsx (keyboard handlers)
-├─ TabItemRow.tsx (keyboard handlers)
-├─ TabGroupHeader.tsx (keyboard handlers)
-├─ WindowRailItem.tsx (keyboard handlers)
-└─ OmnibarOverlay.tsx (keyboard handlers)
-   ❌ DOM mutation observers
-   ❌ Race conditions with preventDefault
-   ❌ No discoverability
-   ❌ Impossible to test
-
 Chrome API Calls (scattered in 12+ files)
 ├─ useTabActions.ts → chrome.tabs.*
 ├─ useTabGroupActions.ts → chrome.tabGroups.*
@@ -2489,16 +1691,6 @@ Component Issues
 AFTER: Clean Architecture
 ═══════════════════════════════════════════════════════
 
-Centralized Keyboard System (100 LOC)
-└─ packages/shared/lib/keyboard/
-   ├─ KeyboardContext.tsx (context state)
-   ├─ shortcuts.ts (declarative definitions)
-   └─ KeyboardManager.tsx (single handler)
-      ✅ VSCode-style command system
-      ✅ Context-aware shortcuts
-      ✅ Discoverable (help UI)
-      ✅ Fully testable
-
 Actions Layer (clean separation)
 └─ packages/chrome/lib/actions/
    ├─ tabActions.ts (pure functions)
@@ -2520,8 +1712,6 @@ Components (clean & optimized)
 
 IMPACT METRICS
 ═══════════════════════════════════════════════════════
-Keyboard Code:       500 LOC → 200 LOC  (-60%)
-preventDefault:      20 calls → 4 calls  (-80%)
 Chrome API Files:    12 files → 4 files  (-67%)
 Unnecessary Renders: Baseline → -30%
 Code Duplication:    4× → 1×              (-75%)
@@ -2542,8 +1732,6 @@ Time to Add Feature: 30 min → 5 min      (-83%)
 ### Loose Coupling ✅
 
 - Components depend on interfaces (props), not implementations
-- Actions are pure functions, no framework dependencies
-- Chrome API isolated to actions layer
 
 ### High Cohesion ✅
 
