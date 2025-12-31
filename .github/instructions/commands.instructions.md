@@ -1,10 +1,53 @@
 # Command Execution Guidelines
 
+## CRITICAL: Use Package.json Scripts, Not Direct Tool Invocation
+
+**Always use the npm scripts defined in package.json**, not the underlying tools directly.
+
+### ❌ WRONG - Never invoke turbo or other tools directly:
+
+```bash
+pnpm turbo run build --filter="./pages/tab-manager"
+pnpm turbo watch dev
+turbo build
+turbo dev
+```
+
+### ✅ CORRECT - Use the npm scripts:
+
+```bash
+pnpm build
+pnpm dev
+pnpm type-check
+```
+
+### Why This Matters:
+
+**Environment Setup:** The npm scripts (like `pnpm build` and `pnpm dev`) run essential setup scripts:
+
+- `set-global-env` sets environment variables like `CLI_CEB_DEV` to control build vs dev behavior
+- Without this setup, builds may run in the wrong mode (e.g., dev mode when you want production)
+
+- Directly invoking `turbo` bypasses all environment configuration
+
+**Correct Configuration:** Scripts ensure proper sequencing:
+
+- `pnpm build` → runs `set-global-env` (CLI_CEB_DEV=false) → `turbo build`
+- `pnpm dev` → runs `set-global-env CLI_CEB_DEV=true` → `turbo ready` → `turbo watch dev`
+
+**Filtering:** If you need to build/dev specific packages, the scripts handle it correctly. For workspace-specific operations, use workspace filtering with the npm scripts:
+
+```bash
+pnpm --filter "./pages/tab-manager" build
+```
+
 ## DO NOT Run Automatically
 
-- `pnpm dev` - Never run this
-- `pnpm build` - Only run when explicitly asked
-- `pnpm test` or `pnpm test:watch` - Only run when explicitly asked or when working specifically on test changes
+**These rules apply whether using npm scripts OR their underlying tools** (which you shouldn't use directly anyway):
+
+- `pnpm dev` (or `turbo dev`, `turbo watch dev`) - Never run these
+- `pnpm build` (or `turbo build`, `turbo run build`) - Only run when explicitly asked
+- `pnpm test` (or `vitest`) - Only run when explicitly asked or when working specifically on test changes
 
 ## Run When Appropriate
 
