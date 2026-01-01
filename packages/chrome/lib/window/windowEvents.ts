@@ -1,6 +1,6 @@
+import { useBrowserStore } from '../useBrowserStore.js'
 import { browserWindowTypes } from './browserWindowTypes.js'
 import { toBrowserWindow } from './toBrowserWindow.js'
-import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindowID } from './BrowserWindowID.js'
 
 /**

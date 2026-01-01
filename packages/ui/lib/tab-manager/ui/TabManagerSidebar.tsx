@@ -1,7 +1,7 @@
+import { memo } from 'react'
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from '../../icons'
 import { ScrollArea } from '../../ScrollArea'
 import { cn } from '../../utils/cn'
-import { memo } from 'react'
 
 export type TabManagerSidebarProps = {
   isExpanded: boolean

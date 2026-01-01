@@ -1,7 +1,7 @@
-import { cn } from '../utils/cn'
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { Check, ChevronRight, Circle } from 'lucide-react'
 import { forwardRef } from 'react'
+import { cn } from '../utils/cn'
 import type * as React from 'react'
 
 export const ContextMenu = ContextMenuPrimitive.Root

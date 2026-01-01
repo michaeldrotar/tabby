@@ -1,22 +1,22 @@
-import { useWindowActions } from './hooks/useWindowActions'
 import {
+  createBrowserWindow,
+  useBrowserTabsByWindowId,
   useBrowserWindows,
   useCurrentBrowserWindow,
-  useBrowserTabsByWindowId,
-  createBrowserWindow,
 } from '@extension/chrome'
 import { usePreferenceStorage } from '@extension/shared'
 import { preferenceStorage } from '@extension/storage'
 import {
-  TabManagerSidebar,
-  WindowRailItem,
-  SidebarAction,
+  PlusIcon,
+  ScrollToActiveIcon,
   SearchIcon,
   SettingsIcon,
-  ScrollToActiveIcon,
-  PlusIcon,
+  SidebarAction,
+  TabManagerSidebar,
   WindowContextMenu,
+  WindowRailItem,
 } from '@extension/ui'
+import { useWindowActions } from './hooks/useWindowActions'
 import type { BrowserWindow } from '@extension/chrome'
 
 // Helper to get active tab url

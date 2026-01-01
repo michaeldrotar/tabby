@@ -1,26 +1,26 @@
+import {
+  activateTab,
+  focusWindow,
+  useBrowserTabGroupsByWindowId,
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+  useTabListItems,
+} from '@extension/chrome'
+import {
+  TabContextMenu,
+  TabGroupContextMenu,
+  TabList,
+  TabListItem,
+} from '@extension/ui'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
-import {
-  useTabListItems,
-  useBrowserTabGroupsByWindowId,
-  useBrowserWindows,
-  useCurrentBrowserWindow,
-  activateTab,
-  focusWindow,
-} from '@extension/chrome'
-import {
-  TabList,
-  TabListItem,
-  TabContextMenu,
-  TabGroupContextMenu,
-} from '@extension/ui'
-import { memo, useCallback, useMemo, useState } from 'react'
 import type {
-  BrowserTabGroupColor,
   BrowserTab,
   BrowserTabGroup,
+  BrowserTabGroupColor,
   BrowserTabID,
   BrowserWindowID,
 } from '@extension/chrome'

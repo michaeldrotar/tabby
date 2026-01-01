@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   getGoogleSearchItem,
   getMatchingCommands,
@@ -5,7 +6,6 @@ import {
   getUrlNavigationItem,
 } from './omnibarResultGenerators'
 import { calculateScore } from './scoring'
-import { useMemo, useState } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 type OmnibarScoredItem = {

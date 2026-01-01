@@ -1,5 +1,5 @@
-import { toBrowserTab } from './toBrowserTab.js'
 import { useBrowserStore } from '../useBrowserStore.js'
+import { toBrowserTab } from './toBrowserTab.js'
 import type { BrowserTab } from './BrowserTab.js'
 import type { BrowserTabID } from './BrowserTabID.js'
 

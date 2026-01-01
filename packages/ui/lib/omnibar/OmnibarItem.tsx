@@ -1,10 +1,10 @@
-import { getOmnibarActionLabel } from './getOmnibarActionLabel'
-import { getOmnibarTypeColor } from './getOmnibarTypeColor'
-import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
+import { useEffect, useRef } from 'react'
 import { Favicon } from '../Favicon'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
-import { useEffect, useRef } from 'react'
+import { getOmnibarActionLabel } from './getOmnibarActionLabel'
+import { getOmnibarTypeColor } from './getOmnibarTypeColor'
+import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {

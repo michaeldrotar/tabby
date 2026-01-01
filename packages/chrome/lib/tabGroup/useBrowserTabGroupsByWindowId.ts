@@ -1,7 +1,7 @@
-import { useBrowserStore } from '../useBrowserStore.js'
 import { useShallow } from 'zustand/shallow'
-import type { BrowserTabGroup } from './BrowserTabGroup.js'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindowID } from '../window/BrowserWindowID.js'
+import type { BrowserTabGroup } from './BrowserTabGroup.js'
 
 /**
  * Provides all browser tab groups for a specific window.

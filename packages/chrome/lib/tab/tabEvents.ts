@@ -1,5 +1,5 @@
-import { toBrowserTab } from './toBrowserTab.js'
 import { useBrowserStore } from '../useBrowserStore.js'
+import { toBrowserTab } from './toBrowserTab.js'
 
 /**
  * Handles when a tab becomes active in a window.

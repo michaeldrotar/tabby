@@ -1,6 +1,6 @@
 import './index.css'
-import { OmnibarPopup } from './OmnibarPopup'
 import { createRoot } from 'react-dom/client'
+import { OmnibarPopup } from './OmnibarPopup'
 
 const container = document.getElementById('root')
 if (!container) {

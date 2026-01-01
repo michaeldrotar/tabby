@@ -1,3 +1,24 @@
+import { usePlatformInfo } from '@extension/chrome'
+import {
+  ArrowDown,
+  Copy,
+  ExternalLink,
+  FileText,
+  FolderPlus,
+  Layers,
+  Link2,
+  MonitorUp,
+  Pin,
+  PinOff,
+  RefreshCw,
+  Trash2,
+  Ungroup,
+  Volume2,
+  VolumeOff,
+} from 'lucide-react'
+import { Kbd } from '../Kbd'
+import { getGroupColorClasses } from '../tab-group/tabGroupColors'
+import { cn } from '../utils/cn'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,27 +30,6 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from './ContextMenu'
-import { Kbd } from '../Kbd'
-import { getGroupColorClasses } from '../tab-group/tabGroupColors'
-import { cn } from '../utils/cn'
-import { usePlatformInfo } from '@extension/chrome'
-import {
-  Pin,
-  PinOff,
-  Volume2,
-  VolumeOff,
-  Copy,
-  ExternalLink,
-  Trash2,
-  RefreshCw,
-  Ungroup,
-  FolderPlus,
-  Layers,
-  ArrowDown,
-  FileText,
-  Link2,
-  MonitorUp,
-} from 'lucide-react'
 import type {
   BrowserTab,
   BrowserTabGroup,

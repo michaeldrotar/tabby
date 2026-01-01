@@ -1,7 +1,7 @@
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from './icons'
-import { cn } from './utils/cn'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import * as React from 'react'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from './icons'
+import { cn } from './utils/cn'
 
 type SelectContextValue = {
   enableClosedArrowKeySelection: boolean

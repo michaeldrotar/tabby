@@ -1,4 +1,3 @@
-import localRules from './eslint-rules/index.js'
 import eslint from '@eslint/js'
 import pluginQuery from '@tanstack/eslint-plugin-query'
 import { defineConfig } from 'eslint/config'
@@ -8,9 +7,11 @@ import jsxA11y from 'eslint-plugin-jsx-a11y'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import unusedImports from 'eslint-plugin-unused-imports'
 import { browser, es2020, node } from 'globals'
 import { configs as tsConfigs, parser as tsParser } from 'typescript-eslint'
+import localRules from './eslint-rules/index.js'
 
 export default defineConfig([
   // Shared configs
@@ -29,7 +30,7 @@ export default defineConfig([
   //   ) as FixupConfigArray,
   // ),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx,mts}'],
     ...reactPlugin.configs.flat.recommended,
     ...reactPlugin.configs.flat['jsx-runtime'],
   },
@@ -49,7 +50,7 @@ export default defineConfig([
     ],
   },
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx,mts}'],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',
@@ -68,6 +69,7 @@ export default defineConfig([
     plugins: {
       'better-tailwindcss': eslintPluginBetterTailwindcss,
       'unused-imports': unusedImports,
+      'simple-import-sort': simpleImportSort,
       local: localRules,
     },
     settings: {
@@ -79,8 +81,8 @@ export default defineConfig([
       },
     },
     rules: {
-      ...eslintPluginBetterTailwindcss.configs['recommended-warn'].rules,
-      ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
+      ...eslintPluginBetterTailwindcss.configs['recommended-warn']?.rules,
+      ...eslintPluginBetterTailwindcss.configs['recommended-error']?.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'no-unused-vars': 'off',
@@ -111,31 +113,32 @@ export default defineConfig([
       'arrow-body-style': ['off'],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-exports': 'error',
-      'import-x/order': [
+      'simple-import-sort/imports': [
         'error',
         {
-          'newlines-between': 'never',
-          alphabetize: { order: 'asc', caseInsensitive: true },
           groups: [
-            'index',
-            'sibling',
-            'parent',
-            'internal',
-            'external',
-            'builtin',
-            'object',
-            'type',
+            [
+              // Side effect imports.
+              '^\\u0000',
+              // Node.js builtins prefixed with `node:`.
+              '^node:',
+              // Packages.
+              // Things that start with a letter (or digit or underscore), or `@` followed by a letter.
+              '^@?\\w',
+              // Absolute imports and other imports such as Vue-style `@/foo`.
+              // Anything not matched in another group.
+              '^(?!.*\\u0000$)',
+              // Relative imports.
+              // Anything that starts with a dot.
+              '^\\.',
+              // Type imports (ex. import type { ... })
+              '^.*\\u0000$',
+            ],
           ],
-          pathGroups: [
-            {
-              pattern: '@*/**',
-              group: 'internal',
-              position: 'before',
-            },
-          ],
-          pathGroupsExcludedImportTypes: ['type'],
         },
       ],
+      'simple-import-sort/exports': 'error',
+      'import-x/order': 'off',
       'import-x/no-unresolved': 'off',
       'import-x/no-named-as-default': 'error',
       'import-x/no-named-as-default-member': 'error',
@@ -145,7 +148,7 @@ export default defineConfig([
         'error',
         { considerQueryString: true, 'prefer-inline': false },
       ],
-      'import-x/consistent-type-specifier-style': 'error',
+      'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level'],
       'import-x/exports-last': 'off',
       'import-x/first': 'error',
       'better-tailwindcss/no-unregistered-classes': 'off',

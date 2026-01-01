@@ -1,5 +1,5 @@
-import { WarningIcon } from '../../icons'
 import { t } from '@extension/i18n'
+import { WarningIcon } from '../../icons'
 
 export const ErrorHeader = () => (
   <div className="text-center">

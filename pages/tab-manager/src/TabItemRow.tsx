@@ -1,5 +1,5 @@
 import { cn, Favicon } from '@extension/ui'
-import { Volume2, VolumeOff, Pin } from 'lucide-react'
+import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'
 import type { BrowserTab } from '@extension/chrome'
 import type { HTMLAttributes } from 'react'

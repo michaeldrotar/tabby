@@ -1,6 +1,6 @@
 import '@src/index.css'
-import { Root } from './Root'
 import { createRoot } from 'react-dom/client'
+import { Root } from './Root'
 
 const init = () => {
   const appContainer = document.querySelector('#app-container')

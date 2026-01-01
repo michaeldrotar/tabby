@@ -1,16 +1,16 @@
+import {
+  focusWindow,
+  useBrowserTabsByWindowId,
+  useCurrentBrowserWindow,
+  useSelectedWindowId,
+  useSetSelectedWindowId,
+} from '@extension/chrome'
+import { TabManagerShell } from '@extension/ui'
+import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import { SearchPopup } from './SearchPopup'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
-import {
-  useCurrentBrowserWindow,
-  useSelectedWindowId,
-  useSetSelectedWindowId,
-  useBrowserTabsByWindowId,
-  focusWindow,
-} from '@extension/chrome'
-import { TabManagerShell } from '@extension/ui'
-import { useCallback, useEffect, useState } from 'react'
 import type { BrowserWindow } from '@extension/chrome'
 
 const TabManager = () => {

@@ -1,7 +1,7 @@
+import { create } from 'zustand'
 import { createTabGroupSlice } from './tabGroupSlice.js'
 import { createTabSlice } from './tabSlice.js'
 import { createWindowSlice } from './windowSlice.js'
-import { create } from 'zustand'
 import type { TabGroupSlice } from './tabGroupSlice.js'
 import type { TabSlice } from './tabSlice.js'
 import type { WindowSlice } from './windowSlice.js'

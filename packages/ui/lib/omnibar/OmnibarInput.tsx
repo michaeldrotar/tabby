@@ -1,6 +1,6 @@
+import { forwardRef } from 'react'
 import { SearchIcon } from '../icons'
 import { Kbd } from '../Kbd'
-import { forwardRef } from 'react'
 
 type OmnibarInputProps = {
   query: string

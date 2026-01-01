@@ -1,5 +1,5 @@
-import { useBrowserStore } from '../useBrowserStore.js'
 import { useShallow } from 'zustand/shallow'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserTabGroup } from './BrowserTabGroup.js'
 
 /**

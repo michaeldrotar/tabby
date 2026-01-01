@@ -1,18 +1,18 @@
 import {
+  Copy,
+  Focus,
+  RefreshCw,
+  Trash2,
+  Volume2,
+  VolumeOff,
+} from 'lucide-react'
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from './ContextMenu'
-import {
-  Focus,
-  VolumeOff,
-  Volume2,
-  RefreshCw,
-  Copy,
-  Trash2,
-} from 'lucide-react'
 import type { BrowserWindow } from '@extension/chrome'
 import type { ReactNode } from 'react'
 

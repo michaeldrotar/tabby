@@ -2,10 +2,10 @@ import { cn } from './utils/cn'
 import type { LucideProps } from 'lucide-react'
 
 export {
-  ArrowBigUp as ShiftIcon,
   Check as CheckIcon,
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
+  X as CloseIcon,
   Command as CmdIcon,
   ExternalLink as ExternalLinkIcon,
   LayoutGrid as LayoutGridIcon,
@@ -16,9 +16,9 @@ export {
   Plus as PlusIcon,
   Search as SearchIcon,
   Settings as SettingsIcon,
+  ArrowBigUp as ShiftIcon,
   Sun as SunIcon,
   TriangleAlert as WarningIcon,
-  X as CloseIcon,
 } from 'lucide-react'
 
 export const ScrollToActiveIcon = ({ className, ...props }: LucideProps) => (

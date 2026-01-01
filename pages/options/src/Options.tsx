@@ -8,20 +8,20 @@ import {
 } from '@extension/shared'
 import { preferenceStorage } from '@extension/storage'
 import {
+  CmdIcon,
   cn,
   ErrorDisplay,
-  LoadingSpinner,
+  ExternalLinkIcon,
   Kbd,
+  KbdGroup,
+  LoadingSpinner,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Slider,
-  ExternalLinkIcon,
-  KbdGroup,
-  CmdIcon,
   ShiftIcon,
+  Slider,
 } from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type {

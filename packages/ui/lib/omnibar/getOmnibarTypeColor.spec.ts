@@ -1,5 +1,5 @@
-import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { describe, expect, it } from 'vitest'
+import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 
 describe('getOmnibarTypeColor', () => {
   it('returns fixed colors per type', () => {

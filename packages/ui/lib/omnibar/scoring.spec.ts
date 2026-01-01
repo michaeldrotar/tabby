@@ -1,5 +1,5 @@
-import { calculateScore } from './scoring'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { calculateScore } from './scoring'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const makeItem = (

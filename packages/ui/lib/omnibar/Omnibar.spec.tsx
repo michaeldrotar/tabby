@@ -1,23 +1,23 @@
 // @vitest-environment jsdom
-import { Omnibar } from './Omnibar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
+  cleanup,
+  fireEvent,
   render,
   screen,
-  fireEvent,
-  cleanup,
   within,
 } from '@testing-library/react'
 import {
-  describe,
-  it,
-  expect,
-  vi,
+  afterEach,
   beforeAll,
   beforeEach,
-  afterEach,
+  describe,
+  expect,
+  it,
+  vi,
 } from 'vitest'
+import { Omnibar } from './Omnibar'
 
 expect.extend(matchers)
 

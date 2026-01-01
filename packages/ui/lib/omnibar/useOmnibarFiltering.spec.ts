@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { renderHook } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { useOmnibarFiltering } from './useOmnibarFiltering'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 describe('useOmnibarFiltering', () => {

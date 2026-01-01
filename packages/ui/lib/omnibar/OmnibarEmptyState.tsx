@@ -1,7 +1,7 @@
+import { usePlatformInfo } from '@extension/chrome'
 import { CmdIcon, ShiftIcon } from '../icons'
 import { Kbd, KbdGroup } from '../Kbd'
 import { cn } from '../utils/cn'
-import { usePlatformInfo } from '@extension/chrome'
 
 type QuickAction = {
   id: string

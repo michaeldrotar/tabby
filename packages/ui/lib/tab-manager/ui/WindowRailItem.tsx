@@ -1,8 +1,8 @@
+import { tt } from '@extension/i18n'
+import { forwardRef, memo } from 'react'
 import { Favicon } from '../../Favicon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'
 import { cn } from '../../utils/cn'
-import { tt } from '@extension/i18n'
-import { forwardRef, memo } from 'react'
 import type { HTMLAttributes } from 'react'
 
 export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {

@@ -1,30 +1,30 @@
 import {
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  ExternalLink,
+  Palette,
+  Pencil,
+  Trash2,
+  Ungroup,
+} from 'lucide-react'
+import {
+  getGroupColorClasses,
+  TAB_GROUP_COLOR_IDS,
+} from '../tab-group/tabGroupColors'
+import { cn } from '../utils/cn'
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-  ContextMenuRadioGroup,
-  ContextMenuRadioItem,
 } from './ContextMenu'
-import {
-  TAB_GROUP_COLOR_IDS,
-  getGroupColorClasses,
-} from '../tab-group/tabGroupColors'
-import { cn } from '../utils/cn'
-import {
-  ChevronDown,
-  ChevronUp,
-  Pencil,
-  Palette,
-  Ungroup,
-  Copy,
-  Trash2,
-  ExternalLink,
-} from 'lucide-react'
 import type { BrowserTabGroup } from '@extension/chrome'
 import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
 import type { ReactNode } from 'react'
