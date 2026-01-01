@@ -1,12 +1,10 @@
-import { IS_DEV, IS_PROD } from '@extension/env'
-import { baseEnv, dynamicEnvValues } from '@extension/env/config'
+import { env } from '@extension/env/config'
+import { IS_DEV, IS_PROD } from '@extension/env/const'
 import { watchRebuildPlugin } from '@extension/hmr/watch-rebuild-plugin'
 import react from '@vitejs/plugin-react-swc'
 import deepmerge from 'deepmerge'
 import { defineConfig } from 'vite'
 import type { UserConfig } from 'vite'
-
-const env = { ...baseEnv, ...dynamicEnvValues }
 
 export const watchOption = IS_DEV
   ? {

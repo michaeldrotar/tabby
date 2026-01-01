@@ -1,6 +1,6 @@
 import { cpSync, existsSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { IS_DEV } from '@extension/env'
+import { IS_DEV } from '@extension/env/const'
 import setRelatedLocaleImports from './set-related-locale-import.js'
 
 const runPrepareBuild = () => {

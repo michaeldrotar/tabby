@@ -2,7 +2,7 @@
 /// <reference path="../tailwind.d.ts" />
 import { readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { IS_DEV } from '@extension/env'
+import { IS_DEV } from '@extension/env/const'
 import { makeEntryPointPlugin } from '@extension/hmr/make-entry-point-plugin'
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'

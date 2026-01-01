@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
-import { IS_CI, IS_FIREFOX } from '@extension/env'
+import { IS_CI, IS_FIREFOX } from '@extension/env/const'
 import {
   getChromeExtensionPath,
   getFirefoxExtensionPath,

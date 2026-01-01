@@ -21,7 +21,7 @@ type TabGroupColorConfig = {
  */
 const TAB_GROUP_COLORS: Record<BrowserTabGroupColor, TabGroupColorConfig> = {
   grey: {
-    label: 'Grey 1',
+    label: 'Grey',
     dot: 'bg-gray-500',
     text: 'text-gray-800 dark:text-gray-200',
     bg: 'bg-gray-500/10',
