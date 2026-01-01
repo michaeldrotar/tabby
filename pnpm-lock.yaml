@@ -276,6 +276,22 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
+  packages/omnibar:
+    dependencies:
+      '@extension/chrome':
+        specifier: workspace:*
+        version: link:../chrome
+      '@extension/ui':
+        specifier: workspace:*
+        version: link:../ui
+    devDependencies:
+      '@extension/tailwindcss-config':
+        specifier: workspace:*
+        version: link:../tailwindcss-config
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+
   packages/shared:
     dependencies:
       react-error-boundary:
@@ -344,6 +360,9 @@ importers:
       lucide-react:
         specifier: ^0.556.0
         version: 0.556.0(react@19.2.1)
+      react-spinners:
+        specifier: ^0.17.0
+        version: 0.17.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -354,9 +373,6 @@ importers:
       '@extension/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      react-spinners:
-        specifier: ^0.17.0
-        version: 0.17.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       tsc-alias:
         specifier: ^1.8.16
         version: 1.8.16
@@ -416,6 +432,9 @@ importers:
       '@extension/chrome':
         specifier: workspace:*
         version: link:../../packages/chrome
+      '@extension/omnibar':
+        specifier: workspace:*
+        version: link:../../packages/omnibar
       '@extension/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -465,6 +484,9 @@ importers:
       '@extension/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@extension/omnibar':
+        specifier: workspace:*
+        version: link:../../packages/omnibar
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -527,6 +549,9 @@ importers:
       '@extension/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@extension/omnibar':
+        specifier: workspace:*
+        version: link:../../packages/omnibar
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared

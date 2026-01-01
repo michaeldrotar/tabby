@@ -19,6 +19,7 @@
   "dependencies": {
     "@extension/chrome": "workspace:*",
     "@extension/i18n": "workspace:*",
+    "@extension/omnibar": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
     "@extension/ui": "workspace:*",

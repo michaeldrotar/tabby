@@ -20,11 +20,11 @@
 - [x] Complete memoization audit (Objective #2) - 3 days
 - [x] Type Safety Audit (Objective #14) - 2-3 days
 
-### Phase 2: Actions Layer (3-4 weeks)
+### Phase 2: Actions Layer (3-4 weeks) ✅ COMPLETE
 
 - [x] Create tab/group actions layer (Objective #6) - 1 week
 - [x] Create window actions (Objective #12) - 1 week
-- [ ] Consolidate Omnibar Chrome API (Objective #9) - 1 week
+- [x] Consolidate Omnibar Chrome API (Objective #9) - 1 week
 
 ### Phase 3: Component Refinement (3-4 weeks)
 
@@ -574,12 +574,12 @@ if (__DEV__) {
 
 ---
 
-### Objective #9: Consolidate Omnibar Chrome API Usage
+### Objective #9: Consolidate Omnibar Chrome API Usage ✅ COMPLETE
 
 **RICE Score: 96** (8 × 6 × 100% / 5)
 
 **Problem:**
-`/packages/ui/lib/omnibar/Omnibar.tsx` directly calls Chrome APIs:
+`/packages/ui/lib/omnibar/Omnibar.tsx` directly called Chrome APIs:
 
 ```tsx
 // Lines 30-57: Direct chrome.tabs.query()
@@ -600,50 +600,37 @@ onClick: async () => {
 }
 ```
 
-**Issues:**
+**Solution Implemented:**
 
-- **Violates SoC**: UI component contains data fetching logic
-- **Inconsistent**: Other parts of the app use `@extension/chrome` hooks
-- **Not reactive**: Manual state management instead of using the Zustand store
+1. **Made Omnibar a "dumb" component** - Now accepts `tabs` prop instead of fetching internally
+2. **Created `useOmnibarTabs` hook** in `@extension/chrome/omnibar/useOmnibarTabs.ts`:
+   - Wraps `useBrowserTabs()` reactive hook
+   - Converts `BrowserTab[]` to `OmnibarTabResult[]` format with `execute` function
+   - Uses `activateTab` and `focusWindow` actions for tab switching
+3. **Updated page components**:
+   - `OmnibarOverlay` now uses `useOmnibarTabs()` and passes tabs as prop
+   - `OmnibarPopup` now uses `useOmnibarTabs()` and passes tabs as prop
+   - Both wrapped with `BrowserStoreProvider` for reactive state
+4. **Added callback props**:
+   - `onOpenTabManager` - page provides side panel logic
+   - `originalWindowId` - page passes window context instead of Omnibar parsing URL
 
-**Solution:**
-Use existing hooks from `@extension/chrome`:
+**Files Changed:**
 
-```tsx
-// Instead of manual useEffect + state
-const tabs = useBrowserTabs() // Already exists and is reactive!
+- `packages/ui/lib/omnibar/Omnibar.tsx` - Made dumb (props for tabs, callbacks)
+- `packages/chrome/lib/omnibar/useOmnibarTabs.ts` - NEW: Hook for omnibar tab data
+- `packages/chrome/package.json` - Added export for new hook
+- `pages/omnibar-overlay/src/OmnibarOverlay.tsx` - Uses hook, passes props
+- `pages/omnibar-popup/src/OmnibarPopup.tsx` - Uses hook, passes props
+- `packages/ui/lib/omnibar/Omnibar.spec.tsx` - Updated tests for new props
 
-// Convert to OmnibarSearchResult in a useMemo
-const tabResults = useMemo(
-  () =>
-    tabs.map((t) => ({
-      id: t.id,
-      type: 'tab',
-      title: t.title || 'Untitled',
-      // ...
-    })),
-  [tabs],
-)
-```
+**Benefits Achieved:**
 
-For window operations, create a custom hook if needed:
-
-```tsx
-// /packages/chrome/lib/window/useWindowActions.ts
-export const useOpenSidePanel = () => {
-  return useCallback(async (windowId?: number) => {
-    const id = windowId ?? (await chrome.windows.getLastFocused()).id
-    if (id) await chrome.sidePanel.open({ windowId: id })
-  }, [])
-}
-```
-
-**Benefits:**
-
-- **Consistency**: All Chrome API access through `@extension/chrome`
-- **Reactivity**: Automatic updates when tabs change
-- **Simplicity**: Less code in Omnibar component
-- **Testability**: Easier to mock hooks than raw APIs
+- ✅ **Consistency**: All Chrome API access through `@extension/chrome`
+- ✅ **Reactivity**: Automatic updates when tabs change via Zustand store
+- ✅ **Simplicity**: Omnibar is now a pure UI component
+- ✅ **Testability**: Easy to test with mock tabs prop
+- ✅ **Architecture Compliance**: UI package is "dumb", pages do composition
 
 ---
 

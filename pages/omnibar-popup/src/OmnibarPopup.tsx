@@ -1,7 +1,8 @@
+import { BrowserStoreProvider } from '@extension/chrome/BrowserStoreProvider'
 import { useThemeApplicator } from '@extension/shared/hooks/preference'
-import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import { WiredOmnibar } from '../../../packages/omnibar/lib/WiredOmnibar'
 
 const queryClient = new QueryClient()
 
@@ -9,9 +10,7 @@ const onDismiss = () => {
   window.close()
 }
 
-export const OmnibarPopup = () => {
-  useThemeApplicator()
-
+const OmnibarPopupContent = () => {
   // Close window on blur
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -30,9 +29,17 @@ export const OmnibarPopup = () => {
     }
   }, [])
 
+  return <WiredOmnibar onDismiss={onDismiss} className="h-screen w-screen" />
+}
+
+export const OmnibarPopup = () => {
+  useThemeApplicator()
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Omnibar onDismiss={onDismiss} className="h-screen w-screen" />
+      <BrowserStoreProvider>
+        <OmnibarPopupContent />
+      </BrowserStoreProvider>
     </QueryClientProvider>
   )
 }

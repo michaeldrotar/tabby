@@ -1,16 +1,24 @@
 import { useMemo, useState } from 'react'
-import {
-  getGoogleSearchItem,
-  getMatchingCommands,
-  getMatchingTabs,
-  getUrlNavigationItem,
-} from './omnibarResultGenerators'
 import { calculateScore } from './scoring'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 type OmnibarScoredItem = {
   item: OmnibarSearchResult
   score: number
+}
+
+/**
+ * Generators for creating omnibar search results.
+ * These are passed in from the business logic layer.
+ */
+export type OmnibarResultGenerators = {
+  getGoogleSearchItem: (query: string) => OmnibarSearchResult
+  getUrlNavigationItem: (query: string) => OmnibarSearchResult[]
+  getMatchingCommands: (queryTerms: string[]) => OmnibarSearchResult[]
+  getMatchingTabs: (
+    tabs: OmnibarSearchResult[],
+    queryTerms: string[],
+  ) => OmnibarSearchResult[]
 }
 
 const compareOmnibarScoredItems = (
@@ -33,8 +41,16 @@ export const useOmnibarFiltering = (
   query: string,
   tabs: OmnibarSearchResult[],
   externalResults: OmnibarSearchResult[],
+  generators: OmnibarResultGenerators,
 ) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const {
+    getGoogleSearchItem,
+    getUrlNavigationItem,
+    getMatchingCommands,
+    getMatchingTabs,
+  } = generators
 
   const filteredItems = useMemo(() => {
     if (!query) return []
@@ -54,17 +70,21 @@ export const useOmnibarFiltering = (
 
     const scoredItems = rankedItems.map((item) => ({
       item,
-      // item: {
-      //   ...item,
-      //   title: `${calculateScore(item, query).toFixed(2)} ${item.title}`,
-      // },
       score: calculateScore(item, query),
     }))
 
     scoredItems.sort(compareOmnibarScoredItems)
 
     return [...pinnedItems, ...scoredItems.map((i) => i.item)]
-  }, [query, tabs, externalResults])
+  }, [
+    query,
+    tabs,
+    externalResults,
+    getGoogleSearchItem,
+    getUrlNavigationItem,
+    getMatchingCommands,
+    getMatchingTabs,
+  ])
 
   return { filteredItems, selectedIndex, setSelectedIndex }
 }

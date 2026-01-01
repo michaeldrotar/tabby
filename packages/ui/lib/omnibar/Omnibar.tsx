@@ -1,109 +1,66 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { LayoutGridIcon, SettingsIcon } from '../icons'
 import { ScrollArea } from '../ScrollArea'
 import { cn } from '../utils/cn'
 import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
 import { OmnibarItem } from './OmnibarItem'
-import { searchBookmarks, searchClosedTabs, searchHistory } from './search'
 import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
 import { useOmnibarSearch } from './useOmnibarSearch'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
+import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
+export type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 export type OmnibarProps = {
   className?: string
   onDismiss: () => void
+  /** Tab data converted to search results */
+  tabs: OmnibarSearchResult[]
+  /** Search handler for external results (history, bookmarks, closed tabs) */
+  onSearch: (query: string) => Promise<OmnibarSearchResult[]>
+  /** Generators for creating omnibar result items */
+  generators: OmnibarResultGenerators
   /** If true, hides the "Open Tab Manager" quick action (useful when already in Tab Manager) */
   hideTabManagerAction?: boolean
+  /** Callback to open the side panel tab manager */
+  onOpenTabManager?: () => void
+  /** The window ID that originally opened the omnibar (for routing results back) */
+  originalWindowId?: number
 }
 
 export const Omnibar = ({
   className,
   onDismiss,
+  tabs,
+  onSearch,
+  generators,
   hideTabManagerAction,
+  onOpenTabManager,
+  originalWindowId,
 }: OmnibarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const { query, setQuery } = useOmnibarQuery(inputRef)
-  const [tabs, setTabs] = useState<OmnibarSearchResult[]>([])
   const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
   const [isShiftPressed, setIsShiftPressed] = useState(false)
 
-  // Fetch tabs on mount
-  useEffect(() => {
-    chrome.tabs.query({}).then((response) => {
-      if (response) {
-        setTabs(
-          response.map((t) => ({
-            id: t.id || 0,
-            type: 'tab',
-            title: t.title || 'Untitled',
-            url: t.url,
-            favIconUrl: t.favIconUrl,
-            windowId: t.windowId,
-            tabId: t.id,
-            lastVisitTime: t.lastAccessed,
-            execute: async () => {
-              if (t.windowId) {
-                await chrome.windows.update(t.windowId, { focused: true })
-              }
-              if (t.id) {
-                await chrome.tabs.update(t.id, { active: true })
-              }
-            },
-          })),
-        )
-      }
-    })
-  }, [])
-
-  // Search handler for external results (history, bookmarks, closed tabs)
-  const handleSearch = useCallback(async (query: string) => {
-    const [historyResults, bookmarkResults, closedTabResults] =
-      await Promise.all([
-        searchHistory(query),
-        searchBookmarks(query),
-        searchClosedTabs(query),
-      ])
-    return [
-      ...closedTabResults,
-      ...bookmarkResults,
-      ...historyResults,
-    ] as OmnibarSearchResult[]
-  }, [])
-
-  const externalResults = useOmnibarSearch(query, handleSearch)
+  const externalResults = useOmnibarSearch(query, onSearch)
   const { filteredItems, selectedIndex, setSelectedIndex } =
-    useOmnibarFiltering(query, tabs, externalResults)
-
-  const originalWindowId = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const id = params.get('originalWindowId')
-      return id ? parseInt(id, 10) : undefined
-    }
-    return undefined
-  }, [])
+    useOmnibarFiltering(query, tabs, externalResults, generators)
 
   // Quick actions for empty state
   const quickActions = useMemo(() => {
     const actions = []
 
-    if (!hideTabManagerAction) {
+    if (!hideTabManagerAction && onOpenTabManager) {
       actions.push({
         id: 'open-tab-manager',
         icon: <LayoutGridIcon className="h-4 w-4" />,
         label: 'Open Tab Manager',
-        onClick: async () => {
-          const windowId =
-            originalWindowId ||
-            (await chrome.windows.getLastFocused()).id ||
-            undefined
-          if (windowId) {
-            await chrome.sidePanel.open({ windowId })
-          }
+        onClick: () => {
+          onOpenTabManager()
           onDismiss()
         },
       })
@@ -113,14 +70,14 @@ export const Omnibar = ({
       id: 'open-options',
       icon: <SettingsIcon className="h-4 w-4" />,
       label: 'Open Options',
-      onClick: async () => {
+      onClick: () => {
         chrome.runtime.openOptionsPage()
         onDismiss()
       },
     })
 
     return actions
-  }, [hideTabManagerAction, originalWindowId, onDismiss])
+  }, [hideTabManagerAction, onOpenTabManager, onDismiss])
 
   const handleSelect = async (
     item: OmnibarSearchResult,

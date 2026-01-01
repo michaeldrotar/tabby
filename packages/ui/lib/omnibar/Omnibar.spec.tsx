@@ -18,6 +18,8 @@ import {
   vi,
 } from 'vitest'
 import { Omnibar } from './Omnibar'
+import type { OmnibarSearchResult } from './OmnibarSearchResult'
+import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 expect.extend(matchers)
 
@@ -26,15 +28,40 @@ describe('Omnibar', () => {
     Element.prototype.scrollIntoView = vi.fn()
   })
 
+  const mockTabs: OmnibarSearchResult[] = [
+    {
+      id: 1,
+      type: 'tab',
+      title: 'Tab 1',
+      url: 'https://example.com/1',
+      windowId: 1,
+      tabId: 1,
+      execute: vi.fn(),
+    },
+    {
+      id: 2,
+      type: 'tab',
+      title: 'Tab 2',
+      url: 'https://example.com/2',
+      windowId: 1,
+      tabId: 2,
+      execute: vi.fn(),
+    },
+    {
+      id: 3,
+      type: 'tab',
+      title: 'Tab 3',
+      url: 'https://example.com/3',
+      windowId: 1,
+      tabId: 3,
+      execute: vi.fn(),
+    },
+  ]
+
   beforeEach(() => {
     // Mock Chrome APIs
     globalThis.chrome = {
       tabs: {
-        query: vi.fn().mockResolvedValue([
-          { id: 1, title: 'Tab 1', url: 'https://example.com/1', windowId: 1 },
-          { id: 2, title: 'Tab 2', url: 'https://example.com/2', windowId: 1 },
-          { id: 3, title: 'Tab 3', url: 'https://example.com/3', windowId: 1 },
-        ]),
         update: vi.fn(),
       },
       windows: {
@@ -59,6 +86,7 @@ describe('Omnibar', () => {
       runtime: {
         id: 'test-extension-id',
         getPlatformInfo: vi.fn().mockResolvedValue({ os: 'mac' }),
+        openOptionsPage: vi.fn(),
       },
     } as unknown as typeof chrome
   })
@@ -68,6 +96,27 @@ describe('Omnibar', () => {
   })
 
   const mockOnDismiss = vi.fn()
+  const mockOnSearch = vi.fn().mockResolvedValue([])
+
+  const mockGenerators: OmnibarResultGenerators = {
+    getGoogleSearchItem: (query: string) => ({
+      id: `google-${query}`,
+      type: 'search' as const,
+      title: `Search Google for "${query}"`,
+      url: `https://google.com/search?q=${encodeURIComponent(query)}`,
+      execute: vi.fn(),
+    }),
+    getUrlNavigationItem: () => [],
+    getMatchingCommands: () => [],
+    getMatchingTabs: (tabs, queryTerms) =>
+      tabs.filter((tab) =>
+        queryTerms.some(
+          (term) =>
+            tab.title?.toLowerCase().includes(term.toLowerCase()) ||
+            tab.url?.toLowerCase().includes(term.toLowerCase()),
+        ),
+      ),
+  }
 
   const createQueryClient = () =>
     new QueryClient({
@@ -80,7 +129,14 @@ describe('Omnibar', () => {
   }
 
   it('should select item on mouse move', async () => {
-    renderWithQuery(<Omnibar onDismiss={mockOnDismiss} />)
+    renderWithQuery(
+      <Omnibar
+        tabs={mockTabs}
+        onSearch={mockOnSearch}
+        generators={mockGenerators}
+        onDismiss={mockOnDismiss}
+      />,
+    )
 
     // Type into input to get results
     const input = screen.getByRole('textbox')
@@ -115,7 +171,14 @@ describe('Omnibar', () => {
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
-    renderWithQuery(<Omnibar onDismiss={mockOnDismiss} />)
+    renderWithQuery(
+      <Omnibar
+        tabs={mockTabs}
+        onSearch={mockOnSearch}
+        generators={mockGenerators}
+        onDismiss={mockOnDismiss}
+      />,
+    )
 
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Tab' } })

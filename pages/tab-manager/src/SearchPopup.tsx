@@ -1,4 +1,4 @@
-import { Omnibar } from '@extension/ui/omnibar/Omnibar'
+import { WiredOmnibar } from '../../../packages/omnibar/lib/WiredOmnibar'
 
 type SearchPopupProps = {
   isOpen: boolean
@@ -18,7 +18,7 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
       `}
       onClick={onClose}
     >
-      <Omnibar
+      <WiredOmnibar
         onDismiss={onClose}
         hideTabManagerAction
         className={`

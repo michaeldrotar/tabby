@@ -1,5 +1,5 @@
-import { executeUrl } from './executeUrl'
-import type { OmnibarSearchResult } from './OmnibarSearchResult'
+import { executeOmnibarUrl } from './executeOmnibarUrl.js'
+import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`
@@ -9,7 +9,7 @@ export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
     title: 'Search Google',
     url,
     execute: async (modifier, originalWindowId) => {
-      await executeUrl(url, modifier, originalWindowId)
+      await executeOmnibarUrl(url, modifier, originalWindowId)
     },
   }
 }
@@ -28,7 +28,7 @@ export const getUrlNavigationItem = (query: string): OmnibarSearchResult[] => {
       title: 'Open URL',
       url,
       execute: async (modifier, originalWindowId) => {
-        await executeUrl(url, modifier, originalWindowId)
+        await executeOmnibarUrl(url, modifier, originalWindowId)
       },
     },
   ]
@@ -64,7 +64,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Open Settings',
     url: 'chrome://settings',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://settings', modifier, originalWindowId)
+      await executeOmnibarUrl('chrome://settings', modifier, originalWindowId)
     },
   },
   {
@@ -73,7 +73,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Manage Extensions',
     url: 'chrome://extensions',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://extensions', modifier, originalWindowId)
+      await executeOmnibarUrl('chrome://extensions', modifier, originalWindowId)
     },
   },
   {
@@ -82,7 +82,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: History',
     url: 'chrome://history',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://history', modifier, originalWindowId)
+      await executeOmnibarUrl('chrome://history', modifier, originalWindowId)
     },
   },
   {
@@ -91,7 +91,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Downloads',
     url: 'chrome://downloads',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://downloads', modifier, originalWindowId)
+      await executeOmnibarUrl('chrome://downloads', modifier, originalWindowId)
     },
   },
   {
@@ -100,7 +100,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Bookmarks Manager',
     url: 'chrome://bookmarks',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://bookmarks', modifier, originalWindowId)
+      await executeOmnibarUrl('chrome://bookmarks', modifier, originalWindowId)
     },
   },
   {
@@ -109,7 +109,11 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Password Manager',
     url: 'chrome://password-manager',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl('chrome://password-manager', modifier, originalWindowId)
+      await executeOmnibarUrl(
+        'chrome://password-manager',
+        modifier,
+        originalWindowId,
+      )
     },
   },
   {
@@ -118,7 +122,7 @@ const COMMANDS: OmnibarSearchResult[] = [
     title: 'Chrome: Clear Browsing Data',
     url: 'chrome://settings/clearBrowserData',
     execute: async (modifier, originalWindowId) => {
-      await executeUrl(
+      await executeOmnibarUrl(
         'chrome://settings/clearBrowserData',
         modifier,
         originalWindowId,

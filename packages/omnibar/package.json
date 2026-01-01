@@ -1,0 +1,64 @@
+{
+  "name": "@extension/omnibar",
+  "version": "0.0.0",
+  "description": "Omnibar shared business logic",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist/**"
+  ],
+  "exports": {
+    "./executeOmnibarUrl": {
+      "types": "./src/executeOmnibarUrl.ts",
+      "default": "./dist/src/executeOmnibarUrl.js"
+    },
+    "./omnibarResultGenerators": {
+      "types": "./src/omnibarResultGenerators.ts",
+      "default": "./dist/src/omnibarResultGenerators.js"
+    },
+    "./searchBookmarks": {
+      "types": "./src/searchBookmarks.ts",
+      "default": "./dist/src/searchBookmarks.js"
+    },
+    "./searchClosedTabs": {
+      "types": "./src/searchClosedTabs.ts",
+      "default": "./dist/src/searchClosedTabs.js"
+    },
+    "./searchHistory": {
+      "types": "./src/searchHistory.ts",
+      "default": "./dist/src/searchHistory.js"
+    },
+    "./useOmnibarExternalSearch": {
+      "types": "./src/useOmnibarExternalSearch.ts",
+      "default": "./dist/src/useOmnibarExternalSearch.js"
+    },
+    "./useOmnibarGenerators": {
+      "types": "./src/useOmnibarGenerators.ts",
+      "default": "./dist/src/useOmnibarGenerators.js"
+    },
+    "./useOmnibarTabs": {
+      "types": "./src/useOmnibarTabs.ts",
+      "default": "./dist/src/useOmnibarTabs.js"
+    },
+    "./WiredOmnibar": {
+      "types": "./src/WiredOmnibar.tsx",
+      "default": "./dist/src/WiredOmnibar.js"
+    }
+  },
+  "scripts": {
+    "clean:bundle": "rimraf dist",
+    "clean:node_modules": "pnpx rimraf node_modules",
+    "clean:turbo": "rimraf .turbo",
+    "clean": "pnpm clean:bundle && pnpm clean:node_modules && pnpm clean:turbo",
+    "ready": "tsc -b",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/chrome": "workspace:*",
+    "@extension/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@extension/tailwindcss-config": "workspace:*",
+    "@extension/tsconfig": "workspace:*"
+  }
+}
