@@ -1,12 +1,9 @@
 import fs from 'fs/promises'
-import { statSync, existsSync, readFileSync } from 'fs'
+import { statSync, existsSync } from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
 import fg from 'fast-glob'
 import chalk from 'chalk'
-import zlib from 'zlib'
-
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
 const human = (bytes) => {
   if (bytes >= 1024 * 1024 * 1024)
@@ -30,21 +27,6 @@ const runCmd = (cmd, args, opts = {}) =>
         reject(new Error(`Command failed: ${cmd} ${args.join(' ')}\n${stderr}`))
     })
   })
-
-async function listDistFiles() {
-  const files = await fg(['dist/**'], { onlyFiles: true })
-  const info = []
-  for (const f of files) {
-    try {
-      const st = await fs.stat(f)
-      info.push({ path: f, bytes: st.size })
-    } catch (e) {
-      // ignore
-    }
-  }
-  info.sort((a, b) => b.bytes - a.bytes)
-  return info
-}
 
 async function listZipContents() {
   const zips = await fg(['dist-zip/*.zip'], { onlyFiles: true })
@@ -297,13 +279,17 @@ async function analyzeSourcemaps(jsFiles) {
       totalMapped += b
 
       // Heuristics: if the source path looks like local workspace code, classify as own
+      // BUT exclude node_modules even if path contains /packages/ or /src/
       const srcLower = String(src)
-      if (
-        srcLower.includes('/packages/') ||
-        srcLower.includes('packages/') ||
-        srcLower.includes('/pages/') ||
-        srcLower.includes('/src/')
-      ) {
+      const isNodeModules = srcLower.includes('node_modules')
+      const isOwnCode =
+        !isNodeModules &&
+        (srcLower.includes('/packages/') ||
+          srcLower.includes('packages/') ||
+          srcLower.includes('/pages/') ||
+          srcLower.includes('/src/'))
+
+      if (isOwnCode) {
         perOwn.set(src, (perOwn.get(src) || 0) + b)
         continue
       }
@@ -395,12 +381,8 @@ async function analyzeSourcemaps(jsFiles) {
       )
     }
 
-    const distFiles = await listDistFiles()
-
     // Analyze JS files + sourcemaps
-    const jsFiles = distFiles
-      .filter((d) => d.path.endsWith('.js'))
-      .map((d) => d.path)
+    const jsFiles = await fg(['dist/**/*.js'], { onlyFiles: true })
     console.log(
       '\n' + chalk.bold.underline('Sourcemap analysis (from .map files only):'),
     )
@@ -408,17 +390,48 @@ async function analyzeSourcemaps(jsFiles) {
 
     const depsBytes = deps.reduce((s, d) => s + d.bytes, 0)
     const ownBytes = own.reduce((s, o) => s + o.bytes, 0)
+    const depsPercent = totalMapped > 0 ? (depsBytes / totalMapped) * 100 : 0
+    const ownPercent = totalMapped > 0 ? (ownBytes / totalMapped) * 100 : 0
+
     console.log(
       `${chalk.bold('Mapped bytes:')} ${human(totalMapped)}  ${chalk.dim('(sum of sources from sourcemaps)')}`,
     )
     console.log(
-      `${chalk.green('Dependencies total:')} ${human(depsBytes)}  ${chalk.magenta('Own code total:')} ${human(ownBytes)}\n`,
+      `${chalk.green('Dependencies:')} ${human(depsBytes)} (${depsPercent.toFixed(1)}%)  ${chalk.magenta('Own code:')} ${human(ownBytes)} (${ownPercent.toFixed(1)}%)\n`,
     )
+
+    // Detect duplicate dependencies (same base package name with different versions)
+    const duplicateDeps = new Map()
+    for (const d of deps) {
+      const baseName = d.name
+        .replace(/@[0-9.]+(_.*)?$/, '')
+        .replace(/\+.*$/, '')
+      if (!duplicateDeps.has(baseName)) {
+        duplicateDeps.set(baseName, [])
+      }
+      duplicateDeps.get(baseName).push(d.name)
+    }
+    const actualDuplicates = [...duplicateDeps.entries()].filter(
+      ([_, versions]) => versions.length > 1,
+    )
+
+    if (actualDuplicates.length > 0) {
+      console.log(chalk.red.bold('⚠ Duplicate dependencies detected:'))
+      for (const [baseName, versions] of actualDuplicates) {
+        console.log(`  ${chalk.yellow(baseName)}: ${versions.join(', ')}`)
+      }
+      console.log()
+    }
 
     if (deps.length) {
       console.log(chalk.bold.underline('All dependencies (by mapped size):'))
-      for (const d of deps)
-        console.log(`${chalk.yellow(human(d.bytes)).padEnd(12)}  ${d.name}`)
+      for (const d of deps) {
+        const pct =
+          totalMapped > 0 ? ((d.bytes / totalMapped) * 100).toFixed(1) : '0.0'
+        console.log(
+          `${chalk.yellow(human(d.bytes)).padEnd(13)} ${pct.padStart(5)}%  ${d.name}`,
+        )
+      }
     } else {
       console.log(
         chalk.dim(
@@ -431,8 +444,15 @@ async function analyzeSourcemaps(jsFiles) {
       console.log(
         '\n' + chalk.bold.underline('All own source files (by mapped size):'),
       )
-      for (const o of own)
-        console.log(`${chalk.yellow(human(o.bytes)).padEnd(12)}  ${o.path}`)
+      for (const o of own) {
+        const pct =
+          totalMapped > 0 ? ((o.bytes / totalMapped) * 100).toFixed(1) : '0.0'
+        // Clean up path to start from project root
+        let cleanPath = o.path.replace(/^\.\.\/\.\.\/\.\.\//g, '')
+        console.log(
+          `${chalk.yellow(human(o.bytes)).padEnd(13)} ${pct.padStart(5)}%  ${cleanPath}`,
+        )
+      }
     }
 
     // Create a fresh 'tabby-dist.zip' from the current dist for accurate comparison (overwrite if exists)
@@ -450,7 +470,7 @@ async function analyzeSourcemaps(jsFiles) {
     // Zips: gather zip metadata (we create tabby-dist.zip above for a direct, packaged comparison)
     const zipContents = await listZipContents()
 
-    // --- Build normalized asset matrix across dist and zip versions
+    // Normalize asset names by removing Vite hash suffixes
     const normalizeAssetName = (p) => {
       if (!p) return null
       // ignore source maps
@@ -459,11 +479,7 @@ async function analyzeSourcemaps(jsFiles) {
       p = p.replace(/^\.\/|^\//, '')
       if (p.startsWith('dist/')) p = p.slice('dist/'.length)
 
-      // For zip entries, they may be like 'options/assets/index-C70I1Fyf.js'
-      // Remove Vite-style hash segments: '-<hash>' where <hash> can contain letters, numbers, '_' or '-'
-      // Strip only when the hashed segment appears directly before the extension
-      // Strip trailing hashed segments only when they look like generated hashes:
-      // require token length >= 6 and include at least one digit, or an uppercase letter, or an underscore
+      // Remove Vite-style hash segments like '-C70I1Fyf' before the extension
       // Only strip tokens that contain uppercase letters or underscores (heuristic for generated hashes)
       p = p.replace(
         /-(?=(?:.*[A-Z])|(?:.*_))([A-Za-z0-9_-]{6,})(?=\.[^.]+$)/g,
@@ -471,90 +487,6 @@ async function analyzeSourcemaps(jsFiles) {
       )
 
       return p
-    }
-
-    // --- discover referenced assets from HTML entrypoints and manifest.json (prefer these as "current")
-    const referencedPaths = new Set()
-    try {
-      const htmlFiles = await fg(['dist/*.html'], { onlyFiles: true })
-      for (const h of htmlFiles) {
-        try {
-          const txt = await fs.readFile(h, 'utf8')
-          for (const m of txt.matchAll(/<script[^>]+src="([^"]+)"/g))
-            referencedPaths.add(m[1].replace(/^\//, ''))
-          for (const m of txt.matchAll(/<link[^>]+href="([^"]+)"/g))
-            referencedPaths.add(m[1].replace(/^\//, ''))
-        } catch (e) {
-          // ignore
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    try {
-      const manifestPath = 'dist/manifest.json'
-      if (existsSync(manifestPath)) {
-        try {
-          const mf = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
-          for (const v of Object.values(mf)) {
-            if (v && typeof v === 'object') {
-              if (v.file) referencedPaths.add(v.file)
-              if (Array.isArray(v.css))
-                for (const c of v.css) referencedPaths.add(c)
-              if (Array.isArray(v.assets))
-                for (const a of v.assets) referencedPaths.add(a)
-            }
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    // dist files: pick the current referenced variant when possible, otherwise latest mtime
-    const distVariants = new Map() // normalized -> { path, bytes, mtimeMs, referenced }
-    for (const f of distFiles) {
-      const norm = normalizeAssetName(f.path)
-      if (!norm) continue
-      try {
-        const st = statSync(f.path)
-        const isReferenced =
-          referencedPaths.has(f.path.replace(/^dist\//, '')) ||
-          referencedPaths.has(path.basename(f.path))
-        const cur = distVariants.get(norm)
-        if (!cur) {
-          distVariants.set(norm, {
-            path: f.path,
-            bytes: f.bytes,
-            mtimeMs: st.mtimeMs,
-            referenced: !!isReferenced,
-          })
-        } else {
-          // prefer referenced variants, otherwise prefer newer mtime
-          if (isReferenced && !cur.referenced) {
-            distVariants.set(norm, {
-              path: f.path,
-              bytes: f.bytes,
-              mtimeMs: st.mtimeMs,
-              referenced: true,
-            })
-          } else if (isReferenced === cur.referenced) {
-            if (st.mtimeMs > cur.mtimeMs) {
-              distVariants.set(norm, {
-                path: f.path,
-                bytes: f.bytes,
-                mtimeMs: st.mtimeMs,
-                referenced: !!isReferenced,
-              })
-            }
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
     }
 
     // zip entries: map normalized -> { version -> uncompressed }
@@ -612,19 +544,6 @@ async function analyzeSourcemaps(jsFiles) {
       })
     })
 
-    // NOTE: we will compute the union of names using only the selected versions (so older versions
-    // not included via -v won't contribute rows).
-
-    // Compute gzip sizes for dist representative files
-    const gzipSizeForPath = (p) => {
-      try {
-        const buf = readFileSync(p)
-        return zlib.gzipSync(buf).length
-      } catch (e) {
-        return 0
-      }
-    }
-
     // CLI parsing: allow -v / --versions-back to limit how many zip versions are shown (default 3)
     const argv = process.argv.slice(2)
     let versionsBack = 3
@@ -641,63 +560,46 @@ async function analyzeSourcemaps(jsFiles) {
         }
       }
     }
-    let versions = sortedVersions.slice(0, versionsBack)
-
-    // If a tabby-dist (working) zip exists, prefer to show it first for a direct comparison
-    const idxDist = versions.findIndex((v) =>
+    // If a tabby-dist (working) zip exists, ensure it's included and shown first
+    const tabbyDistIdx = sortedVersions.findIndex((v) =>
       String(v).startsWith('tabby-dist'),
     )
-    if (idxDist !== -1) {
-      const [d] = versions.splice(idxDist, 1)
-      versions.unshift(d)
+    let versions = []
+    if (tabbyDistIdx !== -1) {
+      // Remove tabby-dist from sortedVersions and add it first
+      const [tabbyDist] = sortedVersions.splice(tabbyDistIdx, 1)
+      versions = [tabbyDist, ...sortedVersions.slice(0, versionsBack)]
+    } else {
+      versions = sortedVersions.slice(0, versionsBack)
     }
 
-    // Build the union of names using only 'versions' (what's visible in the table) and any dist files
-    const allNames = new Set([
-      ...Array.from(distVariants.keys()),
-      ...versions.flatMap((v) => Object.keys(zipEntriesMap[v] || {})),
-    ])
+    // Build the union of all asset names from selected versions
+    const allNames = new Set(
+      versions.flatMap((v) => Object.keys(zipEntriesMap[v] || {})),
+    )
 
-    // For ordering: prefer the working 'tabby-dist' zip sizes when present, otherwise dist variant mtime
-    const tabbyKey = versions.find((v) => String(v).startsWith('tabby-dist'))
-    const nameMeta = [] // { name, recentMtime, recentSize }
+    // For ordering: find the most recent (largest) size for each asset across all versions
+    const tabbyDistVersion = versions.find((v) =>
+      String(v).startsWith('tabby-dist'),
+    )
+    const nameMeta = [] // { name, recentSize }
     for (const name of allNames) {
-      const distEntry = distVariants.get(name)
-      let distMtime = distEntry ? distEntry.mtimeMs || 0 : 0
-      let distSize = distEntry ? distEntry.bytes || 0 : 0
-
+      let recentSize = 0
+      // Prefer tabby-dist size if available, otherwise use the largest size from any version
       if (
-        tabbyKey &&
-        zipEntriesMap[tabbyKey] &&
-        zipEntriesMap[tabbyKey][name] != null
+        tabbyDistVersion &&
+        zipEntriesMap[tabbyDistVersion] &&
+        zipEntriesMap[tabbyDistVersion][name] != null
       ) {
-        distSize = zipEntriesMap[tabbyKey][name]
-        distMtime =
-          zipIndex[tabbyKey] && zipIndex[tabbyKey].mtimeMs
-            ? zipIndex[tabbyKey].mtimeMs
-            : distMtime
-      }
-
-      let bestZipMtime = 0
-      let bestZipSize = 0
-      for (const v of versions) {
-        if (zipEntriesMap[v] && zipEntriesMap[v][name] != null) {
-          const zm = zipIndex[v].mtimeMs || 0
-          if (zm > bestZipMtime) {
-            bestZipMtime = zm
-            bestZipSize = zipEntriesMap[v][name]
+        recentSize = zipEntriesMap[tabbyDistVersion][name]
+      } else {
+        for (const v of versions) {
+          if (zipEntriesMap[v] && zipEntriesMap[v][name] != null) {
+            recentSize = Math.max(recentSize, zipEntriesMap[v][name])
           }
         }
       }
-
-      if (distMtime >= bestZipMtime)
-        nameMeta.push({ name, recentMtime: distMtime, recentSize: distSize })
-      else
-        nameMeta.push({
-          name,
-          recentMtime: bestZipMtime,
-          recentSize: bestZipSize,
-        })
+      nameMeta.push({ name, recentSize })
     }
 
     // sort by recentSize descending
@@ -705,82 +607,205 @@ async function analyzeSourcemaps(jsFiles) {
 
     // column widths
     const nameColW = Math.max(20, ...Array.from(allNames).map((n) => n.length))
-    const distColW = 12
     const verColW = 14
+
+    // Determine which versions to show as columns (exclude tabby-dist since we'll show it as "dist")
+    const displayVersions = versions.filter(
+      (v) => !String(v).startsWith('tabby-dist'),
+    )
 
     const header = [
       'Name'.padEnd(nameColW),
-      'dist'.padStart(distColW),
-      ...versions.map((v) => v.padStart(verColW)),
+      'dist'.padStart(verColW),
+      ...displayVersions.map((v) => v.padStart(verColW)),
     ]
     console.log('\n')
     console.log(chalk.bold(header.join('  ')))
 
-    const totalsByVersion = {}
-    for (const v of versions) totalsByVersion[v] = 0
+    const totalsByVersion = { dist: 0 }
+    for (const v of displayVersions) totalsByVersion[v] = 0
 
     for (const row of nameMeta) {
       const name = row.name
-      const distEntry = distVariants.get(name)
-      const distBytes = distEntry ? distEntry.bytes : 0
 
-      let distBytesStr = ''.padStart(distColW)
-      const tabbyKey = versions.find((v) => String(v).startsWith('tabby-dist'))
+      // For "dist" column, use tabby-dist.zip if available
+      let distBytes = 0
       if (
-        tabbyKey &&
-        zipEntriesMap[tabbyKey] &&
-        zipEntriesMap[tabbyKey][name] != null
+        tabbyDistVersion &&
+        zipEntriesMap[tabbyDistVersion] &&
+        zipEntriesMap[tabbyDistVersion][name] != null
       ) {
-        distBytesStr = human(zipEntriesMap[tabbyKey][name]).padStart(distColW)
-      } else if (distEntry) {
-        distBytesStr = human(distBytes).padStart(distColW)
+        distBytes = zipEntriesMap[tabbyDistVersion][name]
+        totalsByVersion.dist += distBytes
       }
+      const distBytesStr = distBytes
+        ? human(distBytes).padStart(verColW)
+        : ''.padStart(verColW)
 
-      const verCols = versions.map((v) => {
+      const verCols = displayVersions.map((v) => {
         const b =
           zipEntriesMap[v] && zipEntriesMap[v][name] != null
             ? zipEntriesMap[v][name]
             : 0
-        if (b) return human(b).padStart(verColW)
+        if (b) {
+          totalsByVersion[v] += b
+          return human(b).padStart(verColW)
+        }
         return ''.padStart(verColW)
       })
 
       console.log(
         `${name.padEnd(nameColW)}  ${distBytesStr}  ${verCols.join('  ')}`,
       )
-
-      for (const v of versions) {
-        if (zipEntriesMap[v] && zipEntriesMap[v][name] != null)
-          totalsByVersion[v] += zipEntriesMap[v][name]
-      }
     }
 
-    // Compute totals: prefer the working tabby-dist.zip totals when available
-    let totalDistUncompressed = 0
-    let totalDistGzip = 0
-    if (tabbyKey && zipIndex[tabbyKey]) {
-      totalDistUncompressed = zipIndex[tabbyKey].totalUncompressed || 0
-      totalDistGzip = zipIndex[tabbyKey].actualBytes || 0
-    } else {
-      for (const entry of distVariants.values()) {
-        totalDistUncompressed += entry.bytes || 0
-        totalDistGzip += gzipSizeForPath(entry.path)
-      }
-    }
-
-    const totalsCols = versions.map((v) =>
+    // Compute totals and zipped sizes
+    const totalsCols = displayVersions.map((v) =>
       human(totalsByVersion[v]).padStart(verColW),
     )
-    console.log(
-      '-'.repeat(nameColW + distColW + versions.length * (verColW + 2)),
-    )
-    console.log(
-      `${'TOTAL'.padEnd(nameColW)}  ${human(totalDistUncompressed).padStart(distColW)}  ${totalsCols.join('  ')}`,
+    const zippedCols = displayVersions.map((v) =>
+      human(zipIndex[v].actualBytes).padStart(verColW),
     )
 
     console.log(
-      `${'ZIPPED'.padEnd(nameColW)}  ${human(totalDistGzip).padStart(distColW)}  ${versions.map((v) => human(zipIndex[v].actualBytes).padStart(verColW)).join('  ')}`,
+      '-'.repeat(nameColW + verColW + displayVersions.length * (verColW + 2)),
     )
+    console.log(
+      `${'TOTAL'.padEnd(nameColW)}  ${human(totalsByVersion.dist).padStart(verColW)}  ${totalsCols.join('  ')}`,
+    )
+
+    const distZippedSize = tabbyDistVersion
+      ? zipIndex[tabbyDistVersion].actualBytes
+      : 0
+    console.log(
+      `${'ZIPPED'.padEnd(nameColW)}  ${human(distZippedSize).padStart(verColW)}  ${zippedCols.join('  ')}`,
+    )
+
+    // Additional insights
+    console.log('\n' + chalk.bold.underline('Bundle Insights:'))
+
+    // Size category
+    const categories = [
+      { name: 'Tiny', max: 500 * 1024 },
+      { name: 'Small', max: 1024 * 1024 },
+      { name: 'Medium', max: 3 * 1024 * 1024 },
+      { name: 'Large', max: 5 * 1024 * 1024 },
+      { name: 'Huge', max: Infinity },
+    ]
+    const category =
+      categories.find((c) => distZippedSize <= c.max)?.name || 'Huge'
+    console.log(
+      `${chalk.bold('Size category:')} ${category} (${human(distZippedSize)} zipped)`,
+    )
+
+    // Version delta (compare dist to most recent versioned build)
+    if (tabbyDistVersion && displayVersions.length > 0) {
+      const compareVersion = displayVersions[0]
+      const distTotal = totalsByVersion.dist
+      const compareTotal = totalsByVersion[compareVersion]
+      const distZipped = distZippedSize
+      const compareZipped = zipIndex[compareVersion].actualBytes
+
+      const uncompressedDelta = distTotal - compareTotal
+      const uncompressedDeltaPct =
+        compareTotal > 0 ? (uncompressedDelta / compareTotal) * 100 : 0
+      const zippedDelta = distZipped - compareZipped
+      const zippedDeltaPct =
+        compareZipped > 0 ? (zippedDelta / compareZipped) * 100 : 0
+
+      const uncompressedColor =
+        uncompressedDelta > 0
+          ? chalk.red
+          : uncompressedDelta < 0
+            ? chalk.green
+            : chalk.gray
+      const zippedColor =
+        zippedDelta > 0 ? chalk.red : zippedDelta < 0 ? chalk.green : chalk.gray
+      const uncompressedSign = uncompressedDelta > 0 ? '+' : ''
+      const zippedSign = zippedDelta > 0 ? '+' : ''
+
+      console.log(`\n${chalk.bold('Changes since ' + compareVersion + ':')}`)
+      console.log(
+        `  Uncompressed: ${uncompressedColor(uncompressedSign + human(uncompressedDelta))} (${uncompressedColor(uncompressedSign + uncompressedDeltaPct.toFixed(1) + '%')})`,
+      )
+      console.log(
+        `  Zipped: ${zippedColor(zippedSign + human(zippedDelta))} (${zippedColor(zippedSign + zippedDeltaPct.toFixed(1) + '%')})`,
+      )
+
+      // New and removed files
+      const distFiles = new Set(
+        Object.keys(zipEntriesMap[tabbyDistVersion] || {}),
+      )
+      const compareFiles = new Set(
+        Object.keys(zipEntriesMap[compareVersion] || {}),
+      )
+      const newFiles = [...distFiles].filter((f) => !compareFiles.has(f))
+      const removedFiles = [...compareFiles].filter((f) => !distFiles.has(f))
+
+      if (newFiles.length > 0) {
+        console.log(`  ${chalk.green('New files:')} ${newFiles.join(', ')}`)
+      }
+      if (removedFiles.length > 0) {
+        console.log(
+          `  ${chalk.red('Removed files:')} ${removedFiles.join(', ')}`,
+        )
+      }
+    }
+
+    // Per-page breakdown
+    if (tabbyDistVersion && zipEntriesMap[tabbyDistVersion]) {
+      const pageBreakdown = new Map()
+      const packageBreakdown = new Map()
+
+      for (const [name, size] of Object.entries(
+        zipEntriesMap[tabbyDistVersion],
+      )) {
+        // Determine page (first path segment)
+        const parts = name.split('/')
+        if (parts.length > 1) {
+          const page = parts[0]
+          pageBreakdown.set(page, (pageBreakdown.get(page) || 0) + size)
+        }
+
+        // Determine package (from packages/ path)
+        if (name.startsWith('packages/')) {
+          const pkg = parts[1] || 'unknown'
+          packageBreakdown.set(pkg, (packageBreakdown.get(pkg) || 0) + size)
+        }
+      }
+
+      if (pageBreakdown.size > 0) {
+        console.log(`\n${chalk.bold('Per-page breakdown:')}`)
+        const sortedPages = [...pageBreakdown.entries()].sort(
+          (a, b) => b[1] - a[1],
+        )
+        for (const [page, size] of sortedPages) {
+          const pct =
+            totalsByVersion.dist > 0
+              ? ((size / totalsByVersion.dist) * 100).toFixed(1)
+              : '0.0'
+          console.log(
+            `  ${page.padEnd(20)} ${human(size).padStart(12)}  ${pct.padStart(5)}%`,
+          )
+        }
+      }
+
+      if (packageBreakdown.size > 0) {
+        console.log(`\n${chalk.bold('Per-package breakdown:')}`)
+        const sortedPackages = [...packageBreakdown.entries()].sort(
+          (a, b) => b[1] - a[1],
+        )
+        for (const [pkg, size] of sortedPackages) {
+          const pct =
+            totalsByVersion.dist > 0
+              ? ((size / totalsByVersion.dist) * 100).toFixed(1)
+              : '0.0'
+          console.log(
+            `  ${pkg.padEnd(20)} ${human(size).padStart(12)}  ${pct.padStart(5)}%`,
+          )
+        }
+      }
+    }
 
     console.log('\n' + chalk.bold.green('Done.'))
   } catch (err) {
