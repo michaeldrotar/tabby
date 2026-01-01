@@ -26,11 +26,11 @@
 - [x] Create window actions (Objective #12) - 1 week
 - [x] Consolidate Omnibar Chrome API (Objective #9) - 1 week
 
-### Phase 3: Component Refinement (3-4 weeks)
+### Phase 3: Component Refinement (3-4 weeks) ✅ COMPLETE
 
-- [ ] Simplify TabItemRow (Objective #7) - 1 week
-- [ ] Extract TabGroupHeader logic (Objective #10) - 1 week
-- [ ] Standardize context menu props (Objective #11) - 2 weeks
+- [x] Simplify TabItemRow (Objective #7) - Refactored to primitive props (no Chrome dependencies)
+- [x] Extract TabGroupHeader logic (Objective #10) - Already well-structured, kept as-is
+- [~] Standardize context menu props (Objective #11) - SKIPPED (planned for removal)
 
 ### Phase 4: Performance & Quality (4-5 weeks)
 

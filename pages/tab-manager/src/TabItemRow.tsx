@@ -2,28 +2,59 @@ import { Favicon } from '@extension/ui/Favicon'
 import { cn } from '@extension/ui/utils/cn'
 import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { HTMLAttributes } from 'react'
 
-export type TabItemRowProps = HTMLAttributes<HTMLDivElement> & {
-  tab: BrowserTab
+export type TabItemRowProps = Omit<HTMLAttributes<HTMLDivElement>, 'title'> & {
+  /** Unique identifier for the tab (used for data attributes) */
+  tabId?: number
+  /** Display title for the tab */
+  title?: string
+  /** URL for favicon resolution */
+  faviconUrl?: string
+  /** Whether this tab is the active tab in its window */
+  isActive?: boolean
+  /** Whether this tab is highlighted (selected) */
+  isHighlighted?: boolean
+  /** Whether this tab is pinned */
+  isPinned?: boolean
+  /** Whether this tab is muted */
+  isMuted?: boolean
+  /** Whether this tab is playing audio */
+  isAudible?: boolean
+  /** Whether this tab has been discarded (unloaded from memory) */
+  isDiscarded?: boolean
+  /** Called when the tab row is clicked to activate the tab */
   onActivate: () => void
+  /** Called when the tab should be closed (Delete/Backspace key) */
   onClose?: () => void
 }
 
 /**
  * A row component for displaying a single tab in the tab list.
+ *
+ * This is a presentational component that accepts primitive props.
+ * It has no knowledge of Chrome APIs or domain-specific types.
  */
 export const TabItemRow = memo(
   forwardRef<HTMLDivElement, TabItemRowProps>(
-    ({ tab, onActivate, onClose, className, ...props }, ref) => {
-      const isPinned = tab.pinned
-      const isMuted = tab.mutedInfo?.muted ?? false
-      const isAudible = tab.audible ?? false
-      const isDiscarded = tab.discarded ?? false
-      const isActive = tab.active
-      const isHighlighted = tab.highlighted
-
+    (
+      {
+        tabId,
+        title,
+        faviconUrl,
+        isActive = false,
+        isHighlighted = false,
+        isPinned = false,
+        isMuted = false,
+        isAudible = false,
+        isDiscarded = false,
+        onActivate,
+        onClose,
+        className,
+        ...props
+      },
+      ref,
+    ) => {
       const handleKeyDown = (e: React.KeyboardEvent) => {
         if ((e.key === 'Delete' || e.key === 'Backspace') && onClose) {
           e.preventDefault()
@@ -34,7 +65,7 @@ export const TabItemRow = memo(
       return (
         <div
           ref={ref}
-          data-tab-item={tab.id}
+          data-tab-item={tabId}
           data-nav-type="tab"
           data-active={isActive}
           className={cn(
@@ -83,7 +114,7 @@ export const TabItemRow = memo(
               )}
             >
               <Favicon
-                pageUrl={tab.url ?? ''}
+                pageUrl={faviconUrl}
                 size={20}
                 className={cn('transition-transform', 'group-hover:scale-110')}
               />
@@ -105,7 +136,7 @@ export const TabItemRow = memo(
                 isDiscarded && 'opacity-70',
               )}
             >
-              {tab.title || 'Untitled'}
+              {title || 'Untitled'}
             </span>
 
             {/* Status indicators */}

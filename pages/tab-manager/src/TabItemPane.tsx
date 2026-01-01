@@ -70,7 +70,19 @@ const TabItemWithContextMenu = memo(
         onMoveToWindow={actions.moveToWindow}
         onMoveToNewWindow={actions.moveToNewWindow}
       >
-        <TabItemRow tab={tab} onActivate={onActivate} onClose={actions.close} />
+        <TabItemRow
+          tabId={tab.id}
+          title={tab.title}
+          faviconUrl={tab.url}
+          isActive={tab.active}
+          isHighlighted={tab.highlighted}
+          isPinned={tab.pinned}
+          isMuted={tab.mutedInfo?.muted}
+          isAudible={tab.audible}
+          isDiscarded={tab.discarded}
+          onActivate={onActivate}
+          onClose={actions.close}
+        />
       </TabContextMenu>
     )
   },
