@@ -1,7 +1,7 @@
-import { preferenceStorage } from '@extension/storage'
+import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { useEffect } from 'react'
 import { useStorage } from './use-storage.js'
-import type { PreferenceStateType } from '@extension/storage/lib/base/types.js'
+import type { PreferenceStateType } from '@extension/storage/base/types'
 
 export const usePreferenceStorage = (): PreferenceStateType => {
   return useStorage(preferenceStorage)

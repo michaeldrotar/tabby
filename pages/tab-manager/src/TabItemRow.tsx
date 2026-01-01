@@ -1,7 +1,8 @@
-import { cn, Favicon } from '@extension/ui'
+import { Favicon } from '@extension/ui/Favicon'
+import { cn } from '@extension/ui/utils/cn'
 import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'
-import type { BrowserTab } from '@extension/chrome'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { HTMLAttributes } from 'react'
 
 export type TabItemRowProps = HTMLAttributes<HTMLDivElement> & {

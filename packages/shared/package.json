@@ -8,8 +8,44 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./hoc/with-error-boundary": {
+      "types": "./lib/hoc/with-error-boundary.tsx",
+      "default": "./dist/lib/hoc/with-error-boundary.js"
+    },
+    "./hoc/with-suspense": {
+      "types": "./lib/hoc/with-suspense.tsx",
+      "default": "./dist/lib/hoc/with-suspense.js"
+    },
+    "./hooks/preference": {
+      "types": "./lib/hooks/preference.ts",
+      "default": "./dist/lib/hooks/preference.js"
+    },
+    "./hooks/use-storage": {
+      "types": "./lib/hooks/use-storage.tsx",
+      "default": "./dist/lib/hooks/use-storage.js"
+    },
+    "./utils/colorful-logger": {
+      "types": "./lib/utils/colorful-logger.ts",
+      "default": "./dist/lib/utils/colorful-logger.js"
+    },
+    "./utils/const": {
+      "types": "./lib/utils/const.ts",
+      "default": "./dist/lib/utils/const.js"
+    },
+    "./utils/helpers": {
+      "types": "./lib/utils/helpers.ts",
+      "default": "./dist/lib/utils/helpers.js"
+    },
+    "./utils/platform": {
+      "types": "./lib/utils/platform.ts",
+      "default": "./dist/lib/utils/platform.js"
+    },
+    "./utils/types": {
+      "types": "./lib/utils/types.ts",
+      "default": "./dist/lib/utils/types.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

@@ -7,8 +7,328 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./actions/tabGroups/changeTabGroupColor": {
+      "types": "./lib/actions/tabGroups/changeTabGroupColor.ts",
+      "default": "./dist/lib/actions/tabGroups/changeTabGroupColor.js"
+    },
+    "./actions/tabGroups/collapseTabGroup": {
+      "types": "./lib/actions/tabGroups/collapseTabGroup.ts",
+      "default": "./dist/lib/actions/tabGroups/collapseTabGroup.js"
+    },
+    "./actions/tabGroups/copyTabGroupUrls": {
+      "types": "./lib/actions/tabGroups/copyTabGroupUrls.ts",
+      "default": "./dist/lib/actions/tabGroups/copyTabGroupUrls.js"
+    },
+    "./actions/tabGroups/expandTabGroup": {
+      "types": "./lib/actions/tabGroups/expandTabGroup.ts",
+      "default": "./dist/lib/actions/tabGroups/expandTabGroup.js"
+    },
+    "./actions/tabGroups/moveTabGroupBackward": {
+      "types": "./lib/actions/tabGroups/moveTabGroupBackward.ts",
+      "default": "./dist/lib/actions/tabGroups/moveTabGroupBackward.js"
+    },
+    "./actions/tabGroups/moveTabGroupForward": {
+      "types": "./lib/actions/tabGroups/moveTabGroupForward.ts",
+      "default": "./dist/lib/actions/tabGroups/moveTabGroupForward.js"
+    },
+    "./actions/tabGroups/moveTabGroupToNewWindow": {
+      "types": "./lib/actions/tabGroups/moveTabGroupToNewWindow.ts",
+      "default": "./dist/lib/actions/tabGroups/moveTabGroupToNewWindow.js"
+    },
+    "./actions/tabGroups/renameTabGroup": {
+      "types": "./lib/actions/tabGroups/renameTabGroup.ts",
+      "default": "./dist/lib/actions/tabGroups/renameTabGroup.js"
+    },
+    "./actions/tabGroups/toggleTabGroupCollapsed": {
+      "types": "./lib/actions/tabGroups/toggleTabGroupCollapsed.ts",
+      "default": "./dist/lib/actions/tabGroups/toggleTabGroupCollapsed.js"
+    },
+    "./actions/tabs/activateTab": {
+      "types": "./lib/actions/tabs/activateTab.ts",
+      "default": "./dist/lib/actions/tabs/activateTab.js"
+    },
+    "./actions/tabs/addTabToGroup": {
+      "types": "./lib/actions/tabs/addTabToGroup.ts",
+      "default": "./dist/lib/actions/tabs/addTabToGroup.js"
+    },
+    "./actions/tabs/addTabToNewGroup": {
+      "types": "./lib/actions/tabs/addTabToNewGroup.ts",
+      "default": "./dist/lib/actions/tabs/addTabToNewGroup.js"
+    },
+    "./actions/tabs/closeOtherTabs": {
+      "types": "./lib/actions/tabs/closeOtherTabs.ts",
+      "default": "./dist/lib/actions/tabs/closeOtherTabs.js"
+    },
+    "./actions/tabs/closeTab": {
+      "types": "./lib/actions/tabs/closeTab.ts",
+      "default": "./dist/lib/actions/tabs/closeTab.js"
+    },
+    "./actions/tabs/closeTabs": {
+      "types": "./lib/actions/tabs/closeTabs.ts",
+      "default": "./dist/lib/actions/tabs/closeTabs.js"
+    },
+    "./actions/tabs/closeTabsAfter": {
+      "types": "./lib/actions/tabs/closeTabsAfter.ts",
+      "default": "./dist/lib/actions/tabs/closeTabsAfter.js"
+    },
+    "./actions/tabs/copyTabTitle": {
+      "types": "./lib/actions/tabs/copyTabTitle.ts",
+      "default": "./dist/lib/actions/tabs/copyTabTitle.js"
+    },
+    "./actions/tabs/copyTabTitleAndUrl": {
+      "types": "./lib/actions/tabs/copyTabTitleAndUrl.ts",
+      "default": "./dist/lib/actions/tabs/copyTabTitleAndUrl.js"
+    },
+    "./actions/tabs/copyTabUrl": {
+      "types": "./lib/actions/tabs/copyTabUrl.ts",
+      "default": "./dist/lib/actions/tabs/copyTabUrl.js"
+    },
+    "./actions/tabs/duplicateTab": {
+      "types": "./lib/actions/tabs/duplicateTab.ts",
+      "default": "./dist/lib/actions/tabs/duplicateTab.js"
+    },
+    "./actions/tabs/moveTabBackward": {
+      "types": "./lib/actions/tabs/moveTabBackward.ts",
+      "default": "./dist/lib/actions/tabs/moveTabBackward.js"
+    },
+    "./actions/tabs/moveTabForward": {
+      "types": "./lib/actions/tabs/moveTabForward.ts",
+      "default": "./dist/lib/actions/tabs/moveTabForward.js"
+    },
+    "./actions/tabs/moveTabToNewWindow": {
+      "types": "./lib/actions/tabs/moveTabToNewWindow.ts",
+      "default": "./dist/lib/actions/tabs/moveTabToNewWindow.js"
+    },
+    "./actions/tabs/moveTabToWindow": {
+      "types": "./lib/actions/tabs/moveTabToWindow.ts",
+      "default": "./dist/lib/actions/tabs/moveTabToWindow.js"
+    },
+    "./actions/tabs/muteTab": {
+      "types": "./lib/actions/tabs/muteTab.ts",
+      "default": "./dist/lib/actions/tabs/muteTab.js"
+    },
+    "./actions/tabs/pinTab": {
+      "types": "./lib/actions/tabs/pinTab.ts",
+      "default": "./dist/lib/actions/tabs/pinTab.js"
+    },
+    "./actions/tabs/reloadTab": {
+      "types": "./lib/actions/tabs/reloadTab.ts",
+      "default": "./dist/lib/actions/tabs/reloadTab.js"
+    },
+    "./actions/tabs/removeTabFromGroup": {
+      "types": "./lib/actions/tabs/removeTabFromGroup.ts",
+      "default": "./dist/lib/actions/tabs/removeTabFromGroup.js"
+    },
+    "./actions/tabs/ungroupTabs": {
+      "types": "./lib/actions/tabs/ungroupTabs.ts",
+      "default": "./dist/lib/actions/tabs/ungroupTabs.js"
+    },
+    "./actions/tabs/unmuteTab": {
+      "types": "./lib/actions/tabs/unmuteTab.ts",
+      "default": "./dist/lib/actions/tabs/unmuteTab.js"
+    },
+    "./actions/tabs/unpinTab": {
+      "types": "./lib/actions/tabs/unpinTab.ts",
+      "default": "./dist/lib/actions/tabs/unpinTab.js"
+    },
+    "./actions/windows/closeWindow": {
+      "types": "./lib/actions/windows/closeWindow.ts",
+      "default": "./dist/lib/actions/windows/closeWindow.js"
+    },
+    "./actions/windows/copyAllUrlsInWindow": {
+      "types": "./lib/actions/windows/copyAllUrlsInWindow.ts",
+      "default": "./dist/lib/actions/windows/copyAllUrlsInWindow.js"
+    },
+    "./actions/windows/focusWindow": {
+      "types": "./lib/actions/windows/focusWindow.ts",
+      "default": "./dist/lib/actions/windows/focusWindow.js"
+    },
+    "./actions/windows/muteAllTabsInWindow": {
+      "types": "./lib/actions/windows/muteAllTabsInWindow.ts",
+      "default": "./dist/lib/actions/windows/muteAllTabsInWindow.js"
+    },
+    "./actions/windows/reloadAllTabsInWindow": {
+      "types": "./lib/actions/windows/reloadAllTabsInWindow.ts",
+      "default": "./dist/lib/actions/windows/reloadAllTabsInWindow.js"
+    },
+    "./actions/windows/unmuteAllTabsInWindow": {
+      "types": "./lib/actions/windows/unmuteAllTabsInWindow.ts",
+      "default": "./dist/lib/actions/windows/unmuteAllTabsInWindow.js"
+    },
+    "./BrowserStoreProvider": {
+      "types": "./lib/BrowserStoreProvider.tsx",
+      "default": "./dist/lib/BrowserStoreProvider.js"
+    },
+    "./loadBrowserStore": {
+      "types": "./lib/loadBrowserStore.ts",
+      "default": "./dist/lib/loadBrowserStore.js"
+    },
+    "./tab/BrowserTab": {
+      "types": "./lib/tab/BrowserTab.ts",
+      "default": "./dist/lib/tab/BrowserTab.js"
+    },
+    "./tab/BrowserTabID": {
+      "types": "./lib/tab/BrowserTabID.ts",
+      "default": "./dist/lib/tab/BrowserTabID.js"
+    },
+    "./tab/createBrowserTab": {
+      "types": "./lib/tab/createBrowserTab.ts",
+      "default": "./dist/lib/tab/createBrowserTab.js"
+    },
+    "./tab/refreshBrowserTab": {
+      "types": "./lib/tab/refreshBrowserTab.ts",
+      "default": "./dist/lib/tab/refreshBrowserTab.js"
+    },
+    "./tab/removeBrowserTabById": {
+      "types": "./lib/tab/removeBrowserTabById.ts",
+      "default": "./dist/lib/tab/removeBrowserTabById.js"
+    },
+    "./tab/tabEvents": {
+      "types": "./lib/tab/tabEvents.ts",
+      "default": "./dist/lib/tab/tabEvents.js"
+    },
+    "./tab/toBrowserTab": {
+      "types": "./lib/tab/toBrowserTab.ts",
+      "default": "./dist/lib/tab/toBrowserTab.js"
+    },
+    "./tab/updateBrowserTabById": {
+      "types": "./lib/tab/updateBrowserTabById.ts",
+      "default": "./dist/lib/tab/updateBrowserTabById.js"
+    },
+    "./tab/useBrowserTabById": {
+      "types": "./lib/tab/useBrowserTabById.ts",
+      "default": "./dist/lib/tab/useBrowserTabById.js"
+    },
+    "./tab/useBrowserTabs": {
+      "types": "./lib/tab/useBrowserTabs.ts",
+      "default": "./dist/lib/tab/useBrowserTabs.js"
+    },
+    "./tab/useBrowserTabsById": {
+      "types": "./lib/tab/useBrowserTabsById.ts",
+      "default": "./dist/lib/tab/useBrowserTabsById.js"
+    },
+    "./tab/useBrowserTabsByWindowId": {
+      "types": "./lib/tab/useBrowserTabsByWindowId.ts",
+      "default": "./dist/lib/tab/useBrowserTabsByWindowId.js"
+    },
+    "./tabGroup/BrowserTabGroup": {
+      "types": "./lib/tabGroup/BrowserTabGroup.ts",
+      "default": "./dist/lib/tabGroup/BrowserTabGroup.js"
+    },
+    "./tabGroup/BrowserTabGroupID": {
+      "types": "./lib/tabGroup/BrowserTabGroupID.ts",
+      "default": "./dist/lib/tabGroup/BrowserTabGroupID.js"
+    },
+    "./tabGroup/tabGroupEvents": {
+      "types": "./lib/tabGroup/tabGroupEvents.ts",
+      "default": "./dist/lib/tabGroup/tabGroupEvents.js"
+    },
+    "./tabGroup/toBrowserTabGroup": {
+      "types": "./lib/tabGroup/toBrowserTabGroup.ts",
+      "default": "./dist/lib/tabGroup/toBrowserTabGroup.js"
+    },
+    "./tabGroup/useBrowserTabGroupById": {
+      "types": "./lib/tabGroup/useBrowserTabGroupById.ts",
+      "default": "./dist/lib/tabGroup/useBrowserTabGroupById.js"
+    },
+    "./tabGroup/useBrowserTabGroups": {
+      "types": "./lib/tabGroup/useBrowserTabGroups.ts",
+      "default": "./dist/lib/tabGroup/useBrowserTabGroups.js"
+    },
+    "./tabGroup/useBrowserTabGroupsByWindowId": {
+      "types": "./lib/tabGroup/useBrowserTabGroupsByWindowId.ts",
+      "default": "./dist/lib/tabGroup/useBrowserTabGroupsByWindowId.js"
+    },
+    "./tabGroupSlice": {
+      "types": "./lib/tabGroupSlice.ts",
+      "default": "./dist/lib/tabGroupSlice.js"
+    },
+    "./tabSlice": {
+      "types": "./lib/tabSlice.ts",
+      "default": "./dist/lib/tabSlice.js"
+    },
+    "./unloadBrowserStore": {
+      "types": "./lib/unloadBrowserStore.ts",
+      "default": "./dist/lib/unloadBrowserStore.js"
+    },
+    "./useBrowserStore": {
+      "types": "./lib/useBrowserStore.ts",
+      "default": "./dist/lib/useBrowserStore.js"
+    },
+    "./usePlatformInfo": {
+      "types": "./lib/usePlatformInfo.ts",
+      "default": "./dist/lib/usePlatformInfo.js"
+    },
+    "./useTabListItems": {
+      "types": "./lib/useTabListItems.ts",
+      "default": "./dist/lib/useTabListItems.js"
+    },
+    "./window/BrowserWindow": {
+      "types": "./lib/window/BrowserWindow.ts",
+      "default": "./dist/lib/window/BrowserWindow.js"
+    },
+    "./window/BrowserWindowID": {
+      "types": "./lib/window/BrowserWindowID.ts",
+      "default": "./dist/lib/window/BrowserWindowID.js"
+    },
+    "./window/browserWindowTypes": {
+      "types": "./lib/window/browserWindowTypes.ts",
+      "default": "./dist/lib/window/browserWindowTypes.js"
+    },
+    "./window/createBrowserWindow": {
+      "types": "./lib/window/createBrowserWindow.ts",
+      "default": "./dist/lib/window/createBrowserWindow.js"
+    },
+    "./window/removeBrowserWindowById": {
+      "types": "./lib/window/removeBrowserWindowById.ts",
+      "default": "./dist/lib/window/removeBrowserWindowById.js"
+    },
+    "./window/toBrowserWindow": {
+      "types": "./lib/window/toBrowserWindow.ts",
+      "default": "./dist/lib/window/toBrowserWindow.js"
+    },
+    "./window/updateBrowserWindowById": {
+      "types": "./lib/window/updateBrowserWindowById.ts",
+      "default": "./dist/lib/window/updateBrowserWindowById.js"
+    },
+    "./window/useBrowserWindowById": {
+      "types": "./lib/window/useBrowserWindowById.ts",
+      "default": "./dist/lib/window/useBrowserWindowById.js"
+    },
+    "./window/useBrowserWindows": {
+      "types": "./lib/window/useBrowserWindows.ts",
+      "default": "./dist/lib/window/useBrowserWindows.js"
+    },
+    "./window/useBrowserWindowsById": {
+      "types": "./lib/window/useBrowserWindowsById.ts",
+      "default": "./dist/lib/window/useBrowserWindowsById.js"
+    },
+    "./window/useCurrentBrowserWindow": {
+      "types": "./lib/window/useCurrentBrowserWindow.ts",
+      "default": "./dist/lib/window/useCurrentBrowserWindow.js"
+    },
+    "./window/useFocusedBrowserWindow": {
+      "types": "./lib/window/useFocusedBrowserWindow.ts",
+      "default": "./dist/lib/window/useFocusedBrowserWindow.js"
+    },
+    "./window/useSelectedWindowId": {
+      "types": "./lib/window/useSelectedWindowId.ts",
+      "default": "./dist/lib/window/useSelectedWindowId.js"
+    },
+    "./window/useSetSelectedWindowId": {
+      "types": "./lib/window/useSetSelectedWindowId.ts",
+      "default": "./dist/lib/window/useSetSelectedWindowId.js"
+    },
+    "./window/windowEvents": {
+      "types": "./lib/window/windowEvents.ts",
+      "default": "./dist/lib/window/windowEvents.js"
+    },
+    "./windowSlice": {
+      "types": "./lib/windowSlice.ts",
+      "default": "./dist/lib/windowSlice.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

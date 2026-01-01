@@ -6,7 +6,7 @@ import { IS_DEV } from '@extension/env'
 import { makeEntryPointPlugin } from '@extension/hmr'
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
-import { withPageConfig } from './index.js'
+import { withPageConfig } from './with-page-config.js'
 
 interface IContentBuilderProps {
   matchesDir: string

@@ -4,8 +4,8 @@ import { platform } from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { ManifestParser } from '@extension/dev-utils'
 import { IS_DEV, IS_FIREFOX } from '@extension/env'
-import { colorfulLog } from '@extension/shared'
-import type { ManifestType } from '@extension/shared'
+import { colorfulLog } from '@extension/shared/utils/colorful-logger'
+import type { ManifestType } from '@extension/shared/utils/types'
 import type { PluginOption } from 'vite'
 
 const manifestFile = resolve(import.meta.dirname, '..', '..', 'manifest.js')

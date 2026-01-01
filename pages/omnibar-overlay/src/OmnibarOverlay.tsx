@@ -1,5 +1,5 @@
-import { useThemeApplicator } from '@extension/shared'
-import { Omnibar } from '@extension/ui'
+import { useThemeApplicator } from '@extension/shared/hooks/preference'
+import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()

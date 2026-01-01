@@ -13,7 +13,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from './ContextMenu'
-import type { BrowserWindow } from '@extension/chrome'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 import type { ReactNode } from 'react'
 
 export type WindowContextMenuProps = {

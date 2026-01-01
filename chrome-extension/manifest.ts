@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { ManifestType } from '@extension/shared'
+import type { ManifestType } from '@extension/shared/utils/types'
 
 // Read version from root package.json (the single source of truth)
 const __filename = fileURLToPath(import.meta.url)

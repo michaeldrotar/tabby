@@ -1,4 +1,5 @@
-import { cn, getGroupColorClasses } from '@extension/ui'
+import { getGroupColorClasses } from '@extension/ui/tab-group/tabGroupColors'
+import { cn } from '@extension/ui/utils/cn'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
   forwardRef,
@@ -8,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { BrowserTabGroup } from '@extension/chrome'
+import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 import type { HTMLAttributes, ReactNode } from 'react'
 
 export type TabGroupHeaderProps = HTMLAttributes<HTMLDivElement> & {

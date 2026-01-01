@@ -8,8 +8,185 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.ts",
-  "main": "dist/index.js",
+  "exports": {
+    "./components/error-display/ErrorDisplay": {
+      "types": "./lib/components/error-display/ErrorDisplay.tsx",
+      "default": "./dist/lib/components/error-display/ErrorDisplay.js"
+    },
+    "./components/error-display/ErrorHeader": {
+      "types": "./lib/components/error-display/ErrorHeader.tsx",
+      "default": "./dist/lib/components/error-display/ErrorHeader.js"
+    },
+    "./components/error-display/ErrorResetButton": {
+      "types": "./lib/components/error-display/ErrorResetButton.tsx",
+      "default": "./dist/lib/components/error-display/ErrorResetButton.js"
+    },
+    "./components/error-display/ErrorStackTraceList": {
+      "types": "./lib/components/error-display/ErrorStackTraceList.tsx",
+      "default": "./dist/lib/components/error-display/ErrorStackTraceList.js"
+    },
+    "./components/LoadingSpinner": {
+      "types": "./lib/components/LoadingSpinner.tsx",
+      "default": "./dist/lib/components/LoadingSpinner.js"
+    },
+    "./context-menu/ContextMenu": {
+      "types": "./lib/context-menu/ContextMenu.tsx",
+      "default": "./dist/lib/context-menu/ContextMenu.js"
+    },
+    "./context-menu/TabContextMenu": {
+      "types": "./lib/context-menu/TabContextMenu.tsx",
+      "default": "./dist/lib/context-menu/TabContextMenu.js"
+    },
+    "./context-menu/TabGroupContextMenu": {
+      "types": "./lib/context-menu/TabGroupContextMenu.tsx",
+      "default": "./dist/lib/context-menu/TabGroupContextMenu.js"
+    },
+    "./context-menu/WindowContextMenu": {
+      "types": "./lib/context-menu/WindowContextMenu.tsx",
+      "default": "./dist/lib/context-menu/WindowContextMenu.js"
+    },
+    "./DataAttributes": {
+      "types": "./lib/DataAttributes.ts",
+      "default": "./dist/lib/DataAttributes.js"
+    },
+    "./Favicon": {
+      "types": "./lib/Favicon.tsx",
+      "default": "./dist/lib/Favicon.js"
+    },
+    "./getFaviconUrl": {
+      "types": "./lib/getFaviconUrl.ts",
+      "default": "./dist/lib/getFaviconUrl.js"
+    },
+    "./icons": {
+      "types": "./lib/icons.tsx",
+      "default": "./dist/lib/icons.js"
+    },
+    "./Kbd": {
+      "types": "./lib/Kbd.tsx",
+      "default": "./dist/lib/Kbd.js"
+    },
+    "./omnibar/compareOmnibarScoredItems": {
+      "types": "./lib/omnibar/compareOmnibarScoredItems.ts",
+      "default": "./dist/lib/omnibar/compareOmnibarScoredItems.js"
+    },
+    "./omnibar/executeUrl": {
+      "types": "./lib/omnibar/executeUrl.ts",
+      "default": "./dist/lib/omnibar/executeUrl.js"
+    },
+    "./omnibar/getOmnibarActionLabel": {
+      "types": "./lib/omnibar/getOmnibarActionLabel.ts",
+      "default": "./dist/lib/omnibar/getOmnibarActionLabel.js"
+    },
+    "./omnibar/getOmnibarTypeColor": {
+      "types": "./lib/omnibar/getOmnibarTypeColor.ts",
+      "default": "./dist/lib/omnibar/getOmnibarTypeColor.js"
+    },
+    "./omnibar/getOmnibarTypeLabel": {
+      "types": "./lib/omnibar/getOmnibarTypeLabel.ts",
+      "default": "./dist/lib/omnibar/getOmnibarTypeLabel.js"
+    },
+    "./omnibar/Omnibar": {
+      "types": "./lib/omnibar/Omnibar.tsx",
+      "default": "./dist/lib/omnibar/Omnibar.js"
+    },
+    "./omnibar/OmnibarEmptyState": {
+      "types": "./lib/omnibar/OmnibarEmptyState.tsx",
+      "default": "./dist/lib/omnibar/OmnibarEmptyState.js"
+    },
+    "./omnibar/OmnibarInput": {
+      "types": "./lib/omnibar/OmnibarInput.tsx",
+      "default": "./dist/lib/omnibar/OmnibarInput.js"
+    },
+    "./omnibar/OmnibarItem": {
+      "types": "./lib/omnibar/OmnibarItem.tsx",
+      "default": "./dist/lib/omnibar/OmnibarItem.js"
+    },
+    "./omnibar/omnibarResultGenerators": {
+      "types": "./lib/omnibar/omnibarResultGenerators.ts",
+      "default": "./dist/lib/omnibar/omnibarResultGenerators.js"
+    },
+    "./omnibar/OmnibarSearchResult": {
+      "types": "./lib/omnibar/OmnibarSearchResult.ts",
+      "default": "./dist/lib/omnibar/OmnibarSearchResult.js"
+    },
+    "./omnibar/scoring": {
+      "types": "./lib/omnibar/scoring.ts",
+      "default": "./dist/lib/omnibar/scoring.js"
+    },
+    "./omnibar/search": {
+      "types": "./lib/omnibar/search.ts",
+      "default": "./dist/lib/omnibar/search.js"
+    },
+    "./omnibar/useOmnibarFiltering": {
+      "types": "./lib/omnibar/useOmnibarFiltering.ts",
+      "default": "./dist/lib/omnibar/useOmnibarFiltering.js"
+    },
+    "./omnibar/useOmnibarQuery": {
+      "types": "./lib/omnibar/useOmnibarQuery.ts",
+      "default": "./dist/lib/omnibar/useOmnibarQuery.js"
+    },
+    "./omnibar/useOmnibarScroll": {
+      "types": "./lib/omnibar/useOmnibarScroll.ts",
+      "default": "./dist/lib/omnibar/useOmnibarScroll.js"
+    },
+    "./omnibar/useOmnibarSearch": {
+      "types": "./lib/omnibar/useOmnibarSearch.ts",
+      "default": "./dist/lib/omnibar/useOmnibarSearch.js"
+    },
+    "./ScrollArea": {
+      "types": "./lib/ScrollArea.tsx",
+      "default": "./dist/lib/ScrollArea.js"
+    },
+    "./Select": {
+      "types": "./lib/Select.tsx",
+      "default": "./dist/lib/Select.js"
+    },
+    "./Slider": {
+      "types": "./lib/Slider.tsx",
+      "default": "./dist/lib/Slider.js"
+    },
+    "./tab-group/tabGroupColors": {
+      "types": "./lib/tab-group/tabGroupColors.ts",
+      "default": "./dist/lib/tab-group/tabGroupColors.js"
+    },
+    "./tab-manager/ui/SidebarAction": {
+      "types": "./lib/tab-manager/ui/SidebarAction.tsx",
+      "default": "./dist/lib/tab-manager/ui/SidebarAction.js"
+    },
+    "./tab-manager/ui/TabManagerShell": {
+      "types": "./lib/tab-manager/ui/TabManagerShell.tsx",
+      "default": "./dist/lib/tab-manager/ui/TabManagerShell.js"
+    },
+    "./tab-manager/ui/TabManagerSidebar": {
+      "types": "./lib/tab-manager/ui/TabManagerSidebar.tsx",
+      "default": "./dist/lib/tab-manager/ui/TabManagerSidebar.js"
+    },
+    "./tab-manager/ui/WindowRailItem": {
+      "types": "./lib/tab-manager/ui/WindowRailItem.tsx",
+      "default": "./dist/lib/tab-manager/ui/WindowRailItem.js"
+    },
+    "./TabList": {
+      "types": "./lib/TabList.tsx",
+      "default": "./dist/lib/TabList.js"
+    },
+    "./Tooltip": {
+      "types": "./lib/Tooltip.tsx",
+      "default": "./dist/lib/Tooltip.js"
+    },
+    "./utils/cn": {
+      "types": "./lib/utils/cn.ts",
+      "default": "./dist/lib/utils/cn.js"
+    },
+    "./utils/formatTimeAgo": {
+      "types": "./lib/utils/formatTimeAgo.ts",
+      "default": "./dist/lib/utils/formatTimeAgo.js"
+    },
+    "./with-ui": {
+      "types": "./lib/with-ui.ts",
+      "default": "./dist/lib/with-ui.js"
+    },
+    "./global.css": "./global.css"
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

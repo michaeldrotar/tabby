@@ -1,4 +1,4 @@
-import { usePlatformInfo } from '@extension/chrome'
+import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { CmdIcon, ShiftIcon } from '../icons'
 import { Kbd, KbdGroup } from '../Kbd'
 import { cn } from '../utils/cn'

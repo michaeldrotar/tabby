@@ -8,8 +8,20 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./base/*": {
+      "types": "./lib/base/*.ts",
+      "default": "./dist/lib/base/*.js"
+    },
+    "./impl/*": {
+      "types": "./lib/impl/*.ts",
+      "default": "./dist/lib/impl/*.js"
+    },
+    "./types": {
+      "types": "./lib/types.ts",
+      "default": "./dist/lib/types.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

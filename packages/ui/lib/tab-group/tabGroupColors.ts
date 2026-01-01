@@ -1,4 +1,4 @@
-import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
 
 /**
  * Tab group color configuration matching Chrome's chrome.tabGroups.Color enum.

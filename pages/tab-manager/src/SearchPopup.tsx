@@ -1,4 +1,4 @@
-import { Omnibar } from '@extension/ui'
+import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 
 type SearchPopupProps = {
   isOpen: boolean

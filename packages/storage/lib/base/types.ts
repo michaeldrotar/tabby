@@ -1,4 +1,4 @@
-import type { StorageEnum } from './index.js'
+import type { StorageEnum } from './enums.js'
 
 export type ValueOrUpdateType<D> = D | ((prev: D) => Promise<D> | D)
 

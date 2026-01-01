@@ -1,20 +1,18 @@
-import {
-  changeTabGroupColor,
-  closeTabs,
-  copyTabGroupUrls,
-  moveTabGroupBackward,
-  moveTabGroupForward,
-  moveTabGroupToNewWindow,
-  renameTabGroup,
-  toggleTabGroupCollapsed,
-  ungroupTabs,
-} from '@extension/chrome'
+import { changeTabGroupColor } from '@extension/chrome/actions/tabGroups/changeTabGroupColor'
+import { copyTabGroupUrls } from '@extension/chrome/actions/tabGroups/copyTabGroupUrls'
+import { moveTabGroupBackward } from '@extension/chrome/actions/tabGroups/moveTabGroupBackward'
+import { moveTabGroupForward } from '@extension/chrome/actions/tabGroups/moveTabGroupForward'
+import { moveTabGroupToNewWindow } from '@extension/chrome/actions/tabGroups/moveTabGroupToNewWindow'
+import { renameTabGroup } from '@extension/chrome/actions/tabGroups/renameTabGroup'
+import { toggleTabGroupCollapsed } from '@extension/chrome/actions/tabGroups/toggleTabGroupCollapsed'
+import { closeTabs } from '@extension/chrome/actions/tabs/closeTabs'
+import { ungroupTabs } from '@extension/chrome/actions/tabs/ungroupTabs'
 import { useCallback, useMemo } from 'react'
+import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
   BrowserTabGroup,
   BrowserTabGroupColor,
-  BrowserTabID,
-} from '@extension/chrome'
+} from '@extension/chrome/tabGroup/BrowserTabGroup'
 
 /**
  * Actions for managing tab groups via context menu.

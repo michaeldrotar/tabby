@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { IS_FIREFOX } from '@extension/env'
-import { zipBundle } from './lib/index.js'
+import { zipBundle } from './lib/zip-bundle.js'
 
 const packageJsonPath = resolve(
   import.meta.dirname,

@@ -1,33 +1,30 @@
 import '@src/Options.css'
-import { usePlatformInfo } from '@extension/chrome'
+import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
+import { withSuspense } from '@extension/shared/hoc/with-suspense'
 import {
   usePreferenceStorage,
   useThemeApplicator,
-  withErrorBoundary,
-  withSuspense,
-} from '@extension/shared'
-import { preferenceStorage } from '@extension/storage'
+} from '@extension/shared/hooks/preference'
+import { preferenceStorage } from '@extension/storage/impl/preference-storage'
+import { ErrorDisplay } from '@extension/ui/components/error-display/ErrorDisplay'
+import { LoadingSpinner } from '@extension/ui/components/LoadingSpinner'
+import { CmdIcon, ExternalLinkIcon, ShiftIcon } from '@extension/ui/icons'
+import { Kbd, KbdGroup } from '@extension/ui/Kbd'
 import {
-  CmdIcon,
-  cn,
-  ErrorDisplay,
-  ExternalLinkIcon,
-  Kbd,
-  KbdGroup,
-  LoadingSpinner,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  ShiftIcon,
-  Slider,
-} from '@extension/ui'
+} from '@extension/ui/Select'
+import { Slider } from '@extension/ui/Slider'
+import { cn } from '@extension/ui/utils/cn'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type {
   ThemeAccentPalette,
   ThemeNeutralPalette,
-} from '@extension/storage/lib/base/types.js'
+} from '@extension/storage/base/types'
 
 const queryClient = new QueryClient()
 

@@ -25,8 +25,10 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from './ContextMenu'
-import type { BrowserTabGroup } from '@extension/chrome'
-import type { BrowserTabGroupColor } from '@extension/chrome/lib/tabGroup/BrowserTabGroup'
+import type {
+  BrowserTabGroup,
+  BrowserTabGroupColor,
+} from '@extension/chrome/tabGroup/BrowserTabGroup'
 import type { ReactNode } from 'react'
 
 export type TabGroupContextMenuProps = {

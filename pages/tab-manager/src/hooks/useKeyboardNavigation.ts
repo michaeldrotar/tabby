@@ -1,9 +1,7 @@
-import {
-  moveTabBackward,
-  moveTabForward,
-  moveTabGroupBackward,
-  moveTabGroupForward,
-} from '@extension/chrome'
+import { moveTabGroupBackward } from '@extension/chrome/actions/tabGroups/moveTabGroupBackward'
+import { moveTabGroupForward } from '@extension/chrome/actions/tabGroups/moveTabGroupForward'
+import { moveTabBackward } from '@extension/chrome/actions/tabs/moveTabBackward'
+import { moveTabForward } from '@extension/chrome/actions/tabs/moveTabForward'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
 type PendingFocus = {

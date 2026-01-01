@@ -1,23 +1,21 @@
-import {
-  createBrowserWindow,
-  useBrowserTabsByWindowId,
-  useBrowserWindows,
-  useCurrentBrowserWindow,
-} from '@extension/chrome'
-import { usePreferenceStorage } from '@extension/shared'
-import { preferenceStorage } from '@extension/storage'
+import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
+import { createBrowserWindow } from '@extension/chrome/window/createBrowserWindow'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { usePreferenceStorage } from '@extension/shared/hooks/preference'
+import { preferenceStorage } from '@extension/storage/impl/preference-storage'
+import { WindowContextMenu } from '@extension/ui/context-menu/WindowContextMenu'
 import {
   PlusIcon,
   ScrollToActiveIcon,
   SearchIcon,
   SettingsIcon,
-  SidebarAction,
-  TabManagerSidebar,
-  WindowContextMenu,
-  WindowRailItem,
-} from '@extension/ui'
+} from '@extension/ui/icons'
+import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
+import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
+import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
 import { useWindowActions } from './hooks/useWindowActions'
-import type { BrowserWindow } from '@extension/chrome'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 // Helper to get active tab url
 const useDisplayTabUrl = (windowId: number) => {
