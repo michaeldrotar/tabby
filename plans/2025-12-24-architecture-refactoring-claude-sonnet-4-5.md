@@ -22,8 +22,8 @@
 
 ### Phase 2: Actions Layer (3-4 weeks)
 
-- [ ] Create tab/group actions layer (Objective #6) - 1 week
-- [ ] Create window actions (Objective #12) - 1 week
+- [x] Create tab/group actions layer (Objective #6) - 1 week
+- [x] Create window actions (Objective #12) - 1 week
 - [ ] Consolidate Omnibar Chrome API (Objective #9) - 1 week
 
 ### Phase 3: Component Refinement (3-4 weeks)
