@@ -9,40 +9,40 @@
   ],
   "exports": {
     "./executeOmnibarUrl": {
-      "types": "./src/executeOmnibarUrl.ts",
-      "default": "./dist/src/executeOmnibarUrl.js"
+      "types": "./lib/executeOmnibarUrl.ts",
+      "default": "./dist/lib/executeOmnibarUrl.js"
     },
     "./omnibarResultGenerators": {
-      "types": "./src/omnibarResultGenerators.ts",
-      "default": "./dist/src/omnibarResultGenerators.js"
+      "types": "./lib/omnibarResultGenerators.ts",
+      "default": "./dist/lib/omnibarResultGenerators.js"
     },
     "./searchBookmarks": {
-      "types": "./src/searchBookmarks.ts",
-      "default": "./dist/src/searchBookmarks.js"
+      "types": "./lib/searchBookmarks.ts",
+      "default": "./dist/lib/searchBookmarks.js"
     },
     "./searchClosedTabs": {
-      "types": "./src/searchClosedTabs.ts",
-      "default": "./dist/src/searchClosedTabs.js"
+      "types": "./lib/searchClosedTabs.ts",
+      "default": "./dist/lib/searchClosedTabs.js"
     },
     "./searchHistory": {
-      "types": "./src/searchHistory.ts",
-      "default": "./dist/src/searchHistory.js"
+      "types": "./lib/searchHistory.ts",
+      "default": "./dist/lib/searchHistory.js"
     },
     "./useOmnibarExternalSearch": {
-      "types": "./src/useOmnibarExternalSearch.ts",
-      "default": "./dist/src/useOmnibarExternalSearch.js"
+      "types": "./lib/useOmnibarExternalSearch.ts",
+      "default": "./dist/lib/useOmnibarExternalSearch.js"
     },
     "./useOmnibarGenerators": {
-      "types": "./src/useOmnibarGenerators.ts",
-      "default": "./dist/src/useOmnibarGenerators.js"
+      "types": "./lib/useOmnibarGenerators.ts",
+      "default": "./dist/lib/useOmnibarGenerators.js"
     },
     "./useOmnibarTabs": {
-      "types": "./src/useOmnibarTabs.ts",
-      "default": "./dist/src/useOmnibarTabs.js"
+      "types": "./lib/useOmnibarTabs.ts",
+      "default": "./dist/lib/useOmnibarTabs.js"
     },
     "./WiredOmnibar": {
-      "types": "./src/WiredOmnibar.tsx",
-      "default": "./dist/src/WiredOmnibar.js"
+      "types": "./lib/WiredOmnibar.tsx",
+      "default": "./dist/lib/WiredOmnibar.js"
     }
   },
   "scripts": {
