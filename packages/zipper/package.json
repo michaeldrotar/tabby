@@ -8,8 +8,12 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./zip-bundle": {
+      "types": "./lib/zip-bundle.ts",
+      "default": "./dist/lib/zip-bundle.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

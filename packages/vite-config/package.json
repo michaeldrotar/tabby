@@ -5,9 +5,20 @@
   "type": "module",
   "private": true,
   "sideEffects": true,
-  "types": "index.mts",
-  "main": "dist/index.mjs",
-  "module": "dist/index.mjs",
+  "exports": {
+    "./build-content-script": {
+      "types": "./lib/build-content-script.ts",
+      "default": "./dist/lib/build-content-script.js"
+    },
+    "./with-page-config": {
+      "types": "./lib/with-page-config.ts",
+      "default": "./dist/lib/with-page-config.js"
+    },
+    "./watch-option": {
+      "types": "./lib/with-page-config.ts",
+      "default": "./dist/lib/with-page-config.js"
+    }
+  },
   "scripts": {
     "clean:node_modules": "pnpx rimraf node_modules",
     "clean:bundle": "pnpx rimraf dist",

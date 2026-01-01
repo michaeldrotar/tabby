@@ -1,4 +1,4 @@
-import { tt } from '@extension/i18n'
+import { tt } from '@extension/i18n/plurals'
 import { forwardRef, memo } from 'react'
 import { Favicon } from '../../Favicon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'

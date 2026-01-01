@@ -8,8 +8,16 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./ManifestParser": {
+      "types": "./lib/manifest-parser/impl.ts",
+      "default": "./dist/lib/manifest-parser/impl.js"
+    },
+    "./stream-file-to-zip": {
+      "types": "./lib/stream-file-to-zip.ts",
+      "default": "./dist/lib/stream-file-to-zip.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",

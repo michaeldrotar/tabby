@@ -12,13 +12,13 @@ import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
+import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
-  BrowserTab,
   BrowserTabGroup,
   BrowserTabGroupColor,
-  BrowserTabID,
-  BrowserWindowID,
-} from '@extension/chrome'
+} from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
 
 const onActivateTab = async (
   windowId: BrowserWindowID,

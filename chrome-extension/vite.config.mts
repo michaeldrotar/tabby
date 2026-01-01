@@ -1,12 +1,15 @@
 import { resolve } from 'node:path'
-import env, { IS_DEV, IS_PROD } from '@extension/env'
-import { watchPublicPlugin, watchRebuildPlugin } from '@extension/hmr'
-import { watchOption } from '@extension/vite-config'
+import { IS_DEV, IS_PROD } from '@extension/env'
+import { baseEnv, dynamicEnvValues } from '@extension/env/config'
+import { watchPublicPlugin } from '@extension/hmr/watch-public-plugin'
+import { watchRebuildPlugin } from '@extension/hmr/watch-rebuild-plugin'
+import { watchOption } from '@extension/vite-config/watch-option'
 import libAssetsPlugin from '@laynezh/vite-plugin-lib-assets'
 import { defineConfig } from 'vite'
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin.js'
 import type { PluginOption } from 'vite'
 
+const env = { ...baseEnv, ...dynamicEnvValues }
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
 

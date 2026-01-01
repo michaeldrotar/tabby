@@ -2,7 +2,8 @@
   "extends": "@extension/tsconfig/module",
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": ".",
     "types": ["chrome", "node"]
   },
-  "include": ["index.mts", "rollup.config.ts", "lib"]
+  "include": ["rollup.config.ts", "lib"]
 }

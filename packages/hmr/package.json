@@ -8,8 +8,20 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./make-entry-point-plugin": {
+      "types": "./lib/plugins/make-entry-point-plugin.ts",
+      "default": "./dist/lib/plugins/make-entry-point-plugin.js"
+    },
+    "./watch-public-plugin": {
+      "types": "./lib/plugins/watch-public-plugin.ts",
+      "default": "./dist/lib/plugins/watch-public-plugin.js"
+    },
+    "./watch-rebuild-plugin": {
+      "types": "./lib/plugins/watch-rebuild-plugin.ts",
+      "default": "./dist/lib/plugins/watch-rebuild-plugin.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist && pnpx rimraf build",
     "clean:node_modules": "pnpx rimraf node_modules",

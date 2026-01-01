@@ -1,6 +1,6 @@
 import { createWriteStream, existsSync, mkdirSync } from 'node:fs'
 import { posix, resolve } from 'node:path'
-import { streamFileToZip } from '@extension/dev-utils'
+import { streamFileToZip } from '@extension/dev-utils/stream-file-to-zip'
 import fg from 'fast-glob'
 import { Zip } from 'fflate'
 

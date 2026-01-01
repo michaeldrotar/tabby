@@ -8,8 +8,16 @@
   "files": [
     "dist/**"
   ],
-  "main": "dist/index.mjs",
-  "types": "index.mts",
+  "exports": {
+    "./t": {
+      "types": "./lib/i18n.ts",
+      "default": "./dist/lib/i18n.js"
+    },
+    "./plurals": {
+      "types": "./lib/plurals.ts",
+      "default": "./dist/lib/plurals.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",
