@@ -83,76 +83,10 @@ async function listZipContents() {
 }
 
 async function analyzeSourcemaps(jsFiles) {
-  // For each js file with a sourcemap, run source-map-explorer --json
-  const explorerBin = existsSync(
-    path.resolve('node_modules/.bin/source-map-explorer'),
-  )
-    ? path.resolve('node_modules/.bin/source-map-explorer')
-    : 'npx'
-
+  // For each js file with a sourcemap, parse the .map file (prefer embedded sourcesContent, otherwise estimate via on-disk files)
   const perPackage = new Map()
   const perOwn = new Map()
   let totalMapped = 0
-
-  const runCmdCapture = (cmd, args, opts = {}) =>
-    new Promise((resolve) => {
-      const p = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], ...opts })
-      let stdout = ''
-      let stderr = ''
-      p.stdout.on('data', (d) => (stdout += d.toString()))
-      p.stderr.on('data', (d) => (stderr += d.toString()))
-      p.on('close', (code) => resolve({ stdout, stderr, code }))
-      p.on('error', (err) => resolve({ stdout, stderr: String(err), code: 1 }))
-    })
-
-  const extractJsonSubstring = (text) => {
-    const start = text.search(/[\[{]/)
-    if (start === -1) return null
-    // find last closing } or ]
-    const lastCurly = text.lastIndexOf('}')
-    const lastSquare = text.lastIndexOf(']')
-    const end = Math.max(lastCurly, lastSquare)
-    if (end === -1 || end <= start) return null
-    return text.slice(start, end + 1)
-  }
-
-  const collectSourcesFromParsed = (parsed, accumulator) => {
-    if (!parsed) return
-    if (Array.isArray(parsed)) {
-      for (const p of parsed) collectSourcesFromParsed(p, accumulator)
-      return
-    }
-    if (typeof parsed !== 'object') return
-
-    if (parsed.sources && typeof parsed.sources === 'object') {
-      for (const [src, bytes] of Object.entries(parsed.sources)) {
-        accumulator[src] = (accumulator[src] || 0) + Number(bytes || 0)
-      }
-      return
-    }
-
-    if (parsed.files && typeof parsed.files === 'object') {
-      for (const [src, info] of Object.entries(parsed.files)) {
-        const b = typeof info === 'number' ? info : info.size || info.bytes || 0
-        accumulator[src] = (accumulator[src] || 0) + Number(b || 0)
-      }
-      return
-    }
-
-    // If object looks like mapping src->number
-    const vals = Object.values(parsed)
-    if (vals.length && vals.every((v) => typeof v === 'number')) {
-      for (const [src, bytes] of Object.entries(parsed)) {
-        accumulator[src] = (accumulator[src] || 0) + Number(bytes || 0)
-      }
-      return
-    }
-
-    // Otherwise, descend into object properties
-    for (const v of Object.values(parsed)) {
-      collectSourcesFromParsed(v, accumulator)
-    }
-  }
 
   // Helper: extract a package name from a source path. Handles common layouts:
   // - regular node_modules/packagename
@@ -278,161 +212,108 @@ async function analyzeSourcemaps(jsFiles) {
   for (const f of jsFiles) {
     const mapPath = f + '.map'
     if (!existsSync(mapPath)) continue
-    try {
-      const args =
-        explorerBin === 'npx'
-          ? ['source-map-explorer', f, '--json']
-          : [f, '--json']
-      const cmd = explorerBin === 'npx' ? 'npx' : explorerBin
-      const { stdout, stderr, code } = await runCmdCapture(cmd, args)
 
-      if (!stdout || stdout.trim().length === 0) {
+    // Read and parse the .map file directly — prefer embedded sourcesContent, otherwise resolve
+    // source files on disk to estimate sizes.
+    let sourcesAcc = {}
+    try {
+      const mapRaw = await fs.readFile(mapPath, 'utf8')
+      let mapJson = null
+      try {
+        mapJson = JSON.parse(mapRaw)
+      } catch (e) {
+        mapJson = null
+      }
+
+      if (
+        !mapJson ||
+        !Array.isArray(mapJson.sources) ||
+        !mapJson.sources.length
+      ) {
         console.log(
           chalk.yellow(
-            `Warning: source-map-explorer produced no JSON for ${f} (stderr: ${stderr.trim()})`,
+            `Fallback: .map file has no "sources" array for ${f} (or could not parse .map).`,
           ),
         )
         continue
       }
 
-      let parsed = null
-      try {
-        parsed = JSON.parse(stdout)
-      } catch (e) {
-        // Try to extract JSON substring in case the CLI emitted logs before/after json
-        const sub = extractJsonSubstring(stdout)
-        if (sub) {
-          try {
-            parsed = JSON.parse(sub)
-          } catch (e2) {
-            parsed = null
+      const srcRoot = mapJson.sourceRoot || ''
+      for (let i = 0; i < mapJson.sources.length; i++) {
+        const src = mapJson.sources[i]
+        let bytes = 0
+
+        if (
+          Array.isArray(mapJson.sourcesContent) &&
+          mapJson.sourcesContent[i]
+        ) {
+          bytes = Buffer.byteLength(mapJson.sourcesContent[i], 'utf8')
+        } else {
+          let candidate = src.replace(/^webpack:\/\//, '').replace(/^~\//, '')
+          if (srcRoot) candidate = path.join(srcRoot, candidate)
+
+          const tryPaths = [
+            path.resolve(path.dirname(mapPath), candidate),
+            path.resolve(candidate),
+          ]
+          if (candidate.includes('node_modules')) {
+            const idx = candidate.indexOf('node_modules')
+            tryPaths.push(path.resolve(candidate.slice(idx)))
+          }
+
+          for (const cp of tryPaths) {
+            if (existsSync(cp)) {
+              try {
+                const st = await fs.stat(cp)
+                bytes = st.size
+                break
+              } catch (e) {
+                // ignore
+              }
+            }
           }
         }
+
+        if (bytes > 0) sourcesAcc[src] = (sourcesAcc[src] || 0) + bytes
       }
 
-      if (!parsed) {
+      if (!Object.keys(sourcesAcc).length) {
         console.log(
           chalk.yellow(
-            `Warning: could not parse JSON output from source-map-explorer for ${f}; attempting fallback to .map parsing.`,
+            `Fallback parsing of ${mapPath} produced no source sizes.`,
           ),
         )
-        // do not continue; try fallback below
-      }
-
-      const sourcesAcc = {}
-      if (parsed) collectSourcesFromParsed(parsed, sourcesAcc)
-
-      // Fallback: try reading the .map file directly and use sourcesContent or the original sources on disk
-      if (!Object.keys(sourcesAcc).length) {
-        try {
-          const mapRaw = await fs.readFile(mapPath, 'utf8')
-          let mapJson = null
-          try {
-            mapJson = JSON.parse(mapRaw)
-          } catch (e) {
-            mapJson = null
-          }
-
-          if (
-            mapJson &&
-            Array.isArray(mapJson.sources) &&
-            mapJson.sources.length
-          ) {
-            const srcRoot = mapJson.sourceRoot || ''
-            for (let i = 0; i < mapJson.sources.length; i++) {
-              const src = mapJson.sources[i]
-              let bytes = 0
-
-              // prefer embedded sourcesContent if available
-              if (
-                Array.isArray(mapJson.sourcesContent) &&
-                mapJson.sourcesContent[i]
-              ) {
-                bytes = Buffer.byteLength(mapJson.sourcesContent[i], 'utf8')
-              } else {
-                // Try resolving the original source file on disk using several heuristics
-                let candidate = src
-                candidate = candidate.replace(/^webpack:\/\//, '')
-                candidate = candidate.replace(/^~\//, '')
-                if (srcRoot) candidate = path.join(srcRoot, candidate)
-
-                const tryPaths = []
-                tryPaths.push(path.resolve(path.dirname(mapPath), candidate))
-                tryPaths.push(path.resolve(candidate))
-                if (candidate.includes('node_modules')) {
-                  const idx = candidate.indexOf('node_modules')
-                  tryPaths.push(path.resolve(candidate.slice(idx)))
-                }
-
-                for (const cp of tryPaths) {
-                  if (existsSync(cp)) {
-                    try {
-                      const st = await fs.stat(cp)
-                      bytes = st.size
-                      break
-                    } catch (e) {
-                      // ignore
-                    }
-                  }
-                }
-              }
-
-              if (bytes > 0) sourcesAcc[src] = (sourcesAcc[src] || 0) + bytes
-            }
-
-            if (!Object.keys(sourcesAcc).length) {
-              console.log(
-                chalk.yellow(
-                  `Fallback parsing of ${mapPath} produced no source sizes.`,
-                ),
-              )
-              continue
-            }
-          } else {
-            console.log(
-              chalk.yellow(
-                `Fallback: .map file has no "sources" array for ${f} (or could not parse .map).`,
-              ),
-            )
-            continue
-          }
-        } catch (e) {
-          console.log(
-            chalk.yellow(
-              `Fallback failed reading/parsing ${mapPath}: ${String(e)}`,
-            ),
-          )
-          continue
-        }
-      }
-
-      for (const [src, bytes] of Object.entries(sourcesAcc)) {
-        const b = Number(bytes || 0)
-        totalMapped += b
-
-        // Heuristics: if the source path looks like local workspace code, classify as own
-        const srcLower = String(src)
-        if (
-          srcLower.includes('/packages/') ||
-          srcLower.includes('packages/') ||
-          srcLower.includes('/pages/') ||
-          srcLower.includes('/src/')
-        ) {
-          perOwn.set(src, (perOwn.get(src) || 0) + b)
-          continue
-        }
-
-        const pkg = getPackageNameFromSource(src)
-        if (pkg && pkg !== '.' && pkg !== '..') {
-          perPackage.set(pkg, (perPackage.get(pkg) || 0) + b)
-        } else {
-          perOwn.set(src, (perOwn.get(src) || 0) + b)
-        }
+        continue
       }
     } catch (e) {
       console.log(
-        chalk.red(`Error running source-map-explorer on ${f}: ${String(e)}`),
+        chalk.yellow(`Failed reading/parsing ${mapPath}: ${String(e)}`),
       )
+      continue
+    }
+
+    for (const [src, bytes] of Object.entries(sourcesAcc)) {
+      const b = Number(bytes || 0)
+      totalMapped += b
+
+      // Heuristics: if the source path looks like local workspace code, classify as own
+      const srcLower = String(src)
+      if (
+        srcLower.includes('/packages/') ||
+        srcLower.includes('packages/') ||
+        srcLower.includes('/pages/') ||
+        srcLower.includes('/src/')
+      ) {
+        perOwn.set(src, (perOwn.get(src) || 0) + b)
+        continue
+      }
+
+      const pkg = getPackageNameFromSource(src)
+      if (pkg && pkg !== '.' && pkg !== '..') {
+        perPackage.set(pkg, (perPackage.get(pkg) || 0) + b)
+      } else {
+        perOwn.set(src, (perOwn.get(src) || 0) + b)
+      }
     }
   }
 
@@ -445,38 +326,83 @@ async function analyzeSourcemaps(jsFiles) {
   return { deps, own, totalMapped }
 }
 
-function printHeader() {
-  console.log(chalk.bold.cyan('\n=== DIST SIZE REPORT ===\n'))
-}
-
 ;(async function main() {
   try {
-    printHeader()
-    const distFilesAll = await listDistFiles()
+    // Ensure we have sourcemaps: run per-page dev builds (these run `vite build --mode development` and should exit)
+    const existingMaps = await fg(['dist/**/*.map'], { onlyFiles: true })
+    if (!existingMaps.length) {
+      console.log(
+        chalk.blue(
+          'No .map files found in dist — running per-page dev builds to generate sourcemaps...',
+        ),
+      )
+      const pages = []
+      try {
+        const dirents = await fs.readdir('pages', { withFileTypes: true })
+        for (const d of dirents) if (d.isDirectory()) pages.push(d.name)
+      } catch (e) {
+        // if pages dir is missing, fall back to full build
+      }
 
-    // Dev-only exclusion list (basenames). Add names here to exclude dev/HMR helper files.
-    const DEV_EXCLUDE_BASENAMES = new Set(['refresh.js'])
-    const isDevFile = (p) => DEV_EXCLUDE_BASENAMES.has(path.basename(p))
+      for (const p of pages) {
+        const pkgPath = path.join('pages', p, 'package.json')
+        if (!existsSync(pkgPath)) continue
+        try {
+          const pkg = JSON.parse(await fs.readFile(pkgPath, 'utf8'))
+          if (pkg.scripts && pkg.scripts.build) {
+            console.log(
+              chalk.gray(`  • building page: pages/${p} (with sourcemaps)`),
+            )
+            try {
+              // run build with CLI_CEB_SOURCEMAPS=true to enable sourcemaps without watch mode
+              await runCmd(
+                'pnpm',
+                ['-C', path.join('pages', p), 'run', 'build'],
+                {
+                  env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
+                },
+              )
+            } catch (e) {
+              console.log(
+                chalk.yellow(
+                  `    Warning: build for pages/${p} failed (continuing): ${String(
+                    e.message || e,
+                  )}`,
+                ),
+              )
+            }
+          }
+        } catch (e) {
+          // ignore malformed package.json
+        }
+      }
 
-    const excludedFiles = distFilesAll.filter((f) => isDevFile(f.path))
-    let distFiles = distFilesAll.filter((f) => !isDevFile(f.path))
-
-    const totalBytes = distFiles.reduce((s, f) => s + f.bytes, 0)
-    console.log(
-      `${chalk.bold('Total dist files:')} ${distFiles.length}  ${chalk.bold('Total size:')} ${human(totalBytes)}\n`,
-    )
-
-    console.log(chalk.bold.underline('All dist files (largest first):'))
-    for (const f of distFiles) {
-      console.log(`${chalk.yellow(human(f.bytes)).padEnd(12)}  ${f.path}`)
+      const mapsAfter = await fg(['dist/**/*.map'], { onlyFiles: true })
+      if (!mapsAfter.length) {
+        console.log(
+          chalk.red(
+            'No sourcemaps produced by per-page builds. You may need to run builds with CLI_CEB_SOURCEMAPS=true manually.',
+          ),
+        )
+      } else {
+        console.log(
+          chalk.green('Sourcemaps produced. Proceeding with analysis.'),
+        )
+      }
+    } else {
+      console.log(
+        chalk.green('Found existing .map files — skipping dev builds.'),
+      )
     }
+
+    const distFiles = await listDistFiles()
 
     // Analyze JS files + sourcemaps
     const jsFiles = distFiles
       .filter((d) => d.path.endsWith('.js'))
       .map((d) => d.path)
     console.log(
-      '\n' + chalk.bold.underline('Source-map analysis (dependencies vs own):'),
+      '\n' + chalk.bold.underline('Sourcemap analysis (from .map files only):'),
     )
     const { deps, own, totalMapped } = await analyzeSourcemaps(jsFiles)
 
@@ -509,29 +435,20 @@ function printHeader() {
         console.log(`${chalk.yellow(human(o.bytes)).padEnd(12)}  ${o.path}`)
     }
 
-    // Zips
-    console.log('\n' + chalk.bold.underline('ZIP contents (dist-zip):'))
-    const zipContents = await listZipContents()
-    if (!zipContents.length)
-      console.log(chalk.dim('No zip files found in dist-zip/'))
-    for (const z of zipContents) {
-      console.log(
-        chalk.bold(
-          `\n${path.basename(z.zip)}${z.bytes ? ` - file size ${human(z.bytes)}` : ''}`,
+    // Create a fresh 'tabby-dist.zip' from the current dist for accurate comparison (overwrite if exists)
+    try {
+      await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'])
+    } catch (e) {
+      console.error(
+        chalk.red(
+          `Error: failed to create tabby-dist.zip: ${String(e.message || e)}`,
         ),
       )
-      if (z.error)
-        console.log(chalk.red.dim(`  Could not list zip contents: ${z.error}`))
-      if (!z.entries || z.entries.length === 0) {
-        console.log(chalk.dim('  (no entries listed)'))
-        continue
-      }
-      for (const e of z.entries) {
-        console.log(
-          `  ${chalk.yellow(human(e.compressed)).padEnd(12)} ${e.name} ${chalk.dim(`(uncompressed ${human(e.uncompressed)})`)}`,
-        )
-      }
+      process.exit(1)
     }
+
+    // Zips: gather zip metadata (we create tabby-dist.zip above for a direct, packaged comparison)
+    const zipContents = await listZipContents()
 
     // --- Build normalized asset matrix across dist and zip versions
     const normalizeAssetName = (p) => {
@@ -711,6 +628,7 @@ function printHeader() {
     // CLI parsing: allow -v / --versions-back to limit how many zip versions are shown (default 3)
     const argv = process.argv.slice(2)
     let versionsBack = 3
+
     for (let i = 0; i < argv.length; i++) {
       if (argv[i] === '-v' || argv[i] === '--versions-back') {
         const val = argv[i + 1]
@@ -723,7 +641,16 @@ function printHeader() {
         }
       }
     }
-    const versions = sortedVersions.slice(0, versionsBack)
+    let versions = sortedVersions.slice(0, versionsBack)
+
+    // If a tabby-dist (working) zip exists, prefer to show it first for a direct comparison
+    const idxDist = versions.findIndex((v) =>
+      String(v).startsWith('tabby-dist'),
+    )
+    if (idxDist !== -1) {
+      const [d] = versions.splice(idxDist, 1)
+      versions.unshift(d)
+    }
 
     // Build the union of names using only 'versions' (what's visible in the table) and any dist files
     const allNames = new Set([
@@ -731,12 +658,25 @@ function printHeader() {
       ...versions.flatMap((v) => Object.keys(zipEntriesMap[v] || {})),
     ])
 
-    // For ordering: for each name pick the most recent source (dist variant mtime vs latest zip mtime that contains it)
+    // For ordering: prefer the working 'tabby-dist' zip sizes when present, otherwise dist variant mtime
+    const tabbyKey = versions.find((v) => String(v).startsWith('tabby-dist'))
     const nameMeta = [] // { name, recentMtime, recentSize }
     for (const name of allNames) {
       const distEntry = distVariants.get(name)
       let distMtime = distEntry ? distEntry.mtimeMs || 0 : 0
       let distSize = distEntry ? distEntry.bytes || 0 : 0
+
+      if (
+        tabbyKey &&
+        zipEntriesMap[tabbyKey] &&
+        zipEntriesMap[tabbyKey][name] != null
+      ) {
+        distSize = zipEntriesMap[tabbyKey][name]
+        distMtime =
+          zipIndex[tabbyKey] && zipIndex[tabbyKey].mtimeMs
+            ? zipIndex[tabbyKey].mtimeMs
+            : distMtime
+      }
 
       let bestZipMtime = 0
       let bestZipSize = 0
@@ -776,8 +716,6 @@ function printHeader() {
     console.log('\n')
     console.log(chalk.bold(header.join('  ')))
 
-    let totalDistUncompressed = 0
-    let totalDistGzip = 0
     const totalsByVersion = {}
     for (const v of versions) totalsByVersion[v] = 0
 
@@ -785,9 +723,18 @@ function printHeader() {
       const name = row.name
       const distEntry = distVariants.get(name)
       const distBytes = distEntry ? distEntry.bytes : 0
-      const distBytesStr = distEntry
-        ? human(distBytes).padStart(distColW)
-        : ''.padStart(distColW)
+
+      let distBytesStr = ''.padStart(distColW)
+      const tabbyKey = versions.find((v) => String(v).startsWith('tabby-dist'))
+      if (
+        tabbyKey &&
+        zipEntriesMap[tabbyKey] &&
+        zipEntriesMap[tabbyKey][name] != null
+      ) {
+        distBytesStr = human(zipEntriesMap[tabbyKey][name]).padStart(distColW)
+      } else if (distEntry) {
+        distBytesStr = human(distBytes).padStart(distColW)
+      }
 
       const verCols = versions.map((v) => {
         const b =
@@ -802,17 +749,25 @@ function printHeader() {
         `${name.padEnd(nameColW)}  ${distBytesStr}  ${verCols.join('  ')}`,
       )
 
-      if (distEntry) {
-        totalDistUncompressed += distBytes
-        totalDistGzip += gzipSizeForPath(distEntry.path)
-      }
       for (const v of versions) {
         if (zipEntriesMap[v] && zipEntriesMap[v][name] != null)
           totalsByVersion[v] += zipEntriesMap[v][name]
       }
     }
 
-    // Totals row
+    // Compute totals: prefer the working tabby-dist.zip totals when available
+    let totalDistUncompressed = 0
+    let totalDistGzip = 0
+    if (tabbyKey && zipIndex[tabbyKey]) {
+      totalDistUncompressed = zipIndex[tabbyKey].totalUncompressed || 0
+      totalDistGzip = zipIndex[tabbyKey].actualBytes || 0
+    } else {
+      for (const entry of distVariants.values()) {
+        totalDistUncompressed += entry.bytes || 0
+        totalDistGzip += gzipSizeForPath(entry.path)
+      }
+    }
+
     const totalsCols = versions.map((v) =>
       human(totalsByVersion[v]).padStart(verColW),
     )
@@ -822,6 +777,7 @@ function printHeader() {
     console.log(
       `${'TOTAL'.padEnd(nameColW)}  ${human(totalDistUncompressed).padStart(distColW)}  ${totalsCols.join('  ')}`,
     )
+
     console.log(
       `${'ZIPPED'.padEnd(nameColW)}  ${human(totalDistGzip).padStart(distColW)}  ${versions.map((v) => human(zipIndex[v].actualBytes).padStart(verColW)).join('  ')}`,
     )

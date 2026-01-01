@@ -1,5 +1,5 @@
 import { env } from '@extension/env/config'
-import { IS_DEV, IS_PROD } from '@extension/env/const'
+import { ENABLE_SOURCEMAPS, IS_DEV, IS_PROD } from '@extension/env/const'
 import { watchRebuildPlugin } from '@extension/hmr/watch-rebuild-plugin'
 import react from '@vitejs/plugin-react-swc'
 import deepmerge from 'deepmerge'
@@ -24,8 +24,8 @@ export const withPageConfig = (config: UserConfig) =>
         base: '',
         plugins: [react(), IS_DEV && watchRebuildPlugin({ refresh: true })],
         build: {
-          sourcemap: IS_DEV,
-          minify: IS_PROD,
+          sourcemap: IS_DEV || ENABLE_SOURCEMAPS,
+          minify: IS_PROD && !ENABLE_SOURCEMAPS,
           reportCompressedSize: IS_PROD,
           emptyOutDir: IS_PROD,
           watch: watchOption,
