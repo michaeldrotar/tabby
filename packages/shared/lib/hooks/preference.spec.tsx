@@ -67,7 +67,7 @@ describe('useThemeApplicator', () => {
       }
     })
 
-    vi.doMock('@extension/storage', () => {
+    vi.doMock('@extension/storage/impl/preference-storage', () => {
       return {
         preferenceStorage: {},
       }
@@ -111,7 +111,7 @@ describe('useThemeApplicator', () => {
       }
     })
 
-    vi.doMock('@extension/storage', () => {
+    vi.doMock('@extension/storage/impl/preference-storage', () => {
       return {
         preferenceStorage: {},
       }
@@ -155,7 +155,7 @@ describe('useThemeApplicator', () => {
       }
     })
 
-    vi.doMock('@extension/storage', () => {
+    vi.doMock('@extension/storage/impl/preference-storage', () => {
       return {
         preferenceStorage: {},
       }
@@ -212,7 +212,7 @@ describe('useThemeApplicator', () => {
       }
     })
 
-    vi.doMock('@extension/storage', () => {
+    vi.doMock('@extension/storage/impl/preference-storage', () => {
       return {
         preferenceStorage: {},
       }
