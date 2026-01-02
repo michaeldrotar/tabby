@@ -24,194 +24,29 @@ const USAGE_OVERRIDES = [
   },
 ]
 
-const palettes = {
-  ocean: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#0EA5E9'), // Sky blue for dependencies
-    sourceCode: chalk.hex('#06B6D4'), // Cyan for source/own code
-    pages: chalk.hex('#8B5CF6'), // Violet for pages
-    accent: chalk.hex('#38BDF8'), // Light blue accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#475569'), // Slate gray borders
+const colors = {
+  // Primary semantic colors
+  dependencies: chalk.hex('#60A5FA'), // Light blue for dependencies
+  sourceCode: chalk.hex('#A78BFA'), // Light purple for source/own code
+  pages: chalk.hex('#FBBF24'), // Amber for pages
+  accent: chalk.hex('#FF69B4'), // Hot pink accent
+  muted: chalk.dim, // Muted/secondary text
+  border: chalk.hex('#4B5563'), // Dark gray borders
 
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#10B981'), // Emerald green
-    warning: chalk.hex('#F59E0B'), // Amber
-    error: chalk.hex('#EF4444'), // Red
+  // Status colors (good -> bad gradient)
+  success: chalk.hex('#34D399'), // Emerald
+  warning: chalk.hex('#FBBF24'), // Amber
+  error: chalk.hex('#F87171'), // Light red
 
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#10B981') }, // Emerald
-      { name: 'Small', color: chalk.hex('#06B6D4') }, // Cyan
-      { name: 'Medium', color: chalk.hex('#F59E0B') }, // Amber
-      { name: 'Large', color: chalk.hex('#F97316') }, // Orange
-      { name: 'Huge', color: chalk.hex('#EF4444') }, // Red
-    ],
-  },
-  forest: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#84CC16'), // Lime for dependencies
-    sourceCode: chalk.hex('#22C55E'), // Green for source/own code
-    pages: chalk.hex('#A78BFA'), // Lavender for pages
-    accent: chalk.hex('#4ADE80'), // Light green accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#6B7280'), // Cool gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#22C55E'), // Green
-    warning: chalk.hex('#EAB308'), // Yellow
-    error: chalk.hex('#DC2626'), // Red
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#22C55E') }, // Green
-      { name: 'Small', color: chalk.hex('#84CC16') }, // Lime
-      { name: 'Medium', color: chalk.hex('#EAB308') }, // Yellow
-      { name: 'Large', color: chalk.hex('#F97316') }, // Orange
-      { name: 'Huge', color: chalk.hex('#DC2626') }, // Red
-    ],
-  },
-  neon: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#FF6B6B'), // Coral for dependencies
-    sourceCode: chalk.hex('#4ECDC4'), // Teal for source/own code
-    pages: chalk.hex('#FFE66D'), // Yellow for pages
-    accent: chalk.hex('#95E1D3'), // Mint accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#555555'), // Dark gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#4ECDC4'), // Teal
-    warning: chalk.hex('#FFE66D'), // Yellow
-    error: chalk.hex('#FF6B6B'), // Coral
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#4ECDC4') }, // Teal
-      { name: 'Small', color: chalk.hex('#95E1D3') }, // Mint
-      { name: 'Medium', color: chalk.hex('#FFE66D') }, // Yellow
-      { name: 'Large', color: chalk.hex('#F9A826') }, // Gold
-      { name: 'Huge', color: chalk.hex('#FF6B6B') }, // Coral
-    ],
-  },
-  original: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#FF8C00'), // Orange for dependencies
-    sourceCode: chalk.hex('#9370DB'), // Purple for source/own code
-    pages: chalk.magenta, // Magenta for pages
-    accent: chalk.cyan, // Accent color for highlights
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.gray, // Borders and lines
-
-    // Status colors (good -> bad gradient)
-    success: chalk.green, // Positive changes, success states
-    warning: chalk.yellow, // Warnings, neutral-ish changes
-    error: chalk.red, // Errors, size increases
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.green }, // 0-100 KB
-      { name: 'Small', color: chalk.greenBright }, // 100-500 KB
-      { name: 'Medium', color: chalk.yellow }, // 500-1000 KB
-      { name: 'Large', color: chalk.hex('#FFA500') }, // 1-2 MB
-      { name: 'Huge', color: chalk.red }, // 2+ MB
-    ],
-  },
-  sunset: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#FF6B35'), // Orange-red for dependencies
-    sourceCode: chalk.hex('#004E89'), // Deep blue for source/own code
-    pages: chalk.hex('#F77F00'), // Bright orange for pages
-    accent: chalk.hex('#00A8E8'), // Sky blue accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#6B7280'), // Gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#10B981'), // Green
-    warning: chalk.hex('#F59E0B'), // Amber
-    error: chalk.hex('#DC2626'), // Red
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#10B981') }, // Green
-      { name: 'Small', color: chalk.hex('#00A8E8') }, // Sky blue
-      { name: 'Medium', color: chalk.hex('#F59E0B') }, // Amber
-      { name: 'Large', color: chalk.hex('#FF6B35') }, // Orange-red
-      { name: 'Huge', color: chalk.hex('#DC2626') }, // Red
-    ],
-  },
-  berry: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#8B5CF6'), // Violet for dependencies
-    sourceCode: chalk.hex('#06B6D4'), // Cyan for source/own code
-    pages: chalk.hex('#F97316'), // Orange for pages
-    accent: chalk.hex('#FBBF24'), // Yellow accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#6B7280'), // Gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#10B981'), // Green
-    warning: chalk.hex('#F59E0B'), // Amber
-    error: chalk.hex('#EF4444'), // Red
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#10B981') }, // Green
-      { name: 'Small', color: chalk.hex('#06B6D4') }, // Cyan
-      { name: 'Medium', color: chalk.hex('#F59E0B') }, // Amber
-      { name: 'Large', color: chalk.hex('#F97316') }, // Orange
-      { name: 'Huge', color: chalk.hex('#EF4444') }, // Red
-    ],
-  },
-  candy: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#FF1493'), // Deep pink for dependencies
-    sourceCode: chalk.hex('#00CED1'), // Dark turquoise for source/own code
-    pages: chalk.hex('#FFD700'), // Gold for pages
-    accent: chalk.hex('#FF69B4'), // Hot pink accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#696969'), // Dim gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#00FA9A'), // Medium spring green
-    warning: chalk.hex('#FFD700'), // Gold
-    error: chalk.hex('#FF4500'), // Orange red
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#00FA9A') }, // Spring green
-      { name: 'Small', color: chalk.hex('#00CED1') }, // Turquoise
-      { name: 'Medium', color: chalk.hex('#FFD700') }, // Gold
-      { name: 'Large', color: chalk.hex('#FF8C00') }, // Dark orange
-      { name: 'Huge', color: chalk.hex('#FF4500') }, // Orange red
-    ],
-  },
-  midnight: {
-    // Primary semantic colors
-    dependencies: chalk.hex('#60A5FA'), // Light blue for dependencies
-    sourceCode: chalk.hex('#A78BFA'), // Light purple for source/own code
-    pages: chalk.hex('#FBBF24'), // Amber for pages
-    accent: chalk.hex('#FF69B4'), // Hot pink accent
-    muted: chalk.dim, // Muted/secondary text
-    border: chalk.hex('#4B5563'), // Dark gray borders
-
-    // Status colors (good -> bad gradient)
-    success: chalk.hex('#34D399'), // Emerald
-    warning: chalk.hex('#FBBF24'), // Amber
-    error: chalk.hex('#F87171'), // Light red
-
-    // Size category scale (tiny -> huge)
-    scale: [
-      { name: 'Tiny', color: chalk.hex('#34D399') }, // Emerald
-      { name: 'Small', color: chalk.hex('#60A5FA') }, // Light blue
-      { name: 'Medium', color: chalk.hex('#FBBF24') }, // Amber
-      { name: 'Large', color: chalk.hex('#FB923C') }, // Orange
-      { name: 'Huge', color: chalk.hex('#F87171') }, // Light red
-    ],
-  },
+  // Size category scale (tiny -> huge)
+  scale: [
+    { name: 'Tiny', color: chalk.hex('#34D399') }, // Emerald
+    { name: 'Small', color: chalk.hex('#60A5FA') }, // Light blue
+    { name: 'Medium', color: chalk.hex('#FBBF24') }, // Amber
+    { name: 'Large', color: chalk.hex('#FB923C') }, // Orange
+    { name: 'Huge', color: chalk.hex('#F87171') }, // Light red
+  ],
 }
-
-let colors = palettes['midnight']
 
 // Default settings
 const defaults = {
@@ -237,142 +72,269 @@ const pathStrip = {
   folders: ['dist/', 'src/', 'lib/', 'dist/lib/', 'dist/src/'],
 }
 
+const NAMESPACE_PREFIX = '@extension/'
+
+// Package type definitions - id, label, pattern, color, order, packages[]
+const packageTypes = [
+  {
+    id: 'root',
+    label: 'ROOT',
+    pattern: '.',
+    color: (text) => colors.success(text),
+    order: 0,
+    packages: [],
+  },
+  {
+    id: 'app',
+    label: 'APP',
+    pattern: 'chrome-extension',
+    color: (text) => colors.success(text),
+    order: 1,
+    packages: [],
+  },
+  {
+    id: 'page',
+    label: 'PAGES',
+    pattern: 'pages/',
+    color: (text) => colors.pages(text),
+    order: 2,
+    packages: [],
+  },
+  {
+    id: 'package',
+    label: 'PKG',
+    pattern: null,
+    color: (text) => colors.sourceCode(text),
+    order: 3,
+    packages: [],
+  },
+]
+
+// Package registry - byName: Map, byType: Map, typeById: Object
+const packageRegistry = {
+  byName: new Map(),
+  byType: new Map(),
+  typeById: Object.fromEntries(
+    packageTypes.map((typeDef) => [typeDef.id, typeDef]),
+  ),
+}
+
+const WORKSPACE_PACKAGE_GLOBS = [
+  'package.json',
+  'packages/*/package.json',
+  'pages/*/package.json',
+  'chrome-extension/package.json',
+]
+
+const ANALYSIS_IGNORE_PATTERNS = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/*.map',
+  '**/package.json',
+  '**/*.md',
+  '**/pnpm-lock.yaml',
+  '**/package-lock.json',
+  '**/yarn.lock',
+]
+
+const WORKSPACE_CODE_MARKERS = ['/packages/', 'packages/', '/pages/', '/src/']
+
+const REPO_FOLDER_BLACKLIST = new Set([
+  'packages',
+  'pages',
+  'src',
+  'lib',
+  'dist',
+  'dist-zip',
+  '_locales',
+  'public',
+  'scripts',
+  '.pnpm',
+  'chrome-extension',
+])
+
+const getPackageColor = (typeId) =>
+  packageRegistry.typeById[typeId]?.color ??
+  packageRegistry.typeById.package.color
+
+const getPackageType = (dir) =>
+  packageTypes.find(
+    (t) => t.pattern && (dir === t.pattern || dir.startsWith(t.pattern)),
+  )?.id ?? 'package'
+
+const stripNamespace = (name) =>
+  name.startsWith(NAMESPACE_PREFIX) ? name.slice(NAMESPACE_PREFIX.length) : name
+
+const sortPackagesByType = (packages) =>
+  [...packages].sort(([aName, aPkg], [bName, bPkg]) => {
+    const orderDiff =
+      (packageRegistry.typeById[aPkg.type]?.order ?? 99) -
+      (packageRegistry.typeById[bPkg.type]?.order ?? 99)
+    return orderDiff !== 0 ? orderDiff : aName.localeCompare(bName)
+  })
+
+const resetPackageRegistry = () => {
+  packageTypes.forEach((t) => (t.packages = []))
+  packageRegistry.byName.clear()
+  packageRegistry.byType.clear()
+}
+
+// Format dependency list with line wrapping
+const formatDependencyList = ({
+  workspaceDeps,
+  npmDeps,
+  unusedSet,
+  packageLookup,
+  maxLineWidth = 100,
+  indentWidth = 25,
+}) => {
+  // Categorize and colorize deps
+  const getDepColor = (name) => {
+    const type = packageLookup.get(name)?.type
+    return type === 'app'
+      ? colors.success
+      : type === 'page'
+        ? colors.pages
+        : (t) => t
+  }
+
+  const allDeps = [
+    ...workspaceDeps
+      .filter((d) => packageLookup.get(d)?.type === 'app')
+      .sort()
+      .map((name) => ({ name, color: colors.success })),
+    ...workspaceDeps
+      .filter((d) => packageLookup.get(d)?.type === 'page')
+      .sort()
+      .map((name) => ({ name, color: colors.pages })),
+    ...workspaceDeps
+      .filter((d) => !['app', 'page'].includes(packageLookup.get(d)?.type))
+      .sort()
+      .map((name) => ({ name, color: (t) => t })),
+    ...npmDeps
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(({ name }) => ({ name, color: colors.muted })),
+  ]
+
+  if (allDeps.length === 0) return [colors.muted('(none)')]
+
+  // Wrap lines
+  const lines = []
+  let line = [],
+    lineLen = 0
+  allDeps.forEach((dep, idx) => {
+    const isLast = idx === allDeps.length - 1
+    const colorFn = unusedSet.has(dep.name) ? colors.error : dep.color
+    const text = colorFn(dep.name) + (isLast ? '' : colors.muted(', '))
+    const len = dep.name.length + (isLast ? 0 : 2)
+
+    if (line.length && indentWidth + lineLen + len > maxLineWidth) {
+      lines.push(line.join(''))
+      line = [text]
+      lineLen = len
+    } else {
+      line.push(text)
+      lineLen += len
+    }
+  })
+  if (line.length) lines.push(line.join(''))
+  return lines
+}
+
 // ============================================================================
 // DEPENDENCY ANALYSIS - Package dependency tree and import analysis
 // ============================================================================
 
-/**
- * Collects all workspace packages (from packages/ and pages/) and their dependencies
- */
+// Collect all workspace packages and their dependencies
 async function collectWorkspacePackages() {
-  const packages = new Map()
+  // Reset registry for fresh collection
+  resetPackageRegistry()
 
   // Find all package.json files including root
-  const packageJsonPaths = await fg(
-    [
-      'package.json',
-      'packages/*/package.json',
-      'pages/*/package.json',
-      'chrome-extension/package.json',
-    ],
-    {
-      onlyFiles: true,
-    },
-  )
+  const packageJsonPaths = await fg(WORKSPACE_PACKAGE_GLOBS, {
+    onlyFiles: true,
+  })
 
   for (const pkgPath of packageJsonPaths) {
     try {
       const pkgContent = JSON.parse(await fs.readFile(pkgPath, 'utf8'))
       const pkgName = pkgContent.name
       const pkgDir = path.dirname(pkgPath)
-      const shortName =
-        pkgDir === '.' ? 'root' : pkgName.replace('@extension/', '')
 
-      // Extract workspace dependencies (those with workspace:*)
+      // Gather all dependencies from package.json
       const allDeps = {
         ...pkgContent.dependencies,
         ...pkgContent.devDependencies,
       }
 
-      const workspaceDeps = Object.entries(allDeps)
-        .filter(([_, version]) => version === 'workspace:*')
-        .map(([name]) => name.replace('@extension/', ''))
+      // Split into workspace and npm dependencies
+      const workspaceDeps = []
+      const npmDeps = []
 
-      // Determine type: root is 'root', chrome-extension is 'app', pages/ are 'page', rest are 'package'
-      let type = 'package'
-      if (pkgDir === '.') {
-        type = 'root'
-      } else if (pkgDir === 'chrome-extension') {
-        type = 'app'
-      } else if (pkgDir.startsWith('pages/')) {
-        type = 'page'
+      for (const [depName, version] of Object.entries(allDeps)) {
+        if (version === 'workspace:*') {
+          workspaceDeps.push(depName) // Keep full name for workspace deps
+        } else {
+          npmDeps.push({ name: depName, version })
+        }
       }
 
-      packages.set(shortName, {
+      // Determine type using centralized rules
+      const type = getPackageType(pkgDir)
+      const pkg = createPackage({
         name: pkgName,
-        shortName,
         dir: pkgDir,
-        dependencies: workspaceDeps,
         type,
+        dependencies: workspaceDeps,
+        npmDependencies: npmDeps,
       })
+
+      // Register in byName map (keyed by full package name)
+      packageRegistry.byName.set(pkgName, pkg)
+
+      // Add to the type's packages array
+      const typeDef = packageRegistry.typeById[type]
+      if (typeDef) {
+        typeDef.packages.push(pkg)
+      }
     } catch (e) {
       // Skip invalid package.json files
     }
   }
 
-  return packages
-}
-
-/**
- * Collects npm dependencies from workspace packages
- * Returns a map of package name -> npm dependencies
- */
-async function collectNpmDependencies(workspacePackages) {
-  const npmDeps = new Map()
-
-  for (const [shortName, pkg] of workspacePackages) {
-    const pkgJsonPath = path.join(pkg.dir, 'package.json')
-    try {
-      const pkgContent = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'))
-      const allDeps = {
-        ...pkgContent.dependencies,
-        ...pkgContent.devDependencies,
-      }
-
-      // Filter out workspace dependencies
-      const external = Object.entries(allDeps)
-        .filter(([_, version]) => version !== 'workspace:*')
-        .map(([name, version]) => ({ name, version }))
-
-      if (external.length > 0) {
-        npmDeps.set(shortName, external)
-      }
-    } catch (e) {
-      // Skip
-    }
+  // Sort packages within each type alphabetically
+  for (const typeDef of packageTypes) {
+    typeDef.packages.sort((a, b) => a.name.localeCompare(b.name))
   }
 
-  return npmDeps
+  // Build byType map for convenience
+  for (const typeDef of packageTypes) {
+    packageRegistry.byType.set(typeDef.id, typeDef)
+  }
+
+  return packageRegistry.byName
 }
 
-/**
- * Detects duplicate versions of the same npm package across workspace packages
- * Returns Map of package name -> array of {package, version}
- */
-async function detectDuplicateVersions(workspacePackages) {
+// Detect duplicate npm package versions across workspace
+function detectDuplicateVersions() {
   const npmVersions = new Map() // npm package -> [{workspacePackage, version}]
 
-  for (const [shortName, pkg] of workspacePackages) {
-    const pkgJsonPath =
-      pkg.dir === '.' ? 'package.json' : path.join(pkg.dir, 'package.json')
-    try {
-      const pkgContent = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'))
-      const allDeps = {
-        ...pkgContent.dependencies,
-        ...pkgContent.devDependencies,
+  for (const [pkgName, pkg] of packageRegistry.byName) {
+    for (const npmDep of pkg.npmDependencies) {
+      if (!npmVersions.has(npmDep.name)) {
+        npmVersions.set(npmDep.name, [])
       }
-
-      for (const [depName, version] of Object.entries(allDeps)) {
-        // Skip workspace dependencies
-        if (version === 'workspace:*') continue
-
-        if (!npmVersions.has(depName)) {
-          npmVersions.set(depName, [])
-        }
-        npmVersions.get(depName).push({
-          package: shortName,
-          version: version,
-        })
-      }
-    } catch (e) {
-      // Skip
+      npmVersions.get(npmDep.name).push({
+        package: pkgName,
+        version: npmDep.version,
+      })
     }
   }
 
   // Filter to only packages with different versions
   const duplicates = new Map()
   for (const [depName, usages] of npmVersions) {
-    const uniqueVersions = new Set(usages.map((u) => u.version))
+    const uniqueVersions = new Set(usages.map((usage) => usage.version))
     if (uniqueVersions.size > 1) {
       duplicates.set(depName, usages)
     }
@@ -381,9 +343,7 @@ async function detectDuplicateVersions(workspacePackages) {
   return duplicates
 }
 
-/**
- * Detects circular dependencies in the package graph using DFS
- */
+// Detect circular dependencies using DFS
 function detectCircularDependencies(packages) {
   const cycles = []
   const visited = new Set()
@@ -439,43 +399,30 @@ function detectCircularDependencies(packages) {
   return uniqueCycles
 }
 
-/**
- * Analyzes import statements in source files to find undeclared dependencies
- * Also detects CSS imports and potential reverse dependency issues
- */
-async function analyzeImportStatements(packages, npmDeps) {
+// Analyze imports to find undeclared dependencies and CSS imports
+async function analyzeImportStatements(packages) {
   const issues = []
   const cssImports = [] // Track CSS imports between packages
   const actualImports = new Map() // Track what each package actually imports
   const actualNpmImports = new Map() // Track npm packages actually used
 
-  for (const [shortName, pkg] of packages) {
+  for (const [pkgName, pkg] of packages) {
     // Get all files in package directory (not just source files)
     // IMPORTANT: Exclude package.json and markdown files to avoid false positives
     // Scan all files except package.json, markdown, and lock files
     const allFiles = await fg([`${pkg.dir}/**/*`], {
       onlyFiles: true,
-      ignore: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/*.map',
-        '**/package.json',
-        '**/*.md',
-        '**/pnpm-lock.yaml',
-        '**/package-lock.json',
-        '**/yarn.lock',
-      ],
+      ignore: ANALYSIS_IGNORE_PATTERNS,
     })
 
     const declaredDeps = new Set(pkg.dependencies)
     const usedDeps = new Set()
-    actualImports.set(shortName, usedDeps)
+    actualImports.set(pkgName, usedDeps)
 
     // Track which npm dependencies are used
     const usedNpmDeps = new Set()
-    actualNpmImports.set(shortName, usedNpmDeps)
-    const npmDepList = npmDeps.get(shortName) || []
-    const npmDepNames = new Set(npmDepList.map((d) => d.name))
+    actualNpmImports.set(pkgName, usedNpmDeps)
+    const npmDepNames = new Set(pkg.npmDependencies.map((dep) => dep.name))
 
     // For each declared workspace dependency, check if its name appears anywhere in any file
     for (const depName of declaredDeps) {
@@ -484,7 +431,7 @@ async function analyzeImportStatements(packages, npmDeps) {
           const content = readFileSync(file, 'utf8')
           // Simple check: does the package name appear in the file?
           // This catches imports, extends, requires, config references, etc.
-          if (content.includes(`@extension/${depName}`)) {
+          if (content.includes(depName)) {
             usedDeps.add(depName)
             break
           }
@@ -634,16 +581,24 @@ async function analyzeImportStatements(packages, npmDeps) {
         const content = readFileSync(file, 'utf8')
         const isCssFile = file.endsWith('.css')
 
+        // Escape namespace prefix for use in regex
+        const escapedPrefix = NAMESPACE_PREFIX.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          '\\$&',
+        )
+
         if (isCssFile) {
           // Match CSS imports: @import '@extension/...' or url('@extension/...')
-          const cssImportRegex =
-            /@import\s+['"]@extension\/([^/'"\s]+)|url\(['"]@extension\/([^/'"\s]+)/g
+          const cssImportRegex = new RegExp(
+            `@import\\s+['"]${escapedPrefix}([^/'"\\s]+)|url\\(['"]${escapedPrefix}([^/'"\\s]+)`,
+            'g',
+          )
           let match
           while ((match = cssImportRegex.exec(content)) !== null) {
             const importedPkg = match[1] || match[2]
-            if (importedPkg && importedPkg !== shortName) {
+            if (importedPkg && importedPkg !== pkgName) {
               cssImports.push({
-                from: shortName,
+                from: pkgName,
                 to: importedPkg,
                 file: path.relative(process.cwd(), file),
                 type: 'css',
@@ -652,19 +607,21 @@ async function analyzeImportStatements(packages, npmDeps) {
           }
         } else {
           // Match JS/TS import statements: import ... from '@extension/...'
-          const importRegex =
-            /import\s+(?:[\s\S]*?)\s+from\s+['"]@extension\/([^/'"\s]+)/g
+          const importRegex = new RegExp(
+            `import\\s+(?:[\\s\\S]*?)\\s+from\\s+['"]${escapedPrefix}([^/'"\\s]+)`,
+            'g',
+          )
           let match
 
           while ((match = importRegex.exec(content)) !== null) {
             const importedPkg = match[1]
             // Skip if it's importing from itself
-            if (importedPkg === shortName) continue
+            if (importedPkg === pkgName) continue
 
             // Check if this import is declared in package.json
             if (!declaredDeps.has(importedPkg)) {
               issues.push({
-                package: shortName,
+                package: pkgName,
                 file: path.relative(process.cwd(), file),
                 imports: importedPkg,
                 type: 'undeclared',
@@ -697,39 +654,31 @@ async function analyzeImportStatements(packages, npmDeps) {
   }
 }
 
-/**
- * Detects unused dependencies - deps declared in package.json but not actually imported
- */
-function detectUnusedDependencies(
-  packages,
-  actualImports,
-  npmDeps,
-  actualNpmImports,
-) {
+// Detect unused dependencies (declared but not imported)
+function detectUnusedDependencies(packages, actualImports, actualNpmImports) {
   const unused = []
 
-  for (const [shortName, pkg] of packages) {
+  for (const [pkgName, pkg] of packages) {
     // Check workspace dependencies
     const declaredDeps = new Set(pkg.dependencies)
-    const usedDeps = actualImports.get(shortName) || new Set()
+    const usedDeps = actualImports.get(pkgName) || new Set()
 
     for (const dep of declaredDeps) {
       if (!usedDeps.has(dep)) {
         unused.push({
-          package: shortName,
+          package: pkgName,
           dependency: dep,
         })
       }
     }
 
-    // Check npm dependencies
-    const npmDepList = npmDeps.get(shortName) || []
-    const usedNpmDeps = actualNpmImports.get(shortName) || new Set()
+    // Check npm dependencies (now on package object)
+    const usedNpmDeps = actualNpmImports.get(pkgName) || new Set()
 
-    for (const npmDep of npmDepList) {
+    for (const npmDep of pkg.npmDependencies) {
       if (!usedNpmDeps.has(npmDep.name)) {
         unused.push({
-          package: shortName,
+          package: pkgName,
           dependency: npmDep.name,
         })
       }
@@ -739,10 +688,7 @@ function detectUnusedDependencies(
   return unused
 }
 
-/**
- * Detects potential reverse dependency issues (A depends on B, but B references things defined in A)
- * This is common with CSS variables: tailwindcss-config generates config from CSS vars defined in ui
- */
+// Detect reverse dependency issues (A depends on B, but B uses things from A)
 async function detectReverseDependencies(packages) {
   const issues = []
 
@@ -750,14 +696,14 @@ async function detectReverseDependencies(packages) {
   const cssVarDefinitions = new Map() // package -> Set of var names defined
   const cssVarUsages = new Map() // package -> Map of var name -> files
 
-  for (const [shortName, pkg] of packages) {
+  for (const [pkgName, pkg] of packages) {
     const cssFiles = await fg([`${pkg.dir}/**/*.css`], {
       onlyFiles: true,
       ignore: ['**/node_modules/**', '**/dist/**'],
     })
 
-    cssVarDefinitions.set(shortName, new Set())
-    cssVarUsages.set(shortName, new Map())
+    cssVarDefinitions.set(pkgName, new Set())
+    cssVarUsages.set(pkgName, new Map())
 
     for (const file of cssFiles) {
       try {
@@ -767,18 +713,18 @@ async function detectReverseDependencies(packages) {
         const defRegex = /--([\w-]+)\s*:/g
         let match
         while ((match = defRegex.exec(content)) !== null) {
-          cssVarDefinitions.get(shortName).add(match[1])
+          cssVarDefinitions.get(pkgName).add(match[1])
         }
 
         // Find CSS variable usages: var(--variable-name)
         const useRegex = /var\(\s*--([\w-]+)/g
         while ((match = useRegex.exec(content)) !== null) {
           const varName = match[1]
-          if (!cssVarUsages.get(shortName).has(varName)) {
-            cssVarUsages.get(shortName).set(varName, [])
+          if (!cssVarUsages.get(pkgName).has(varName)) {
+            cssVarUsages.get(pkgName).set(varName, [])
           }
           cssVarUsages
-            .get(shortName)
+            .get(pkgName)
             .get(varName)
             .push(path.relative(process.cwd(), file))
         }
@@ -831,9 +777,7 @@ async function detectReverseDependencies(packages) {
   return [...uniqueIssues.values()]
 }
 
-/**
- * Builds dependency layers for visualization (topological sort by level)
- */
+// Build dependency layers (topological sort)
 function buildDependencyLayers(packages) {
   const layers = []
   const placed = new Set()
@@ -873,24 +817,28 @@ function buildDependencyLayers(packages) {
 // UTILITY FUNCTIONS
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// Formatting Utilities - Size and path formatting for display
+// ----------------------------------------------------------------------------
+
 const human = (bytes) => {
   const parts = humanParts(bytes)
   return `${parts.value} ${parts.unit}`
 }
 
 const humanParts = (bytes) => {
-  const abs = Math.abs(bytes)
-  if (abs >= 1024 * 1024 * 1024)
-    return { value: (bytes / (1024 * 1024 * 1024)).toFixed(2), unit: 'GB' }
-  if (abs >= 1024 * 1024)
-    return { value: (bytes / (1024 * 1024)).toFixed(2), unit: 'MB' }
-  if (abs >= 1024) return { value: (bytes / 1024).toFixed(2), unit: 'KB' }
+  const abs = Math.abs(bytes),
+    KB = 1024,
+    MB = KB * 1024,
+    GB = MB * 1024
+  if (abs >= GB) return { value: (bytes / GB).toFixed(2), unit: 'GB' }
+  if (abs >= MB) return { value: (bytes / MB).toFixed(2), unit: 'MB' }
+  if (abs >= KB) return { value: (bytes / KB).toFixed(2), unit: 'KB' }
   return { value: bytes.toString(), unit: 'B' }
 }
 
-// Simplify source file paths for display
-const simplifyPath = (p, maxLen = defaults.maxPathLength) => {
-  let result = p.replace(/^(?:\.\.\/)+/, '')
+const simplifyPath = (filePath, maxLen = defaults.maxPathLength) => {
+  let result = filePath.replace(/^(?:\.\.\/)+/, '')
 
   // Strip known prefixes (pages/, packages/)
   for (const prefix of pathStrip.prefixes) {
@@ -942,87 +890,301 @@ const simplifyPath = (p, maxLen = defaults.maxPathLength) => {
   return result
 }
 
-// Visual elements for CLI
+// ----------------------------------------------------------------------------
+// Display Utilities - Visual elements for CLI output
+// ----------------------------------------------------------------------------
+
 const progressBar = (
   percent,
   width = defaults.barWidth,
   color = colors.accent,
 ) => {
-  const filledWidth = Math.round((percent / 100) * width)
-  const emptyWidth = width - filledWidth
+  const filled = Math.round((percent / 100) * width)
   return (
-    color(chars.bar.filled.repeat(filledWidth)) +
-    colors.border(chars.bar.empty.repeat(emptyWidth))
+    color(chars.bar.filled.repeat(filled)) +
+    colors.border(chars.bar.empty.repeat(width - filled))
   )
 }
 
-const sectionHeader = (title) => {
-  return `\n${chalk.bold.white(title)}\n${colors.muted(chars.lines.h.repeat(title.length + 2))}`
-}
+const sectionHeader = (title) =>
+  `\n${chalk.bold.white(title)}\n${colors.muted(chars.lines.h.repeat(title.length + 2))}`
 
-const subHeader = (title) => {
-  return `\n${colors.muted(chars.lines.tee + chars.lines.h)} ${chalk.bold(title)}`
-}
+const subHeader = (title) =>
+  `\n${colors.muted(chars.lines.tee + chars.lines.h)} ${chalk.bold(title)}`
 
-const spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 let spinnerIndex = 0
-const getSpinner = () => spinner[spinnerIndex++ % spinner.length]
+const getSpinner = () => SPINNER_FRAMES[spinnerIndex++ % SPINNER_FRAMES.length]
+const showProgress = (msg) =>
+  process.stdout.write(`\r${chalk.cyan(getSpinner())} ${msg}${' '.repeat(20)}`)
+const clearProgress = () => process.stdout.write('\r' + ' '.repeat(100) + '\r')
 
-const showProgress = (message) => {
-  process.stdout.write(
-    `\r${chalk.cyan(getSpinner())} ${message}${' '.repeat(20)}`,
-  )
-}
+// ----------------------------------------------------------------------------
+// System Utilities - Shell commands and file operations
+// ----------------------------------------------------------------------------
 
-const clearProgress = () => {
-  process.stdout.write('\r' + ' '.repeat(100) + '\r')
-}
-
-const runCmd = (cmd, args, opts = {}) =>
+// Run a shell command and capture output
+const runCmd = (command, args, opts = {}) =>
   new Promise((resolve, reject) => {
-    const p = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], ...opts })
+    const proc = spawn(command, args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      ...opts,
+    })
     let stdout = ''
     let stderr = ''
-    p.stdout.on('data', (d) => (stdout += d.toString()))
-    p.stderr.on('data', (d) => (stderr += d.toString()))
-    p.on('error', reject)
-    p.on('close', (code) => {
+    proc.stdout.on('data', (data) => (stdout += data.toString()))
+    proc.stderr.on('data', (data) => (stderr += data.toString()))
+    proc.on('error', reject)
+    proc.on('close', (code) => {
       if (code === 0) resolve({ stdout, stderr })
       else
-        reject(new Error(`Command failed: ${cmd} ${args.join(' ')}\n${stderr}`))
+        reject(
+          new Error(`Command failed: ${command} ${args.join(' ')}\n${stderr}`),
+        )
     })
   })
+
+// Normalize asset names by removing Vite hash suffixes
+const normalizeAssetName = (assetPath) => {
+  if (!assetPath || assetPath.endsWith('.map')) return null
+  let normalized = assetPath.replace(/^\.\/|^\//, '')
+  if (normalized.startsWith('dist/')) normalized = normalized.slice(5)
+  return normalized.replace(
+    /-(?=(?:.*[A-Z])|(?:.*_))([A-Za-z0-9_-]{6,})(?=\.[^.]+$)/g,
+    '',
+  )
+}
+
+const parseSemver = (v) => {
+  const m = String(v).match(/^(\d+)\.(\d+)\.(\d+)$/)
+  return m ? [+m[1], +m[2], +m[3]] : null
+}
+
+// ----------------------------------------------------------------------------
+// Package Utilities - Package object creation and manipulation
+// ----------------------------------------------------------------------------
+
+const createPackage = ({
+  name,
+  dir,
+  type,
+  dependencies = [],
+  npmDependencies = [],
+}) => ({
+  name,
+  dir,
+  type,
+  displayName: stripNamespace(name),
+  color: (packageRegistry.typeById[type] ?? packageRegistry.typeById.package)
+    .color,
+  dependencies,
+  npmDependencies,
+})
+
+// ============================================================================
+// BUNDLE ANALYSIS - Zip contents and sourcemap analysis
+// ============================================================================
+
+const calculateSizeCategory = (zippedBytes) => {
+  const kb = zippedBytes / 1024
+  const boundaries = [0, 100, 500, 1000, 2000, 10000]
+  let idx = colors.scale.findIndex(
+    (_, i) => kb >= boundaries[i] && kb < boundaries[i + 1],
+  )
+  if (idx < 0) idx = colors.scale.length - 1
+  const cat = colors.scale[idx]
+  const catWidth = 1 / colors.scale.length
+  const posInCat =
+    (kb - boundaries[idx]) / (boundaries[idx + 1] - boundaries[idx])
+  return {
+    name: cat.name,
+    color: cat.color,
+    pos: idx * catWidth + posInCat * catWidth,
+  }
+}
+
+// Build zip version data from zip contents
+const buildZipVersionData = (zipContents, versionsBack) => {
+  const zipVersions = []
+  const zipIndex = {} // version -> { zipPath, mtimeMs, totalUncompressed, actualBytes }
+  const zipEntriesMap = {} // version -> normalized -> uncompressed
+
+  for (const zipContent of zipContents) {
+    const base = path.basename(zipContent.zip)
+    const versionMatch = base.match(/-(\d+\.\d+\.\d+)\.zip$/)
+    const version = versionMatch ? versionMatch[1] : base
+    zipVersions.push(version)
+    try {
+      const stat = statSync(zipContent.zip)
+      zipIndex[version] = {
+        zipPath: zipContent.zip,
+        mtimeMs: stat.mtimeMs,
+        totalUncompressed: 0,
+        actualBytes: stat.size,
+      }
+    } catch (_statErr) {
+      zipIndex[version] = {
+        zipPath: zipContent.zip,
+        mtimeMs: 0,
+        totalUncompressed: 0,
+        actualBytes: 0,
+      }
+    }
+    zipEntriesMap[version] = {}
+    for (const entry of zipContent.entries || []) {
+      const normalized = normalizeAssetName(entry.name)
+      if (!normalized) continue
+      zipEntriesMap[version][normalized] = entry.uncompressed
+      zipIndex[version].totalUncompressed += entry.uncompressed || 0
+    }
+  }
+
+  // Sort zip versions from highest to lowest (semver where possible)
+  const sortedVersions = [...new Set(zipVersions)].sort((a, b) => {
+    const semverA = parseSemver(a)
+    const semverB = parseSemver(b)
+    if (semverA && semverB) {
+      for (let idx = 0; idx < 3; idx++)
+        if (semverA[idx] !== semverB[idx]) return semverB[idx] - semverA[idx]
+      return 0
+    }
+    if (semverA && !semverB) return -1
+    if (!semverA && semverB) return 1
+    return String(b).localeCompare(String(a), undefined, {
+      numeric: true,
+      sensitivity: 'base',
+    })
+  })
+
+  // If a tabby-dist (working) zip exists, ensure it's included and shown first
+  const tabbyDistIdx = sortedVersions.findIndex((ver) =>
+    String(ver).startsWith('tabby-dist'),
+  )
+  let versions = []
+  if (tabbyDistIdx !== -1) {
+    const [tabbyDist] = sortedVersions.splice(tabbyDistIdx, 1)
+    versions = [tabbyDist, ...sortedVersions.slice(0, versionsBack)]
+  } else {
+    versions = sortedVersions.slice(0, versionsBack)
+  }
+
+  // Find the tabby-dist version (current working version)
+  const tabbyDistVersion = versions.find((ver) =>
+    String(ver).startsWith('tabby-dist'),
+  )
+
+  // Build the union of all asset names from selected versions
+  const allNames = new Set(
+    versions.flatMap((ver) => Object.keys(zipEntriesMap[ver] || {})),
+  )
+
+  // For ordering: find the most recent (largest) size for each asset across all versions
+  const nameMeta = []
+  for (const name of allNames) {
+    let recentSize = 0
+    if (
+      tabbyDistVersion &&
+      zipEntriesMap[tabbyDistVersion] &&
+      zipEntriesMap[tabbyDistVersion][name] != null
+    ) {
+      recentSize = zipEntriesMap[tabbyDistVersion][name]
+    } else {
+      for (const ver of versions) {
+        if (zipEntriesMap[ver] && zipEntriesMap[ver][name] != null) {
+          recentSize = Math.max(recentSize, zipEntriesMap[ver][name])
+        }
+      }
+    }
+    nameMeta.push({ name, recentSize })
+  }
+  nameMeta.sort((a, b) => b.recentSize - a.recentSize)
+
+  // Display versions (exclude tabby-dist since we show it as "Current")
+  const displayVersions = versions.filter(
+    (ver) => !String(ver).startsWith('tabby-dist'),
+  )
+
+  return {
+    versions,
+    displayVersions,
+    tabbyDistVersion,
+    zipIndex,
+    zipEntriesMap,
+    nameMeta,
+    allNames,
+  }
+}
+
+const calculateBundleTotals = (deps, own, totalMapped) => {
+  const depsBytes = deps.reduce((s, d) => s + d.bytes, 0)
+  const ownBytes = own.reduce((s, f) => s + f.bytes, 0)
+  return {
+    depsBytes,
+    ownBytes,
+    totalSize: depsBytes + ownBytes,
+    depsPercent: totalMapped > 0 ? (depsBytes / totalMapped) * 100 : 0,
+    ownPercent: totalMapped > 0 ? (ownBytes / totalMapped) * 100 : 0,
+  }
+}
+
+const calculateCurrentVersionStats = (tabbyDistVersion, zipContents) => {
+  const currentEntries = tabbyDistVersion
+    ? zipContents.find((zc) => zc.zip.includes('tabby-dist'))?.entries || []
+    : []
+  return {
+    currentEntries,
+    currentUncompressed: currentEntries.reduce((s, e) => s + e.uncompressed, 0),
+    currentZipped: currentEntries.reduce((s, e) => s + e.compressed, 0),
+    currentFileCount: currentEntries.length,
+  }
+}
+
+// Detect duplicate bundled dependencies (same package with different versions in bundle)
+const detectDuplicateBundledDeps = (deps) => {
+  const map = new Map()
+  deps.forEach((d) => {
+    const base = d.name.replace(/@[0-9.]+(_.*)?$/, '').replace(/\+.*$/, '')
+    if (!map.has(base)) map.set(base, [])
+    map.get(base).push(d.name)
+  })
+  return [...map.entries()].filter(([, v]) => v.length > 1)
+}
 
 async function listZipContents() {
   const zips = await fg(['dist-zip/*.zip'], { onlyFiles: true })
   const results = []
-  for (const z of zips) {
+  for (const zipPath of zips) {
     try {
       // Prefer unzip -v for a fast listing
-      const { stdout } = await runCmd('unzip', ['-v', z])
+      const { stdout } = await runCmd('unzip', ['-v', zipPath])
       const lines = stdout.split(/\r?\n/)
       const entries = []
-      for (const ln of lines) {
+      for (const line of lines) {
         // lines that look like: <spaces><uncompressed> <method> <compressed> ... <name>
-        const m = ln.match(
+        const match = line.match(
           /^\s*(\d+)\s+\S+\s+(\d+)\s+\S+\s+\S+\s+\S+\s+\S+\s+(.*)$/,
         )
-        if (m) {
-          const uncompressed = Number(m[1])
-          const compressed = Number(m[2])
-          const name = m[3].trim()
+        if (match) {
+          const uncompressed = Number(match[1])
+          const compressed = Number(match[2])
+          const name = match[3].trim()
           entries.push({ name, uncompressed, compressed })
         }
       }
       entries.sort((a, b) => b.compressed - a.compressed)
-      results.push({ zip: z, entries })
-    } catch (e) {
+      results.push({ zip: zipPath, entries })
+    } catch (err) {
       // unzip not available or failed, fallback to just zip file size
       try {
-        const st = await fs.stat(z)
-        results.push({ zip: z, entries: [], error: e.message, bytes: st.size })
-      } catch (e2) {
-        results.push({ zip: z, entries: [], error: e.message })
+        const stat = await fs.stat(zipPath)
+        results.push({
+          zip: zipPath,
+          entries: [],
+          error: err.message,
+          bytes: stat.size,
+        })
+      } catch (_statErr) {
+        results.push({ zip: zipPath, entries: [], error: err.message })
       }
     }
   }
@@ -1061,39 +1223,12 @@ async function analyzeSourcemaps(jsFiles) {
         for (let j = nmIdx + 2; j < Math.min(parts.length, nmIdx + 8); j++) {
           const maybe = stripVersion(parts[j])
           if (!maybe || maybe === '.' || maybe === '..') continue
-          if (
-            maybe &&
-            ![
-              'packages',
-              'pages',
-              'src',
-              'lib',
-              'dist',
-              'dist-zip',
-              '_locales',
-              'public',
-              'scripts',
-              '.pnpm',
-            ].includes(maybe)
-          ) {
+          if (maybe && !REPO_FOLDER_BLACKLIST.has(maybe)) {
             return maybe
           }
         }
       }
-      if (
-        ![
-          'packages',
-          'pages',
-          'src',
-          'lib',
-          'dist',
-          'dist-zip',
-          '_locales',
-          'public',
-          'scripts',
-          '.pnpm',
-        ].includes(candidate)
-      ) {
+      if (!REPO_FOLDER_BLACKLIST.has(candidate)) {
         return stripVersion(candidate)
       }
     }
@@ -1108,43 +1243,16 @@ async function analyzeSourcemaps(jsFiles) {
         // segment may be like "pkg@version" or "@scope+pkg@version" or encoded
         const name = stripVersion(seg)
         // sanity check: name should contain letters or @ (for scoped) and not be repo dirs
-        if (
-          /[a-z0-9@_-]+/i.test(name) &&
-          ![
-            'packages',
-            'pages',
-            'src',
-            'lib',
-            'dist',
-            'dist-zip',
-            '_locales',
-            'public',
-            'scripts',
-            '.pnpm',
-          ].includes(name)
-        )
+        if (/[a-z0-9@_-]+/i.test(name) && !REPO_FOLDER_BLACKLIST.has(name))
           return name
       }
     }
 
     // 3) fallback: look for first package-like segment in path, but avoid repo folders
-    const repoBlacklist = new Set([
-      'packages',
-      'pages',
-      'src',
-      'lib',
-      'dist',
-      'dist-zip',
-      '_locales',
-      'public',
-      'scripts',
-      '.pnpm',
-      'chrome-extension',
-    ])
     for (const seg of parts) {
       if (!seg) continue
       const s = stripVersion(seg)
-      if (repoBlacklist.has(s)) continue
+      if (REPO_FOLDER_BLACKLIST.has(s)) continue
       // Accept if it looks scoped or hyphenated *or* exists under node_modules
       const looksLikePackage = s.startsWith('@') || s.includes('-')
       const existsInNodeModules =
@@ -1156,8 +1264,8 @@ async function analyzeSourcemaps(jsFiles) {
     return null
   }
 
-  for (const f of jsFiles) {
-    const mapPath = f + '.map'
+  for (const jsFile of jsFiles) {
+    const mapPath = jsFile + '.map'
     if (!existsSync(mapPath)) continue
 
     // Read and parse the .map file directly — prefer embedded sourcesContent, otherwise resolve
@@ -1168,7 +1276,7 @@ async function analyzeSourcemaps(jsFiles) {
       let mapJson = null
       try {
         mapJson = JSON.parse(mapRaw)
-      } catch (e) {
+      } catch (_parseErr) {
         mapJson = null
       }
 
@@ -1179,7 +1287,7 @@ async function analyzeSourcemaps(jsFiles) {
       ) {
         console.log(
           colors.warning(
-            `Fallback: .map file has no "sources" array for ${f} (or could not parse .map).`,
+            `Fallback: .map file has no "sources" array for ${jsFile} (or could not parse .map).`,
           ),
         )
         continue
@@ -1249,10 +1357,7 @@ async function analyzeSourcemaps(jsFiles) {
       const isNodeModules = srcLower.includes('node_modules')
       const isOwnCode =
         !isNodeModules &&
-        (srcLower.includes('/packages/') ||
-          srcLower.includes('packages/') ||
-          srcLower.includes('/pages/') ||
-          srcLower.includes('/src/'))
+        WORKSPACE_CODE_MARKERS.some((marker) => srcLower.includes(marker))
 
       if (isOwnCode) {
         perOwn.set(src, (perOwn.get(src) || 0) + b)
@@ -1284,1363 +1389,1084 @@ async function analyzeSourcemaps(jsFiles) {
   return { deps, own, totalMapped }
 }
 
-;(async function main() {
-  try {
-    // Handle --help flag
-    const argv = process.argv.slice(2)
+// ============================================================================
+// CLI - Argument parsing and help display
+// ============================================================================
 
-    // Parse color palette argument first (before help display)
-    let selectedPalette = 'original'
-    for (let i = 0; i < argv.length; i++) {
-      if (argv[i] === '-c' || argv[i] === '--color') {
-        selectedPalette = argv[i + 1]
-        if (selectedPalette && palettes[selectedPalette]) {
-          colors = palettes[selectedPalette]
-          i++
-        } else if (selectedPalette) {
-          console.error(chalk.red(`Unknown color palette: ${selectedPalette}`))
-          console.error(
-            chalk.dim(`Available: ${Object.keys(palettes).join(', ')}`),
-          )
-          process.exit(1)
-        }
+const parseArguments = (argv) => {
+  const args = {
+    help: argv.includes('--help') || argv.includes('-h'),
+    versionsBack: defaults.versionsBack,
+    topLimit: defaults.topDeps,
+  }
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
+    const nextVal = argv[i + 1]
+
+    if (arg === '-v' || arg === '--versions') {
+      const parsed = Number(nextVal)
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        args.versionsBack = parsed
+        i++
+      }
+    } else if (arg === '-t' || arg === '--top') {
+      const parsed = Number(nextVal)
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        args.topLimit = parsed
+        i++
       }
     }
+  }
 
-    if (argv.includes('--help') || argv.includes('-h')) {
-      const paletteNames = Object.keys(palettes)
+  return args
+}
 
-      console.log(
-        '\n' +
-          colors.accent.bold('Tabby Bundle Analyzer') +
-          '\n' +
-          colors.muted('Analyze bundle sizes, dependencies, and trends') +
-          '\n\n' +
-          chalk.bold('Usage:') +
-          '\n' +
-          '  pnpm measure [options]\n\n' +
-          chalk.bold('Options:') +
-          '\n' +
-          '  ' +
-          colors.accent('-v, --versions <n>') +
-          '         Number of versions to compare (default: ' +
-          defaults.versionsBack +
-          ')\n' +
-          '  ' +
-          colors.accent('-t, --top <n>') +
-          '              Number of top items to show (default: all)\n' +
-          '  ' +
-          colors.accent('-c, --color <name>') +
-          '         Color palette: ' +
-          paletteNames.join(', ') +
-          '\n' +
-          '                                 (default: original)\n' +
-          '  ' +
-          colors.accent('-h, --help') +
-          '                 Show this help message\n\n' +
-          chalk.bold('Examples:') +
-          '\n' +
-          '  pnpm measure                  Analyze with defaults\n' +
-          '  pnpm measure -v 5             Compare last 5 versions\n' +
-          '  pnpm measure -t 20            Show top 20 items\n' +
-          '  pnpm measure -c sunset        Use sunset color palette\n' +
-          '  pnpm measure -c berry -v 3    Berry colors, 3 versions\n',
-      )
-      return
-    }
-    // Title
-    console.log('\n' + chalk.bold.white('Tabby Bundle Analyzer'))
-    console.log(chalk.dim('━━━━━━━━━━━━━━━━━━━━━━━') + '\n')
+const showHelp = () => {
+  console.log(
+    '\n' +
+      colors.accent.bold('Tabby Bundle Analyzer') +
+      '\n' +
+      colors.muted('Analyze bundle sizes, dependencies, and trends') +
+      '\n\n' +
+      chalk.bold('Usage:') +
+      '\n' +
+      '  pnpm measure [options]\n\n' +
+      chalk.bold('Options:') +
+      '\n' +
+      '  ' +
+      colors.accent('-v, --versions <n>') +
+      '         Number of versions to compare (default: ' +
+      defaults.versionsBack +
+      ')\n' +
+      '  ' +
+      colors.accent('-t, --top <n>') +
+      '              Number of top items to show (default: all)\n' +
+      '  ' +
+      colors.accent('-h, --help') +
+      '                 Show this help message\n\n' +
+      chalk.bold('Examples:') +
+      '\n' +
+      '  pnpm measure                  Analyze with defaults\n' +
+      '  pnpm measure -v 5             Compare last 5 versions\n' +
+      '  pnpm measure -t 20            Show top 20 items\n',
+  )
+}
 
-    // Ensure we have sourcemaps: run per-page dev builds (these run `vite build --mode development` and should exit)
-    const existingMaps = await fg(['dist/**/*.map'], { onlyFiles: true })
-    if (!existingMaps.length) {
-      console.log(
-        colors.warning('! No sourcemaps found - generating them now...\n'),
-      )
+const showWelcome = () => {
+  console.log('\n' + chalk.bold.white('Tabby Bundle Analyzer'))
+  console.log(chalk.dim('━━━━━━━━━━━━━━━━━━━━━━━') + '\n')
+}
 
-      // Clean dist folder first to avoid stale files
-      showProgress('Cleaning dist folder...')
-      try {
-        await runCmd('pnpm', ['clean:bundle'], {})
-        clearProgress()
-        console.log(colors.success('  ✓ Cleaned dist folder'))
-      } catch (e) {
-        clearProgress()
-        console.log(colors.warning('  ! Warning: failed to clean dist folder'))
-      }
+// ============================================================================
+// PRINT FUNCTIONS - Display output sections
+// ============================================================================
 
-      // Build all pages at once using turbo --filter
-      showProgress('Building all pages with sourcemaps...')
-      try {
-        await runCmd(
-          'turbo',
-          ['build'], //, '--filter=./pages/*'],
-          {
-            env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
-          },
-        )
-        clearProgress()
-        console.log(colors.success('  ✓ Built all pages'))
-      } catch (e) {
-        clearProgress()
-        console.log(
-          colors.error(
-            '  × turbo build failed - sourcemap analysis unavailable',
-          ),
-        )
-      }
-      clearProgress()
+const formatDelta = (delta, deltaPercent, colorFn) => {
+  const sign = delta > 0 ? '+' : ''
+  return (
+    colors.muted(' (') +
+    colorFn(`${sign}${human(delta)}`) +
+    colors.muted(' / ') +
+    colorFn(`${sign}${deltaPercent.toFixed(1)}%`) +
+    colors.muted(')')
+  )
+}
 
-      const mapsAfter = await fg(['dist/**/*.map'], { onlyFiles: true })
-      if (!mapsAfter.length) {
-        console.log(
-          colors.error(
-            '× No sourcemaps produced. Run builds with CLI_CEB_SOURCEMAPS=true manually.',
-          ),
-        )
-      } else {
-        console.log(colors.success('• Sourcemaps generated successfully\n'))
-      }
-    } else {
-      console.log(colors.success('• Found existing sourcemaps\n'))
-    }
+const printBundleOverview = (results) => {
+  const {
+    sizeCategory,
+    versions,
+    displayVersions,
+    zipIndex,
+    zipEntriesMap,
+    tabbyDistVersion,
+    currentUncompressed,
+    currentZipped,
+    currentFileCount,
+    depsBytes,
+    ownBytes,
+    depsPercent,
+    ownPercent,
+  } = results
 
-    // Analyze JS files + sourcemaps
-    showProgress('Analyzing sourcemaps...')
-    const jsFiles = await fg(['dist/**/*.js'], { onlyFiles: true })
-    const { deps, own, totalMapped } = await analyzeSourcemaps(jsFiles)
-    clearProgress()
-    console.log(colors.success('• Sourcemap analysis complete\n'))
+  console.log(sectionHeader('Bundle Overview'))
 
-    const depsBytes = deps.reduce((s, d) => s + d.bytes, 0)
-    const ownBytes = own.reduce((s, o) => s + o.bytes, 0)
-    const depsPercent = totalMapped > 0 ? (depsBytes / totalMapped) * 100 : 0
-    const ownPercent = totalMapped > 0 ? (ownBytes / totalMapped) * 100 : 0
+  // Size category with visual scale
+  const scaleWidth = defaults.scaleWidth
+  const scalePos = Math.floor(sizeCategory.pos * scaleWidth)
+  const scaleBefore = chars.scale.line.repeat(scalePos)
+  const scaleAfter = chars.scale.line.repeat(scaleWidth - scalePos - 1)
+  const scaleBar =
+    colors.border(scaleBefore) +
+    sizeCategory.color(chars.scale.marker) +
+    colors.border(scaleAfter)
 
-    // Detect duplicate dependencies (same base package name with different versions)
-    const duplicateDeps = new Map()
-    for (const d of deps) {
-      const baseName = d.name
-        .replace(/@[0-9.]+(_.*)?$/, '')
-        .replace(/\+.*$/, '')
-      if (!duplicateDeps.has(baseName)) {
-        duplicateDeps.set(baseName, [])
-      }
-      duplicateDeps.get(baseName).push(d.name)
-    }
-    const actualDuplicates = [...duplicateDeps.entries()].filter(
-      ([_, versions]) => versions.length > 1,
-    )
+  // Build scale labels with proper spacing
+  const scaleLabels = colors.scale.map((scaleDef) =>
+    scaleDef.color(scaleDef.name),
+  )
+  const labelSpacing = Math.floor(scaleWidth / colors.scale.length) - 4
+  const labelLine = scaleLabels
+    .map((label) => label + ' '.repeat(Math.max(2, labelSpacing)))
+    .join('')
 
-    // Create a fresh 'tabby-dist.zip' from the current dist for accurate comparison (overwrite if exists)
-    showProgress('Creating tabby-dist.zip...')
-    let zipCreated = false
-    try {
-      await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'])
-      clearProgress()
-      console.log(colors.success('• Created tabby-dist.zip\n'))
-      zipCreated = true
-    } catch (e) {
-      clearProgress()
-      console.log(
-        colors.warning(
-          `⚠ Failed to create tabby-dist.zip: ${String(e.message || e)}`,
-        ),
-      )
-      console.log(colors.muted('  (Continuing with dependency analysis...)\n'))
-    }
+  console.log('')
+  console.log(
+    colors.muted(chars.lines.v) +
+      ' ' +
+      chalk.bold('Size: ') +
+      sizeCategory.color.bold(sizeCategory.name),
+  )
+  console.log(colors.muted(chars.lines.v) + ' ' + scaleBar)
+  console.log(colors.muted(chars.lines.v) + ' ' + labelLine)
 
-    // Zips: gather zip metadata (we create tabby-dist.zip above for a direct, packaged comparison)
-    showProgress('Reading version zips...')
-    const zipContents = await listZipContents()
-    clearProgress()
-
-    // Normalize asset names by removing Vite hash suffixes
-    const normalizeAssetName = (p) => {
-      if (!p) return null
-      // ignore source maps
-      if (p.endsWith('.map')) return null
-      // strip leading dist/ or ./dist/
-      p = p.replace(/^\.\/|^\//, '')
-      if (p.startsWith('dist/')) p = p.slice('dist/'.length)
-
-      // Remove Vite-style hash segments like '-C70I1Fyf' before the extension
-      // Only strip tokens that contain uppercase letters or underscores (heuristic for generated hashes)
-      p = p.replace(
-        /-(?=(?:.*[A-Z])|(?:.*_))([A-Za-z0-9_-]{6,})(?=\.[^.]+$)/g,
-        '',
-      )
-
-      return p
-    }
-
-    // zip entries: map normalized -> { version -> uncompressed }
-    const zipVersions = []
-    const zipIndex = {} // version -> { zipPath, mtimeMs, totalUncompressed }
-    const zipEntriesMap = {} // version -> normalized -> uncompressed
-
-    for (const z of zipContents) {
-      const base = path.basename(z.zip)
-      const vMatch = base.match(/-(\d+\.\d+\.\d+)\.zip$/)
-      const version = vMatch ? vMatch[1] : base
-      zipVersions.push(version)
-      try {
-        const st = statSync(z.zip)
-        zipIndex[version] = {
-          zipPath: z.zip,
-          mtimeMs: st.mtimeMs,
-          totalUncompressed: 0,
-          actualBytes: st.size,
-        }
-      } catch (e) {
-        zipIndex[version] = {
-          zipPath: z.zip,
-          mtimeMs: 0,
-          totalUncompressed: 0,
-          actualBytes: 0,
-        }
-      }
-      zipEntriesMap[version] = {}
-      for (const e of z.entries || []) {
-        const norm = normalizeAssetName(e.name)
-        if (!norm) continue
-        zipEntriesMap[version][norm] = e.uncompressed
-        zipIndex[version].totalUncompressed += e.uncompressed || 0
-      }
-    }
-
-    // Sort zip versions from highest to lowest (semver where possible) and build union of normalized names
-    const parseSemver = (v) => {
-      const m = String(v).match(/^(\d+)\.(\d+)\.(\d+)$/)
-      return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null
-    }
-    const sortedVersions = [...new Set(zipVersions)].sort((a, b) => {
-      const pa = parseSemver(a)
-      const pb = parseSemver(b)
-      if (pa && pb) {
-        for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pb[i] - pa[i]
-        return 0
-      }
-      if (pa && !pb) return -1
-      if (!pa && pb) return 1
-      return String(b).localeCompare(String(a), undefined, {
-        numeric: true,
-        sensitivity: 'base',
-      })
-    })
-
-    // CLI parsing: allow -v / --versions to limit how many zip versions are shown (default 3)
-    // and -t / --top to limit top dependencies and files shown
-    // argv is already declared at the top of main()
-    let versionsBack = defaults.versionsBack
-    let topLimit = defaults.topDeps // null means show all
-
-    for (let i = 0; i < argv.length; i++) {
-      if (argv[i] === '-v' || argv[i] === '--versions') {
-        const val = argv[i + 1]
-        const parsed = Number(val)
-        if (!Number.isNaN(parsed) && parsed > 0) {
-          versionsBack = parsed
-          i++
-        } else {
-          versionsBack = defaults.versionsBack
-        }
-      }
-      if (argv[i] === '-t' || argv[i] === '--top') {
-        const val = argv[i + 1]
-        const parsed = Number(val)
-        if (!Number.isNaN(parsed) && parsed > 0) {
-          topLimit = parsed
-          i++
-        }
-      }
-    }
-    // If a tabby-dist (working) zip exists, ensure it's included and shown first
-    const tabbyDistIdx = sortedVersions.findIndex((v) =>
-      String(v).startsWith('tabby-dist'),
-    )
-    let versions = []
-    if (tabbyDistIdx !== -1) {
-      // Remove tabby-dist from sortedVersions and add it first
-      const [tabbyDist] = sortedVersions.splice(tabbyDistIdx, 1)
-      versions = [tabbyDist, ...sortedVersions.slice(0, versionsBack)]
-    } else {
-      versions = sortedVersions.slice(0, versionsBack)
-    }
-
-    // Build the union of all asset names from selected versions
-    const allNames = new Set(
-      versions.flatMap((v) => Object.keys(zipEntriesMap[v] || {})),
-    )
-
-    // For ordering: find the most recent (largest) size for each asset across all versions
-    const tabbyDistVersion = versions.find((v) =>
-      String(v).startsWith('tabby-dist'),
-    )
-    const nameMeta = [] // { name, recentSize }
-    for (const name of allNames) {
-      let recentSize = 0
-      // Prefer tabby-dist size if available, otherwise use the largest size from any version
-      if (
-        tabbyDistVersion &&
-        zipEntriesMap[tabbyDistVersion] &&
-        zipEntriesMap[tabbyDistVersion][name] != null
-      ) {
-        recentSize = zipEntriesMap[tabbyDistVersion][name]
-      } else {
-        for (const v of versions) {
-          if (zipEntriesMap[v] && zipEntriesMap[v][name] != null) {
-            recentSize = Math.max(recentSize, zipEntriesMap[v][name])
-          }
-        }
-      }
-      nameMeta.push({ name, recentSize })
-    }
-
-    // sort by recentSize descending
-    nameMeta.sort((a, b) => b.recentSize - a.recentSize)
-
-    // ========================================
-    // BEAUTIFUL OUTPUT WITH LOGICAL ORDERING
-    // ========================================
-
-    // Calculate totals
-    const totalSize = depsBytes + ownBytes
-
-    // Determine which versions to show (exclude tabby-dist since we'll show it as "dist")
-    const displayVersions = versions.filter(
-      (v) => !String(v).startsWith('tabby-dist'),
-    )
-
-    // Get current version data (tabbyDistVersion is already declared above)
-    const currentEntries = tabbyDistVersion
-      ? zipContents.find((z) => z.zip.includes('tabby-dist'))?.entries || []
-      : []
-    const currentUncompressed = currentEntries.reduce(
-      (sum, e) => sum + e.uncompressed,
-      0,
-    )
-    const currentZipped = currentEntries.reduce(
-      (sum, e) => sum + e.compressed,
-      0,
-    )
-
-    // Size category with visual scale
-    const sizeCategory = (() => {
-      const kb = currentZipped / 1024
-      // Define category boundaries using colors.scale
-      const boundaries = [0, 100, 500, 1000, 2000, 10000]
-
-      // Find which category we're in
-      let categoryIndex = colors.scale.length - 1 // default to last (Huge)
-      for (let i = 0; i < colors.scale.length; i++) {
-        if (kb >= boundaries[i] && kb < boundaries[i + 1]) {
-          categoryIndex = i
-          break
-        }
-      }
-      const category = colors.scale[categoryIndex]
-
-      // Calculate position within the overall scale (0 to 1)
-      const categoryWidth = 1 / colors.scale.length
-      const positionWithinCategory =
-        (kb - boundaries[categoryIndex]) /
-        (boundaries[categoryIndex + 1] - boundaries[categoryIndex])
-      const pos =
-        categoryIndex * categoryWidth + positionWithinCategory * categoryWidth
-
-      return { name: category.name, color: category.color, pos }
-    })()
-
-    // =================
-    // 1. BUNDLE OVERVIEW
-    // =================
-    console.log(sectionHeader('Bundle Overview'))
-
-    // Size category with visual scale - indented to distinguish from heading
-    const scaleWidth = defaults.scaleWidth
-    const scalePos = Math.floor(sizeCategory.pos * scaleWidth)
-    const scaleBefore = chars.scale.line.repeat(scalePos)
-    const scaleAfter = chars.scale.line.repeat(scaleWidth - scalePos - 1)
-    const scaleBar =
-      colors.border(scaleBefore) +
-      sizeCategory.color(chars.scale.marker) +
-      colors.border(scaleAfter)
-
-    // Build scale labels with proper spacing
-    const scaleLabels = colors.scale.map((s) => s.color(s.name))
-    const labelSpacing = Math.floor(scaleWidth / colors.scale.length) - 4
-    const labelLine = scaleLabels
-      .map((l) => l + ' '.repeat(Math.max(2, labelSpacing)))
-      .join('')
-
-    console.log('')
-    console.log(
+  // Current size with version comparison
+  const currentVersion = versions.find((ver) =>
+    String(ver).startsWith('tabby-dist'),
+  )
+    ? 'Current'
+    : versions[0]
+  console.log(
+    '\n' +
       colors.muted(chars.lines.v) +
-        ' ' +
-        chalk.bold('Size: ') +
-        sizeCategory.color.bold(sizeCategory.name),
-    )
-    console.log(colors.muted(chars.lines.v) + ' ' + scaleBar)
-    console.log(colors.muted(chars.lines.v) + ' ' + labelLine)
+      ' ' +
+      chalk.bold('Version: ') +
+      colors.accent(currentVersion || 'dist'),
+  )
 
-    // Current size with version comparison
-    const currentVersion = versions.find((v) =>
-      String(v).startsWith('tabby-dist'),
-    )
-      ? 'Current'
-      : versions[0]
-    console.log(
-      '\n' +
-        colors.muted(chars.lines.v) +
-        ' ' +
-        chalk.bold('Version: ') +
-        colors.accent(currentVersion || 'dist'),
-    )
+  // Show comparison if previous version exists
+  if (displayVersions.length > 0) {
+    const prevVersion = displayVersions[0]
+    const prevIndex = zipIndex[prevVersion]
+    const prevZipped = prevIndex ? prevIndex.actualBytes : 0
+    const prevUncompressed = prevIndex ? prevIndex.totalUncompressed : 0
+    const prevFileCount = Object.keys(zipEntriesMap[prevVersion] || {}).length
 
-    // Count files in current version
-    const currentFileCount = tabbyDistVersion
-      ? Object.keys(zipEntriesMap[tabbyDistVersion] || {}).length
-      : 0
+    const zippedDelta = currentZipped - prevZipped
+    const uncompressedDelta = currentUncompressed - prevUncompressed
+    const fileCountDelta = currentFileCount - prevFileCount
+    const zippedDeltaPercent =
+      prevZipped > 0 ? (zippedDelta / prevZipped) * 100 : 0
+    const uncompressedDeltaPercent =
+      prevUncompressed > 0 ? (uncompressedDelta / prevUncompressed) * 100 : 0
 
-    // Helper for delta display with proper sign and color
-    const formatDelta = (delta, deltaPercent, colorFn) => {
-      const sign = delta > 0 ? '+' : ''
-      return (
-        colors.muted(' (') +
-        colorFn(`${sign}${human(delta)}`) +
-        colors.muted(' / ') +
-        colorFn(`${sign}${deltaPercent.toFixed(1)}%`) +
-        colors.muted(')')
-      )
-    }
-
-    // Show comparison if previous version exists
-    if (displayVersions.length > 0) {
-      const prevVersion = displayVersions[0]
-      const prevIndex = zipIndex[prevVersion]
-      const prevZipped = prevIndex ? prevIndex.actualBytes : 0
-      const prevUncompressed = prevIndex ? prevIndex.totalUncompressed : 0
-      const prevFileCount = Object.keys(zipEntriesMap[prevVersion] || {}).length
-
-      const zippedDelta = currentZipped - prevZipped
-      const uncompressedDelta = currentUncompressed - prevUncompressed
-      const fileCountDelta = currentFileCount - prevFileCount
-      const zippedDeltaPercent =
-        prevZipped > 0 ? (zippedDelta / prevZipped) * 100 : 0
-      const uncompressedDeltaPercent =
-        prevUncompressed > 0 ? (uncompressedDelta / prevUncompressed) * 100 : 0
-
-      const zippedColor =
-        zippedDelta > 0
-          ? colors.error
-          : zippedDelta < 0
-            ? colors.success
-            : colors.border
-      const uncompressedColor =
-        uncompressedDelta > 0
-          ? colors.error
-          : uncompressedDelta < 0
-            ? colors.success
-            : colors.border
-      const fileCountColor =
-        fileCountDelta > 0
-          ? colors.error
-          : fileCountDelta < 0
-            ? colors.success
-            : colors.border
-
-      console.log(
-        colors.muted(chars.lines.v + '   Uncompressed: ') +
-          chalk.white(human(currentUncompressed)) +
-          (uncompressedDelta !== 0
-            ? formatDelta(
-                uncompressedDelta,
-                uncompressedDeltaPercent,
-                uncompressedColor,
-              )
-            : ''),
-      )
-      console.log(
-        colors.muted(chars.lines.v + '   Zipped:       ') +
-          chalk.white.bold(human(currentZipped)) +
-          (zippedDelta !== 0
-            ? formatDelta(zippedDelta, zippedDeltaPercent, zippedColor)
-            : ''),
-      )
-      console.log(
-        colors.muted(chars.lines.v + '   Files:        ') +
-          chalk.white(currentFileCount) +
-          (fileCountDelta !== 0
-            ? colors.muted(' (') +
-              fileCountColor(
-                `${fileCountDelta > 0 ? '+' : ''}${fileCountDelta}`,
-              ) +
-              colors.muted(' / ') +
-              fileCountColor(
-                `${fileCountDelta > 0 ? '+' : ''}${((fileCountDelta / prevFileCount) * 100).toFixed(1)}%`,
-              ) +
-              colors.muted(')')
-            : ''),
-      )
-    } else {
-      console.log(
-        colors.muted(chars.lines.v + '   Uncompressed: ') +
-          chalk.white(human(currentUncompressed)),
-      )
-      console.log(
-        colors.muted(chars.lines.v + '   Zipped:       ') +
-          chalk.white.bold(human(currentZipped)),
-      )
-      console.log(
-        colors.muted(chars.lines.v + '   Files:        ') +
-          chalk.white(currentFileCount),
-      )
-    }
-
-    // Deps vs Own with bars
-    console.log(
-      '\n' +
-        colors.muted(chars.lines.v) +
-        ' ' +
-        chalk.bold('Code Composition:'),
-    )
-    const depsBar = progressBar(depsPercent, 50, colors.dependencies)
-    const ownBar = progressBar(ownPercent, 50, colors.sourceCode)
-    console.log(
-      colors.muted(chars.lines.v + '   Dependencies: ') +
-        depsBar +
-        colors.dependencies(` ${depsPercent.toFixed(1)}%`) +
-        colors.border(` (${human(depsBytes)})`),
-    )
-    console.log(
-      colors.muted(chars.lines.corner + '   Source Code:  ') +
-        ownBar +
-        colors.sourceCode(` ${ownPercent.toFixed(1)}%`) +
-        colors.border(` (${human(ownBytes)})`),
-    )
-
-    // ========================
-    // 2. DEPENDENCIES
-    // ========================
-    console.log(sectionHeader('Dependencies'))
-
-    const topDeps =
-      topLimit !== null
-        ? deps.sort((a, b) => b.bytes - a.bytes).slice(0, topLimit)
-        : deps.sort((a, b) => b.bytes - a.bytes)
-    const maxDepSize = topDeps.length > 0 ? topDeps[0].bytes : 1
-
-    if (topLimit !== null) {
-      console.log('\n' + colors.muted(`Showing top ${topLimit} by size:\n`))
-    } else {
-      console.log('')
-    }
-    for (const d of topDeps) {
-      const pct =
-        totalSize > 0 ? ((d.bytes / totalSize) * 100).toFixed(1) : '0.0'
-      const relativePct = (d.bytes / maxDepSize) * 100
-      const bar = progressBar(
-        relativePct,
-        defaults.barWidth,
-        colors.dependencies,
-      )
-      const sizeStr = human(d.bytes).padEnd(13)
-      const pctStr = `${pct}%`.padEnd(6)
-      console.log(
-        `  ${bar} ${chalk.white(sizeStr)} ${colors.dependencies(pctStr)} ${colors.muted(d.name)}`,
-      )
-    }
-
-    // Duplicate check
-    if (actualDuplicates.length > 0) {
-      console.log('\n' + colors.warning('! Duplicate packages detected:'))
-      for (const [pkgBase, pkgVersions] of actualDuplicates) {
-        console.log(
-          colors.warning(`  ${chars.lines.v} ${pkgBase}: `) +
-            colors.muted(pkgVersions.join(', ')),
-        )
-      }
-    }
-
-    // ========================
-    // 3. SOURCE FILES
-    // ========================
-    console.log(sectionHeader('Source Files'))
-
-    const topOwn =
-      topLimit !== null
-        ? own.sort((a, b) => b.bytes - a.bytes).slice(0, topLimit)
-        : own.sort((a, b) => b.bytes - a.bytes)
-    const maxOwnSize = topOwn.length > 0 ? topOwn[0].bytes : 1
-
-    if (topLimit !== null) {
-      console.log('\n' + colors.muted(`Showing top ${topLimit} by size:\n`))
-    } else {
-      console.log('')
-    }
-    for (const o of topOwn) {
-      const pct =
-        totalSize > 0 ? ((o.bytes / totalSize) * 100).toFixed(1) : '0.0'
-      const relativePct = (o.bytes / maxOwnSize) * 100
-      const bar = progressBar(relativePct, defaults.barWidth, colors.sourceCode)
-      const sizeStr = human(o.bytes).padEnd(13)
-      const pctStr = `${pct}%`.padEnd(6)
-      const cleanPath = simplifyPath(o.path)
-      console.log(
-        `  ${bar} ${chalk.white(sizeStr)} ${colors.sourceCode(pctStr)} ${colors.muted(cleanPath)}`,
-      )
-    }
-
-    // =====================
-    // 4. FILE BREAKDOWN
-    // =====================
-    if (tabbyDistVersion && zipEntriesMap[tabbyDistVersion]) {
-      console.log(sectionHeader('File Breakdown'))
-
-      const totalsByVersion = { dist: 0 }
-      for (const v of displayVersions) totalsByVersion[v] = 0
-
-      // Calculate totals
-      for (const name of allNames) {
-        if (
-          tabbyDistVersion &&
-          zipEntriesMap[tabbyDistVersion] &&
-          zipEntriesMap[tabbyDistVersion][name] != null
-        ) {
-          totalsByVersion.dist += zipEntriesMap[tabbyDistVersion][name]
-        }
-      }
-
-      const pageBreakdown = new Map()
-      const packageBreakdown = new Map()
-
-      for (const [name, size] of Object.entries(
-        zipEntriesMap[tabbyDistVersion],
-      )) {
-        // Determine page (first path segment)
-        const parts = name.split('/')
-        if (parts.length > 1) {
-          const page = parts[0]
-          pageBreakdown.set(page, (pageBreakdown.get(page) || 0) + size)
-        }
-
-        // Determine package (from packages/ path)
-        if (name.startsWith('packages/')) {
-          const pkg = parts[1] || 'unknown'
-          packageBreakdown.set(pkg, (packageBreakdown.get(pkg) || 0) + size)
-        }
-      }
-
-      if (pageBreakdown.size > 0) {
-        console.log('')
-        const sortedPages = [...pageBreakdown.entries()].sort(
-          (a, b) => b[1] - a[1],
-        )
-        const maxPageSize = sortedPages.length > 0 ? sortedPages[0][1] : 1
-        for (const [page, size] of sortedPages) {
-          const pct =
-            totalsByVersion.dist > 0
-              ? ((size / totalsByVersion.dist) * 100).toFixed(1)
-              : '0.0'
-          const relativePct = (size / maxPageSize) * 100
-          const bar = progressBar(relativePct, defaults.barWidth, colors.pages)
-          console.log(
-            `  ${bar} ${human(size).padEnd(13)} ${colors.pages(`${pct}%`.padEnd(6))} ${colors.muted(page)}`,
-          )
-        }
-      }
-
-      if (packageBreakdown.size > 0) {
-        console.log('\n' + subHeader('By Package'))
-        const sortedPackages = [...packageBreakdown.entries()].sort(
-          (a, b) => b[1] - a[1],
-        )
-        const maxPkgSize = sortedPackages.length > 0 ? sortedPackages[0][1] : 1
-        for (const [pkg, size] of sortedPackages) {
-          const pct =
-            totalsByVersion.dist > 0
-              ? ((size / totalsByVersion.dist) * 100).toFixed(1)
-              : '0.0'
-          const relativePct = (size / maxPkgSize) * 100
-          const bar = progressBar(relativePct, 25, colors.success)
-          console.log(
-            `  ${bar} ${human(size).padEnd(12)} ${pct.padStart(5)}%  ${colors.muted(pkg)}`,
-          )
-        }
-      }
-    }
-
-    // ======================
-    // 5. WORKSPACE DEPENDENCY ANALYSIS
-    // ======================
-    console.log(sectionHeader('Workspace Dependencies'))
-
-    showProgress('Analyzing workspace dependencies...')
-    const workspacePackages = await collectWorkspacePackages()
-    clearProgress()
-
-    // Build dependency layers
-    const layers = buildDependencyLayers(workspacePackages)
-
-    // Reorganize layers: ROOT layer, APP layer, PAGES layer, then package layers
-    const reorganizedLayers = []
-    const rootLayer = []
-    const appLayer = []
-    const pagesLayer = []
-    const packageLayers = []
-
-    for (const layer of layers) {
-      const roots = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'root',
-      )
-      const apps = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'app',
-      )
-      const pages = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'page',
-      )
-      const packages = layer.filter((pkg) => {
-        const type = workspacePackages.get(pkg)?.type
-        return type !== 'root' && type !== 'app' && type !== 'page'
-      })
-
-      if (roots.length > 0) rootLayer.push(...roots)
-      if (apps.length > 0) appLayer.push(...apps)
-      if (pages.length > 0) pagesLayer.push(...pages)
-      if (packages.length > 0) packageLayers.push(packages)
-    }
-
-    // Build final layer order: ROOT, APP, PAGES, then packages in reverse order (bottom to top)
-    if (rootLayer.length > 0) reorganizedLayers.push(rootLayer)
-    if (appLayer.length > 0) reorganizedLayers.push(appLayer)
-    if (pagesLayer.length > 0) reorganizedLayers.push(pagesLayer)
-    // Reverse package layers so dependencies are at the bottom
-    for (let i = packageLayers.length - 1; i >= 0; i--) {
-      reorganizedLayers.push(packageLayers[i])
-    }
-
-    // Create a visual dependency graph
-    console.log('\n' + colors.muted('  Dependency Graph:'))
-    console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
-
-    // Box drawing characters for the tree
-    const box = {
-      tl: '┌',
-      tr: '┐',
-      bl: '└',
-      br: '┘',
-      h: '─',
-      v: '│',
-      vr: '├',
-      vl: '┤',
-      hd: '┬',
-      hu: '┴',
-      cross: '┼',
-      up: '▲',
-      down: '▼',
-    }
-
-    // Render layers from top (app) to bottom (dependencies)
-    for (let layerIdx = 0; layerIdx < reorganizedLayers.length; layerIdx++) {
-      const layer = reorganizedLayers[layerIdx]
-      const isFirstLayer = layerIdx === 0
-      const isLastLayer = layerIdx === reorganizedLayers.length - 1
-
-      // Categorize packages
-      const rootPackages = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'root',
-      )
-      const appPackages = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'app',
-      )
-      const pagePackages = layer.filter(
-        (pkg) => workspacePackages.get(pkg)?.type === 'page',
-      )
-
-      // Determine layer label
-      let layerLabel
-      if (rootPackages.length > 0) {
-        layerLabel = 'ROOT'
-      } else if (appPackages.length > 0) {
-        layerLabel = 'APP'
-      } else if (pagePackages.length > 0) {
-        layerLabel = 'PAGES'
-      } else {
-        // Count backwards from the pages layer (account for root and app)
-        const offsetLayers =
-          (rootPackages.length > 0 ? 1 : 0) + (appPackages.length > 0 ? 1 : 0)
-        layerLabel = `P${layerIdx - offsetLayers - 1}`
-      }
-
-      // Format packages with colors
-      const formatPkg = (pkg) => {
-        const info = workspacePackages.get(pkg)
-        const color =
-          info?.type === 'root'
-            ? colors.success
-            : info?.type === 'app'
-              ? colors.success
-              : info?.type === 'page'
-                ? colors.pages
-                : colors.sourceCode
-        return color(pkg)
-      }
-
-      // Render layer (sorted alphabetically)
-      const allPkgs = [...layer].sort()
-      const pkgStr = allPkgs.map(formatPkg).join(colors.muted('  '))
-
-      // Add layer label with visual indicator
-      const labelColor =
-        rootPackages.length > 0
+    const zippedColor =
+      zippedDelta > 0
+        ? colors.error
+        : zippedDelta < 0
           ? colors.success
-          : appPackages.length > 0
-            ? colors.success
-            : pagePackages.length > 0
-              ? colors.pages
-              : colors.sourceCode
-      console.log(
-        `  ${labelColor(layerLabel.padStart(6))} ${colors.muted(box.v)} ${pkgStr}`,
-      )
+          : colors.border
+    const uncompressedColor =
+      uncompressedDelta > 0
+        ? colors.error
+        : uncompressedDelta < 0
+          ? colors.success
+          : colors.border
+    const fileCountColor =
+      fileCountDelta > 0
+        ? colors.error
+        : fileCountDelta < 0
+          ? colors.success
+          : colors.border
 
-      // Show dependencies going down (from this layer to next)
-      if (!isLastLayer) {
-        const nextLayer = reorganizedLayers[layerIdx + 1]
-        const connections = []
-
-        for (const pkg of layer) {
-          const pkgInfo = workspacePackages.get(pkg)
-          if (!pkgInfo) continue
-
-          for (const dep of pkgInfo.dependencies) {
-            if (nextLayer.includes(dep)) {
-              connections.push({ from: pkg, to: dep })
-            }
-          }
-        }
-
-        if (connections.length > 0) {
-          // Show arrow indicator pointing down
-          console.log(colors.muted(`         ${box.v}   ${box.down}`))
-        }
-      }
-    }
-
-    console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
-
-    // Collect npm dependencies and analyze imports
-    showProgress('Analyzing dependencies...')
-    const npmDeps = await collectNpmDependencies(workspacePackages)
-    const {
-      issues: importIssues,
-      cssImports,
-      actualImports,
-      actualNpmImports,
-    } = await analyzeImportStatements(workspacePackages, npmDeps)
-    const unusedDeps = detectUnusedDependencies(
-      workspacePackages,
-      actualImports,
-      npmDeps,
-      actualNpmImports,
+    console.log(
+      colors.muted(chars.lines.v + '   Uncompressed: ') +
+        chalk.white(human(currentUncompressed)) +
+        (uncompressedDelta !== 0
+          ? formatDelta(
+              uncompressedDelta,
+              uncompressedDeltaPercent,
+              uncompressedColor,
+            )
+          : ''),
     )
-    const duplicateVersions = await detectDuplicateVersions(workspacePackages)
-    clearProgress()
+    console.log(
+      colors.muted(chars.lines.v + '   Zipped:       ') +
+        chalk.white.bold(human(currentZipped)) +
+        (zippedDelta !== 0
+          ? formatDelta(zippedDelta, zippedDeltaPercent, zippedColor)
+          : ''),
+    )
+    console.log(
+      colors.muted(chars.lines.v + '   Files:        ') +
+        chalk.white(currentFileCount) +
+        (fileCountDelta !== 0
+          ? colors.muted(' (') +
+            fileCountColor(
+              `${fileCountDelta > 0 ? '+' : ''}${fileCountDelta}`,
+            ) +
+            colors.muted(' / ') +
+            fileCountColor(
+              `${fileCountDelta > 0 ? '+' : ''}${((fileCountDelta / prevFileCount) * 100).toFixed(1)}%`,
+            ) +
+            colors.muted(')')
+          : ''),
+    )
+  } else {
+    console.log(
+      colors.muted(chars.lines.v + '   Uncompressed: ') +
+        chalk.white(human(currentUncompressed)),
+    )
+    console.log(
+      colors.muted(chars.lines.v + '   Zipped:       ') +
+        chalk.white.bold(human(currentZipped)),
+    )
+    console.log(
+      colors.muted(chars.lines.v + '   Files:        ') +
+        chalk.white(currentFileCount),
+    )
+  }
 
-    // Build map of unused deps per package for coloring
-    const unusedByPackage = new Map()
-    for (const { package: pkg, dependency } of unusedDeps) {
-      if (!unusedByPackage.has(pkg)) {
-        unusedByPackage.set(pkg, new Set())
-      }
-      unusedByPackage.get(pkg).add(dependency)
+  // Deps vs Own with bars
+  console.log(
+    '\n' + colors.muted(chars.lines.v) + ' ' + chalk.bold('Code Composition:'),
+  )
+  const depsBar = progressBar(depsPercent, 50, colors.dependencies)
+  const ownBar = progressBar(ownPercent, 50, colors.sourceCode)
+  console.log(
+    colors.muted(chars.lines.v + '   Dependencies: ') +
+      depsBar +
+      colors.dependencies(` ${depsPercent.toFixed(1)}%`) +
+      colors.border(` (${human(depsBytes)})`),
+  )
+  console.log(
+    colors.muted(chars.lines.corner + '   Source Code:  ') +
+      ownBar +
+      colors.sourceCode(` ${ownPercent.toFixed(1)}%`) +
+      colors.border(` (${human(ownBytes)})`),
+  )
+}
+
+const printDependencies = (results, topLimit) => {
+  const { deps, totalSize, actualDuplicates } = results
+
+  console.log(sectionHeader('Dependencies'))
+
+  const topDeps =
+    topLimit !== null
+      ? deps.sort((a, b) => b.bytes - a.bytes).slice(0, topLimit)
+      : deps.sort((a, b) => b.bytes - a.bytes)
+  const maxDepSize = topDeps.length > 0 ? topDeps[0].bytes : 1
+
+  if (topLimit !== null) {
+    console.log('\n' + colors.muted(`Showing top ${topLimit} by size:\n`))
+  } else {
+    console.log('')
+  }
+  for (const dep of topDeps) {
+    const pct =
+      totalSize > 0 ? ((dep.bytes / totalSize) * 100).toFixed(1) : '0.0'
+    const relativePct = (dep.bytes / maxDepSize) * 100
+    const bar = progressBar(relativePct, defaults.barWidth, colors.dependencies)
+    const sizeStr = human(dep.bytes).padEnd(13)
+    const pctStr = `${pct}%`.padEnd(6)
+    console.log(
+      `  ${bar} ${chalk.white(sizeStr)} ${colors.dependencies(pctStr)} ${colors.muted(dep.name)}`,
+    )
+  }
+
+  // Duplicate check
+  if (actualDuplicates.length > 0) {
+    console.log('\n' + colors.warning('! Duplicate packages detected:'))
+    for (const [pkgBase, pkgVersions] of actualDuplicates) {
+      console.log(
+        colors.warning(`  ${chars.lines.v} ${pkgBase}: `) +
+          colors.muted(pkgVersions.join(', ')),
+      )
+    }
+  }
+}
+
+const printSourceFiles = (results, topLimit) => {
+  const { own, totalSize } = results
+
+  console.log(sectionHeader('Source Files'))
+
+  const topOwn =
+    topLimit !== null
+      ? own.sort((a, b) => b.bytes - a.bytes).slice(0, topLimit)
+      : own.sort((a, b) => b.bytes - a.bytes)
+  const maxOwnSize = topOwn.length > 0 ? topOwn[0].bytes : 1
+
+  if (topLimit !== null) {
+    console.log('\n' + colors.muted(`Showing top ${topLimit} by size:\n`))
+  } else {
+    console.log('')
+  }
+  for (const file of topOwn) {
+    const pct =
+      totalSize > 0 ? ((file.bytes / totalSize) * 100).toFixed(1) : '0.0'
+    const relativePct = (file.bytes / maxOwnSize) * 100
+    const bar = progressBar(relativePct, defaults.barWidth, colors.sourceCode)
+    const sizeStr = human(file.bytes).padEnd(13)
+    const pctStr = `${pct}%`.padEnd(6)
+    const cleanPath = simplifyPath(file.path)
+    console.log(
+      `  ${bar} ${chalk.white(sizeStr)} ${colors.sourceCode(pctStr)} ${colors.muted(cleanPath)}`,
+    )
+  }
+}
+
+const printFileBreakdown = (results) => {
+  const { tabbyDistVersion, zipEntriesMap, allNames, displayVersions } = results
+
+  if (!tabbyDistVersion || !zipEntriesMap[tabbyDistVersion]) return
+
+  console.log(sectionHeader('File Breakdown'))
+
+  const totalsByVersion = { dist: 0 }
+  for (const ver of displayVersions) totalsByVersion[ver] = 0
+
+  // Calculate totals
+  for (const name of allNames) {
+    if (zipEntriesMap[tabbyDistVersion]?.[name] != null) {
+      totalsByVersion.dist += zipEntriesMap[tabbyDistVersion][name]
+    }
+  }
+
+  const pageBreakdown = new Map()
+  const packageBreakdown = new Map()
+
+  for (const [name, size] of Object.entries(zipEntriesMap[tabbyDistVersion])) {
+    // Determine page (first path segment)
+    const parts = name.split('/')
+    if (parts.length > 1) {
+      const page = parts[0]
+      pageBreakdown.set(page, (pageBreakdown.get(page) || 0) + size)
     }
 
-    // Combined dependency list
-    console.log('\n' + colors.muted('  Package Dependencies:'))
-
-    // Helper to format dependency list with wrapping
-    const maxLineWidth = 100
-    const pkgNameWidth = 20
-    const arrowWidth = 3 // ' → '
-    const indentWidth = 2 + pkgNameWidth + arrowWidth // '  ' + name + ' → '
-
-    const formatDeps = (workspaceDeps, npmDepsArray, unusedSet) => {
-      const allDeps = []
-
-      // Add workspace deps by type
-      const apps = workspaceDeps
-        .filter((d) => workspacePackages.get(d)?.type === 'app')
-        .sort((a, b) => a.localeCompare(b))
-      const pages = workspaceDeps
-        .filter((d) => workspacePackages.get(d)?.type === 'page')
-        .sort((a, b) => a.localeCompare(b))
-      const pkgs = workspaceDeps
-        .filter((d) => {
-          const type = workspacePackages.get(d)?.type
-          return type !== 'app' && type !== 'page'
-        })
-        .sort((a, b) => a.localeCompare(b))
-      const npms = npmDepsArray.sort((a, b) => a.name.localeCompare(b.name))
-
-      apps.forEach((d) => allDeps.push({ name: d, color: colors.success }))
-      pages.forEach((d) => allDeps.push({ name: d, color: colors.pages }))
-      pkgs.forEach((d) => allDeps.push({ name: d, color: (x) => x }))
-      npms.forEach((d) => allDeps.push({ name: d.name, color: colors.muted }))
-
-      if (allDeps.length === 0) return [colors.muted('(none)')]
-
-      const lines = []
-      let currentLine = []
-      let currentLineLength = 0
-
-      for (let i = 0; i < allDeps.length; i++) {
-        const dep = allDeps[i]
-        const isLast = i === allDeps.length - 1
-        const isUnused = unusedSet.has(dep.name)
-
-        // Use error color for unused, otherwise use the dep's color
-        const colorFn = isUnused ? colors.error : dep.color
-        const depText = colorFn(dep.name) + (isLast ? '' : colors.muted(', '))
-        const depLength = dep.name.length + (isLast ? 0 : 2)
-
-        // Check if adding this dep would exceed width
-        if (
-          currentLine.length > 0 &&
-          indentWidth + currentLineLength + depLength > maxLineWidth
-        ) {
-          // Finish current line and start new one
-          lines.push(currentLine.join(''))
-          currentLine = [depText]
-          currentLineLength = depLength
-        } else {
-          currentLine.push(depText)
-          currentLineLength += depLength
-        }
-      }
-
-      // Add remaining line
-      if (currentLine.length > 0) {
-        lines.push(currentLine.join(''))
-      }
-
-      return lines
+    // Determine package (from packages/ path)
+    if (name.startsWith('packages/')) {
+      const pkg = parts[1] || 'unknown'
+      packageBreakdown.set(pkg, (packageBreakdown.get(pkg) || 0) + size)
     }
+  }
 
-    // Sort packages: root, app, pages (alpha), packages (alpha)
-    const sortedPackages = [...workspacePackages.entries()].sort((a, b) => {
-      const [aName, aPkg] = a
-      const [bName, bPkg] = b
+  if (pageBreakdown.size > 0) {
+    console.log('')
+    const sortedPages = [...pageBreakdown.entries()].sort((a, b) => b[1] - a[1])
+    const maxPageSize = sortedPages.length > 0 ? sortedPages[0][1] : 1
+    for (const [page, size] of sortedPages) {
+      const pct =
+        totalsByVersion.dist > 0
+          ? ((size / totalsByVersion.dist) * 100).toFixed(1)
+          : '0.0'
+      const relativePct = (size / maxPageSize) * 100
+      const bar = progressBar(relativePct, defaults.barWidth, colors.pages)
+      console.log(
+        `  ${bar} ${human(size).padEnd(13)} ${colors.pages(`${pct}%`.padEnd(6))} ${colors.muted(page)}`,
+      )
+    }
+  }
 
-      // Root first
-      if (aPkg.type === 'root' && bPkg.type !== 'root') return -1
-      if (aPkg.type !== 'root' && bPkg.type === 'root') return 1
+  if (packageBreakdown.size > 0) {
+    console.log('\n' + subHeader('By Package'))
+    const sortedPackages = [...packageBreakdown.entries()].sort(
+      (a, b) => b[1] - a[1],
+    )
+    const maxPkgSize = sortedPackages.length > 0 ? sortedPackages[0][1] : 1
+    for (const [pkg, size] of sortedPackages) {
+      const pct =
+        totalsByVersion.dist > 0
+          ? ((size / totalsByVersion.dist) * 100).toFixed(1)
+          : '0.0'
+      const relativePct = (size / maxPkgSize) * 100
+      const bar = progressBar(relativePct, 25, colors.success)
+      console.log(
+        `  ${bar} ${human(size).padEnd(12)} ${pct.padStart(5)}%  ${colors.muted(pkg)}`,
+      )
+    }
+  }
+}
 
-      // App second
-      if (aPkg.type === 'app' && bPkg.type !== 'app') return -1
-      if (aPkg.type !== 'app' && bPkg.type === 'app') return 1
+const printWorkspaceDependencies = async (results) => {
+  const { workspacePackages, layers, issues, cssImports, unusedDeps } = results
 
-      // Pages third
-      if (aPkg.type === 'page' && bPkg.type === 'package') return -1
-      if (aPkg.type === 'package' && bPkg.type === 'page') return 1
+  console.log(sectionHeader('Workspace Dependencies'))
 
-      // Within same type, alphabetical
-      return aName.localeCompare(bName)
+  // Reorganize layers: ROOT layer, APP layer, PAGES layer, then package layers
+  const reorganizedLayers = []
+  const rootLayer = []
+  const appLayer = []
+  const pagesLayer = []
+  const packageLayers = []
+
+  for (const layer of layers) {
+    const roots = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'root',
+    )
+    const apps = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'app',
+    )
+    const pages = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'page',
+    )
+    const packages = layer.filter((pkg) => {
+      const type = workspacePackages.get(pkg)?.type
+      return type !== 'root' && type !== 'app' && type !== 'page'
     })
 
-    for (const [shortName, pkg] of sortedPackages) {
-      const workspaceDeps = pkg.dependencies
-      const npmDepsArray = npmDeps.get(shortName) || []
+    if (roots.length > 0) rootLayer.push(...roots)
+    if (apps.length > 0) appLayer.push(...apps)
+    if (pages.length > 0) pagesLayer.push(...pages)
+    if (packages.length > 0) packageLayers.push(packages)
+  }
 
-      if (workspaceDeps.length === 0 && npmDepsArray.length === 0) continue
+  // Build final layer order
+  if (rootLayer.length > 0) reorganizedLayers.push(rootLayer)
+  if (appLayer.length > 0) reorganizedLayers.push(appLayer)
+  if (pagesLayer.length > 0) reorganizedLayers.push(pagesLayer)
+  for (let i = packageLayers.length - 1; i >= 0; i--) {
+    reorganizedLayers.push(packageLayers[i])
+  }
 
-      const nameColor =
-        pkg.type === 'root'
-          ? colors.success
-          : pkg.type === 'app'
-            ? colors.success
-            : pkg.type === 'page'
-              ? colors.pages
-              : colors.sourceCode
+  // Create visual dependency graph
+  console.log('\n' + colors.muted('  Dependency Graph:'))
+  console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
 
-      const unusedSet = unusedByPackage.get(shortName) || new Set()
-      const depsLines = formatDeps(workspaceDeps, npmDepsArray, unusedSet)
+  const box = {
+    v: '│',
+    down: '▼',
+  }
 
-      // Print first line with package name
-      console.log(
-        `  ${nameColor(shortName.padEnd(pkgNameWidth))} ${colors.muted('→')} ${depsLines[0]}`,
-      )
+  // Render layers
+  for (let layerIdx = 0; layerIdx < reorganizedLayers.length; layerIdx++) {
+    const layer = reorganizedLayers[layerIdx]
+    const isLastLayer = layerIdx === reorganizedLayers.length - 1
 
-      // Print continuation lines with proper indentation
-      for (let i = 1; i < depsLines.length; i++) {
-        console.log(''.padStart(indentWidth) + depsLines[i])
-      }
-    }
+    const rootPackages = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'root',
+    )
+    const appPackages = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'app',
+    )
+    const pagePackages = layer.filter(
+      (pkg) => workspacePackages.get(pkg)?.type === 'page',
+    )
 
-    // Check for circular dependencies
-    const cycles = detectCircularDependencies(workspacePackages)
-    if (cycles.length > 0) {
-      console.log('\n' + colors.error('⚠ Circular Dependencies Detected:'))
-      for (const cycle of cycles) {
-        const cycleStr = cycle
-          .map((pkg, i) =>
-            i === cycle.length - 1 ? colors.error(pkg) : colors.warning(pkg),
-          )
-          .join(colors.error(' → '))
-        console.log(colors.error(`  ${chars.lines.v} `) + cycleStr)
-      }
+    // Determine layer label
+    let layerLabel
+    if (rootPackages.length > 0) {
+      layerLabel = packageRegistry.typeById.root.label
+    } else if (appPackages.length > 0) {
+      layerLabel = packageRegistry.typeById.app.label
+    } else if (pagePackages.length > 0) {
+      layerLabel = packageRegistry.typeById.page.label
     } else {
-      console.log('\n' + colors.success('✓ No circular dependencies'))
+      const offsetLayers =
+        (rootLayer.length > 0 ? 1 : 0) + (appLayer.length > 0 ? 1 : 0)
+      layerLabel = `P${layerIdx - offsetLayers - 1}`
     }
 
-    // Show duplicate versions if any
-    if (duplicateVersions.size > 0) {
-      console.log('\n' + colors.warning('⚠ Duplicate Package Versions:'))
-      console.log(
-        colors.muted(
-          '  (same npm package declared with different versions across workspace)',
-        ),
-      )
-      const sortedDuplicates = [...duplicateVersions.entries()].sort((a, b) =>
-        a[0].localeCompare(b[0]),
-      )
-      for (const [depName, usages] of sortedDuplicates) {
-        console.log(colors.muted('  │ ') + colors.accent(depName))
-        // Group by version
-        const versionGroups = new Map()
-        for (const usage of usages) {
-          if (!versionGroups.has(usage.version)) {
-            versionGroups.set(usage.version, [])
-          }
-          versionGroups.get(usage.version).push(usage.package)
-        }
-        for (const [version, packages] of versionGroups) {
-          const pkgList = packages
-            .sort()
-            .map((pkg) => {
-              const info = workspacePackages.get(pkg)
-              const color =
-                info?.type === 'root' || info?.type === 'app'
-                  ? colors.success
-                  : info?.type === 'page'
-                    ? colors.pages
-                    : colors.sourceCode
-              return color(pkg)
-            })
-            .join(colors.muted(', '))
-          console.log(
-            colors.muted('    └ ') + colors.muted(version + ': ') + pkgList,
-          )
-        }
-      }
-    }
-
-    if (importIssues.length > 0) {
-      console.log('\n' + colors.warning('⚠ Undeclared Import Dependencies:'))
-      console.log(
-        colors.muted(
-          '  (imports found in code but not declared in package.json)',
-        ),
-      )
-      for (const issue of importIssues) {
-        const pkgInfo = workspacePackages.get(issue.package)
-        const pkgColor =
-          pkgInfo?.type === 'root' || pkgInfo?.type === 'app'
-            ? colors.success
-            : pkgInfo?.type === 'page'
-              ? colors.pages
-              : colors.sourceCode
-
-        console.log(
-          colors.warning(`  ${chars.lines.v} `) +
-            pkgColor(issue.package) +
-            colors.muted(' imports ') +
-            colors.dependencies(issue.imports) +
-            colors.muted(
-              ` (${issue.files.length} file${issue.files.length > 1 ? 's' : ''})`,
-            ),
-        )
-        // Show first file as example
-        if (issue.files.length > 0) {
-          console.log(colors.muted(`    └ ${issue.files[0]}`))
-        }
-      }
-    } else {
-      console.log(
-        '\n' +
-          colors.success('✓ All imports properly declared in package.json'),
+    const formatPkg = (pkg) => {
+      const info = workspacePackages.get(pkg)
+      return (info?.color || colors.sourceCode)(
+        packageRegistry.byName.get(pkg).displayName,
       )
     }
 
-    // Show unused dependencies
-    if (unusedDeps.length > 0) {
-      console.log('\n' + colors.error('⚠ Unused Dependencies:'))
-      console.log(
-        colors.muted('  (declared in package.json but not imported in code)'),
-      )
+    const allPkgs = [...layer].sort()
+    const pkgStr = allPkgs.map(formatPkg).join(colors.muted('  '))
 
-      // Group by package
-      const unusedByPkg = new Map()
-      for (const { package: pkg, dependency } of unusedDeps) {
-        if (!unusedByPkg.has(pkg)) {
-          unusedByPkg.set(pkg, [])
-        }
-        unusedByPkg.get(pkg).push(dependency)
-      }
+    const firstPkgType =
+      rootPackages.length > 0
+        ? 'root'
+        : appPackages.length > 0
+          ? 'app'
+          : pagePackages.length > 0
+            ? 'page'
+            : 'package'
+    const labelColor = getPackageColor(firstPkgType)
+    console.log(
+      `  ${labelColor(layerLabel.padStart(6))} ${colors.muted(box.v)} ${pkgStr}`,
+    )
 
-      // Sort by root, app, pages (alpha), packages (alpha)
-      const sortedUnused = [...unusedByPkg.entries()].sort((a, b) => {
-        const [aName] = a
-        const [bName] = b
-        const aPkg = workspacePackages.get(aName)
-        const bPkg = workspacePackages.get(bName)
+    if (!isLastLayer) {
+      const nextLayer = reorganizedLayers[layerIdx + 1]
+      let hasConnections = false
 
-        // Root first
-        if (aPkg?.type === 'root' && bPkg?.type !== 'root') return -1
-        if (aPkg?.type !== 'root' && bPkg?.type === 'root') return 1
-
-        // App second
-        if (aPkg?.type === 'app' && bPkg?.type !== 'app') return -1
-        if (aPkg?.type !== 'app' && bPkg?.type === 'app') return 1
-
-        // Pages third
-        if (aPkg?.type === 'page' && bPkg?.type === 'package') return -1
-        if (aPkg?.type === 'package' && bPkg?.type === 'page') return 1
-
-        // Within same type, alphabetical
-        return aName.localeCompare(bName)
-      })
-
-      for (const [pkg, deps] of sortedUnused) {
+      for (const pkg of layer) {
         const pkgInfo = workspacePackages.get(pkg)
-        const nameColor =
-          pkgInfo?.type === 'root' || pkgInfo?.type === 'app'
-            ? colors.success
-            : pkgInfo?.type === 'page'
-              ? colors.pages
-              : colors.sourceCode
+        if (!pkgInfo) continue
+        for (const dep of pkgInfo.dependencies) {
+          if (nextLayer.includes(dep)) {
+            hasConnections = true
+            break
+          }
+        }
+        if (hasConnections) break
+      }
 
-        const depsStr = deps
+      if (hasConnections) {
+        console.log(colors.muted(`         ${box.v}   ${box.down}`))
+      }
+    }
+  }
+
+  console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
+
+  // Dependency analysis
+  const duplicateVersions = detectDuplicateVersions()
+
+  const unusedByPackage = new Map()
+  for (const { package: pkg, dependency } of unusedDeps) {
+    if (!unusedByPackage.has(pkg)) {
+      unusedByPackage.set(pkg, new Set())
+    }
+    unusedByPackage.get(pkg).add(dependency)
+  }
+
+  // Package dependencies list
+  console.log('\n' + colors.muted('  Package Dependencies:'))
+
+  const pkgNameWidth = 20
+  const arrowWidth = 3
+  const indentWidth = 2 + pkgNameWidth + arrowWidth
+
+  const sortedPackages = sortPackagesByType([...workspacePackages.entries()])
+
+  for (const [pkgName, pkg] of sortedPackages) {
+    const workspaceDeps = pkg.dependencies
+    const npmDepsArray = pkg.npmDependencies
+
+    if (workspaceDeps.length === 0 && npmDepsArray.length === 0) continue
+
+    const nameColor = pkg.color
+    const unusedSet = unusedByPackage.get(pkgName) || new Set()
+    const depsLines = formatDependencyList({
+      workspaceDeps,
+      npmDeps: npmDepsArray,
+      unusedSet,
+      packageLookup: workspacePackages,
+      indentWidth,
+    })
+
+    console.log(
+      `  ${nameColor(pkg.displayName.padEnd(pkgNameWidth))} ${colors.muted('→')} ${depsLines[0]}`,
+    )
+
+    for (let lineIdx = 1; lineIdx < depsLines.length; lineIdx++) {
+      console.log(''.padStart(indentWidth) + depsLines[lineIdx])
+    }
+  }
+
+  // Circular dependencies
+  const cycles = detectCircularDependencies(workspacePackages)
+  if (cycles.length > 0) {
+    console.log('\n' + colors.error('⚠ Circular Dependencies Detected:'))
+    for (const cycle of cycles) {
+      const cycleStr = cycle
+        .map((pkg, idx) =>
+          idx === cycle.length - 1 ? colors.error(pkg) : colors.warning(pkg),
+        )
+        .join(colors.error(' → '))
+      console.log(colors.error(`  ${chars.lines.v} `) + cycleStr)
+    }
+  } else {
+    console.log('\n' + colors.success('✓ No circular dependencies'))
+  }
+
+  // Duplicate versions
+  if (duplicateVersions.size > 0) {
+    console.log('\n' + colors.warning('⚠ Duplicate Package Versions:'))
+    console.log(
+      colors.muted(
+        '  (same npm package declared with different versions across workspace)',
+      ),
+    )
+    const sortedDuplicates = [...duplicateVersions.entries()].sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    )
+    for (const [depName, usages] of sortedDuplicates) {
+      console.log(colors.muted('  │ ') + colors.accent(depName))
+      const versionGroups = new Map()
+      for (const usage of usages) {
+        if (!versionGroups.has(usage.version)) {
+          versionGroups.set(usage.version, [])
+        }
+        versionGroups.get(usage.version).push(usage.package)
+      }
+      for (const [version, packages] of versionGroups) {
+        const pkgList = packages
           .sort()
-          .map((d) => colors.error(d))
+          .map((pkg) => {
+            const info = workspacePackages.get(pkg)
+            return (info?.color || colors.sourceCode)(pkg)
+          })
           .join(colors.muted(', '))
         console.log(
-          colors.error(`  ${chars.lines.v} `) +
-            nameColor(pkg) +
-            colors.muted(' declares ') +
-            depsStr +
-            colors.muted(` (${deps.length} unused)`),
-        )
-      }
-    } else {
-      console.log('\n' + colors.success('✓ No unused dependencies'))
-    }
-
-    // Check for CSS cross-package imports
-    if (cssImports.length > 0) {
-      console.log('\n' + colors.muted('  CSS Cross-Package Imports:'))
-      for (const imp of cssImports) {
-        const fromInfo = workspacePackages.get(imp.from)
-        const fromColor =
-          fromInfo?.type === 'root' || fromInfo?.type === 'app'
-            ? colors.success
-            : fromInfo?.type === 'page'
-              ? colors.pages
-              : colors.sourceCode
-
-        console.log(
-          colors.muted(`  ${chars.lines.v} `) +
-            fromColor(imp.from) +
-            colors.muted(' @imports ') +
-            colors.dependencies(imp.to) +
-            colors.muted(` in ${imp.file}`),
+          colors.muted('    └ ') + colors.muted(version + ': ') + pkgList,
         )
       }
     }
+  }
 
-    // Check for reverse dependency issues (e.g., CSS variables defined in one package but used by its dependency)
-    showProgress('Checking for reverse dependencies...')
-    const reverseDeps = await detectReverseDependencies(workspacePackages)
+  // Undeclared imports
+  if (issues.length > 0) {
+    console.log('\n' + colors.warning('⚠ Undeclared Import Dependencies:'))
+    console.log(
+      colors.muted(
+        '  (imports found in code but not declared in package.json)',
+      ),
+    )
+    for (const issue of issues) {
+      const pkgInfo = workspacePackages.get(issue.package)
+      const pkgColor = pkgInfo?.color || colors.sourceCode
+      console.log(
+        colors.warning(`  ${chars.lines.v} `) +
+          pkgColor(issue.package) +
+          colors.muted(' imports ') +
+          colors.dependencies(issue.imports) +
+          colors.muted(
+            ` (${issue.files.length} file${issue.files.length > 1 ? 's' : ''})`,
+          ),
+      )
+      if (issue.files.length > 0) {
+        console.log(colors.muted(`    └ ${issue.files[0]}`))
+      }
+    }
+  } else {
+    console.log(
+      '\n' + colors.success('✓ All imports properly declared in package.json'),
+    )
+  }
+
+  // Unused dependencies
+  if (unusedDeps.length > 0) {
+    console.log('\n' + colors.error('⚠ Unused Dependencies:'))
+    console.log(
+      colors.muted('  (declared in package.json but not imported in code)'),
+    )
+
+    const unusedByPkg = new Map()
+    for (const { package: pkg, dependency } of unusedDeps) {
+      if (!unusedByPkg.has(pkg)) {
+        unusedByPkg.set(pkg, [])
+      }
+      unusedByPkg.get(pkg).push(dependency)
+    }
+
+    const entriesWithPkgInfo = [...unusedByPkg.keys()].map((name) => [
+      name,
+      workspacePackages.get(name),
+    ])
+    const sortedNames = sortPackagesByType(entriesWithPkgInfo).map(
+      ([name]) => name,
+    )
+
+    for (const pkg of sortedNames) {
+      const deps = unusedByPkg.get(pkg)
+      const pkgInfo = workspacePackages.get(pkg)
+      const nameColor = pkgInfo?.color || colors.sourceCode
+
+      const depsStr = deps
+        .sort()
+        .map((depName) => colors.error(depName))
+        .join(colors.muted(', '))
+      console.log(
+        colors.error(`  ${chars.lines.v} `) +
+          nameColor(pkg) +
+          colors.muted(' declares ') +
+          depsStr +
+          colors.muted(` (${deps.length} unused)`),
+      )
+    }
+  } else {
+    console.log('\n' + colors.success('✓ No unused dependencies'))
+  }
+
+  // CSS cross-package imports
+  if (cssImports.length > 0) {
+    console.log('\n' + colors.muted('  CSS Cross-Package Imports:'))
+    for (const imp of cssImports) {
+      const fromInfo = workspacePackages.get(imp.from)
+      const fromColor = fromInfo?.color || colors.sourceCode
+      console.log(
+        colors.muted(`  ${chars.lines.v} `) +
+          fromColor(imp.from) +
+          colors.muted(' @imports ') +
+          colors.dependencies(imp.to) +
+          colors.muted(` in ${imp.file}`),
+      )
+    }
+  }
+
+  // Reverse dependencies
+  showProgress('Checking for reverse dependencies...')
+  const reverseDeps = await detectReverseDependencies(workspacePackages)
+  clearProgress()
+
+  if (reverseDeps.length > 0) {
+    console.log('\n' + colors.error('⚠ Potential Reverse Dependency Issues:'))
+    console.log(
+      colors.muted(
+        '  (package uses resources defined in a package that depends on it)',
+      ),
+    )
+    for (const issue of reverseDeps) {
+      console.log(
+        colors.error(`  ${chars.lines.v} `) +
+          colors.warning(issue.dependent) +
+          colors.muted(' uses CSS vars from ') +
+          colors.sourceCode(issue.dependency) +
+          colors.muted(
+            ` (${issue.vars.length} var${issue.vars.length > 1 ? 's' : ''})`,
+          ),
+      )
+      const exampleVars = issue.vars
+        .slice(0, 3)
+        .map((varName) => `--${varName}`)
+        .join(', ')
+      const moreCount = issue.vars.length - 3
+      console.log(
+        colors.muted(`    └ `) +
+          colors.border(exampleVars) +
+          (moreCount > 0 ? colors.muted(` +${moreCount} more`) : ''),
+      )
+    }
+  }
+}
+
+const printAssetDetails = (results) => {
+  const {
+    displayVersions,
+    zipIndex,
+    zipEntriesMap,
+    nameMeta,
+    tabbyDistVersion,
+  } = results
+
+  console.log(sectionHeader('Asset Details'))
+
+  const nameColW = 40
+  const gapW = 2
+  const sizeColW = 7
+  const unitColW = 3
+  const trendColW = 2
+
+  const sizeUnitsAligned = (size, unit) => {
+    return size.padStart(sizeColW) + ' ' + unit.padEnd(unitColW - 1)
+  }
+
+  const humanPartsAligned = (bytes) => {
+    const parts = humanParts(bytes)
+    return sizeUnitsAligned(parts.value, parts.unit)
+  }
+
+  const totalWidth =
+    nameColW +
+    gapW +
+    sizeColW +
+    unitColW +
+    trendColW +
+    displayVersions.length * (gapW + sizeColW + unitColW)
+
+  const gap = ''.padStart(gapW)
+  const tableLine = colors.border(chars.lines.h.repeat(totalWidth))
+
+  const header = [
+    chalk.bold('Name'.padEnd(nameColW)),
+    chalk.bold(
+      'dist'
+        .padStart(sizeColW + unitColW)
+        .padEnd(sizeColW + unitColW + trendColW),
+    ),
+    ...displayVersions.map((version) =>
+      chalk.bold(version.padStart(sizeColW + unitColW)),
+    ),
+  ].join(gap)
+  console.log('\n' + header)
+  console.log(tableLine)
+
+  const totalsByVersion = { dist: 0 }
+  for (const ver of displayVersions) totalsByVersion[ver] = 0
+
+  for (const row of nameMeta) {
+    const name = row.name
+
+    let displayName = name
+    if (name.length > nameColW) {
+      displayName = '…' + name.slice(-(nameColW - 1))
+    }
+
+    let distBytes = 0
+    if (zipEntriesMap[tabbyDistVersion]?.[name] != null) {
+      distBytes = zipEntriesMap[tabbyDistVersion][name]
+      totalsByVersion.dist += distBytes
+    }
+
+    let trend = ' '
+    if (displayVersions.length > 0 && distBytes > 0) {
+      const prevVersion = displayVersions[0]
+      const prevBytes = zipEntriesMap[prevVersion]?.[name] || 0
+      if (prevBytes > 0) {
+        const delta = distBytes - prevBytes
+        if (delta > 0) trend = colors.error(chars.trend.up.padStart(trendColW))
+        else if (delta < 0)
+          trend = colors.success(chars.trend.down.padStart(trendColW))
+        else trend = colors.muted(chars.trend.same.padStart(trendColW))
+      }
+    }
+
+    const distBytesStr = distBytes
+      ? colors.accent(humanPartsAligned(distBytes)) + trend
+      : colors.muted(sizeUnitsAligned('-', '-')) + ' '.repeat(trendColW)
+
+    const verCols = displayVersions.map((version) => {
+      const bytes = zipEntriesMap[version]?.[name] ?? 0
+      if (bytes) {
+        totalsByVersion[version] += bytes
+        return chalk.white(humanPartsAligned(bytes))
+      }
+      return colors.muted(sizeUnitsAligned('-', '-'))
+    })
+
+    const nameStr = colors.muted(displayName.padEnd(nameColW))
+    console.log([nameStr, distBytesStr].join(gap) + gap + verCols.join(gap))
+  }
+
+  // Totals
+  const totalsCols = displayVersions.map((version) =>
+    chalk.white.bold(humanPartsAligned(totalsByVersion[version])),
+  )
+  const zippedCols = displayVersions.map((version) =>
+    chalk.white.bold(humanPartsAligned(zipIndex[version].actualBytes)),
+  )
+
+  console.log(tableLine)
+  console.log(
+    [
+      chalk.bold('TOTAL'.padEnd(nameColW)),
+      colors.accent.bold(humanPartsAligned(totalsByVersion.dist)) +
+        ' '.repeat(trendColW),
+      totalsCols.join(gap),
+    ].join(gap),
+  )
+
+  const distZippedSize = tabbyDistVersion
+    ? zipIndex[tabbyDistVersion].actualBytes
+    : 0
+  console.log(
+    [
+      chalk.bold('ZIPPED'.padEnd(nameColW)),
+      colors.accent.bold(humanPartsAligned(distZippedSize)) +
+        ' '.repeat(trendColW),
+      zippedCols.join(gap),
+    ].join(gap),
+  )
+}
+
+const printFooter = () => {
+  console.log(
+    '\n' +
+      colors.muted(chars.lines.h.repeat(40)) +
+      '\n' +
+      colors.muted('Run ') +
+      colors.accent('pnpm measure --help') +
+      colors.muted(' for options\n'),
+  )
+}
+
+const collectAllData = async ({ versionsBack }) => {
+  // Ensure we have sourcemaps
+  const existingMaps = await fg(['dist/**/*.map'], { onlyFiles: true })
+  if (!existingMaps.length) {
+    console.log(
+      colors.warning('! No sourcemaps found - generating them now...\n'),
+    )
+
+    // Clean dist folder first
+    showProgress('Cleaning dist folder...')
+    try {
+      await runCmd('pnpm', ['clean:bundle'], {})
+      clearProgress()
+      console.log(colors.success('  ✓ Cleaned dist folder'))
+    } catch (_e) {
+      clearProgress()
+      console.log(colors.warning('  ! Warning: failed to clean dist folder'))
+    }
+
+    // Build all pages with sourcemaps
+    showProgress('Building all pages with sourcemaps...')
+    try {
+      await runCmd('turbo', ['build'], {
+        env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
+      })
+      clearProgress()
+      console.log(colors.success('  ✓ Built all pages'))
+    } catch (_e) {
+      clearProgress()
+      console.log(
+        colors.error('  × turbo build failed - sourcemap analysis unavailable'),
+      )
+    }
     clearProgress()
 
-    if (reverseDeps.length > 0) {
-      console.log('\n' + colors.error('⚠ Potential Reverse Dependency Issues:'))
+    // Check sourcemaps
+    showProgress('Checking for generated sourcemaps...')
+    const mapsAfter = await fg(['dist/**/*.map'], { onlyFiles: true })
+    clearProgress()
+    if (!mapsAfter.length) {
       console.log(
-        colors.muted(
-          '  (package uses resources defined in a package that depends on it)',
+        colors.error(
+          '  × No sourcemaps produced. Run builds with CLI_CEB_SOURCEMAPS=true manually.',
         ),
       )
-      for (const issue of reverseDeps) {
-        console.log(
-          colors.error(`  ${chars.lines.v} `) +
-            colors.warning(issue.dependent) +
-            colors.muted(' uses CSS vars from ') +
-            colors.sourceCode(issue.dependency) +
-            colors.muted(
-              ` (${issue.vars.length} var${issue.vars.length > 1 ? 's' : ''})`,
-            ),
-        )
-        // Show some example variables
-        const exampleVars = issue.vars
-          .slice(0, 3)
-          .map((v) => `--${v}`)
-          .join(', ')
-        const moreCount = issue.vars.length - 3
-        console.log(
-          colors.muted(`    └ `) +
-            colors.border(exampleVars) +
-            (moreCount > 0 ? colors.muted(` +${moreCount} more`) : ''),
-        )
-      }
+    } else {
+      console.log(colors.success('  ✓ Sourcemaps generated successfully'))
     }
+  } else {
+    console.log(colors.success('  ✓ Found existing sourcemaps'))
+  }
 
-    // ======================
-    // 6. DETAILED ASSET TABLE
-    // ======================
-    console.log(sectionHeader('Asset Details'))
+  // Analyze sourcemaps
+  showProgress('Analyzing sourcemaps...')
+  const jsFiles = await fg(['dist/**/*.js'], { onlyFiles: true })
+  const { deps, own, totalMapped } = await analyzeSourcemaps(jsFiles)
+  clearProgress()
+  console.log(colors.success('  ✓ Sourcemap analysis complete'))
 
-    // column widths - fixed width for name column to prevent wrapping
-    const nameColW = 40
-    const gapW = 2 // spaces between columns
-    const sizeColW = 7 // Width for size (e.g., "419.62")
-    const unitColW = 3 // Width for unit (e.g., "MB", "GB")
-    const trendColW = 2 // Width for trend indicator
+  const { depsBytes, ownBytes, depsPercent, ownPercent } =
+    calculateBundleTotals(deps, own, totalMapped)
 
-    const sizeUnitsAligned = (size, unit) => {
-      return size.padStart(sizeColW) + ' ' + unit.padEnd(unitColW - 1)
-    }
+  // Detect duplicate bundled dependencies
+  const actualDuplicates = detectDuplicateBundledDeps(deps)
 
-    const humanPartsAligned = (bytes) => {
-      const parts = humanParts(bytes)
-      return sizeUnitsAligned(parts.value, parts.unit)
-    }
-
-    // Total table width for separator lines
-    const totalWidth =
-      nameColW +
-      gapW +
-      sizeColW +
-      unitColW +
-      trendColW +
-      displayVersions.length * (gapW + sizeColW + unitColW)
-
-    const gap = ''.padStart(gapW)
-    const tableLine = colors.border(chars.lines.h.repeat(totalWidth))
-
-    const header = [
-      chalk.bold('Name'.padEnd(nameColW)),
-      chalk.bold(
-        'dist'
-          .padStart(sizeColW + unitColW)
-          .padEnd(sizeColW + unitColW + trendColW),
+  // Create tabby-dist.zip
+  showProgress('Creating tabby-dist.zip...')
+  let zipCreated = false
+  try {
+    await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'])
+    clearProgress()
+    console.log(colors.success('  ✓ Created tabby-dist.zip'))
+    zipCreated = true
+  } catch (err) {
+    clearProgress()
+    console.log(
+      colors.warning(
+        `  ⚠ Failed to create tabby-dist.zip: ${String(err.message || err)}`,
       ),
-      ...displayVersions.map((version) =>
-        chalk.bold(version.padStart(sizeColW + unitColW)),
-      ),
-    ].join(gap)
-    console.log('\n' + header)
-    console.log(tableLine)
+    )
+    console.log(colors.muted('  (Continuing with dependency analysis...)'))
+  }
 
-    const totalsByVersion = { dist: 0 }
-    for (const v of displayVersions) totalsByVersion[v] = 0
+  // Read zip contents
+  showProgress('Reading version zips...')
+  const zipContents = await listZipContents()
+  clearProgress()
+  console.log(colors.success('  ✓ Zip contents read successfully'))
 
-    let rowIndex = 0
-    for (const row of nameMeta) {
-      const name = row.name
+  // Build zip version data
+  const {
+    versions,
+    zipIndex,
+    zipEntriesMap,
+    allNames,
+    nameMeta,
+    tabbyDistVersion,
+  } = buildZipVersionData(zipContents, versionsBack)
 
-      // Truncate name if too long
-      let displayName = name
-      if (name.length > nameColW) {
-        displayName = '…' + name.slice(-(nameColW - 1))
-      }
+  // Collect workspace packages
+  showProgress('Analyzing workspace dependencies...')
+  const workspacePackages = await collectWorkspacePackages()
+  clearProgress()
+  console.log(colors.success('  ✓ Workspace dependencies analyzed'))
 
-      // For "dist" column, use tabby-dist.zip if available
-      let distBytes = 0
-      if (
-        tabbyDistVersion &&
-        zipEntriesMap[tabbyDistVersion] &&
-        zipEntriesMap[tabbyDistVersion][name] != null
-      ) {
-        distBytes = zipEntriesMap[tabbyDistVersion][name]
-        totalsByVersion.dist += distBytes
-      }
+  // Analyze imports
+  const { issues, cssImports, actualImports, actualNpmImports } =
+    await analyzeImportStatements(workspacePackages)
 
-      // Calculate trend indicator vs previous version
-      let trend = ' '
-      if (displayVersions.length > 0 && distBytes > 0) {
-        const prevVersion = displayVersions[0]
-        const prevBytes = zipEntriesMap[prevVersion]?.[name] || 0
-        if (prevBytes > 0) {
-          const delta = distBytes - prevBytes
-          if (delta > 0)
-            trend = colors.error(chars.trend.up.padStart(trendColW))
-          else if (delta < 0)
-            trend = colors.success(chars.trend.down.padStart(trendColW))
-          else trend = colors.muted(chars.trend.same.padStart(trendColW))
-        }
-      }
+  // Detect unused dependencies
+  const unusedDeps = detectUnusedDependencies(
+    workspacePackages,
+    actualImports,
+    actualNpmImports,
+  )
 
-      const distBytesStr = distBytes
-        ? colors.accent(humanPartsAligned(distBytes)) + trend
-        : colors.muted(sizeUnitsAligned('-', '-')) + ' '.repeat(trendColW)
+  // Build dependency layers
+  const layers = buildDependencyLayers(workspacePackages)
 
-      const verCols = displayVersions.map((version) => {
-        const bytes =
-          zipEntriesMap[version] && zipEntriesMap[version][name] != null
-            ? zipEntriesMap[version][name]
-            : 0
-        if (bytes) {
-          totalsByVersion[version] += bytes
-          return chalk.white(humanPartsAligned(bytes))
-        }
-        return colors.muted(sizeUnitsAligned('-', '-'))
-      })
+  // Calculate derived values
+  const totalSize = depsBytes + ownBytes
+  const displayVersions = versions.filter(
+    (ver) => !String(ver).startsWith('tabby-dist'),
+  )
+  const { currentUncompressed, currentZipped } = calculateCurrentVersionStats(
+    tabbyDistVersion,
+    zipContents,
+  )
+  const sizeCategory = calculateSizeCategory(currentZipped)
+  const currentFileCount = tabbyDistVersion
+    ? Object.keys(zipEntriesMap[tabbyDistVersion] || {}).length
+    : 0
 
-      // Zebra striping - use slightly dimmer text for even rows
-      const nameStr = colors.muted(displayName.padEnd(nameColW))
-      console.log([nameStr, distBytesStr].join(gap) + gap + verCols.join(gap))
-      rowIndex++
+  return {
+    // Sourcemap analysis
+    deps,
+    own,
+    totalMapped,
+    depsBytes,
+    ownBytes,
+    depsPercent,
+    ownPercent,
+    totalSize,
+    actualDuplicates,
+
+    // Zip data
+    zipContents,
+    versions,
+    zipIndex,
+    zipEntriesMap,
+    allNames,
+    nameMeta,
+    tabbyDistVersion,
+    zipCreated,
+
+    // Current version stats
+    displayVersions,
+    currentUncompressed,
+    currentZipped,
+    currentFileCount,
+    sizeCategory,
+
+    // Workspace analysis
+    workspacePackages,
+    layers,
+    issues,
+    cssImports,
+    actualImports,
+    actualNpmImports,
+    unusedDeps,
+  }
+}
+
+;(async function main() {
+  try {
+    // Parse CLI arguments
+    const argv = process.argv.slice(2)
+    const args = parseArguments(argv)
+
+    // Handle help
+    if (args.help) {
+      showHelp()
+      return
     }
 
-    // Compute totals and zipped sizes
-    const totalsCols = displayVersions.map((version) =>
-      chalk.white.bold(humanPartsAligned(totalsByVersion[version])),
-    )
-    const zippedCols = displayVersions.map((version) =>
-      chalk.white.bold(humanPartsAligned(zipIndex[version].actualBytes)),
-    )
+    // Show welcome banner
+    showWelcome()
 
-    console.log(tableLine)
-    console.log(
-      [
-        chalk.bold('TOTAL'.padEnd(nameColW)),
-        colors.accent.bold(humanPartsAligned(totalsByVersion.dist)) +
-          ' '.repeat(trendColW),
-        totalsCols.join(gap),
-      ].join(gap),
-    )
+    // Collect all analysis data
+    const results = await collectAllData({ versionsBack: args.versionsBack })
 
-    const distZippedSize = tabbyDistVersion
-      ? zipIndex[tabbyDistVersion].actualBytes
-      : 0
-    console.log(
-      [
-        chalk.bold('ZIPPED'.padEnd(nameColW)),
-        colors.accent.bold(humanPartsAligned(distZippedSize)) +
-          ' '.repeat(trendColW),
-        zippedCols.join(gap),
-      ].join(gap),
-    )
-
-    console.log(
-      '\n' +
-        colors.muted(chars.lines.h.repeat(40)) +
-        '\n' +
-        colors.muted('Run ') +
-        colors.accent('pnpm measure --help') +
-        colors.muted(' for options\n'),
-    )
+    // Display all output sections
+    printBundleOverview(results)
+    printDependencies(results, args.topLimit)
+    printSourceFiles(results, args.topLimit)
+    printFileBreakdown(results)
+    await printWorkspaceDependencies(results)
+    printAssetDetails(results)
+    printFooter()
   } catch (err) {
     console.error(colors.error('Error:'), err)
     process.exitCode = 2
