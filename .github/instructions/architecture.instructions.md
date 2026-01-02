@@ -22,6 +22,74 @@ The system is divided into distinct layers, each handling a specific responsibil
 
 Changes to one layer should have minimal impact on others.
 
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Chrome Extension APIs                           │
+│              (chrome.tabs, chrome.tabGroups, chrome.windows)            │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 │ Events (onCreated, onRemoved, onUpdated)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Zustand Store (packages/chrome)                      │
+│         tabSlice (tabById) │ windowSlice │ tabGroupSlice                │
+│                     Normalized, reactive state                          │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 │ useBrowserTabs(), useBrowserWindows()
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   Action Hooks (pages/*/src/hooks)                      │
+│      useTabActions() │ useTabGroupActions() │ useWindowActions()        │
+│              Memoized callbacks wrapping Chrome actions                 │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 │ Props (data + callbacks)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  Smart Components (pages/*/src)                         │
+│           TabItemPane │ TabManager │ OmnibarOverlay                     │
+│         Compose UI + data + actions, handle interactions                │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 │ Props (primitives only)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   Dumb Components (packages/ui)                         │
+│        TabItemRow │ TabContextMenu │ Omnibar │ Sidebar                  │
+│               Pure rendering, no business logic                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**User Action Flow Example (Close Tab):**
+
+```
+User right-clicks tab → TabContextMenu renders → User clicks "Close Tab"
+    │
+    ▼
+onClose callback (from useTabActions hook)
+    │
+    ▼
+closeTab(tabId) action (packages/chrome/actions/tabs)
+    │
+    ▼
+chrome.tabs.remove(tabId) API call
+    │
+    ▼
+Chrome fires onRemoved event
+    │
+    ▼
+Event listener updates Zustand store (tabSlice)
+    │
+    ▼
+useBrowserTabs() hook notifies subscribers
+    │
+    ▼
+TabItemPane re-renders with updated tab list
+```
+
 ### Component Architecture Pattern
 
 **Dumb Visual Components:**

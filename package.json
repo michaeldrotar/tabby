@@ -35,6 +35,7 @@
     "measure": "node --enable-source-maps scripts/measure-dist.mjs",
     "prepare": "husky",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "prep": "node scripts/prep-release.mjs",
     "copy-env": "bash bash-scripts/copy_env.sh",
@@ -55,6 +56,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.0.16",
     "autoprefixer": "^10.4.22",
     "chalk": "^5.6.2",
     "dedent": "^1.7.0",
@@ -86,7 +88,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
     "vite": "^7.2.6",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.16"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
