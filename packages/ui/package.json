@@ -29,6 +29,10 @@
       "types": "./lib/components/LoadingSpinner.tsx",
       "default": "./dist/lib/components/LoadingSpinner.js"
     },
+    "./components/Toaster": {
+      "types": "./lib/components/Toaster.tsx",
+      "default": "./dist/lib/components/Toaster.js"
+    },
     "./context-menu/ContextMenu": {
       "types": "./lib/context-menu/ContextMenu.tsx",
       "default": "./dist/lib/context-menu/ContextMenu.js"
@@ -208,6 +212,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.556.0",
     "react-spinners": "^0.17.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

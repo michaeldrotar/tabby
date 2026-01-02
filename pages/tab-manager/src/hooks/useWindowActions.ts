@@ -4,19 +4,24 @@ import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { muteAllTabsInWindow } from '@extension/chrome/actions/windows/muteAllTabsInWindow'
 import { reloadAllTabsInWindow } from '@extension/chrome/actions/windows/reloadAllTabsInWindow'
 import { unmuteAllTabsInWindow } from '@extension/chrome/actions/windows/unmuteAllTabsInWindow'
+import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 /**
  * Actions for managing browser windows via context menu.
+ * Includes toast feedback for copy operations and bulk actions.
  */
 export const useWindowActions = (window: BrowserWindow, tabs: BrowserTab[]) => {
   const windowId = window.id
   const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
 
   const close = useCallback(() => closeWindow(windowId), [windowId])
-  const copyAllUrls = useCallback(() => copyAllUrlsInWindow(tabs), [tabs])
+  const copyAllUrls = useCallback(async () => {
+    await copyAllUrlsInWindow(tabs)
+    toast.success(`${tabs.length} URL${tabs.length === 1 ? '' : 's'} copied`)
+  }, [tabs])
   const focus = useCallback(() => focusWindow(windowId), [windowId])
   const muteAll = useCallback(() => muteAllTabsInWindow(tabIds), [tabIds])
   const reloadAll = useCallback(() => reloadAllTabsInWindow(tabIds), [tabIds])

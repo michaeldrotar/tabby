@@ -1,5 +1,6 @@
 import { BrowserStoreProvider } from '@extension/chrome/BrowserStoreProvider'
 import { useThemeApplicator } from '@extension/shared/hooks/preference'
+import { Toaster } from '@extension/ui/components/Toaster'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WiredOmnibar } from '../../../packages/omnibar/lib/WiredOmnibar'
 
@@ -36,6 +37,7 @@ export const OmnibarOverlay = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <BrowserStoreProvider>
         <OmnibarOverlayContent />
       </BrowserStoreProvider>

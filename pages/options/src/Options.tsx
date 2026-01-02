@@ -9,6 +9,7 @@ import {
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { ErrorDisplay } from '@extension/ui/components/error-display/ErrorDisplay'
 import { LoadingSpinner } from '@extension/ui/components/LoadingSpinner'
+import { Toaster } from '@extension/ui/components/Toaster'
 import { CmdIcon, ExternalLinkIcon, ShiftIcon } from '@extension/ui/icons'
 import { Kbd, KbdGroup } from '@extension/ui/Kbd'
 import {
@@ -829,6 +830,7 @@ const Options = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <OptionsContent />
     </QueryClientProvider>
   )

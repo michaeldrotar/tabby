@@ -17,6 +17,7 @@ import { reloadTab } from '@extension/chrome/actions/tabs/reloadTab'
 import { removeTabFromGroup } from '@extension/chrome/actions/tabs/removeTabFromGroup'
 import { unmuteTab } from '@extension/chrome/actions/tabs/unmuteTab'
 import { unpinTab } from '@extension/chrome/actions/tabs/unpinTab'
+import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserTabGroupID } from '@extension/chrome/tabGroup/BrowserTabGroupID'
@@ -24,6 +25,7 @@ import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
 
 /**
  * Actions for managing individual tabs via context menu.
+ * Includes toast feedback for copy operations and bulk actions.
  */
 export const useTabActions = (tab: BrowserTab) => {
   const { id: tabId, windowId } = tab
@@ -42,9 +44,18 @@ export const useTabActions = (tab: BrowserTab) => {
     () => closeOtherTabs(tabId, windowId),
     [tabId, windowId],
   )
-  const copyTitle = useCallback(() => copyTabTitle(tabId), [tabId])
-  const copyTitleAndUrl = useCallback(() => copyTabTitleAndUrl(tabId), [tabId])
-  const copyUrl = useCallback(() => copyTabUrl(tabId), [tabId])
+  const copyTitle = useCallback(async () => {
+    await copyTabTitle(tabId)
+    toast.success('Title copied')
+  }, [tabId])
+  const copyTitleAndUrl = useCallback(async () => {
+    await copyTabTitleAndUrl(tabId)
+    toast.success('Title and URL copied')
+  }, [tabId])
+  const copyUrl = useCallback(async () => {
+    await copyTabUrl(tabId)
+    toast.success('URL copied')
+  }, [tabId])
   const duplicate = useCallback(() => duplicateTab(tabId), [tabId])
   const moveBack = useCallback(() => moveTabBackward(tabId), [tabId])
   const moveForward = useCallback(() => moveTabForward(tabId), [tabId])

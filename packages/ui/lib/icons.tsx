@@ -2,13 +2,16 @@ import { cn } from './utils/cn'
 import type { LucideProps } from 'lucide-react'
 
 export {
+  CheckCircle2 as CheckCircleIcon,
   Check as CheckIcon,
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
   X as CloseIcon,
   Command as CmdIcon,
   ExternalLink as ExternalLinkIcon,
+  Info as InfoIcon,
   LayoutGrid as LayoutGridIcon,
+  Loader2 as LoaderIcon,
   Moon as MoonIcon,
   Option as OptionIcon,
   PanelLeftClose as PanelLeftCloseIcon,

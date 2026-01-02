@@ -7,6 +7,7 @@ import { renameTabGroup } from '@extension/chrome/actions/tabGroups/renameTabGro
 import { toggleTabGroupCollapsed } from '@extension/chrome/actions/tabGroups/toggleTabGroupCollapsed'
 import { closeTabs } from '@extension/chrome/actions/tabs/closeTabs'
 import { ungroupTabs } from '@extension/chrome/actions/tabs/ungroupTabs'
+import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
@@ -16,6 +17,7 @@ import type {
 
 /**
  * Actions for managing tab groups via context menu.
+ * Includes toast feedback for copy operations and bulk actions.
  */
 export const useTabGroupActions = (
   group: BrowserTabGroup,
@@ -27,8 +29,17 @@ export const useTabGroupActions = (
     (color: BrowserTabGroupColor) => changeTabGroupColor(groupId, color),
     [groupId],
   )
-  const close = useCallback(() => closeTabs(tabIds), [tabIds])
-  const copyUrls = useCallback(() => copyTabGroupUrls(groupId), [groupId])
+  const close = useCallback(async () => {
+    const count = tabIds.length
+    await closeTabs(tabIds)
+    toast.success(`Closed ${count} tab${count === 1 ? '' : 's'}`)
+  }, [tabIds])
+  const copyUrls = useCallback(async () => {
+    await copyTabGroupUrls(groupId)
+    toast.success(
+      `${tabIds.length} URL${tabIds.length === 1 ? '' : 's'} copied`,
+    )
+  }, [groupId, tabIds.length])
   const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
   const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])
   const moveToNewWindow = useCallback(
