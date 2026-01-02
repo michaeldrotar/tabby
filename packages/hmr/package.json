@@ -13,6 +13,10 @@
       "types": "./lib/plugins/make-entry-point-plugin.ts",
       "default": "./dist/lib/plugins/make-entry-point-plugin.js"
     },
+    "./watch-i18n-plugin": {
+      "types": "./lib/plugins/watch-i18n-plugin.ts",
+      "default": "./dist/lib/plugins/watch-i18n-plugin.js"
+    },
     "./watch-public-plugin": {
       "types": "./lib/plugins/watch-public-plugin.ts",
       "default": "./dist/lib/plugins/watch-public-plugin.js"
