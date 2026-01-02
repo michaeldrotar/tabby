@@ -256,6 +256,10 @@
       "types": "./lib/useBrowserStore.ts",
       "default": "./dist/lib/useBrowserStore.js"
     },
+    "./useBrowserStoreState": {
+      "types": "./lib/useBrowserStoreState.ts",
+      "default": "./dist/lib/useBrowserStoreState.js"
+    },
     "./usePlatformInfo": {
       "types": "./lib/usePlatformInfo.ts",
       "default": "./dist/lib/usePlatformInfo.js"

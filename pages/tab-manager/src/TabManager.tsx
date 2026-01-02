@@ -1,9 +1,12 @@
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
+import { useBrowserStoreState } from '@extension/chrome/useBrowserStoreState'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { useSelectedWindowId } from '@extension/chrome/window/useSelectedWindowId'
 import { useSetSelectedWindowId } from '@extension/chrome/window/useSetSelectedWindowId'
 import { Profiler } from '@extension/dev-utils/Profiler'
+import { Skeleton } from '@extension/ui/components/Skeleton'
+import { TabListSkeleton } from '@extension/ui/components/TabListSkeleton'
 import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
@@ -12,7 +15,18 @@ import { TabItemPane } from './TabItemPane'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
+/** Skeleton for the sidebar while loading */
+const SidebarSkeleton = () => (
+  <div className="flex h-full flex-col gap-2 p-2">
+    {/* Window rail skeletons */}
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Skeleton key={i} className="h-10 w-10 rounded-lg" />
+    ))}
+  </div>
+)
+
 const TabManager = () => {
+  const storeState = useBrowserStoreState()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
@@ -185,6 +199,15 @@ const TabManager = () => {
       }
     })
   }, [currentBrowserWindow, activeTab, setSelectedWindowId])
+
+  // Show loading skeleton while browser store is loading
+  if (storeState !== 'loaded') {
+    return (
+      <TabManagerShell sidebar={<SidebarSkeleton />}>
+        <TabListSkeleton count={12} />
+      </TabManagerShell>
+    )
+  }
 
   return (
     <Profiler id="TabManager">

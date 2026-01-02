@@ -33,6 +33,14 @@
       "types": "./lib/components/Toaster.tsx",
       "default": "./dist/lib/components/Toaster.js"
     },
+    "./components/Skeleton": {
+      "types": "./lib/components/Skeleton.tsx",
+      "default": "./dist/lib/components/Skeleton.js"
+    },
+    "./components/TabListSkeleton": {
+      "types": "./lib/components/TabListSkeleton.tsx",
+      "default": "./dist/lib/components/TabListSkeleton.js"
+    },
     "./context-menu/ContextMenu": {
       "types": "./lib/context-menu/ContextMenu.tsx",
       "default": "./dist/lib/context-menu/ContextMenu.js"
