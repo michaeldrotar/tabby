@@ -1,5 +1,5 @@
 import fs from 'fs/promises'
-import { statSync, existsSync } from 'fs'
+import { statSync, existsSync, readFileSync } from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
 import fg from 'fast-glob'
@@ -8,6 +8,21 @@ import chalk from 'chalk'
 // ============================================================================
 // CONFIGURATION - Customize colors, defaults, and formatting here
 // ============================================================================
+
+/**
+ * Dependency usage overrides
+ * Define rules for packages that are used implicitly when certain conditions are met.
+ * Format: { when: ['dep1', 'dep2'], alsoUsed: 'package-name', description: 'why' }
+ * If all packages in 'when' are used, then 'alsoUsed' is also considered used.
+ */
+const USAGE_OVERRIDES = [
+  {
+    when: ['eslint-plugin-import-x', 'typescript'],
+    alsoUsed: 'eslint-import-resolver-typescript',
+    description:
+      'import-x + TypeScript requires this resolver (implicit via config)',
+  },
+]
 
 const palettes = {
   ocean: {
@@ -220,6 +235,638 @@ const chars = {
 const pathStrip = {
   prefixes: ['pages/', 'packages/'],
   folders: ['dist/', 'src/', 'lib/', 'dist/lib/', 'dist/src/'],
+}
+
+// ============================================================================
+// DEPENDENCY ANALYSIS - Package dependency tree and import analysis
+// ============================================================================
+
+/**
+ * Collects all workspace packages (from packages/ and pages/) and their dependencies
+ */
+async function collectWorkspacePackages() {
+  const packages = new Map()
+
+  // Find all package.json files including root
+  const packageJsonPaths = await fg(
+    [
+      'package.json',
+      'packages/*/package.json',
+      'pages/*/package.json',
+      'chrome-extension/package.json',
+    ],
+    {
+      onlyFiles: true,
+    },
+  )
+
+  for (const pkgPath of packageJsonPaths) {
+    try {
+      const pkgContent = JSON.parse(await fs.readFile(pkgPath, 'utf8'))
+      const pkgName = pkgContent.name
+      const pkgDir = path.dirname(pkgPath)
+      const shortName =
+        pkgDir === '.' ? 'root' : pkgName.replace('@extension/', '')
+
+      // Extract workspace dependencies (those with workspace:*)
+      const allDeps = {
+        ...pkgContent.dependencies,
+        ...pkgContent.devDependencies,
+      }
+
+      const workspaceDeps = Object.entries(allDeps)
+        .filter(([_, version]) => version === 'workspace:*')
+        .map(([name]) => name.replace('@extension/', ''))
+
+      // Determine type: root is 'root', chrome-extension is 'app', pages/ are 'page', rest are 'package'
+      let type = 'package'
+      if (pkgDir === '.') {
+        type = 'root'
+      } else if (pkgDir === 'chrome-extension') {
+        type = 'app'
+      } else if (pkgDir.startsWith('pages/')) {
+        type = 'page'
+      }
+
+      packages.set(shortName, {
+        name: pkgName,
+        shortName,
+        dir: pkgDir,
+        dependencies: workspaceDeps,
+        type,
+      })
+    } catch (e) {
+      // Skip invalid package.json files
+    }
+  }
+
+  return packages
+}
+
+/**
+ * Collects npm dependencies from workspace packages
+ * Returns a map of package name -> npm dependencies
+ */
+async function collectNpmDependencies(workspacePackages) {
+  const npmDeps = new Map()
+
+  for (const [shortName, pkg] of workspacePackages) {
+    const pkgJsonPath = path.join(pkg.dir, 'package.json')
+    try {
+      const pkgContent = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'))
+      const allDeps = {
+        ...pkgContent.dependencies,
+        ...pkgContent.devDependencies,
+      }
+
+      // Filter out workspace dependencies
+      const external = Object.entries(allDeps)
+        .filter(([_, version]) => version !== 'workspace:*')
+        .map(([name, version]) => ({ name, version }))
+
+      if (external.length > 0) {
+        npmDeps.set(shortName, external)
+      }
+    } catch (e) {
+      // Skip
+    }
+  }
+
+  return npmDeps
+}
+
+/**
+ * Detects duplicate versions of the same npm package across workspace packages
+ * Returns Map of package name -> array of {package, version}
+ */
+async function detectDuplicateVersions(workspacePackages) {
+  const npmVersions = new Map() // npm package -> [{workspacePackage, version}]
+
+  for (const [shortName, pkg] of workspacePackages) {
+    const pkgJsonPath =
+      pkg.dir === '.' ? 'package.json' : path.join(pkg.dir, 'package.json')
+    try {
+      const pkgContent = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'))
+      const allDeps = {
+        ...pkgContent.dependencies,
+        ...pkgContent.devDependencies,
+      }
+
+      for (const [depName, version] of Object.entries(allDeps)) {
+        // Skip workspace dependencies
+        if (version === 'workspace:*') continue
+
+        if (!npmVersions.has(depName)) {
+          npmVersions.set(depName, [])
+        }
+        npmVersions.get(depName).push({
+          package: shortName,
+          version: version,
+        })
+      }
+    } catch (e) {
+      // Skip
+    }
+  }
+
+  // Filter to only packages with different versions
+  const duplicates = new Map()
+  for (const [depName, usages] of npmVersions) {
+    const uniqueVersions = new Set(usages.map((u) => u.version))
+    if (uniqueVersions.size > 1) {
+      duplicates.set(depName, usages)
+    }
+  }
+
+  return duplicates
+}
+
+/**
+ * Detects circular dependencies in the package graph using DFS
+ */
+function detectCircularDependencies(packages) {
+  const cycles = []
+  const visited = new Set()
+  const recursionStack = new Set()
+
+  const dfs = (pkg, path = []) => {
+    if (recursionStack.has(pkg)) {
+      // Found a cycle
+      const cycleStart = path.indexOf(pkg)
+      const cycle = path.slice(cycleStart)
+      cycle.push(pkg)
+      cycles.push(cycle)
+      return
+    }
+
+    if (visited.has(pkg)) return
+
+    visited.add(pkg)
+    recursionStack.add(pkg)
+    path.push(pkg)
+
+    const pkgInfo = packages.get(pkg)
+    if (pkgInfo) {
+      for (const dep of pkgInfo.dependencies) {
+        dfs(dep, [...path])
+      }
+    }
+
+    recursionStack.delete(pkg)
+  }
+
+  for (const pkg of packages.keys()) {
+    visited.clear()
+    recursionStack.clear()
+    dfs(pkg, [])
+  }
+
+  // Deduplicate cycles (same cycle might be found from different starting points)
+  const uniqueCycles = []
+  const seenCycles = new Set()
+
+  for (const cycle of cycles) {
+    const normalized = [...cycle]
+    normalized.pop() // Remove duplicate end
+    normalized.sort()
+    const key = normalized.join('→')
+    if (!seenCycles.has(key)) {
+      seenCycles.add(key)
+      uniqueCycles.push(cycle)
+    }
+  }
+
+  return uniqueCycles
+}
+
+/**
+ * Analyzes import statements in source files to find undeclared dependencies
+ * Also detects CSS imports and potential reverse dependency issues
+ */
+async function analyzeImportStatements(packages, npmDeps) {
+  const issues = []
+  const cssImports = [] // Track CSS imports between packages
+  const actualImports = new Map() // Track what each package actually imports
+  const actualNpmImports = new Map() // Track npm packages actually used
+
+  for (const [shortName, pkg] of packages) {
+    // Get all files in package directory (not just source files)
+    // IMPORTANT: Exclude package.json and markdown files to avoid false positives
+    // Scan all files except package.json, markdown, and lock files
+    const allFiles = await fg([`${pkg.dir}/**/*`], {
+      onlyFiles: true,
+      ignore: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/*.map',
+        '**/package.json',
+        '**/*.md',
+        '**/pnpm-lock.yaml',
+        '**/package-lock.json',
+        '**/yarn.lock',
+      ],
+    })
+
+    const declaredDeps = new Set(pkg.dependencies)
+    const usedDeps = new Set()
+    actualImports.set(shortName, usedDeps)
+
+    // Track which npm dependencies are used
+    const usedNpmDeps = new Set()
+    actualNpmImports.set(shortName, usedNpmDeps)
+    const npmDepList = npmDeps.get(shortName) || []
+    const npmDepNames = new Set(npmDepList.map((d) => d.name))
+
+    // For each declared workspace dependency, check if its name appears anywhere in any file
+    for (const depName of declaredDeps) {
+      for (const file of allFiles) {
+        try {
+          const content = readFileSync(file, 'utf8')
+          // Simple check: does the package name appear in the file?
+          // This catches imports, extends, requires, config references, etc.
+          if (content.includes(`@extension/${depName}`)) {
+            usedDeps.add(depName)
+            break
+          }
+        } catch (e) {
+          // Skip files that can't be read (binary files, etc.)
+        }
+      }
+    }
+
+    // For each npm dependency, check if it appears in any file
+    for (const npmDepName of npmDepNames) {
+      let found = false
+
+      // For @types/* packages, search for the base package name
+      // e.g., @types/chrome -> search for "chrome"
+      const searchTerm = npmDepName.startsWith('@types/')
+        ? npmDepName.replace('@types/', '')
+        : npmDepName
+
+      // Simple text search: does the package name appear anywhere?
+      // This catches imports, requires, config references, command usage, etc.
+      for (const file of allFiles) {
+        try {
+          const content = readFileSync(file, 'utf8')
+          if (content.includes(searchTerm)) {
+            usedNpmDeps.add(npmDepName)
+            found = true
+            break
+          }
+        } catch (e) {
+          // Skip files that can't be read (binary files, etc.)
+        }
+      }
+
+      // If not found in files, check package.json (excluding deps fields)
+      if (!found) {
+        try {
+          const pkgJsonPath =
+            pkg.dir === '.'
+              ? 'package.json'
+              : path.join(pkg.dir, 'package.json')
+          const pkgJsonContent = JSON.parse(readFileSync(pkgJsonPath, 'utf8'))
+
+          // Check all fields except dependencies/devDependencies/peerDependencies
+          // This catches scripts, postcss config, eslint config, etc.
+          const { dependencies, devDependencies, peerDependencies, ...rest } =
+            pkgJsonContent
+          const restString = JSON.stringify(rest)
+          if (restString.includes(searchTerm)) {
+            usedNpmDeps.add(npmDepName)
+            found = true
+          }
+        } catch (e) {
+          // Skip if can't read package.json
+        }
+      }
+
+      // For root package, also check child workspace package.json files
+      if (!found && pkg.dir === '.') {
+        try {
+          const workspacePackageJsons = await fg(
+            ['{pages,packages,chrome-extension}/*/package.json'],
+            {
+              onlyFiles: true,
+            },
+          )
+
+          for (const childPkgPath of workspacePackageJsons) {
+            try {
+              const childPkgContent = JSON.parse(
+                readFileSync(childPkgPath, 'utf8'),
+              )
+              const {
+                dependencies,
+                devDependencies,
+                peerDependencies,
+                ...rest
+              } = childPkgContent
+              const restString = JSON.stringify(rest)
+              if (restString.includes(searchTerm)) {
+                usedNpmDeps.add(npmDepName)
+                found = true
+                break
+              }
+            } catch (e) {
+              // Skip malformed child package.json
+            }
+          }
+        } catch (e) {
+          // Skip if can't read child packages
+        }
+      }
+    }
+
+    // Apply usage overrides: packages that are used when certain conditions are met
+    for (const override of USAGE_OVERRIDES) {
+      if (
+        npmDepNames.has(override.alsoUsed) &&
+        !usedNpmDeps.has(override.alsoUsed)
+      ) {
+        // Check if all required packages are used
+        const allRequiredUsed = override.when.every((req) =>
+          usedNpmDeps.has(req),
+        )
+        if (allRequiredUsed) {
+          usedNpmDeps.add(override.alsoUsed)
+        }
+      }
+    }
+
+    // Check peer dependencies: if a used package lists something as a peer dep, consider it used
+    // This catches packages like jiti (peer dep of eslint) that are used implicitly
+    for (const npmDepName of npmDepNames) {
+      if (!usedNpmDeps.has(npmDepName)) {
+        // Check if this is a peer dependency of any used package
+        try {
+          for (const usedDepName of usedNpmDeps) {
+            const usedDepPkgPath = path.join(
+              'node_modules',
+              usedDepName,
+              'package.json',
+            )
+            if (existsSync(usedDepPkgPath)) {
+              const usedDepPkg = JSON.parse(
+                readFileSync(usedDepPkgPath, 'utf8'),
+              )
+              if (usedDepPkg.peerDependencies?.[npmDepName]) {
+                usedNpmDeps.add(npmDepName)
+                break
+              }
+            }
+          }
+        } catch (e) {
+          // Skip if can't read peer dependencies
+        }
+      }
+    }
+
+    // Now check for undeclared imports and CSS imports in source files
+    const sourceFiles = await fg([`${pkg.dir}/**/*.{ts,tsx,js,jsx,css}`], {
+      onlyFiles: true,
+      ignore: ['**/node_modules/**', '**/dist/**'],
+    })
+
+    for (const file of sourceFiles) {
+      try {
+        const content = readFileSync(file, 'utf8')
+        const isCssFile = file.endsWith('.css')
+
+        if (isCssFile) {
+          // Match CSS imports: @import '@extension/...' or url('@extension/...')
+          const cssImportRegex =
+            /@import\s+['"]@extension\/([^/'"\s]+)|url\(['"]@extension\/([^/'"\s]+)/g
+          let match
+          while ((match = cssImportRegex.exec(content)) !== null) {
+            const importedPkg = match[1] || match[2]
+            if (importedPkg && importedPkg !== shortName) {
+              cssImports.push({
+                from: shortName,
+                to: importedPkg,
+                file: path.relative(process.cwd(), file),
+                type: 'css',
+              })
+            }
+          }
+        } else {
+          // Match JS/TS import statements: import ... from '@extension/...'
+          const importRegex =
+            /import\s+(?:[\s\S]*?)\s+from\s+['"]@extension\/([^/'"\s]+)/g
+          let match
+
+          while ((match = importRegex.exec(content)) !== null) {
+            const importedPkg = match[1]
+            // Skip if it's importing from itself
+            if (importedPkg === shortName) continue
+
+            // Check if this import is declared in package.json
+            if (!declaredDeps.has(importedPkg)) {
+              issues.push({
+                package: shortName,
+                file: path.relative(process.cwd(), file),
+                imports: importedPkg,
+                type: 'undeclared',
+              })
+            }
+          }
+        }
+      } catch (e) {
+        // Skip files that can't be read
+      }
+    }
+  }
+
+  // Deduplicate issues (same package importing same undeclared dep)
+  const uniqueIssues = new Map()
+  for (const issue of issues) {
+    const key = `${issue.package}→${issue.imports}`
+    if (!uniqueIssues.has(key)) {
+      uniqueIssues.set(key, { ...issue, files: [issue.file] })
+    } else {
+      uniqueIssues.get(key).files.push(issue.file)
+    }
+  }
+
+  return {
+    issues: [...uniqueIssues.values()],
+    cssImports,
+    actualImports,
+    actualNpmImports,
+  }
+}
+
+/**
+ * Detects unused dependencies - deps declared in package.json but not actually imported
+ */
+function detectUnusedDependencies(
+  packages,
+  actualImports,
+  npmDeps,
+  actualNpmImports,
+) {
+  const unused = []
+
+  for (const [shortName, pkg] of packages) {
+    // Check workspace dependencies
+    const declaredDeps = new Set(pkg.dependencies)
+    const usedDeps = actualImports.get(shortName) || new Set()
+
+    for (const dep of declaredDeps) {
+      if (!usedDeps.has(dep)) {
+        unused.push({
+          package: shortName,
+          dependency: dep,
+        })
+      }
+    }
+
+    // Check npm dependencies
+    const npmDepList = npmDeps.get(shortName) || []
+    const usedNpmDeps = actualNpmImports.get(shortName) || new Set()
+
+    for (const npmDep of npmDepList) {
+      if (!usedNpmDeps.has(npmDep.name)) {
+        unused.push({
+          package: shortName,
+          dependency: npmDep.name,
+        })
+      }
+    }
+  }
+
+  return unused
+}
+
+/**
+ * Detects potential reverse dependency issues (A depends on B, but B references things defined in A)
+ * This is common with CSS variables: tailwindcss-config generates config from CSS vars defined in ui
+ */
+async function detectReverseDependencies(packages) {
+  const issues = []
+
+  // Look for CSS variable definitions and usages
+  const cssVarDefinitions = new Map() // package -> Set of var names defined
+  const cssVarUsages = new Map() // package -> Map of var name -> files
+
+  for (const [shortName, pkg] of packages) {
+    const cssFiles = await fg([`${pkg.dir}/**/*.css`], {
+      onlyFiles: true,
+      ignore: ['**/node_modules/**', '**/dist/**'],
+    })
+
+    cssVarDefinitions.set(shortName, new Set())
+    cssVarUsages.set(shortName, new Map())
+
+    for (const file of cssFiles) {
+      try {
+        const content = readFileSync(file, 'utf8')
+
+        // Find CSS variable definitions: --variable-name:
+        const defRegex = /--([\w-]+)\s*:/g
+        let match
+        while ((match = defRegex.exec(content)) !== null) {
+          cssVarDefinitions.get(shortName).add(match[1])
+        }
+
+        // Find CSS variable usages: var(--variable-name)
+        const useRegex = /var\(\s*--([\w-]+)/g
+        while ((match = useRegex.exec(content)) !== null) {
+          const varName = match[1]
+          if (!cssVarUsages.get(shortName).has(varName)) {
+            cssVarUsages.get(shortName).set(varName, [])
+          }
+          cssVarUsages
+            .get(shortName)
+            .get(varName)
+            .push(path.relative(process.cwd(), file))
+        }
+      } catch (e) {
+        // Skip
+      }
+    }
+  }
+
+  // Now check for reverse dependencies:
+  // If package A depends on package B, but B uses CSS vars defined only in A
+  for (const [pkgA, pkgAInfo] of packages) {
+    for (const depB of pkgAInfo.dependencies) {
+      const varsDefinedInA = cssVarDefinitions.get(pkgA)
+      const varsUsedByB = cssVarUsages.get(depB)
+
+      if (!varsDefinedInA || !varsUsedByB) continue
+
+      // Check if B uses vars that are ONLY defined in A (not in B itself)
+      const varsDefinedInB = cssVarDefinitions.get(depB) || new Set()
+
+      for (const [varName, files] of varsUsedByB) {
+        if (varsDefinedInA.has(varName) && !varsDefinedInB.has(varName)) {
+          // B uses a variable defined in A but not in B
+          issues.push({
+            dependent: depB,
+            dependency: pkgA,
+            varName,
+            files,
+            description: `${depB} uses --${varName} which is defined in ${pkgA} (potential reverse dependency)`,
+          })
+        }
+      }
+    }
+  }
+
+  // Deduplicate by dependent/dependency pair
+  const uniqueIssues = new Map()
+  for (const issue of issues) {
+    const key = `${issue.dependent}→${issue.dependency}`
+    if (!uniqueIssues.has(key)) {
+      uniqueIssues.set(key, { ...issue, vars: [issue.varName] })
+    } else {
+      if (!uniqueIssues.get(key).vars.includes(issue.varName)) {
+        uniqueIssues.get(key).vars.push(issue.varName)
+      }
+    }
+  }
+
+  return [...uniqueIssues.values()]
+}
+
+/**
+ * Builds dependency layers for visualization (topological sort by level)
+ */
+function buildDependencyLayers(packages) {
+  const layers = []
+  const placed = new Set()
+  const remaining = new Set(packages.keys())
+
+  // First pass: find packages with no dependencies (base layer)
+  while (remaining.size > 0) {
+    const layer = []
+    for (const pkg of remaining) {
+      const pkgInfo = packages.get(pkg)
+      const deps = pkgInfo?.dependencies || []
+      // Check if all dependencies are already placed
+      if (deps.every((dep) => placed.has(dep) || !packages.has(dep))) {
+        layer.push(pkg)
+      }
+    }
+
+    if (layer.length === 0) {
+      // No progress - remaining packages have circular deps
+      // Add all remaining to a final layer
+      layer.push(...remaining)
+      layers.push(layer)
+      break
+    }
+
+    layers.push(layer)
+    for (const pkg of layer) {
+      placed.add(pkg)
+      remaining.delete(pkg)
+    }
+  }
+
+  return layers
 }
 
 // ============================================================================
@@ -641,13 +1288,31 @@ async function analyzeSourcemaps(jsFiles) {
   try {
     // Handle --help flag
     const argv = process.argv.slice(2)
+
+    // Parse color palette argument first (before help display)
+    let selectedPalette = 'original'
+    for (let i = 0; i < argv.length; i++) {
+      if (argv[i] === '-c' || argv[i] === '--color') {
+        selectedPalette = argv[i + 1]
+        if (selectedPalette && palettes[selectedPalette]) {
+          colors = palettes[selectedPalette]
+          i++
+        } else if (selectedPalette) {
+          console.error(chalk.red(`Unknown color palette: ${selectedPalette}`))
+          console.error(
+            chalk.dim(`Available: ${Object.keys(palettes).join(', ')}`),
+          )
+          process.exit(1)
+        }
+      }
+    }
+
     if (argv.includes('--help') || argv.includes('-h')) {
       const paletteNames = Object.keys(palettes)
-      const exampleColors = palettes.original
 
       console.log(
         '\n' +
-          exampleColors.accent.bold('Tabby Bundle Analyzer') +
+          colors.accent.bold('Tabby Bundle Analyzer') +
           '\n' +
           colors.muted('Analyze bundle sizes, dependencies, and trends') +
           '\n\n' +
@@ -657,21 +1322,21 @@ async function analyzeSourcemaps(jsFiles) {
           chalk.bold('Options:') +
           '\n' +
           '  ' +
-          exampleColors.accent('-v, --versions <n>') +
+          colors.accent('-v, --versions <n>') +
           '         Number of versions to compare (default: ' +
           defaults.versionsBack +
           ')\n' +
           '  ' +
-          exampleColors.accent('-t, --top <n>') +
+          colors.accent('-t, --top <n>') +
           '              Number of top items to show (default: all)\n' +
           '  ' +
-          exampleColors.accent('-c, --color <name>') +
+          colors.accent('-c, --color <name>') +
           '         Color palette: ' +
           paletteNames.join(', ') +
           '\n' +
           '                                 (default: original)\n' +
           '  ' +
-          exampleColors.accent('-h, --help') +
+          colors.accent('-h, --help') +
           '                 Show this help message\n\n' +
           chalk.bold('Examples:') +
           '\n' +
@@ -683,24 +1348,6 @@ async function analyzeSourcemaps(jsFiles) {
       )
       return
     }
-
-    // Parse color palette argument first (before other args that might use colors)
-    for (let i = 0; i < argv.length; i++) {
-      if (argv[i] === '-c' || argv[i] === '--color') {
-        const paletteName = argv[i + 1]
-        if (paletteName && palettes[paletteName]) {
-          colors = palettes[paletteName]
-          i++
-        } else if (paletteName) {
-          console.error(chalk.red(`Unknown color palette: ${paletteName}`))
-          console.error(
-            chalk.dim(`Available: ${Object.keys(palettes).join(', ')}`),
-          )
-          process.exit(1)
-        }
-      }
-    }
-
     // Title
     console.log('\n' + chalk.bold.white('Tabby Bundle Analyzer'))
     console.log(chalk.dim('━━━━━━━━━━━━━━━━━━━━━━━') + '\n')
@@ -711,42 +1358,37 @@ async function analyzeSourcemaps(jsFiles) {
       console.log(
         colors.warning('! No sourcemaps found - generating them now...\n'),
       )
-      const pages = []
+
+      // Clean dist folder first to avoid stale files
+      showProgress('Cleaning dist folder...')
       try {
-        const dirents = await fs.readdir('pages', { withFileTypes: true })
-        for (const d of dirents) if (d.isDirectory()) pages.push(d.name)
+        await runCmd('pnpm', ['clean:bundle'], {})
+        clearProgress()
+        console.log(colors.success('  ✓ Cleaned dist folder'))
       } catch (e) {
-        // if pages dir is missing, fall back to full build
+        clearProgress()
+        console.log(colors.warning('  ! Warning: failed to clean dist folder'))
       }
 
-      for (const p of pages) {
-        const pkgPath = path.join('pages', p, 'package.json')
-        if (!existsSync(pkgPath)) continue
-        try {
-          const pkg = JSON.parse(await fs.readFile(pkgPath, 'utf8'))
-          if (pkg.scripts && pkg.scripts.build) {
-            showProgress(`Building ${p} with sourcemaps...`)
-            try {
-              // run build with CLI_CEB_SOURCEMAPS=true to enable sourcemaps without watch mode
-              await runCmd(
-                'pnpm',
-                ['-C', path.join('pages', p), 'run', 'build'],
-                {
-                  env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
-                },
-              )
-            } catch (e) {
-              clearProgress()
-              console.log(
-                colors.warning(
-                  `  ! Warning: build for ${p} failed (continuing)`,
-                ),
-              )
-            }
-          }
-        } catch (e) {
-          // ignore malformed package.json
-        }
+      // Build all pages at once using turbo --filter
+      showProgress('Building all pages with sourcemaps...')
+      try {
+        await runCmd(
+          'turbo',
+          ['build'], //, '--filter=./pages/*'],
+          {
+            env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
+          },
+        )
+        clearProgress()
+        console.log(colors.success('  ✓ Built all pages'))
+      } catch (e) {
+        clearProgress()
+        console.log(
+          colors.error(
+            '  × turbo build failed - sourcemap analysis unavailable',
+          ),
+        )
       }
       clearProgress()
 
@@ -793,18 +1435,20 @@ async function analyzeSourcemaps(jsFiles) {
 
     // Create a fresh 'tabby-dist.zip' from the current dist for accurate comparison (overwrite if exists)
     showProgress('Creating tabby-dist.zip...')
+    let zipCreated = false
     try {
       await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'])
       clearProgress()
       console.log(colors.success('• Created tabby-dist.zip\n'))
+      zipCreated = true
     } catch (e) {
       clearProgress()
-      console.error(
-        colors.error(
-          `× Failed to create tabby-dist.zip: ${String(e.message || e)}`,
+      console.log(
+        colors.warning(
+          `⚠ Failed to create tabby-dist.zip: ${String(e.message || e)}`,
         ),
       )
-      process.exit(1)
+      console.log(colors.muted('  (Continuing with dependency analysis...)\n'))
     }
 
     // Zips: gather zip metadata (we create tabby-dist.zip above for a direct, packaged comparison)
@@ -1329,7 +1973,530 @@ async function analyzeSourcemaps(jsFiles) {
     }
 
     // ======================
-    // 5. DETAILED ASSET TABLE
+    // 5. WORKSPACE DEPENDENCY ANALYSIS
+    // ======================
+    console.log(sectionHeader('Workspace Dependencies'))
+
+    showProgress('Analyzing workspace dependencies...')
+    const workspacePackages = await collectWorkspacePackages()
+    clearProgress()
+
+    // Build dependency layers
+    const layers = buildDependencyLayers(workspacePackages)
+
+    // Reorganize layers: ROOT layer, APP layer, PAGES layer, then package layers
+    const reorganizedLayers = []
+    const rootLayer = []
+    const appLayer = []
+    const pagesLayer = []
+    const packageLayers = []
+
+    for (const layer of layers) {
+      const roots = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'root',
+      )
+      const apps = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'app',
+      )
+      const pages = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'page',
+      )
+      const packages = layer.filter((pkg) => {
+        const type = workspacePackages.get(pkg)?.type
+        return type !== 'root' && type !== 'app' && type !== 'page'
+      })
+
+      if (roots.length > 0) rootLayer.push(...roots)
+      if (apps.length > 0) appLayer.push(...apps)
+      if (pages.length > 0) pagesLayer.push(...pages)
+      if (packages.length > 0) packageLayers.push(packages)
+    }
+
+    // Build final layer order: ROOT, APP, PAGES, then packages in reverse order (bottom to top)
+    if (rootLayer.length > 0) reorganizedLayers.push(rootLayer)
+    if (appLayer.length > 0) reorganizedLayers.push(appLayer)
+    if (pagesLayer.length > 0) reorganizedLayers.push(pagesLayer)
+    // Reverse package layers so dependencies are at the bottom
+    for (let i = packageLayers.length - 1; i >= 0; i--) {
+      reorganizedLayers.push(packageLayers[i])
+    }
+
+    // Create a visual dependency graph
+    console.log('\n' + colors.muted('  Dependency Graph:'))
+    console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
+
+    // Box drawing characters for the tree
+    const box = {
+      tl: '┌',
+      tr: '┐',
+      bl: '└',
+      br: '┘',
+      h: '─',
+      v: '│',
+      vr: '├',
+      vl: '┤',
+      hd: '┬',
+      hu: '┴',
+      cross: '┼',
+      up: '▲',
+      down: '▼',
+    }
+
+    // Render layers from top (app) to bottom (dependencies)
+    for (let layerIdx = 0; layerIdx < reorganizedLayers.length; layerIdx++) {
+      const layer = reorganizedLayers[layerIdx]
+      const isFirstLayer = layerIdx === 0
+      const isLastLayer = layerIdx === reorganizedLayers.length - 1
+
+      // Categorize packages
+      const rootPackages = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'root',
+      )
+      const appPackages = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'app',
+      )
+      const pagePackages = layer.filter(
+        (pkg) => workspacePackages.get(pkg)?.type === 'page',
+      )
+
+      // Determine layer label
+      let layerLabel
+      if (rootPackages.length > 0) {
+        layerLabel = 'ROOT'
+      } else if (appPackages.length > 0) {
+        layerLabel = 'APP'
+      } else if (pagePackages.length > 0) {
+        layerLabel = 'PAGES'
+      } else {
+        // Count backwards from the pages layer (account for root and app)
+        const offsetLayers =
+          (rootPackages.length > 0 ? 1 : 0) + (appPackages.length > 0 ? 1 : 0)
+        layerLabel = `P${layerIdx - offsetLayers - 1}`
+      }
+
+      // Format packages with colors
+      const formatPkg = (pkg) => {
+        const info = workspacePackages.get(pkg)
+        const color =
+          info?.type === 'root'
+            ? colors.success
+            : info?.type === 'app'
+              ? colors.success
+              : info?.type === 'page'
+                ? colors.pages
+                : colors.sourceCode
+        return color(pkg)
+      }
+
+      // Render layer (sorted alphabetically)
+      const allPkgs = [...layer].sort()
+      const pkgStr = allPkgs.map(formatPkg).join(colors.muted('  '))
+
+      // Add layer label with visual indicator
+      const labelColor =
+        rootPackages.length > 0
+          ? colors.success
+          : appPackages.length > 0
+            ? colors.success
+            : pagePackages.length > 0
+              ? colors.pages
+              : colors.sourceCode
+      console.log(
+        `  ${labelColor(layerLabel.padStart(6))} ${colors.muted(box.v)} ${pkgStr}`,
+      )
+
+      // Show dependencies going down (from this layer to next)
+      if (!isLastLayer) {
+        const nextLayer = reorganizedLayers[layerIdx + 1]
+        const connections = []
+
+        for (const pkg of layer) {
+          const pkgInfo = workspacePackages.get(pkg)
+          if (!pkgInfo) continue
+
+          for (const dep of pkgInfo.dependencies) {
+            if (nextLayer.includes(dep)) {
+              connections.push({ from: pkg, to: dep })
+            }
+          }
+        }
+
+        if (connections.length > 0) {
+          // Show arrow indicator pointing down
+          console.log(colors.muted(`         ${box.v}   ${box.down}`))
+        }
+      }
+    }
+
+    console.log(colors.muted('  ' + chars.lines.h.repeat(80)))
+
+    // Collect npm dependencies and analyze imports
+    showProgress('Analyzing dependencies...')
+    const npmDeps = await collectNpmDependencies(workspacePackages)
+    const {
+      issues: importIssues,
+      cssImports,
+      actualImports,
+      actualNpmImports,
+    } = await analyzeImportStatements(workspacePackages, npmDeps)
+    const unusedDeps = detectUnusedDependencies(
+      workspacePackages,
+      actualImports,
+      npmDeps,
+      actualNpmImports,
+    )
+    const duplicateVersions = await detectDuplicateVersions(workspacePackages)
+    clearProgress()
+
+    // Build map of unused deps per package for coloring
+    const unusedByPackage = new Map()
+    for (const { package: pkg, dependency } of unusedDeps) {
+      if (!unusedByPackage.has(pkg)) {
+        unusedByPackage.set(pkg, new Set())
+      }
+      unusedByPackage.get(pkg).add(dependency)
+    }
+
+    // Combined dependency list
+    console.log('\n' + colors.muted('  Package Dependencies:'))
+
+    // Helper to format dependency list with wrapping
+    const maxLineWidth = 100
+    const pkgNameWidth = 20
+    const arrowWidth = 3 // ' → '
+    const indentWidth = 2 + pkgNameWidth + arrowWidth // '  ' + name + ' → '
+
+    const formatDeps = (workspaceDeps, npmDepsArray, unusedSet) => {
+      const allDeps = []
+
+      // Add workspace deps by type
+      const apps = workspaceDeps
+        .filter((d) => workspacePackages.get(d)?.type === 'app')
+        .sort((a, b) => a.localeCompare(b))
+      const pages = workspaceDeps
+        .filter((d) => workspacePackages.get(d)?.type === 'page')
+        .sort((a, b) => a.localeCompare(b))
+      const pkgs = workspaceDeps
+        .filter((d) => {
+          const type = workspacePackages.get(d)?.type
+          return type !== 'app' && type !== 'page'
+        })
+        .sort((a, b) => a.localeCompare(b))
+      const npms = npmDepsArray.sort((a, b) => a.name.localeCompare(b.name))
+
+      apps.forEach((d) => allDeps.push({ name: d, color: colors.success }))
+      pages.forEach((d) => allDeps.push({ name: d, color: colors.pages }))
+      pkgs.forEach((d) => allDeps.push({ name: d, color: (x) => x }))
+      npms.forEach((d) => allDeps.push({ name: d.name, color: colors.muted }))
+
+      if (allDeps.length === 0) return [colors.muted('(none)')]
+
+      const lines = []
+      let currentLine = []
+      let currentLineLength = 0
+
+      for (let i = 0; i < allDeps.length; i++) {
+        const dep = allDeps[i]
+        const isLast = i === allDeps.length - 1
+        const isUnused = unusedSet.has(dep.name)
+
+        // Use error color for unused, otherwise use the dep's color
+        const colorFn = isUnused ? colors.error : dep.color
+        const depText = colorFn(dep.name) + (isLast ? '' : colors.muted(', '))
+        const depLength = dep.name.length + (isLast ? 0 : 2)
+
+        // Check if adding this dep would exceed width
+        if (
+          currentLine.length > 0 &&
+          indentWidth + currentLineLength + depLength > maxLineWidth
+        ) {
+          // Finish current line and start new one
+          lines.push(currentLine.join(''))
+          currentLine = [depText]
+          currentLineLength = depLength
+        } else {
+          currentLine.push(depText)
+          currentLineLength += depLength
+        }
+      }
+
+      // Add remaining line
+      if (currentLine.length > 0) {
+        lines.push(currentLine.join(''))
+      }
+
+      return lines
+    }
+
+    // Sort packages: root, app, pages (alpha), packages (alpha)
+    const sortedPackages = [...workspacePackages.entries()].sort((a, b) => {
+      const [aName, aPkg] = a
+      const [bName, bPkg] = b
+
+      // Root first
+      if (aPkg.type === 'root' && bPkg.type !== 'root') return -1
+      if (aPkg.type !== 'root' && bPkg.type === 'root') return 1
+
+      // App second
+      if (aPkg.type === 'app' && bPkg.type !== 'app') return -1
+      if (aPkg.type !== 'app' && bPkg.type === 'app') return 1
+
+      // Pages third
+      if (aPkg.type === 'page' && bPkg.type === 'package') return -1
+      if (aPkg.type === 'package' && bPkg.type === 'page') return 1
+
+      // Within same type, alphabetical
+      return aName.localeCompare(bName)
+    })
+
+    for (const [shortName, pkg] of sortedPackages) {
+      const workspaceDeps = pkg.dependencies
+      const npmDepsArray = npmDeps.get(shortName) || []
+
+      if (workspaceDeps.length === 0 && npmDepsArray.length === 0) continue
+
+      const nameColor =
+        pkg.type === 'root'
+          ? colors.success
+          : pkg.type === 'app'
+            ? colors.success
+            : pkg.type === 'page'
+              ? colors.pages
+              : colors.sourceCode
+
+      const unusedSet = unusedByPackage.get(shortName) || new Set()
+      const depsLines = formatDeps(workspaceDeps, npmDepsArray, unusedSet)
+
+      // Print first line with package name
+      console.log(
+        `  ${nameColor(shortName.padEnd(pkgNameWidth))} ${colors.muted('→')} ${depsLines[0]}`,
+      )
+
+      // Print continuation lines with proper indentation
+      for (let i = 1; i < depsLines.length; i++) {
+        console.log(''.padStart(indentWidth) + depsLines[i])
+      }
+    }
+
+    // Check for circular dependencies
+    const cycles = detectCircularDependencies(workspacePackages)
+    if (cycles.length > 0) {
+      console.log('\n' + colors.error('⚠ Circular Dependencies Detected:'))
+      for (const cycle of cycles) {
+        const cycleStr = cycle
+          .map((pkg, i) =>
+            i === cycle.length - 1 ? colors.error(pkg) : colors.warning(pkg),
+          )
+          .join(colors.error(' → '))
+        console.log(colors.error(`  ${chars.lines.v} `) + cycleStr)
+      }
+    } else {
+      console.log('\n' + colors.success('✓ No circular dependencies'))
+    }
+
+    // Show duplicate versions if any
+    if (duplicateVersions.size > 0) {
+      console.log('\n' + colors.warning('⚠ Duplicate Package Versions:'))
+      console.log(
+        colors.muted(
+          '  (same npm package declared with different versions across workspace)',
+        ),
+      )
+      const sortedDuplicates = [...duplicateVersions.entries()].sort((a, b) =>
+        a[0].localeCompare(b[0]),
+      )
+      for (const [depName, usages] of sortedDuplicates) {
+        console.log(colors.muted('  │ ') + colors.accent(depName))
+        // Group by version
+        const versionGroups = new Map()
+        for (const usage of usages) {
+          if (!versionGroups.has(usage.version)) {
+            versionGroups.set(usage.version, [])
+          }
+          versionGroups.get(usage.version).push(usage.package)
+        }
+        for (const [version, packages] of versionGroups) {
+          const pkgList = packages
+            .sort()
+            .map((pkg) => {
+              const info = workspacePackages.get(pkg)
+              const color =
+                info?.type === 'root' || info?.type === 'app'
+                  ? colors.success
+                  : info?.type === 'page'
+                    ? colors.pages
+                    : colors.sourceCode
+              return color(pkg)
+            })
+            .join(colors.muted(', '))
+          console.log(
+            colors.muted('    └ ') + colors.muted(version + ': ') + pkgList,
+          )
+        }
+      }
+    }
+
+    if (importIssues.length > 0) {
+      console.log('\n' + colors.warning('⚠ Undeclared Import Dependencies:'))
+      console.log(
+        colors.muted(
+          '  (imports found in code but not declared in package.json)',
+        ),
+      )
+      for (const issue of importIssues) {
+        const pkgInfo = workspacePackages.get(issue.package)
+        const pkgColor =
+          pkgInfo?.type === 'root' || pkgInfo?.type === 'app'
+            ? colors.success
+            : pkgInfo?.type === 'page'
+              ? colors.pages
+              : colors.sourceCode
+
+        console.log(
+          colors.warning(`  ${chars.lines.v} `) +
+            pkgColor(issue.package) +
+            colors.muted(' imports ') +
+            colors.dependencies(issue.imports) +
+            colors.muted(
+              ` (${issue.files.length} file${issue.files.length > 1 ? 's' : ''})`,
+            ),
+        )
+        // Show first file as example
+        if (issue.files.length > 0) {
+          console.log(colors.muted(`    └ ${issue.files[0]}`))
+        }
+      }
+    } else {
+      console.log(
+        '\n' +
+          colors.success('✓ All imports properly declared in package.json'),
+      )
+    }
+
+    // Show unused dependencies
+    if (unusedDeps.length > 0) {
+      console.log('\n' + colors.error('⚠ Unused Dependencies:'))
+      console.log(
+        colors.muted('  (declared in package.json but not imported in code)'),
+      )
+
+      // Group by package
+      const unusedByPkg = new Map()
+      for (const { package: pkg, dependency } of unusedDeps) {
+        if (!unusedByPkg.has(pkg)) {
+          unusedByPkg.set(pkg, [])
+        }
+        unusedByPkg.get(pkg).push(dependency)
+      }
+
+      // Sort by root, app, pages (alpha), packages (alpha)
+      const sortedUnused = [...unusedByPkg.entries()].sort((a, b) => {
+        const [aName] = a
+        const [bName] = b
+        const aPkg = workspacePackages.get(aName)
+        const bPkg = workspacePackages.get(bName)
+
+        // Root first
+        if (aPkg?.type === 'root' && bPkg?.type !== 'root') return -1
+        if (aPkg?.type !== 'root' && bPkg?.type === 'root') return 1
+
+        // App second
+        if (aPkg?.type === 'app' && bPkg?.type !== 'app') return -1
+        if (aPkg?.type !== 'app' && bPkg?.type === 'app') return 1
+
+        // Pages third
+        if (aPkg?.type === 'page' && bPkg?.type === 'package') return -1
+        if (aPkg?.type === 'package' && bPkg?.type === 'page') return 1
+
+        // Within same type, alphabetical
+        return aName.localeCompare(bName)
+      })
+
+      for (const [pkg, deps] of sortedUnused) {
+        const pkgInfo = workspacePackages.get(pkg)
+        const nameColor =
+          pkgInfo?.type === 'root' || pkgInfo?.type === 'app'
+            ? colors.success
+            : pkgInfo?.type === 'page'
+              ? colors.pages
+              : colors.sourceCode
+
+        const depsStr = deps
+          .sort()
+          .map((d) => colors.error(d))
+          .join(colors.muted(', '))
+        console.log(
+          colors.error(`  ${chars.lines.v} `) +
+            nameColor(pkg) +
+            colors.muted(' declares ') +
+            depsStr +
+            colors.muted(` (${deps.length} unused)`),
+        )
+      }
+    } else {
+      console.log('\n' + colors.success('✓ No unused dependencies'))
+    }
+
+    // Check for CSS cross-package imports
+    if (cssImports.length > 0) {
+      console.log('\n' + colors.muted('  CSS Cross-Package Imports:'))
+      for (const imp of cssImports) {
+        const fromInfo = workspacePackages.get(imp.from)
+        const fromColor =
+          fromInfo?.type === 'root' || fromInfo?.type === 'app'
+            ? colors.success
+            : fromInfo?.type === 'page'
+              ? colors.pages
+              : colors.sourceCode
+
+        console.log(
+          colors.muted(`  ${chars.lines.v} `) +
+            fromColor(imp.from) +
+            colors.muted(' @imports ') +
+            colors.dependencies(imp.to) +
+            colors.muted(` in ${imp.file}`),
+        )
+      }
+    }
+
+    // Check for reverse dependency issues (e.g., CSS variables defined in one package but used by its dependency)
+    showProgress('Checking for reverse dependencies...')
+    const reverseDeps = await detectReverseDependencies(workspacePackages)
+    clearProgress()
+
+    if (reverseDeps.length > 0) {
+      console.log('\n' + colors.error('⚠ Potential Reverse Dependency Issues:'))
+      console.log(
+        colors.muted(
+          '  (package uses resources defined in a package that depends on it)',
+        ),
+      )
+      for (const issue of reverseDeps) {
+        console.log(
+          colors.error(`  ${chars.lines.v} `) +
+            colors.warning(issue.dependent) +
+            colors.muted(' uses CSS vars from ') +
+            colors.sourceCode(issue.dependency) +
+            colors.muted(
+              ` (${issue.vars.length} var${issue.vars.length > 1 ? 's' : ''})`,
+            ),
+        )
+        // Show some example variables
+        const exampleVars = issue.vars
+          .slice(0, 3)
+          .map((v) => `--${v}`)
+          .join(', ')
+        const moreCount = issue.vars.length - 3
+        console.log(
+          colors.muted(`    └ `) +
+            colors.border(exampleVars) +
+            (moreCount > 0 ? colors.muted(` +${moreCount} more`) : ''),
+        )
+      }
+    }
+
+    // ======================
+    // 6. DETAILED ASSET TABLE
     // ======================
     console.log(sectionHeader('Asset Details'))
 

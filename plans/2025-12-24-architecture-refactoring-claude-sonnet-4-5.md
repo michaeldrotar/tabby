@@ -32,12 +32,12 @@
 - [x] Extract TabGroupHeader logic (Objective #10) - Already well-structured, kept as-is
 - [~] Standardize context menu props (Objective #11) - SKIPPED (planned for removal)
 
-### Phase 4: Performance & Quality (2-3 weeks) 🎯 CURRENT
+### Phase 4: Performance & Quality (2-3 weeks) ✅ COMPLETE
 
 - [x] Performance profiling & dev logging (Objective #3 subset) - 3 days
 - [x] Toast notifications with shadcn/sonner (Objective #17 subset) - 3 days
 - [x] Loading states with shadcn/skeleton (Objective #17 subset) - 2 days
-- [ ] Bundle size analysis & optimization (Objective #18) - 1 week
+- [x] Bundle size analysis & optimization (Objective #18) - 1 week
 
 **Skipped (Not Needed):**
 
@@ -46,7 +46,7 @@
 - ~~Chrome API retry logic~~ - APIs are local/fast, no observed failures
 - ~~Dynamic imports~~ - Settings is separate page, context menus being removed
 
-### Phase 5: Accessibility & i18n (2-3 weeks)
+### Phase 5: Accessibility & i18n (2-3 weeks) 🎯 CURRENT
 
 - [ ] Accessibility audit (Objective #15) - 1 week
 - [ ] i18n completion (Objective #16) - 1.5 weeks
