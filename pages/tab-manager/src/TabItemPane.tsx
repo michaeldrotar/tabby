@@ -4,6 +4,7 @@ import { useBrowserTabGroupsByWindowId } from '@extension/chrome/tabGroup/useBro
 import { useTabListItems } from '@extension/chrome/useTabListItems'
 import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { Profiler } from '@extension/dev-utils/Profiler'
 import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
 import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
 import { TabList, TabListItem } from '@extension/ui/TabList'
@@ -47,43 +48,45 @@ const TabItemWithContextMenu = memo(
     )
 
     return (
-      <TabContextMenu
-        tab={tab}
-        groups={groups}
-        windows={windows}
-        currentWindowId={currentWindowId}
-        onPin={actions.pin}
-        onUnpin={actions.unpin}
-        onMute={actions.mute}
-        onUnmute={actions.unmute}
-        onDuplicate={actions.duplicate}
-        onReload={actions.reload}
-        onClose={actions.close}
-        onCloseOther={actions.closeOther}
-        onCloseAfter={actions.closeAfter}
-        onCopyUrl={actions.copyUrl}
-        onCopyTitle={actions.copyTitle}
-        onCopyTitleAndUrl={actions.copyTitleAndUrl}
-        onAddToGroup={actions.addToGroup}
-        onAddToNewGroup={actions.addToNewGroup}
-        onRemoveFromGroup={actions.removeFromGroup}
-        onMoveToWindow={actions.moveToWindow}
-        onMoveToNewWindow={actions.moveToNewWindow}
-      >
-        <TabItemRow
-          tabId={tab.id}
-          title={tab.title}
-          faviconUrl={tab.url}
-          isActive={tab.active}
-          isHighlighted={tab.highlighted}
-          isPinned={tab.pinned}
-          isMuted={tab.mutedInfo?.muted}
-          isAudible={tab.audible}
-          isDiscarded={tab.discarded}
-          onActivate={onActivate}
+      <Profiler id="TabItemPane.TabItemRow">
+        <TabContextMenu
+          tab={tab}
+          groups={groups}
+          windows={windows}
+          currentWindowId={currentWindowId}
+          onPin={actions.pin}
+          onUnpin={actions.unpin}
+          onMute={actions.mute}
+          onUnmute={actions.unmute}
+          onDuplicate={actions.duplicate}
+          onReload={actions.reload}
           onClose={actions.close}
-        />
-      </TabContextMenu>
+          onCloseOther={actions.closeOther}
+          onCloseAfter={actions.closeAfter}
+          onCopyUrl={actions.copyUrl}
+          onCopyTitle={actions.copyTitle}
+          onCopyTitleAndUrl={actions.copyTitleAndUrl}
+          onAddToGroup={actions.addToGroup}
+          onAddToNewGroup={actions.addToNewGroup}
+          onRemoveFromGroup={actions.removeFromGroup}
+          onMoveToWindow={actions.moveToWindow}
+          onMoveToNewWindow={actions.moveToNewWindow}
+        >
+          <TabItemRow
+            tabId={tab.id}
+            title={tab.title}
+            faviconUrl={tab.url}
+            isActive={tab.active}
+            isHighlighted={tab.highlighted}
+            isPinned={tab.pinned}
+            isMuted={tab.mutedInfo?.muted}
+            isAudible={tab.audible}
+            isDiscarded={tab.discarded}
+            onActivate={onActivate}
+            onClose={actions.close}
+          />
+        </TabContextMenu>
+      </Profiler>
     )
   },
 )

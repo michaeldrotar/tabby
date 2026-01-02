@@ -1,5 +1,6 @@
 import '@src/index.css'
 import { createRoot } from 'react-dom/client'
+import { initDevProfiler } from './initDevProfiler'
 import { Root } from './Root'
 
 const init = () => {
@@ -9,6 +10,8 @@ const init = () => {
   }
   const root = createRoot(appContainer)
   root.render(<Root />)
+
+  initDevProfiler()
 }
 
 init()

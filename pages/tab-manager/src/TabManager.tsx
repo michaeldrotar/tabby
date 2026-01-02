@@ -3,6 +3,7 @@ import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsBy
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { useSelectedWindowId } from '@extension/chrome/window/useSelectedWindowId'
 import { useSetSelectedWindowId } from '@extension/chrome/window/useSetSelectedWindowId'
+import { Profiler } from '@extension/dev-utils/Profiler'
 import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
@@ -186,22 +187,28 @@ const TabManager = () => {
   }, [currentBrowserWindow, activeTab, setSelectedWindowId])
 
   return (
-    <>
+    <Profiler id="TabManager">
       <SearchPopup isOpen={isSearchOpen} onClose={closeSearch} />
       <TabManagerShell
         sidebar={
-          <TabManagerSidebarContainer
-            selectedWindowId={selectedWindowId || undefined}
-            onSelectWindow={onSelectWindowCallback}
-            onOpenSearch={openSearch}
-            onOpenSettings={openSettings}
-            onOpenTarget={openTarget}
-          />
+          <Profiler id="TabManager.TabManagerSidebarContainer">
+            <TabManagerSidebarContainer
+              selectedWindowId={selectedWindowId || undefined}
+              onSelectWindow={onSelectWindowCallback}
+              onOpenSearch={openSearch}
+              onOpenSettings={openSettings}
+              onOpenTarget={openTarget}
+            />
+          </Profiler>
         }
       >
-        {selectedWindowId && <TabItemPane browserWindowId={selectedWindowId} />}
+        {selectedWindowId && (
+          <Profiler id="TabManager.TabItemPane">
+            <TabItemPane browserWindowId={selectedWindowId} />
+          </Profiler>
+        )}
       </TabManagerShell>
-    </>
+    </Profiler>
   )
 }
 

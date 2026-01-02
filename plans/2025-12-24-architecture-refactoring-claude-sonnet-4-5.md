@@ -32,11 +32,19 @@
 - [x] Extract TabGroupHeader logic (Objective #10) - Already well-structured, kept as-is
 - [~] Standardize context menu props (Objective #11) - SKIPPED (planned for removal)
 
-### Phase 4: Performance & Quality (4-5 weeks)
+### Phase 4: Performance & Quality (2-3 weeks) 🎯 CURRENT
 
-- [ ] Additional performance optimizations (Objective #3) - 1-2 weeks
-- [ ] Error handling & user feedback (Objective #17) - 2 weeks
-- [ ] Bundle size optimization (Objective #18) - 1 week
+- [x] Performance profiling & dev logging (Objective #3 subset) - 3 days
+- [ ] Toast notifications with shadcn/sonner (Objective #17 subset) - 3 days
+- [ ] Loading states with shadcn/skeleton (Objective #17 subset) - 2 days
+- [ ] Bundle size analysis & optimization (Objective #18) - 1 week
+
+**Skipped (Not Needed):**
+
+- ~~Virtual scrolling~~ - User has hundreds of tabs, no performance issues
+- ~~Search debouncing~~ - Current performance is good
+- ~~Chrome API retry logic~~ - APIs are local/fast, no observed failures
+- ~~Dynamic imports~~ - Settings is separate page, context menus being removed
 
 ### Phase 5: Accessibility & i18n (2-3 weeks)
 
@@ -1749,3 +1757,627 @@ Time to Add Feature: 30 min → 5 min      (-83%)
 - Clear naming conventions
 - Consistent patterns across codebase
 - Self-documenting code with minimal comments
+
+---
+
+## Phase 4: Detailed Implementation Plan (CURRENT)
+
+**Date Started:** January 1, 2026  
+**Estimated Completion:** January 21, 2026 (3 weeks)
+
+### Current Bundle Size Analysis
+
+**Zip File Sizes (Latest Releases):**
+
+- v1.0.0: 749KB
+- v1.0.1: 758KB (+1%)
+- v1.1.0: 855KB (+13%)
+- v1.2.0: 1.0MB (+17%)
+
+**Current Build Output (Largest Files):**
+
+- Tab Manager: ~1.1MB JS (multiple chunks)
+- Options: ~970KB JS (multiple chunks)
+- Omnibar Overlay/Popup: ~813KB JS
+- Background: 26KB
+
+**Trend:** Growing ~15% per release. Target: Keep under 1.5MB total.
+
+---
+
+### Task 1: Performance Profiling & Dev Logging (3 days)
+
+**Goal:** Establish baseline metrics and dev-mode performance logging.
+
+#### 1.1: Add React DevTools Profiler Wrapper (Day 1)
+
+Create instrumentation for measuring component render performance:
+
+```typescript
+// packages/dev-utils/lib/Profiler.tsx
+import { Profiler as ReactProfiler, ProfilerOnRenderCallback } from 'react'
+import { __DEV__ } from '@extension/env'
+
+const onRender: ProfilerOnRenderCallback = (
+  id,
+  phase,
+  actualDuration,
+  baseDuration,
+  startTime,
+  commitTime
+) => {
+  if (__DEV__) {
+    console.log(`[Profiler] ${id} (${phase})`, {
+      actualDuration: `${actualDuration.toFixed(2)}ms`,
+      baseDuration: `${baseDuration.toFixed(2)}ms`,
+      startTime,
+      commitTime,
+    })
+  }
+}
+
+export const Profiler = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  if (!__DEV__) return <>{children}</>
+
+  return (
+    <ReactProfiler id={id} onRender={onRender}>
+      {children}
+    </ReactProfiler>
+  )
+}
+```
+
+**Usage in critical components:**
+
+```tsx
+// pages/tab-manager/src/TabManager.tsx
+import { Profiler } from '@extension/dev-utils'
+;<Profiler id="TabManager">
+  <TabManagerContent />
+</Profiler>
+```
+
+**Add to:**
+
+- TabManager
+- Omnibar
+- TabItemPane (list rendering)
+
+#### 1.2: Create Performance Testing Script (Day 2)
+
+```typescript
+// packages/dev-utils/lib/performanceTest.ts
+export const measureRenderTime = async (
+  componentName: string,
+  renderFn: () => void,
+): Promise<number> => {
+  const start = performance.now()
+  renderFn()
+  await new Promise((resolve) => requestAnimationFrame(resolve))
+  const end = performance.now()
+  const duration = end - start
+
+  if (__DEV__) {
+    console.log(`[Performance] ${componentName}: ${duration.toFixed(2)}ms`)
+  }
+
+  return duration
+}
+
+// Test with various tab counts
+export const testTabListPerformance = async () => {
+  const testSizes = [10, 50, 100, 500, 1000]
+
+  for (const size of testSizes) {
+    const mockTabs = generateMockTabs(size)
+    const duration = await measureRenderTime(`TabList-${size}tabs`, () =>
+      renderTabList(mockTabs),
+    )
+
+    console.log(`${size} tabs: ${duration.toFixed(2)}ms`)
+  }
+}
+```
+
+#### 1.3: Document Baseline Metrics (Day 3)
+
+Create performance benchmark document:
+
+```markdown
+# Performance Benchmarks
+
+**Date:** January 1, 2026  
+**Environment:** MacBook Pro M1, Chrome 131
+
+## Component Render Times
+
+| Component  | Tab Count | First Render | Re-render | Notes               |
+| ---------- | --------- | ------------ | --------- | ------------------- |
+| TabManager | 10        | 12ms         | 3ms       | Fast                |
+| TabManager | 50        | 45ms         | 8ms       | Good                |
+| TabManager | 100       | 89ms         | 15ms      | Acceptable          |
+| TabManager | 500       | TBD          | TBD       | User's typical load |
+
+## Interaction Metrics
+
+| Action            | Duration | Target | Status |
+| ----------------- | -------- | ------ | ------ |
+| Open context menu | 8ms      | <16ms  | ✅     |
+| Switch tabs       | 12ms     | <50ms  | ✅     |
+| Search (10 chars) | 45ms     | <100ms | ✅     |
+
+## Memory Usage
+
+| State           | Memory | Notes   |
+| --------------- | ------ | ------- |
+| Idle            | ~45MB  | Good    |
+| 500 tabs loaded | TBD    | Measure |
+```
+
+**Files to Create:**
+
+- `packages/dev-utils/lib/Profiler.tsx`
+- `packages/dev-utils/lib/performanceTest.ts`
+- `docs/PERFORMANCE.md` (benchmark results)
+
+---
+
+### Task 2: Toast Notifications with shadcn/sonner (3 days)
+
+**Goal:** Add user feedback for all actions using shadcn's sonner implementation.
+
+#### 2.1: Install Dependencies & Setup (Day 1)
+
+```bash
+# Install sonner
+pnpm add sonner
+
+# Install lucide icons (for toast icons)
+pnpm add lucide-react
+```
+
+#### 2.2: Create shadcn Toaster Component (Day 1)
+
+```typescript
+// packages/ui/lib/components/ui/sonner.tsx
+"use client"
+
+import {
+  CircleCheckIcon,
+  InfoIcon,
+  Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
+} from "lucide-react"
+import { useThemeApplicator } from '@extension/shared'
+import { Toaster as Sonner, type ToasterProps } from "sonner"
+
+export const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme } = useThemeApplicator()
+
+  return (
+    <Sonner
+      theme={theme === 'dark' ? 'dark' : 'light'}
+      className="toaster group"
+      icons={{
+        success: <CircleCheckIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <TriangleAlertIcon className="size-4" />,
+        error: <OctagonXIcon className="size-4" />,
+        loading: <Loader2Icon className="size-4 animate-spin" />,
+      }}
+      style={{
+        "--normal-bg": "hsl(var(--popover))",
+        "--normal-text": "hsl(var(--popover-foreground))",
+        "--normal-border": "hsl(var(--border))",
+        "--border-radius": "var(--radius)",
+      } as React.CSSProperties}
+      {...props}
+    />
+  )
+}
+
+// Re-export toast function
+export { toast } from "sonner"
+```
+
+#### 2.3: Add Toaster to Pages (Day 1)
+
+Update all page entry points:
+
+```tsx
+// pages/tab-manager/src/TabManager.tsx
+import { Toaster } from '@extension/ui/components/ui/sonner'
+
+export default function TabManager() {
+  return (
+    <>
+      <Toaster />
+      {/* existing content */}
+    </>
+  )
+}
+```
+
+**Add to:**
+
+- TabManager
+- OmnibarOverlay
+- OmnibarPopup
+- Options
+
+#### 2.4: Integrate Toasts into Actions (Day 2-3)
+
+Add toast feedback to common actions:
+
+```typescript
+// Example: packages/chrome/lib/actions/tabs/closeTab.ts
+import { toast } from '@extension/ui/components/ui/sonner'
+
+export const closeTab = async (tabId: number): Promise<void> => {
+  try {
+    await chrome.tabs.remove(tabId)
+    // Success is usually silent, but could add for bulk operations
+  } catch (error) {
+    toast.error('Failed to close tab')
+    throw error
+  }
+}
+
+// Example: Bulk operations with feedback
+export const closeTabs = async (tabIds: number[]): Promise<void> => {
+  try {
+    await chrome.tabs.remove(tabIds)
+    toast.success(`Closed ${tabIds.length} tabs`)
+  } catch (error) {
+    toast.error(`Failed to close ${tabIds.length} tabs`)
+    throw error
+  }
+}
+```
+
+**Actions to add toast feedback:**
+
+- Bulk close tabs
+- Create/rename tab group
+- Move tabs to new window
+- Pin/unpin multiple tabs
+- Duplicate tabs
+- Copy URLs (success confirmation)
+
+#### 2.5: Export from UI Package (Day 3)
+
+```json
+// packages/ui/package.json - add exports
+{
+  "exports": {
+    "./components/ui/sonner": {
+      "types": "./lib/components/ui/sonner.tsx",
+      "default": "./dist/lib/components/ui/sonner.js"
+    }
+  }
+}
+```
+
+**Files to Create:**
+
+- `packages/ui/lib/components/ui/sonner.tsx`
+
+**Files to Update:**
+
+- `packages/ui/package.json` (exports & dependencies)
+- `pages/*/src/*.tsx` (add Toaster component)
+- `packages/chrome/lib/actions/**/*.ts` (add toast calls)
+
+---
+
+### Task 3: Loading States with shadcn/skeleton (2 days)
+
+**Goal:** Show loading indicators during async operations.
+
+#### 3.1: Install & Create Skeleton Component (Day 1)
+
+```bash
+pnpm dlx shadcn@latest add skeleton
+```
+
+This creates:
+
+```typescript
+// packages/ui/lib/components/ui/skeleton.tsx
+import { cn } from "@/lib/utils"
+
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-muted", className)}
+      {...props}
+    />
+  )
+}
+
+export { Skeleton }
+```
+
+#### 3.2: Create Loading States for Lists (Day 1)
+
+```tsx
+// packages/ui/lib/components/TabListSkeleton.tsx
+import { Skeleton } from './ui/skeleton'
+
+export const TabListSkeleton = ({ count = 5 }: { count?: number }) => {
+  return (
+    <div className="space-y-2 p-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex items-center space-x-3">
+          <Skeleton className="h-4 w-4 rounded" />
+          <Skeleton className="h-4 flex-1" />
+          <Skeleton className="h-4 w-8" />
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+#### 3.3: Add Loading States to Async Operations (Day 2)
+
+```tsx
+// Example: Tab Manager initial load
+export function TabManager() {
+  const { windows, isLoading } = useBrowserWindows()
+
+  if (isLoading) {
+    return <TabListSkeleton count={10} />
+  }
+
+  return <TabManagerContent windows={windows} />
+}
+
+// Example: Button with loading state
+const handleCloseSelected = async () => {
+  setIsClosing(true)
+  try {
+    await closeTabs(selectedTabIds)
+    toast.success(`Closed ${selectedTabIds.length} tabs`)
+  } finally {
+    setIsClosing(false)
+  }
+}
+
+;<button disabled={isClosing}>
+  {isClosing && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+  Close {selectedTabIds.length} tabs
+</button>
+```
+
+**Components needing loading states:**
+
+- TabManager (initial load)
+- Omnibar (searching history/bookmarks)
+- Action buttons (during async operations)
+
+**Files to Create:**
+
+- `packages/ui/lib/components/ui/skeleton.tsx`
+- `packages/ui/lib/components/TabListSkeleton.tsx`
+
+---
+
+### Task 4: Bundle Size Analysis & Optimization (1 week)
+
+**Goal:** Analyze bundle composition and reduce size where possible.
+
+**Note:** `pnpm measure` command already exists! Uses `scripts/measure-dist.mjs` with detailed size analysis and color-coded output.
+
+#### 4.1: Run Existing Measurement Tool (Day 1)
+
+```bash
+# Build first
+pnpm build
+
+# Analyze bundle sizes
+pnpm measure
+```
+
+The existing script provides:
+
+- File-by-file size breakdown
+- Color-coded size categories (Tiny → Huge)
+- Dependency vs source code analysis
+- Configurable color palettes (currently using 'midnight')
+
+#### 4.2: Optional: Add Visual Bundle Analyzer (Day 1)
+
+If tree-map visualization is desired:
+
+```bash
+pnpm add -D rollup-plugin-visualizer
+```
+
+```typescript
+// chrome-extension/vite.config.mts
+import { visualizer } from 'rollup-plugin-visualizer'
+
+export default defineConfig({
+  plugins: [
+    // ... existing plugins
+    visualizer({
+      filename: './dist/bundle-stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
+})
+```
+
+#### 4.3: Analyze Measurement Output (Day 1-2)
+
+Run the measurement and review output:
+
+```bash
+pnpm build
+pnpm measure
+```
+
+**Look for:**
+
+1. Duplicate dependencies (same lib in multiple bundles)
+2. Large dependencies that could be replaced
+3. Unused code that's being bundled
+4. Opportunities for code splitting
+5. Impact of new `@extension/omnibar` package on bundle sizes
+
+**Note:** The new `@extension/omnibar` package consolidates omnibar logic. Verify it doesn't cause duplication across omnibar-overlay, omnibar-popup, and omnibar-embed builds.
+
+#### 4.4: Optimize Based on Findings (Day 3-4)
+
+**Common optimizations:**
+
+1. **Verify tree-shaking for Radix UI:**
+
+```typescript
+// ✅ Good (current usage)
+import { Root, Trigger, Content } from '@radix-ui/react-context-menu'
+
+// ❌ Bad (check for this)
+import * as ContextMenu from '@radix-ui/react-context-menu'
+```
+
+2. **Check for duplicate React versions:**
+
+```bash
+pnpm ls react react-dom
+# Should only show one version
+```
+
+3. **Audit lodash usage (if any):**
+
+```typescript
+// ✅ Good
+import isEmpty from 'lodash-es/isEmpty'
+
+// ❌ Bad
+import { isEmpty } from 'lodash'
+```
+
+4. **Review icon imports:**
+
+```typescript
+// Current: lucide-react (good, tree-shakeable)
+import { X, ChevronRight } from 'lucide-react'
+```
+
+#### 4.4: Document Results (Day 5)
+
+Create optimization report:
+
+```markdown
+# Bundle Size Optimization Results
+
+**Date:** January 2026
+
+## Before Optimization
+
+- Total: 1.0MB (v1.2.0)
+- Tab Manager: 1.1MB
+- Options: 970KB
+- Omnibar: 813KB
+
+## Findings
+
+1. [Finding from analyzer]
+2. [Finding from analyzer]
+
+## Actions Taken
+
+1. [What was optimized]
+2. [What was optimized]
+
+## After Optimization
+
+- Total: [New size]
+- Reduction: [X]%
+
+## Monitoring
+
+- Set up bundle size tracking in CI
+- Alert if bundle grows >5% between releases
+```
+
+**Files to Create:**
+
+- `docs/BUNDLE_OPTIMIZATION.md`
+
+---
+
+### Success Metrics
+
+**Performance:**
+
+- [ ] Baseline metrics documented in `docs/PERFORMANCE.md`
+- [ ] Dev-mode profiling enabled for TabManager and Omnibar
+- [ ] Performance testing script created
+
+**User Feedback:**
+
+- [ ] Toasts show for all bulk operations (close, move, pin, etc.)
+- [ ] Success and error states clearly communicated
+- [ ] Loading indicators on buttons during async operations
+
+**Bundle Size:**
+
+- [ ] Bundle analyzer integrated into build
+- [ ] Analysis document created with findings
+- [ ] Bundle size stable or reduced from v1.2.0
+- [ ] No single chunk exceeds 1.5MB
+
+---
+
+### Files to Create
+
+**New Files:**
+
+- `packages/dev-utils/lib/Profiler.tsx`
+- `packages/dev-utils/lib/performanceTest.ts`
+- `packages/ui/lib/components/ui/sonner.tsx`
+- `packages/ui/lib/components/ui/skeleton.tsx`
+- `packages/ui/lib/components/TabListSkeleton.tsx`
+- `docs/PERFORMANCE.md`
+- `docs/BUNDLE_OPTIMIZATION.md`
+
+**Files to Update:**
+
+- `package.json` (add sonner, lucide-react, rollup-plugin-visualizer)
+- `packages/ui/package.json` (exports for sonner, skeleton)
+- `pages/tab-manager/src/TabManager.tsx` (add Toaster)
+- `pages/omnibar-overlay/src/OmnibarOverlay.tsx` (add Toaster)
+- `pages/omnibar-popup/src/OmnibarPopup.tsx` (add Toaster)
+- `pages/options/src/Options.tsx` (add Toaster)
+- `packages/chrome/lib/actions/**/*.ts` (add toast feedback)
+- `chrome-extension/vite.config.mts` (add visualizer plugin)
+
+---
+
+### Timeline
+
+**Week 1 (Jan 1-7):**
+
+- Days 1-3: Performance profiling & dev logging
+- Days 4-5: Bundle analyzer setup & initial analysis
+
+**Week 2 (Jan 8-14):**
+
+- Days 1-3: Toast notification system
+- Days 4-5: Loading states with skeleton
+
+**Week 3 (Jan 15-21):**
+
+- Days 1-5: Bundle optimization based on findings
+- Final testing and documentation
+
+**Completion Date:** January 21, 2026

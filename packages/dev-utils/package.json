@@ -13,6 +13,10 @@
       "types": "./lib/manifest-parser/impl.ts",
       "default": "./dist/lib/manifest-parser/impl.js"
     },
+    "./Profiler": {
+      "types": "./lib/Profiler.tsx",
+      "default": "./dist/lib/Profiler.js"
+    },
     "./stream-file-to-zip": {
       "types": "./lib/stream-file-to-zip.ts",
       "default": "./dist/lib/stream-file-to-zip.js"
@@ -26,6 +30,9 @@
     "ready": "tsc -b",
     "type-check": "tsc --noEmit",
     "postinstall": "pnpm ready"
+  },
+  "dependencies": {
+    "@extension/env": "workspace:*"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
