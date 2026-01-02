@@ -5,6 +5,10 @@
   "main": "tailwind.config.ts",
   "private": true,
   "sideEffects": false,
+  "exports": {
+    "./base.css": "./base.css",
+    "./create-tailwind-config": "./create-tailwind-config.ts"
+  },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
   }

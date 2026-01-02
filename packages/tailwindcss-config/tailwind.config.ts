@@ -1,6 +1,14 @@
 import type { Config } from 'tailwindcss'
 
 export default {
+  content: [],
+  darkMode: [
+    'variant',
+    [
+      '@media (prefers-color-scheme: dark) { &:not([data-theme="light"] *) }',
+      '&:is([data-theme="dark"] *)',
+    ],
+  ],
   theme: {
     extend: {
       colors: {
@@ -28,4 +36,4 @@ export default {
     },
   },
   plugins: [],
-} as Omit<Config, 'content'>
+} satisfies Config

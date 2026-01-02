@@ -29,19 +29,18 @@ pnpm install
 Add the following to the `tailwind.config.ts` file.
 
 ```ts
-import baseConfig from '@extension/tailwindcss-config'
-import { withUI } from '@extension/ui'
+import { createTailwindConfig } from '@extension/tailwindcss-config/create-tailwind-config'
+import { uiTailwindConfig } from '@extension/ui/ui-tailwind-config'
 
-export default withUI({
-  ...baseConfig,
-  content: ['./index.html', './src/**/*.tsx'],
+export default createTailwindConfig(uiTailwindConfig, {
+  content: ['index.html', 'src/**/*.{ts,tsx}'],
 })
 ```
 
 Add the following to the first line of `index.css` file.
 
 ```css
-@import '@extension/ui/global.css';
+@import '@extension/tailwindcss-config/base.css';
 ```
 
 ## Add Custom Component
@@ -85,11 +84,3 @@ export default withErrorBoundary(
 
 > [!TIP]
 > You are able to set other size of the loading spinner by passing the `size` prop to the `<LoadingSpinner />`.
-
-## Modifying the tailwind config of the UI library
-
-Modify the `tailwind.config.ts` file to make global style changes to the package.
-
-## Modifying the css variable of the UI library
-
-Modify the css variable in the `ui/lib/global.css` code to change the css variable of all pages(with UI).

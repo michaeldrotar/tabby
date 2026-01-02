@@ -181,11 +181,10 @@
       "types": "./lib/utils/formatTimeAgo.ts",
       "default": "./dist/lib/utils/formatTimeAgo.js"
     },
-    "./with-ui": {
-      "types": "./lib/with-ui.ts",
-      "default": "./dist/lib/with-ui.js"
-    },
-    "./global.css": "./global.css"
+    "./ui-tailwind-config": {
+      "types": "./lib/ui-tailwind-config.ts",
+      "default": "./dist/lib/ui-tailwind-config.js"
+    }
   },
   "scripts": {
     "clean:bundle": "rimraf dist",

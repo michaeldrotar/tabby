@@ -1,4 +1,4 @@
-@import '@extension/ui/global.css';
+@import '@extension/tailwindcss-config/base.css';
 
 :root,
 html,

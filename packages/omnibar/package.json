@@ -4,6 +4,7 @@
   "description": "Omnibar shared business logic",
   "type": "module",
   "private": true,
+  "sideEffects": true,
   "files": [
     "dist/**"
   ],
@@ -43,6 +44,10 @@
     "./WiredOmnibar": {
       "types": "./lib/WiredOmnibar.tsx",
       "default": "./dist/lib/WiredOmnibar.js"
+    },
+    "./omnibar-tailwind-config": {
+      "types": "./lib/omnibar-tailwind-config.ts",
+      "default": "./dist/lib/omnibar-tailwind-config.js"
     }
   },
   "scripts": {
