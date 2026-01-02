@@ -1,3 +1,5 @@
+import { tt } from '@extension/i18n/plurals'
+import { t } from '@extension/i18n/t'
 import {
   Copy,
   Focus,
@@ -52,8 +54,8 @@ export const WindowContextMenu = ({
         {!isCurrent && (
           <>
             <ContextMenuItem onSelect={onFocus}>
-              <Focus className="size-4" />
-              <span>Focus Window</span>
+              <Focus className="size-4" aria-hidden="true" />
+              <span>{t('windowContextMenu_focusWindow')}</span>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>
@@ -61,28 +63,28 @@ export const WindowContextMenu = ({
 
         {hasAudibleTabs && !hasMutedTabs && (
           <ContextMenuItem onSelect={onMuteAll}>
-            <VolumeOff className="size-4" />
-            <span>Mute All Tabs</span>
+            <VolumeOff className="size-4" aria-hidden="true" />
+            <span>{t('windowContextMenu_muteAllTabs')}</span>
           </ContextMenuItem>
         )}
 
         {hasMutedTabs && (
           <ContextMenuItem onSelect={onUnmuteAll}>
-            <Volume2 className="size-4" />
-            <span>Unmute All Tabs</span>
+            <Volume2 className="size-4" aria-hidden="true" />
+            <span>{t('windowContextMenu_unmuteAllTabs')}</span>
           </ContextMenuItem>
         )}
 
         <ContextMenuItem onSelect={onReloadAll}>
-          <RefreshCw className="size-4" />
-          <span>Reload All Tabs</span>
+          <RefreshCw className="size-4" aria-hidden="true" />
+          <span>{t('windowContextMenu_reloadAllTabs')}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={onCopyAllUrls}>
-          <Copy className="size-4" />
-          <span>Copy All URLs</span>
+          <Copy className="size-4" aria-hidden="true" />
+          <span>{t('windowContextMenu_copyAllUrls')}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -92,11 +94,11 @@ export const WindowContextMenu = ({
           onSelect={onClose}
           disabled={tabCount === 0}
         >
-          <Trash2 className="size-4" />
-          <span>Close Window</span>
+          <Trash2 className="size-4" aria-hidden="true" />
+          <span>{t('windowContextMenu_closeWindow')}</span>
           {tabCount > 0 && (
             <span className="ml-auto text-xs opacity-60">
-              {tabCount} {tabCount === 1 ? 'tab' : 'tabs'}
+              {tt('nTabs', tabCount)}
             </span>
           )}
         </ContextMenuItem>

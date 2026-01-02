@@ -149,12 +149,23 @@ export const TabItemRow = memo(
 
               {/* Status indicators */}
               <div className="flex items-center gap-1">
-                {isPinned && <Pin className="size-3 text-muted opacity-60" />}
+                {isPinned && (
+                  <Pin
+                    className="size-3 text-muted opacity-60"
+                    aria-hidden="true"
+                  />
+                )}
                 {isAudible && !isMuted && (
-                  <Volume2 className="size-3 animate-pulse text-accent" />
+                  <Volume2
+                    className="size-3 animate-pulse text-accent"
+                    aria-hidden="true"
+                  />
                 )}
                 {isMuted && (
-                  <VolumeOff className="size-3 text-muted opacity-60" />
+                  <VolumeOff
+                    className="size-3 text-muted opacity-60"
+                    aria-hidden="true"
+                  />
                 )}
               </div>
             </button>

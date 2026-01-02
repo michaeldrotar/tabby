@@ -17,6 +17,7 @@ import { reloadTab } from '@extension/chrome/actions/tabs/reloadTab'
 import { removeTabFromGroup } from '@extension/chrome/actions/tabs/removeTabFromGroup'
 import { unmuteTab } from '@extension/chrome/actions/tabs/unmuteTab'
 import { unpinTab } from '@extension/chrome/actions/tabs/unpinTab'
+import { t } from '@extension/i18n/t'
 import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
@@ -46,15 +47,15 @@ export const useTabActions = (tab: BrowserTab) => {
   )
   const copyTitle = useCallback(async () => {
     await copyTabTitle(tabId)
-    toast.success('Title copied')
+    toast.success(t('toast_titleCopied'))
   }, [tabId])
   const copyTitleAndUrl = useCallback(async () => {
     await copyTabTitleAndUrl(tabId)
-    toast.success('Title and URL copied')
+    toast.success(t('toast_titleAndUrlCopied'))
   }, [tabId])
   const copyUrl = useCallback(async () => {
     await copyTabUrl(tabId)
-    toast.success('URL copied')
+    toast.success(t('toast_urlCopied'))
   }, [tabId])
   const duplicate = useCallback(() => duplicateTab(tabId), [tabId])
   const moveBack = useCallback(() => moveTabBackward(tabId), [tabId])

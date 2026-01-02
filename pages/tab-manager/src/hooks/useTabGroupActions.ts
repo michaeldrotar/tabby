@@ -7,6 +7,7 @@ import { renameTabGroup } from '@extension/chrome/actions/tabGroups/renameTabGro
 import { toggleTabGroupCollapsed } from '@extension/chrome/actions/tabGroups/toggleTabGroupCollapsed'
 import { closeTabs } from '@extension/chrome/actions/tabs/closeTabs'
 import { ungroupTabs } from '@extension/chrome/actions/tabs/ungroupTabs'
+import { tt } from '@extension/i18n/plurals'
 import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
@@ -32,13 +33,11 @@ export const useTabGroupActions = (
   const close = useCallback(async () => {
     const count = tabIds.length
     await closeTabs(tabIds)
-    toast.success(`Closed ${count} tab${count === 1 ? '' : 's'}`)
+    toast.success(tt('toast_nTabsClosed', count))
   }, [tabIds])
   const copyUrls = useCallback(async () => {
     await copyTabGroupUrls(groupId)
-    toast.success(
-      `${tabIds.length} URL${tabIds.length === 1 ? '' : 's'} copied`,
-    )
+    toast.success(tt('toast_nUrlsCopied', tabIds.length))
   }, [groupId, tabIds.length])
   const moveBack = useCallback(() => moveTabGroupBackward(groupId), [groupId])
   const moveForward = useCallback(() => moveTabGroupForward(groupId), [groupId])

@@ -1,3 +1,4 @@
+import { t } from '@extension/i18n/t'
 import { memo } from 'react'
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from '../../icons'
 import { ScrollArea } from '../../ScrollArea'
@@ -49,13 +50,21 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
             focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
             focus-visible:ring-offset-2 focus-visible:ring-offset-background
           `}
-          title={isExpanded ? 'Collapse' : 'Expand'}
-          aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          title={
+            isExpanded
+              ? t('sidebar_collapseSidebar')
+              : t('sidebar_expandSidebar')
+          }
+          aria-label={
+            isExpanded
+              ? t('sidebar_collapseSidebar')
+              : t('sidebar_expandSidebar')
+          }
         >
           {isExpanded ? (
-            <PanelLeftCloseIcon size={20} />
+            <PanelLeftCloseIcon size={20} aria-hidden="true" />
           ) : (
-            <PanelLeftOpenIcon size={20} />
+            <PanelLeftOpenIcon size={20} aria-hidden="true" />
           )}
         </button>
         {windowCount && (

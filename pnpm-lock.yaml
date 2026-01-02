@@ -495,6 +495,9 @@ importers:
       '@extension/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@extension/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@extension/omnibar':
         specifier: workspace:*
         version: link:../../packages/omnibar

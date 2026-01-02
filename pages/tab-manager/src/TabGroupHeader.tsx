@@ -126,14 +126,23 @@ export const TabGroupHeader = memo(
             {/* Collapse indicator */}
             <div className="flex h-4 w-4 items-center justify-center">
               {group.collapsed ? (
-                <ChevronRight className={cn('size-4', colorClasses.text)} />
+                <ChevronRight
+                  className={cn('size-4', colorClasses.text)}
+                  aria-hidden="true"
+                />
               ) : (
-                <ChevronDown className={cn('size-4', colorClasses.text)} />
+                <ChevronDown
+                  className={cn('size-4', colorClasses.text)}
+                  aria-hidden="true"
+                />
               )}
             </div>
 
             {/* Color dot */}
-            <div className={cn('h-3 w-3 rounded-full', colorClasses.dot)} />
+            <div
+              className={cn('h-3 w-3 rounded-full', colorClasses.dot)}
+              aria-hidden="true"
+            />
 
             {/* Title */}
             {isRenaming ? (

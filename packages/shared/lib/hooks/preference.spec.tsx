@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 type MatchMediaMock = {
@@ -178,14 +178,18 @@ describe('useThemeApplicator', () => {
     expect(document.body.getAttribute('data-theme-accent')).toBe('blue')
     expect(document.body.style.getPropertyValue('--accent-strength')).toBe('20')
 
-    matchMedia.dispatchChange(false)
+    act(() => {
+      matchMedia.dispatchChange(false)
+    })
     expect(document.body.getAttribute('data-theme')).toBe('light')
     expect(document.body.getAttribute('data-theme-background')).toBe('stone')
     expect(document.body.getAttribute('data-theme-foreground')).toBe('neutral')
     expect(document.body.getAttribute('data-theme-accent')).toBe('amber')
     expect(document.body.style.getPropertyValue('--accent-strength')).toBe('10')
 
-    matchMedia.dispatchChange(true)
+    act(() => {
+      matchMedia.dispatchChange(true)
+    })
     expect(document.body.getAttribute('data-theme')).toBe('dark')
     expect(document.body.getAttribute('data-theme-background')).toBe('neutral')
     expect(document.body.getAttribute('data-theme-foreground')).toBe('zinc')

@@ -46,10 +46,10 @@
 - ~~Chrome API retry logic~~ - APIs are local/fast, no observed failures
 - ~~Dynamic imports~~ - Settings is separate page, context menus being removed
 
-### Phase 5: Accessibility & i18n (2-3 weeks) 🎯 CURRENT
+### Phase 5: Accessibility & i18n (2-3 weeks) ✅ DONE
 
-- [ ] Accessibility audit (Objective #15) - 1 week
-- [ ] i18n completion (Objective #16) - 1.5 weeks
+- [x] Accessibility audit (Objective #15) - Added `aria-hidden` to decorative icons in context menus, status indicators, sidebar; verified icon-only buttons have `aria-label`; sonner provides `aria-live` for toasts
+- [x] i18n completion (Objective #16) - Extracted 50+ strings to `messages.json` (context menus, toast messages, sidebar labels, tab group colors); skipped RTL (no demand) and additional locales (English-only users)
 
 ### Phase 6: Testing & Documentation (4 weeks)
 

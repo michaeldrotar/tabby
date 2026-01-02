@@ -4,6 +4,7 @@ import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { muteAllTabsInWindow } from '@extension/chrome/actions/windows/muteAllTabsInWindow'
 import { reloadAllTabsInWindow } from '@extension/chrome/actions/windows/reloadAllTabsInWindow'
 import { unmuteAllTabsInWindow } from '@extension/chrome/actions/windows/unmuteAllTabsInWindow'
+import { tt } from '@extension/i18n/plurals'
 import { toast } from '@extension/ui/components/Toaster'
 import { useCallback, useMemo } from 'react'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
@@ -20,7 +21,7 @@ export const useWindowActions = (window: BrowserWindow, tabs: BrowserTab[]) => {
   const close = useCallback(() => closeWindow(windowId), [windowId])
   const copyAllUrls = useCallback(async () => {
     await copyAllUrlsInWindow(tabs)
-    toast.success(`${tabs.length} URL${tabs.length === 1 ? '' : 's'} copied`)
+    toast.success(tt('toast_nUrlsCopied', tabs.length))
   }, [tabs])
   const focus = useCallback(() => focusWindow(windowId), [windowId])
   const muteAll = useCallback(() => muteAllTabsInWindow(tabIds), [tabIds])

@@ -1,3 +1,4 @@
+import { t } from '@extension/i18n/t'
 import {
   ChevronDown,
   ChevronUp,
@@ -63,13 +64,13 @@ export const TabGroupContextMenu = ({
         <ContextMenuItem onSelect={onToggleCollapse}>
           {isCollapsed ? (
             <>
-              <ChevronDown className="size-4" />
-              <span>Expand Group</span>
+              <ChevronDown className="size-4" aria-hidden="true" />
+              <span>{t('groupContextMenu_expandGroup')}</span>
             </>
           ) : (
             <>
-              <ChevronUp className="size-4" />
-              <span>Collapse Group</span>
+              <ChevronUp className="size-4" aria-hidden="true" />
+              <span>{t('groupContextMenu_collapseGroup')}</span>
             </>
           )}
         </ContextMenuItem>
@@ -77,14 +78,14 @@ export const TabGroupContextMenu = ({
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={onRename}>
-          <Pencil className="size-4" />
-          <span>Rename Group</span>
+          <Pencil className="size-4" aria-hidden="true" />
+          <span>{t('groupContextMenu_renameGroup')}</span>
         </ContextMenuItem>
 
         <ContextMenuSub>
           <ContextMenuSubTrigger>
-            <Palette className="size-4" />
-            <span>Change Color</span>
+            <Palette className="size-4" aria-hidden="true" />
+            <span>{t('groupContextMenu_changeColor')}</span>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-40">
             <ContextMenuRadioGroup
@@ -97,7 +98,10 @@ export const TabGroupContextMenu = ({
                 const config = getGroupColorClasses(id)
                 return (
                   <ContextMenuRadioItem key={id} value={id}>
-                    <div className={cn('size-3 rounded-full', config.dot)} />
+                    <div
+                      className={cn('size-3 rounded-full', config.dot)}
+                      aria-hidden="true"
+                    />
                     <span>{config.label}</span>
                   </ContextMenuRadioItem>
                 )
@@ -109,27 +113,27 @@ export const TabGroupContextMenu = ({
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={onUngroup}>
-          <Ungroup className="size-4" />
-          <span>Ungroup Tabs</span>
+          <Ungroup className="size-4" aria-hidden="true" />
+          <span>{t('groupContextMenu_ungroupTabs')}</span>
         </ContextMenuItem>
 
         <ContextMenuItem onSelect={onMoveToNewWindow}>
-          <ExternalLink className="size-4" />
-          <span>Move Group to New Window</span>
+          <ExternalLink className="size-4" aria-hidden="true" />
+          <span>{t('groupContextMenu_moveToNewWindow')}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={onCopyUrls}>
-          <Copy className="size-4" />
-          <span>Copy All URLs</span>
+          <Copy className="size-4" aria-hidden="true" />
+          <span>{t('groupContextMenu_copyAllUrls')}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" onSelect={onClose}>
-          <Trash2 className="size-4" />
-          <span>Close Group</span>
+          <Trash2 className="size-4" aria-hidden="true" />
+          <span>{t('groupContextMenu_closeGroup')}</span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

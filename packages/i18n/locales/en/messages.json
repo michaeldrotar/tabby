@@ -34,5 +34,202 @@
   },
   "nTabs_one": {
     "message": "1 tab"
+  },
+
+  "tabContextMenu_duplicateTab": {
+    "message": "Duplicate Tab"
+  },
+  "tabContextMenu_reload": {
+    "message": "Reload"
+  },
+  "tabContextMenu_pinTab": {
+    "message": "Pin Tab"
+  },
+  "tabContextMenu_unpinTab": {
+    "message": "Unpin Tab"
+  },
+  "tabContextMenu_muteTab": {
+    "message": "Mute Tab"
+  },
+  "tabContextMenu_unmuteTab": {
+    "message": "Unmute Tab"
+  },
+  "tabContextMenu_addToGroup": {
+    "message": "Add to Group"
+  },
+  "tabContextMenu_newGroup": {
+    "message": "New Group"
+  },
+  "tabContextMenu_untitledGroup": {
+    "message": "Untitled Group"
+  },
+  "tabContextMenu_removeFromGroup": {
+    "message": "Remove from Group"
+  },
+  "tabContextMenu_moveToWindow": {
+    "message": "Move to Window"
+  },
+  "tabContextMenu_newWindow": {
+    "message": "New Window"
+  },
+  "tabContextMenu_copy": {
+    "message": "Copy"
+  },
+  "tabContextMenu_copyUrl": {
+    "message": "Copy URL"
+  },
+  "tabContextMenu_copyTitle": {
+    "message": "Copy Title"
+  },
+  "tabContextMenu_copyTitleAndUrl": {
+    "message": "Copy Title + URL"
+  },
+  "tabContextMenu_closeOtherTabs": {
+    "message": "Close Other Tabs"
+  },
+  "tabContextMenu_closeTabsBelow": {
+    "message": "Close Tabs Below"
+  },
+  "tabContextMenu_closeTab": {
+    "message": "Close Tab"
+  },
+
+  "windowLabel_popup": {
+    "message": "Popup Window"
+  },
+  "windowLabel_devtools": {
+    "message": "DevTools"
+  },
+  "windowLabel_privateMac": {
+    "message": "Private Window"
+  },
+  "windowLabel_incognito": {
+    "message": "Incognito Window"
+  },
+  "windowLabel_default": {
+    "message": "Window $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+
+  "groupContextMenu_expandGroup": {
+    "message": "Expand Group"
+  },
+  "groupContextMenu_collapseGroup": {
+    "message": "Collapse Group"
+  },
+  "groupContextMenu_renameGroup": {
+    "message": "Rename Group"
+  },
+  "groupContextMenu_changeColor": {
+    "message": "Change Color"
+  },
+  "groupContextMenu_ungroupTabs": {
+    "message": "Ungroup Tabs"
+  },
+  "groupContextMenu_moveToNewWindow": {
+    "message": "Move Group to New Window"
+  },
+  "groupContextMenu_copyAllUrls": {
+    "message": "Copy All URLs"
+  },
+  "groupContextMenu_closeGroup": {
+    "message": "Close Group"
+  },
+
+  "windowContextMenu_focusWindow": {
+    "message": "Focus Window"
+  },
+  "windowContextMenu_muteAllTabs": {
+    "message": "Mute All Tabs"
+  },
+  "windowContextMenu_unmuteAllTabs": {
+    "message": "Unmute All Tabs"
+  },
+  "windowContextMenu_reloadAllTabs": {
+    "message": "Reload All Tabs"
+  },
+  "windowContextMenu_copyAllUrls": {
+    "message": "Copy All URLs"
+  },
+  "windowContextMenu_closeWindow": {
+    "message": "Close Window"
+  },
+
+  "groupColor_grey": {
+    "message": "Grey"
+  },
+  "groupColor_blue": {
+    "message": "Blue"
+  },
+  "groupColor_red": {
+    "message": "Red"
+  },
+  "groupColor_yellow": {
+    "message": "Yellow"
+  },
+  "groupColor_green": {
+    "message": "Green"
+  },
+  "groupColor_pink": {
+    "message": "Pink"
+  },
+  "groupColor_purple": {
+    "message": "Purple"
+  },
+  "groupColor_cyan": {
+    "message": "Cyan"
+  },
+  "groupColor_orange": {
+    "message": "Orange"
+  },
+
+  "toast_urlCopied": {
+    "message": "URL copied"
+  },
+  "toast_titleCopied": {
+    "message": "Title copied"
+  },
+  "toast_titleAndUrlCopied": {
+    "message": "Title and URL copied"
+  },
+  "toast_nUrlsCopied": {
+    "message": "$COUNT$ URLs copied",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "toast_nUrlsCopied_one": {
+    "message": "1 URL copied"
+  },
+  "toast_nTabsClosed": {
+    "message": "$COUNT$ tabs closed",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsClosed_one": {
+    "message": "1 tab closed"
+  },
+
+  "common_untitled": {
+    "message": "Untitled"
+  },
+
+  "sidebar_expandSidebar": {
+    "message": "Expand sidebar"
+  },
+  "sidebar_collapseSidebar": {
+    "message": "Collapse sidebar"
   }
 }
