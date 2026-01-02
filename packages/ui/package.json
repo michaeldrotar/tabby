@@ -210,7 +210,6 @@
     "@extension/chrome": "workspace:*",
     "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
-    "@extension/storage": "workspace:*",
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.6",
@@ -224,7 +223,6 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "tsc-alias": "^1.8.16"
   }

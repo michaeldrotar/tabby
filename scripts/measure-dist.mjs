@@ -188,16 +188,6 @@ const formatDependencyList = ({
   maxLineWidth = 100,
   indentWidth = 25,
 }) => {
-  // Categorize and colorize deps
-  const getDepColor = (name) => {
-    const type = packageLookup.get(name)?.type
-    return type === 'app'
-      ? colors.success
-      : type === 'page'
-        ? colors.pages
-        : (t) => t
-  }
-
   const allDeps = [
     ...workspaceDeps
       .filter((d) => packageLookup.get(d)?.type === 'app')
@@ -223,10 +213,12 @@ const formatDependencyList = ({
   let line = [],
     lineLen = 0
   allDeps.forEach((dep, idx) => {
+    const displayName =
+      packageRegistry.byName.get(dep.name)?.displayName || dep.name
     const isLast = idx === allDeps.length - 1
     const colorFn = unusedSet.has(dep.name) ? colors.error : dep.color
-    const text = colorFn(dep.name) + (isLast ? '' : colors.muted(', '))
-    const len = dep.name.length + (isLast ? 0 : 2)
+    const text = colorFn(displayName) + (isLast ? '' : colors.muted(', '))
+    const len = displayName.length + (isLast ? 0 : 2)
 
     if (line.length && indentWidth + lineLen + len > maxLineWidth) {
       lines.push(line.join(''))
@@ -2012,10 +2004,11 @@ const printWorkspaceDependencies = async (results) => {
     )
     for (const issue of issues) {
       const pkgInfo = workspacePackages.get(issue.package)
+      if (pkgInfo.type === 'root') continue
       const pkgColor = pkgInfo?.color || colors.sourceCode
       console.log(
         colors.warning(`  ${chars.lines.v} `) +
-          pkgColor(issue.package) +
+          pkgColor(pkgInfo?.displayName || issue.package) +
           colors.muted(' imports ') +
           colors.dependencies(issue.imports) +
           colors.muted(

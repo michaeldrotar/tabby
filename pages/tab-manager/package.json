@@ -20,7 +20,6 @@
     "@extension/chrome": "workspace:*",
     "@extension/dev-utils": "workspace:*",
     "@extension/env": "workspace:*",
-    "@extension/i18n": "workspace:*",
     "@extension/omnibar": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
