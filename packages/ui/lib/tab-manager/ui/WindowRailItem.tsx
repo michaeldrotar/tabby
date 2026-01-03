@@ -10,9 +10,16 @@ export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   title: string
   activeTabUrl?: string
   tabCount: number
+  /** Whether this is the current browser window */
   isActive: boolean
-  isSelected: boolean
+  /** Whether this window's tabs are displayed in the tab pane */
+  isViewing: boolean
+  /** Whether the sidebar is expanded showing full window info */
   isExpanded: boolean
+  /** Whether this window is part of selection */
+  selected?: boolean
+  /** Whether keyboard focus is on this item (for multi-select mode) */
+  isFocused?: boolean
   onClick: () => void
   onClose?: () => void
 }
@@ -26,8 +33,10 @@ export const WindowRailItem = memo(
         activeTabUrl,
         tabCount,
         isActive,
-        isSelected,
+        isViewing,
         isExpanded,
+        selected = false,
+        isFocused = false,
         onClick,
         onClose,
         className,
@@ -53,24 +62,38 @@ export const WindowRailItem = memo(
             onKeyDown={handleKeyDown}
             data-nav-type="window"
             data-nav-id={id}
-            data-selected={isSelected}
             data-active={isActive}
             className={cn(
               `
                 relative flex w-full items-center gap-3 overflow-clip rounded-md
                 p-2 outline-none
-                focus-visible:outline-none focus-visible:ring-2
-                focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                focus-visible:ring-offset-2 focus-visible:ring-offset-background
               `,
-              isSelected
+              // Focus ring styling - shown when keyboard focused in multi-select mode
+              // or via default focus-visible
+              isFocused
+                ? `
+                  ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
+                  ring-offset-2 ring-offset-background
+                `
+                : `
+                  focus-visible:ring-2
+                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                  focus-visible:ring-offset-2
+                  focus-visible:ring-offset-background
+                `,
+              // Selection has highest priority for background
+              selected
                 ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-                : isActive
-                  ? 'bg-input/50'
-                  : `
-                    text-foreground
-                    group-hover:bg-highlighted/50
-                  `,
+                : isViewing
+                  ? `
+                    bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
+                  `
+                  : isActive
+                    ? 'bg-input/50'
+                    : `
+                      text-foreground
+                      group-hover:bg-highlighted/50
+                    `,
             )}
           >
             {isActive && (
@@ -79,7 +102,7 @@ export const WindowRailItem = memo(
                 className={cn(
                   'pointer-events-none absolute left-0 top-1/2 -translate-y-1/2',
                   'h-6 w-1 rounded-r-full bg-foreground/60',
-                  isSelected ? 'bg-foreground/50' : 'bg-muted/20',
+                  isViewing ? 'bg-foreground/50' : 'bg-muted/20',
                 )}
               />
             )}
@@ -106,7 +129,7 @@ export const WindowRailItem = memo(
                 <span
                   className={cn(
                     'text-xs',
-                    isSelected ? 'text-foreground/70' : 'text-muted',
+                    isViewing ? 'text-foreground/70' : 'text-muted',
                   )}
                 >
                   {tt('nTabs', tabCount)}

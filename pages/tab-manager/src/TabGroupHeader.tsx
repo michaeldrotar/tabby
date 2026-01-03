@@ -16,6 +16,10 @@ export type TabGroupHeaderProps = HTMLAttributes<HTMLDivElement> & {
   group: BrowserTabGroup
   isActive?: boolean
   isRenaming?: boolean
+  /** Whether this group is part of selection */
+  selected?: boolean
+  /** Whether keyboard focus is on this item (for multi-select mode) */
+  isFocused?: boolean
   onRenameComplete?: (newTitle: string) => void
   onRenameCancel?: () => void
   onToggleCollapse?: () => void
@@ -30,6 +34,8 @@ export const TabGroupHeader = memo(
         group,
         isActive = false,
         isRenaming = false,
+        selected = false,
+        isFocused = false,
         onRenameComplete,
         onRenameCancel,
         onToggleCollapse,
@@ -90,6 +96,19 @@ export const TabGroupHeader = memo(
           ref={ref}
           className={cn(
             `relative flex flex-col rounded-lg p-1 transition-colors`,
+            // Selection background overlay
+            selected
+              ? `
+                ring-2 ring-inset ring-accent/[calc(var(--accent-strength)*1%)]
+              `
+              : '',
+            // Focus ring for multi-select mode
+            isFocused
+              ? `
+                ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
+                ring-offset-2 ring-offset-background
+              `
+              : '',
             colorClasses.bg,
             className,
           )}
@@ -116,11 +135,15 @@ export const TabGroupHeader = memo(
                 px-2 py-1 text-left transition-colors
                 hover:bg-background/50
                 focus:outline-none
-                focus-visible:outline-none focus-visible:ring-2
-                focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                focus-visible:ring-offset-2
-                focus-visible:ring-offset-transparent
               `,
+              // Only show focus-visible ring when not using isFocused prop
+              !isFocused &&
+                `
+                  focus-visible:ring-2
+                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                  focus-visible:ring-offset-2
+                  focus-visible:ring-offset-transparent
+                `,
             )}
           >
             {/* Collapse indicator */}

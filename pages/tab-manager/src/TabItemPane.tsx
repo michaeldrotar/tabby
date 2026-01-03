@@ -11,6 +11,7 @@ import { TabList, TabListItem } from '@extension/ui/TabList'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
+import { useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
@@ -34,10 +35,12 @@ const TabItemWithContextMenu = memo(
     tab,
     groups,
     currentWindowId,
+    selected,
   }: {
     tab: BrowserTab
     groups: BrowserTabGroup[]
     currentWindowId?: number
+    selected?: boolean
   }) => {
     const actions = useTabActions(tab)
     const windows = useBrowserWindows()
@@ -82,6 +85,7 @@ const TabItemWithContextMenu = memo(
             isMuted={tab.mutedInfo?.muted}
             isAudible={tab.audible}
             isDiscarded={tab.discarded}
+            selected={selected}
             onActivate={onActivate}
             onClose={actions.close}
           />
@@ -97,11 +101,15 @@ const TabGroupWithContextMenu = memo(
     tabs,
     currentWindowId,
     groups,
+    selected,
+    selectedTabIds,
   }: {
     group: BrowserTabGroup
     tabs: BrowserTab[]
     currentWindowId?: number
     groups: BrowserTabGroup[]
+    selected?: boolean
+    selectedTabIds: Set<number>
   }) => {
     // Memoize tabIds array to maintain stable reference
     const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
@@ -149,6 +157,7 @@ const TabGroupWithContextMenu = memo(
           group={group}
           isActive={isActive}
           isRenaming={isRenaming}
+          selected={selected}
           onRenameComplete={handleRenameComplete}
           onRenameCancel={handleRenameCancel}
           onToggleCollapse={actions.toggleCollapse}
@@ -162,6 +171,7 @@ const TabGroupWithContextMenu = memo(
                     tab={tab}
                     groups={groups}
                     currentWindowId={currentWindowId}
+                    selected={selectedTabIds.has(tab.id)}
                   />
                 </TabListItem>
               ))}
@@ -183,6 +193,10 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   const currentWindow = useCurrentBrowserWindow()
   const currentWindowId = currentWindow?.id
 
+  // Selection state - subscribe to Sets directly for proper re-renders
+  const selectedTabIds = useSelectionStore((s) => s.tabIds)
+  const selectedGroupIds = useSelectionStore((s) => s.groupIds)
+
   return (
     <div key={`window-tabs-${browserWindowId}`} className="pb-4" data-tab-pane>
       <div className="space-y-4 p-2">
@@ -195,6 +209,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                     tab={item.tab}
                     groups={groups}
                     currentWindowId={currentWindowId}
+                    selected={selectedTabIds.has(item.tab.id)}
                   />
                 </TabListItem>
               )
@@ -207,6 +222,8 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                   tabs={item.tabs}
                   currentWindowId={currentWindowId}
                   groups={groups}
+                  selected={selectedGroupIds.has(item.group.id)}
+                  selectedTabIds={selectedTabIds}
                 />
               </TabListItem>
             )

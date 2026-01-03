@@ -264,33 +264,35 @@ Toggle button in top-left of windows pane
 
 ### Phase 1: Selection Foundation (Core Mechanism)
 
-- [ ] Create selection state management in `pages/tab-manager/src/selection/`
-  - [ ] `SelectionStore.ts` - Zustand store with Set-based state and declarative API
-  - [ ] `useSelection.ts` - Hook for components to check selection state
-  - [ ] `useSelectionActions.ts` - Hook providing set/add/remove/clear methods
-- [ ] Create interaction layer for selection
-  - [ ] `useSelectionInteraction.ts` - Manages anchor refs and translates user actions to store operations
-  - [ ] Handle pane context (window pane vs tab pane in split view)
-  - [ ] Track anchor item with ref (not in store)
-  - [ ] Track current pane with ref for cross-pane click detection
-- [ ] Implement basic Space bar selection (simplest to start)
-  - [ ] Add Space key handler in `useKeyboardNavigation.ts`
-  - [ ] Call `selectionStore.add()` or `selectionStore.remove()` based on current state
-  - [ ] Move anchor to toggled item
-- [ ] Implement Escape key to clear selection
-  - [ ] Add Escape key handler
-  - [ ] Call `selectionStore.clear()`
-  - [ ] Clear anchor ref
-  - [ ] Keep focus on current item
-- [ ] Implement visual states for focus and selection
-  - [ ] Update `WindowButton.tsx` with focus ring and selection background styles
-  - [ ] Update `TabGroup.tsx` with focus ring and selection background styles
-  - [ ] Update `TabItem.tsx` with focus ring and selection background styles
-  - [ ] Default mode: fused focus+selection (single visual state)
-  - [ ] Multi-select mode: separated focus ring and selection background
-- [ ] Test basic selection works with keyboard navigation
+- [x] Create selection state management in `pages/tab-manager/src/selection/`
+  - [x] `SelectionStore.ts` - Zustand store with Set-based state and declarative API
+  - [x] `useSelection.ts` - Hook for components to check selection state
+  - [x] `useSelectionActions.ts` - Hook providing set/add/remove/clear methods
+- [x] Create interaction layer for selection
+  - [x] `useSelectionInteraction.ts` - Manages anchor refs and translates user actions to store operations
+  - [x] Handle pane context (window pane vs tab pane in split view)
+  - [x] Track anchor item with ref (not in store)
+  - [x] Track current pane with ref for cross-pane click detection
+- [x] Implement basic Space bar selection (simplest to start)
+  - [x] Add Space key handler in `useKeyboardNavigation.ts`
+  - [x] Call `selectionStore.add()` or `selectionStore.remove()` based on current state
+  - [x] Move anchor to toggled item
+- [x] Implement Escape key to clear selection
+  - [x] Add Escape key handler
+  - [x] Call `selectionStore.clear()`
+  - [x] Select focused item (returning to default mode where focus=selection)
+  - [x] Keep focus on current item
+- [x] Wire selection state to UI components (functional, needs designer review)
+  - [x] Update `WindowRailItem.tsx` with `selected` prop
+  - [x] Update `TabGroupHeader.tsx` with `selected` prop
+  - [x] Update `TabItemRow.tsx` with `selected` prop
+  - [ ] **Designer review:** Refine visual appearance of selected state
+  - [ ] **Designer review:** Distinguish focus ring from selection background in multi-select mode
+- [x] Test basic selection works with keyboard navigation
 
-### Phase 2: Selection Visual States
+### Phase 2: Selection Visual States (Designer-focused)
+
+> **Note:** This phase is primarily design work. Engineering items are optional enhancements. Proceed to Phase 3 for core functionality.
 
 - [ ] Implement focus ring separation visual model
   - [ ] Blue background for selected items
@@ -298,12 +300,12 @@ Toggle button in top-left of windows pane
   - [ ] Update `TabItem`, `TabGroup`, `WindowButton` styling
   - [ ] Default mode: combined focus+selection visual (fused state)
   - [ ] Multi-select mode: focus ring visually separated from selection background
-- [ ] Implement mode transition animations
+- [ ] Implement mode transition animations (optional enhancement)
   - [ ] "Lift off" animation when entering multi-select mode (Space)
   - [ ] "Merge back" animation when exiting (Escape)
   - [ ] Respect `prefers-reduced-motion` (instant transitions)
   - [ ] Use spring physics for natural feel
-- [ ] Add selection badge component
+- [ ] Add selection badge component (optional, depends on toolbar in Phase 4)
   - [ ] Create `SelectionBadge.tsx` in `packages/ui/lib/tab-manager/`
   - [ ] Show count based on selection type
   - [ ] Smart display: "5 tabs" vs "2 groups (8 tabs)" vs "1 window (12 tabs)"

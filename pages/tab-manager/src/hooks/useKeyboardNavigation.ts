@@ -3,6 +3,8 @@ import { moveTabGroupForward } from '@extension/chrome/actions/tabGroups/moveTab
 import { moveTabBackward } from '@extension/chrome/actions/tabs/moveTabBackward'
 import { moveTabForward } from '@extension/chrome/actions/tabs/moveTabForward'
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useSelectionInteraction } from '../selection'
+import type { PaneContext, SelectionItemType } from '../selection'
 
 type PendingFocus = {
   type: 'tab' | 'group'
@@ -10,8 +12,40 @@ type PendingFocus = {
 }
 
 /**
+ * Get selection item info from a navigable element.
+ */
+const getSelectionItemFromElement = (
+  element: HTMLElement,
+): { type: SelectionItemType; id: number } | null => {
+  const navType = element.getAttribute('data-nav-type')
+
+  if (navType === 'window') {
+    const id = element.getAttribute('data-nav-id')
+    return id ? { type: 'window', id: parseInt(id, 10) } : null
+  } else if (navType === 'group') {
+    const id = element.getAttribute('data-group-id')
+    return id ? { type: 'group', id: parseInt(id, 10) } : null
+  } else if (navType === 'tab') {
+    const id = element.getAttribute('data-tab-item')
+    return id ? { type: 'tab', id: parseInt(id, 10) } : null
+  }
+  return null
+}
+
+/**
+ * Get pane context from a navigable element.
+ */
+const getPaneContextFromElement = (element: HTMLElement): PaneContext => {
+  const navType = element.getAttribute('data-nav-type')
+  if (navType === 'window') return 'window'
+  // TODO: Add tree view detection when implemented
+  return 'tab'
+}
+
+/**
  * Hook for keyboard navigation in the tab manager.
  * Handles arrow keys for navigation between windows, groups, and tabs.
+ * Handles Space and Escape for selection management.
  * Respects context menu state to avoid conflicts.
  */
 export const useKeyboardNavigation = (
@@ -20,6 +54,7 @@ export const useKeyboardNavigation = (
 ) => {
   const isContextMenuOpen = useRef(false)
   const pendingFocusRef = useRef<PendingFocus | null>(null)
+  const selectionInteraction = useSelectionInteraction()
 
   // Restore focus after move operations, before browser paint
   useLayoutEffect(() => {
@@ -104,6 +139,28 @@ export const useKeyboardNavigation = (
         return
       }
 
+      // Space key: Enter multi-select mode or toggle selection
+      if (e.key === ' ') {
+        e.preventDefault()
+        const item = getSelectionItemFromElement(navItem)
+        if (item) {
+          const paneContext = getPaneContextFromElement(navItem)
+          selectionInteraction.handleKeyboard(item, ' ', paneContext)
+        }
+        return
+      }
+
+      // Escape key: Clear selection, exit multi-select mode, and select focused item
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        const item = getSelectionItemFromElement(navItem)
+        if (item) {
+          const paneContext = getPaneContextFromElement(navItem)
+          selectionInteraction.handleKeyboard(item, 'Escape', paneContext)
+        }
+        return
+      }
+
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
 
@@ -128,6 +185,12 @@ export const useKeyboardNavigation = (
           if (target) {
             target.focus()
             target.scrollIntoView({ block: 'nearest' })
+
+            // In default mode, arrow keys select the focused window
+            const item = getSelectionItemFromElement(target)
+            if (item) {
+              selectionInteraction.handleArrowNavigation(item, 'window')
+            }
 
             if (onSelectWindow) {
               const windowId = target.getAttribute('data-nav-id')
@@ -157,6 +220,12 @@ export const useKeyboardNavigation = (
           const nextItem = allNavigableItems[nextIndex]
           if (nextItem) {
             focusNavigableItem(nextItem.element, nextItem.type)
+
+            // In default mode, arrow keys select the focused item
+            const item = getSelectionItemFromElement(nextItem.element)
+            if (item) {
+              selectionInteraction.handleArrowNavigation(item, 'tab')
+            }
           }
         }
       } else if (
@@ -218,7 +287,7 @@ export const useKeyboardNavigation = (
       window.removeEventListener('keydown', handleKeyDown)
       observer.disconnect()
     }
-  }, [onSelectWindow, onActivateWindow])
+  }, [onSelectWindow, onActivateWindow, selectionInteraction])
 }
 
 type NavigableItem = {

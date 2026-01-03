@@ -15,6 +15,7 @@ import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
 import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
 import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
 import { useWindowActions } from './hooks/useWindowActions'
+import { useSelectionStore } from './selection'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 // Helper to get active tab url
@@ -34,14 +35,16 @@ const useDisplayTabUrl = (windowId: number) => {
 const WindowItemContainer = ({
   window,
   isCurrent,
-  isSelected,
+  isViewing,
   isExpanded,
+  selected,
   onSelect,
 }: {
   window: BrowserWindow
   isCurrent: boolean
-  isSelected: boolean
+  isViewing: boolean
   isExpanded: boolean
+  selected: boolean
   onSelect: (window: BrowserWindow) => void
 }) => {
   const displayTabUrl = useDisplayTabUrl(window.id)
@@ -74,8 +77,9 @@ const WindowItemContainer = ({
         activeTabUrl={displayTabUrl}
         tabCount={tabs.length}
         isActive={isCurrent}
-        isSelected={isSelected}
+        isViewing={isViewing}
         isExpanded={isExpanded}
+        selected={selected}
         onClick={() => onSelect(window)}
         onClose={actions.close}
       />
@@ -90,6 +94,10 @@ export const TabManagerSidebarContainer = ({
   onOpenSettings,
   onOpenTarget,
 }: {
+  /**
+   * The selected window ID, whose content is shown in the tab pane.
+   * Should correspond to the first selected window.
+   */
   selectedWindowId?: number
   onSelectWindow: (window: BrowserWindow) => void
   onOpenSearch: () => void
@@ -99,6 +107,9 @@ export const TabManagerSidebarContainer = ({
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const { tabManagerCompactLayout } = usePreferenceStorage()
+
+  // Selection state - subscribe to the Set directly for proper re-renders
+  const selectedWindowIds = useSelectionStore((s) => s.windowIds)
 
   const isExpanded = tabManagerCompactLayout === 'list'
   const toggleExpand = () =>
@@ -132,8 +143,9 @@ export const TabManagerSidebarContainer = ({
           key={window.id}
           window={window}
           isCurrent={window.id === currentBrowserWindow?.id}
-          isSelected={window.id === selectedWindowId}
+          isViewing={window.id === selectedWindowId}
           isExpanded={isExpanded}
+          selected={selectedWindowIds.has(window.id)}
           onSelect={onSelectWindow}
         />
       ))}

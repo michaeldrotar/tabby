@@ -132,28 +132,30 @@ const TabManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBrowserWindow?.id, activeTab?.id]) // Only run when these change (e.g. mount or window switch)
 
-  useEffect(() => {
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // Check after keyup - if context menu was open, Radix already closed it
-        const contextMenu = document.querySelector('[data-radix-menu-content]')
-        if (contextMenu) {
-          return
-        }
-
-        if (isSearchOpen) {
-          setIsSearchOpen(false)
-        } else {
-          window.close()
-        }
-      }
-    }
-    window.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [isSearchOpen])
+  // TODO: Re-enable ESC to close tab manager after selection system is complete
+  // Currently disabled to allow testing selection with ESC key
+  // useEffect(() => {
+  //   const handleKeyUp = (e: KeyboardEvent) => {
+  //     if (e.key === 'Escape') {
+  //       // Check after keyup - if context menu was open, Radix already closed it
+  //       const contextMenu = document.querySelector('[data-radix-menu-content]')
+  //       if (contextMenu) {
+  //         return
+  //       }
+  //
+  //       if (isSearchOpen) {
+  //         setIsSearchOpen(false)
+  //       } else {
+  //         window.close()
+  //       }
+  //     }
+  //   }
+  //   window.addEventListener('keyup', handleKeyUp)
+  //
+  //   return () => {
+  //     window.removeEventListener('keyup', handleKeyUp)
+  //   }
+  // }, [isSearchOpen])
 
   const onSelectWindowCallback = useCallback(
     (window: BrowserWindow) => {

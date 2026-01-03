@@ -24,6 +24,10 @@ export type TabItemRowProps = Omit<HTMLAttributes<HTMLDivElement>, 'title'> & {
   isAudible?: boolean
   /** Whether this tab has been discarded (unloaded from memory) */
   isDiscarded?: boolean
+  /** Whether this tab is part of selection */
+  selected?: boolean
+  /** Whether keyboard focus is on this item (for multi-select mode) */
+  isFocused?: boolean
   /** Called when the tab row is clicked to activate the tab */
   onActivate: () => void
   /** Called when the tab should be closed (Delete/Backspace key) */
@@ -49,6 +53,8 @@ export const TabItemRow = memo(
         isMuted = false,
         isAudible = false,
         isDiscarded = false,
+        selected = false,
+        isFocused = false,
         onActivate,
         onClose,
         className,
@@ -71,13 +77,20 @@ export const TabItemRow = memo(
             data-nav-type="tab"
             data-active={isActive}
             className={cn(
-              `
-                group relative overflow-hidden rounded-md
-                has-[button:focus-visible]:ring-2
-                has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                has-[button:focus-visible]:ring-offset-2
-                has-[button:focus-visible]:ring-offset-background
-              `,
+              `group relative overflow-hidden rounded-md`,
+              // Focus ring styling - shown when keyboard focused in multi-select mode
+              // or via default focus-visible
+              isFocused
+                ? `
+                  ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
+                  ring-offset-2 ring-offset-background
+                `
+                : `
+                  has-[button:focus-visible]:ring-2
+                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                  has-[button:focus-visible]:ring-offset-2
+                  has-[button:focus-visible]:ring-offset-background
+                `,
               className,
             )}
             {...props}
@@ -91,19 +104,25 @@ export const TabItemRow = memo(
                   focus:outline-none
                   focus-visible:outline-none
                 `,
-                isActive
+                // Selection has highest priority for background
+                selected
                   ? `
                     bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
                   `
-                  : isHighlighted
+                  : isActive
                     ? `
                       bg-accent/[calc(var(--accent-strength)*1%)]
                       text-foreground
                     `
-                    : `
-                      text-foreground
-                      group-hover:bg-highlighted/50
-                    `,
+                    : isHighlighted
+                      ? `
+                        bg-accent/[calc(var(--accent-strength)*1%)]
+                        text-foreground
+                      `
+                      : `
+                        text-foreground
+                        group-hover:bg-highlighted/50
+                      `,
               )}
               onClick={onActivate}
               onKeyDown={handleKeyDown}
