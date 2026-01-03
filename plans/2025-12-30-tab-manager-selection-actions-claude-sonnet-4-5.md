@@ -108,6 +108,8 @@ interface SelectionStore {
 7. **Keyboard multi-select mode is keyboard-specific** - Entered only via Space bar; mouse Cmd+click does NOT enter this mode. Mouse and keyboard each follow their own interaction patterns.
 8. **Empty selection (0 items) is a valid state** - Both mouse and keyboard support having nothing selected. Implicit focus is tracked so keyboard navigation resumes relative to last position.
 9. **Mouse click exits keyboard multi-select mode** - Regular click signals intent to use mouse-style interaction; exits mode and selects clicked item.
+10. **Viewing window is a Split View concern, not a selection concept** - The `useViewingWindowId()` hook derives the viewing window from the selection store (last item in `windowIds` by insertion order). This keeps the selection store generic while Split View handles its own presentation needs.
+11. **Deprecate `selectedWindowId` from WindowSlice** - The existing `windowSlice.selectedWindowId` is replaced by the selection system. This simplifies the store and makes groups/tabs consistent (they never had "selected" state in the store).
 
 ### Interaction Modes
 
@@ -247,14 +249,78 @@ _Note: These are buttons that open existing UI, not new features to implement_
 **Split View (Default):**
 
 - Windows list on left (80-100px)
-- Selected window's tabs/groups on right
-- Familiar two-pane navigation
+- Tabs pane on right shows "viewing" window's tabs/groups
+- Familiar two-pane navigation with multi-selection support
+
+**Split View: useViewingWindowId Hook**
+
+The "viewing window" concept is specific to Split View (not relevant to Tree View). A hook derives it from the selection store:
+
+```typescript
+// pages/tab-manager/src/components/split-view/useViewingWindowId.ts
+export const useViewingWindowId = (): number | null => {
+  const windowIds = useSelectionStore((s) => s.windowIds)
+  if (windowIds.size === 0) return null
+  // Set maintains insertion order; last item is most recently added
+  return Array.from(windowIds).at(-1) ?? null
+}
+```
+
+- Returns `null` when no windows selected (empty state)
+- Returns last selected window by insertion order
+- Automatically updates when selection changes
+- Fallback on deselect: removing the viewing window causes the next-last to become viewing
+
+**Split View: Tabs Pane Header**
+
+The tabs pane shows a header identifying which window is being viewed:
+
+```
+┌──────────────────────────────────────────┐
+│ Window 3 - Active Tab Title Here...     │ ← Header (truncate if long)
+├──────────────────────────────────────────┤
+│ [Tab list for Window 3]                 │
+│ ...                                     │
+└──────────────────────────────────────────┘
+```
+
+- Format: `Window N - Active Tab Title` (truncate title if needed)
+- Helps identify which window's tabs are displayed
+- Especially useful when multiple windows are selected
+
+**Split View: Viewing Behavior**
+
+| Action                  | Selected Windows | Viewing       | Tabs Pane Shows |
+| ----------------------- | ---------------- | ------------- | --------------- |
+| Click W1                | [W1]             | W1            | W1's tabs       |
+| Shift+click W5          | [W1,W2,W3,W4,W5] | W5            | W5's tabs       |
+| Cmd+click W7            | [W1-W5, W7]      | W7            | W7's tabs       |
+| Cmd+click W7 (deselect) | [W1-W5]          | W5 (fallback) | W5's tabs       |
+| Deselect all            | []               | null          | Empty state     |
+
+**Split View: Range Selection Order**
+
+Since `Set` maintains insertion order and viewing = last in set:
+
+- If anchor is W3 and Shift+click W5: `add([W4, W5])` → viewing = W5 ✓
+- If anchor is W3 and Shift+click W1: `add([W2, W1])` → viewing = W1 ✓
+
+Add items in visual order toward the click target so the clicked item becomes viewing.
+
+**Split View: Empty Tabs Pane**
+
+When no windows are selected:
+
+- Show empty state message: "Select a window to view its tabs"
+- No tabs or groups rendered
+- User can still click in windows pane to select
 
 **Tree View (Toggle):**
 
 - Single unified list with collapsible windows
 - All windows visible simultaneously
 - Easier multi-window selection
+- No viewing/split concept - all items in one pane
 
 Toggle button in top-left of windows pane
 
@@ -881,6 +947,86 @@ State: selectionStore = { tabIds: [5] }, paneRef = 'tab', anchor = tab 5
 Action: Click window 1 (window pane), Cmd+click tab 5 (tab pane)
 Result: Only tab 5 selected (window 1 cleared)
 State: selectionStore = { tabIds: [5] }, paneRef = 'tab'
+```
+
+### Split View Viewing Scenarios
+
+**Scenario VIEW-SPLIT-1: Click window updates viewing**
+
+```
+Context: Split view, W1 selected and viewing
+Action: Click W3
+Result: W3 selected, tabs pane shows W3's tabs
+State: selectionStore = { windowIds: [3] }, viewing = W3
+Header: "Window 3 - [active tab title]"
+```
+
+**Scenario VIEW-SPLIT-2: Shift+click range updates viewing to target**
+
+```
+Context: W1 selected and viewing
+Action: Shift+click W5
+Result: W1-W5 selected, tabs pane shows W5's tabs (click target)
+State: selectionStore = { windowIds: [1,2,3,4,5] }, viewing = W5
+Implementation: add([W2, W3, W4, W5]) - items added in visual order toward target
+```
+
+**Scenario VIEW-SPLIT-3: Shift+click backward range updates viewing to target**
+
+```
+Context: W5 selected and viewing
+Action: Shift+click W2
+Result: W2-W5 selected, tabs pane shows W2's tabs (click target)
+State: selectionStore = { windowIds: [5,4,3,2] }, viewing = W2
+Implementation: add([W4, W3, W2]) - items added in visual order toward target
+```
+
+**Scenario VIEW-SPLIT-4: Cmd+click adds window and updates viewing**
+
+```
+Context: W1 selected and viewing
+Action: Cmd+click W5
+Result: W1 and W5 selected, tabs pane shows W5's tabs
+State: selectionStore = { windowIds: [1,5] }, viewing = W5
+```
+
+**Scenario VIEW-SPLIT-5: Cmd+click deselect non-viewing window**
+
+```
+Context: W1 and W5 selected, viewing W5
+Action: Cmd+click W1 (deselect)
+Result: Only W5 selected, tabs pane still shows W5
+State: selectionStore = { windowIds: [5] }, viewing = W5
+```
+
+**Scenario VIEW-SPLIT-6: Cmd+click deselect viewing window (fallback)**
+
+```
+Context: W1 and W5 selected, viewing W5
+Action: Cmd+click W5 (deselect viewing window)
+Result: Only W1 selected, tabs pane shows W1 (fallback to first selected)
+State: selectionStore = { windowIds: [1] }, viewing = W1
+Rationale: Viewing falls back to first selected when viewing window is deselected
+```
+
+**Scenario VIEW-SPLIT-7: Deselect all windows (empty tabs pane)**
+
+```
+Context: W1 selected and viewing
+Action: Cmd+click W1 (deselect only window)
+Result: No windows selected, tabs pane shows empty state
+State: selectionStore = { windowIds: [] }, viewing = null
+Empty state: "Select a window to view its tabs"
+```
+
+**Scenario VIEW-SPLIT-8: Initial load - current window**
+
+```
+Context: Tab manager opens in split view
+Action: (Initial load)
+Result: Current window (where sidebar is open) is selected and viewing
+State: selectionStore = { windowIds: [currentWindowId] }, viewing = currentWindow
+Rationale: Matches current behavior, user sees their current context
 ```
 
 ### Keyboard Navigation Scenarios
@@ -1719,6 +1865,40 @@ None at this time. Design is well-defined and ready for implementation.
 13. **Escape to clear selection:** Standard cancellation key across all UIs. Returns user to neutral state without closing sidebar. Also exits multi-select mode.
 
 14. **No semi-selection:** Simplified design - only show explicit selection. Users learn containment (closing window closes tabs) through experience. Reduces visual and implementation complexity.
+
+15. **Viewing = last selected window (Split View only):** In split view, the tabs pane shows the most recently selected window. The `useViewingWindowId()` hook derives this from insertion order in the Set (last item). When Shift+clicking a range, items are added in visual order toward the click target so the target becomes the viewing window. Deselecting the viewing window falls back to next-last selected. This is not a core selection concept - it's a Split View presentation concern.
+
+16. **Tabs pane header:** Shows "Window N - Active Tab Title" to clarify which window's tabs are displayed. Particularly helpful when multiple windows are selected. Truncate title if needed.
+
+### Migration: Deprecating `selectedWindowId`
+
+The existing `windowSlice.selectedWindowId` in `packages/chrome/lib/windowSlice.ts` should be phased out:
+
+**Current State:**
+
+- `windowSlice` has `selectedWindowId: number | null` and `selectWindow(id)` method
+- This is used to track which window's tabs to show in split view
+- Groups and tabs never had this pattern (inconsistent)
+
+**New State:**
+
+- Selection system handles `windowIds: Set<number>` with multi-selection
+- Viewing window is derived by Split View using `useViewingWindowId()` hook
+- Hook returns last item in `windowIds` Set (by insertion order), or `null` if empty
+
+**Migration Steps:**
+
+1. Implement selection store with `windowIds` Set
+2. Create `useViewingWindowId()` hook in Split View that derives viewing from selection
+3. Update Split View UI to use `useViewingWindowId()` instead of `selectedWindowId`
+4. On initial load, select current window (same as current behavior)
+5. Remove `selectedWindowId` and `selectWindow()` from `windowSlice`
+6. Update tests
+
+**Breaking Changes:**
+
+- Components using `useBrowserStore().selectedWindowId` must migrate to selection system
+- The concept of "selected window" becomes "selected windows" (plural)
 
 ### Implementation Order Rationale
 
