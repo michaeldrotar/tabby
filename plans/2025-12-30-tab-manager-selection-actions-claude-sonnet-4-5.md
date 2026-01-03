@@ -52,47 +52,13 @@ The implementation prioritizes keyboard accessibility, clear visual feedback, an
 
 **Store Design:**
 
-```typescript
-interface SelectionStore {
-  // State: Sets for O(1) lookups
-  windowIds: Set<number>
-  groupIds: Set<number>
-  tabIds: Set<number>
+The selection store uses Zustand with Set-based state for O(1) lookups. Key characteristics:
 
-  // Mutations - single-ID methods (simple and clear)
-  setWindow: (id: number) => void
-  setGroup: (id: number) => void
-  setTab: (id: number) => void
-  setWindows: (ids: number[]) => void // For bulk operations like Select All
-  setGroups: (ids: number[]) => void
-  setTabs: (ids: number[]) => void
+- **State:** `windowIds`, `groupIds`, `tabIds` as Sets, plus `mode` for keyboard interaction
+- **Mutations:** Single-item (`setTab`, `addTab`, `removeTab`) and bulk (`setTabs`, `addTabs`, `removeTabs`) methods
+- **No query methods:** Zustand function references are stable, so components subscribe to Sets directly (`windowIds.has(id)`) for proper reactivity
 
-  addWindow: (id: number) => void
-  addGroup: (id: number) => void
-  addTab: (id: number) => void
-  addWindows: (ids: number[]) => void // For range selections
-  addGroups: (ids: number[]) => void
-  addTabs: (ids: number[]) => void
-
-  removeWindow: (id: number) => void
-  removeGroup: (id: number) => void
-  removeTab: (id: number) => void
-  removeWindows: (ids: number[]) => void // For range deselections
-  removeGroups: (ids: number[]) => void
-  removeTabs: (ids: number[]) => void
-
-  clear: () => void
-
-  // Note: Zustand batches synchronous updates automatically
-
-  // Queries
-  getSelection: () => { windowIds; groupIds; tabIds }
-  getTotalCount: () => number
-  isWindowSelected: (id: number) => boolean
-  isGroupSelected: (id: number) => boolean
-  isTabSelected: (id: number) => boolean
-}
-```
+See [Technical Architecture](#technical-architecture) section for full interface definition.
 
 **Key Architectural Decisions:**
 
@@ -1497,17 +1463,13 @@ interface SelectionStore {
   enterMultiSelectMode: () => void
   exitMultiSelectMode: () => void
 
-  // Queries
-  getSelection: () => {
-    windowIds: Set<number>
-    groupIds: Set<number>
-    tabIds: Set<number>
-  }
-  getTotalCount: () => number
-  isWindowSelected: (id: number) => boolean
-  isGroupSelected: (id: number) => boolean
-  isTabSelected: (id: number) => boolean
-  isMultiSelectMode: () => boolean
+  // Note: Query methods like `isWindowSelected(id)` are NOT in the store.
+  // Zustand function references are stable, so `store.isWindowSelected(3)`
+  // won't trigger re-renders when selection changes.
+  // Instead, components subscribe to Sets directly:
+  //   const windowIds = useSelectionStore(s => s.windowIds)
+  //   const isSelected = windowIds.has(3)
+  // This ensures proper reactivity.
 }
 
 // useSelectionInteraction.ts
@@ -1518,7 +1480,28 @@ export const useSelectionInteraction = () => {
     id: number
   } | null>(null)
   const paneRef = useRef<'window' | 'tab' | 'tree' | null>(null)
-  const selectionStore = useSelectionStore()
+
+  // Subscribe to state values directly for reactivity
+  const mode = useSelectionStore((s) => s.mode)
+  const windowIds = useSelectionStore((s) => s.windowIds)
+  const groupIds = useSelectionStore((s) => s.groupIds)
+  const tabIds = useSelectionStore((s) => s.tabIds)
+
+  // Get actions (stable references, safe to destructure)
+  const {
+    clear,
+    setWindow,
+    setGroup,
+    setTab,
+    addWindow,
+    addGroup,
+    addTab,
+    removeWindow,
+    removeGroup,
+    removeTab,
+    enterMultiSelectMode,
+    exitMultiSelectMode,
+  } = useSelectionStore.getState()
 
   const handleClick = (
     item: { type; id },
@@ -1527,7 +1510,7 @@ export const useSelectionInteraction = () => {
   ) => {
     // Cross-pane click clears selection
     if (paneRef.current !== paneContext && paneRef.current !== null) {
-      selectionStore.clear()
+      clear()
       anchorRef.current = null
     }
     paneRef.current = paneContext
@@ -1538,42 +1521,44 @@ export const useSelectionInteraction = () => {
       // Handle overlapping ranges - Zustand batches these
       if (range.toRemove?.length) {
         if (range.toRemove[0].type === 'tab')
-          selectionStore.removeTabs(range.toRemove.map((i) => i.id))
+          removeTabs(range.toRemove.map((i) => i.id))
         else if (range.toRemove[0].type === 'group')
-          selectionStore.removeGroups(range.toRemove.map((i) => i.id))
-        else selectionStore.removeWindows(range.toRemove.map((i) => i.id))
+          removeGroups(range.toRemove.map((i) => i.id))
+        else removeWindows(range.toRemove.map((i) => i.id))
       }
       if (range.toAdd?.length) {
-        if (range.toAdd[0].type === 'tab')
-          selectionStore.addTabs(range.toAdd.map((i) => i.id))
+        if (range.toAdd[0].type === 'tab') addTabs(range.toAdd.map((i) => i.id))
         else if (range.toAdd[0].type === 'group')
-          selectionStore.addGroups(range.toAdd.map((i) => i.id))
-        else selectionStore.addWindows(range.toAdd.map((i) => i.id))
+          addGroups(range.toAdd.map((i) => i.id))
+        else addWindows(range.toAdd.map((i) => i.id))
       }
       // Anchor stays the same
     } else if (event.metaKey || event.ctrlKey) {
-      // Toggle individual item
-      const isSelected = selectionStore[`is${capitalize(item.type)}Selected`](
-        item.id,
-      )
+      // Toggle individual item - check selection via Sets directly
+      const isSelected =
+        item.type === 'window'
+          ? windowIds.has(item.id)
+          : item.type === 'group'
+            ? groupIds.has(item.id)
+            : tabIds.has(item.id)
       if (isSelected) {
-        if (item.type === 'tab') selectionStore.removeTab(item.id)
-        else if (item.type === 'group') selectionStore.removeGroup(item.id)
-        else selectionStore.removeWindow(item.id)
+        if (item.type === 'tab') removeTab(item.id)
+        else if (item.type === 'group') removeGroup(item.id)
+        else removeWindow(item.id)
       } else {
-        if (item.type === 'tab') selectionStore.addTab(item.id)
-        else if (item.type === 'group') selectionStore.addGroup(item.id)
-        else selectionStore.addWindow(item.id)
+        if (item.type === 'tab') addTab(item.id)
+        else if (item.type === 'group') addGroup(item.id)
+        else addWindow(item.id)
       }
       anchorRef.current = item // Anchor moves on Cmd+click
     } else {
       // Regular click - clear and select only this item
-      if (item.type === 'tab') selectionStore.setTab(item.id)
-      else if (item.type === 'group') selectionStore.setGroup(item.id)
-      else selectionStore.setWindow(item.id)
+      if (item.type === 'tab') setTab(item.id)
+      else if (item.type === 'group') setGroup(item.id)
+      else setWindow(item.id)
       anchorRef.current = item
       // Exit multi-select mode on regular click
-      selectionStore.exitMultiSelectMode()
+      exitMultiSelectMode()
     }
   }
 
@@ -1583,36 +1568,39 @@ export const useSelectionInteraction = () => {
     paneContext: 'window' | 'tab' | 'tree',
   ) => {
     if (key === ' ') {
-      const isMultiSelect = selectionStore.isMultiSelectMode()
+      const isMultiSelect = mode === 'multi-select'
 
       if (!isMultiSelect) {
         // First Space press: enter multi-select mode and select current item
-        selectionStore.enterMultiSelectMode()
-        if (item.type === 'tab') selectionStore.setTab(item.id)
-        else if (item.type === 'group') selectionStore.setGroup(item.id)
-        else selectionStore.setWindow(item.id)
+        enterMultiSelectMode()
+        if (item.type === 'tab') setTab(item.id)
+        else if (item.type === 'group') setGroup(item.id)
+        else setWindow(item.id)
         anchorRef.current = item
       } else {
         // In multi-select mode: toggle like Cmd+click
-        const isSelected = selectionStore[`is${capitalize(item.type)}Selected`](
-          item.id,
-        )
+        const isSelected =
+          item.type === 'window'
+            ? windowIds.has(item.id)
+            : item.type === 'group'
+              ? groupIds.has(item.id)
+              : tabIds.has(item.id)
         if (isSelected) {
-          if (item.type === 'tab') selectionStore.removeTab(item.id)
-          else if (item.type === 'group') selectionStore.removeGroup(item.id)
-          else selectionStore.removeWindow(item.id)
+          if (item.type === 'tab') removeTab(item.id)
+          else if (item.type === 'group') removeGroup(item.id)
+          else removeWindow(item.id)
           // Note: Stay in multi-select mode even with 0 items (per Decision 7)
           // Focus ring remains visible as mode indicator
         } else {
-          if (item.type === 'tab') selectionStore.addTab(item.id)
-          else if (item.type === 'group') selectionStore.addGroup(item.id)
-          else selectionStore.addWindow(item.id)
+          if (item.type === 'tab') addTab(item.id)
+          else if (item.type === 'group') addGroup(item.id)
+          else addWindow(item.id)
         }
         anchorRef.current = item
       }
     } else if (key === 'Escape') {
-      selectionStore.clear()
-      selectionStore.exitMultiSelectMode()
+      clear()
+      exitMultiSelectMode()
       anchorRef.current = null
     }
   }
@@ -1672,12 +1660,17 @@ export const useKeyboardNavigation = (
   onSelectWindow?: (windowId: number) => void,
   onActivateWindow?: (windowId: number) => void,
 ) => {
-  const selectionStore = useSelectionStore()
+  // Subscribe to mode for reactivity
+  const mode = useSelectionStore((s) => s.mode)
+
+  // Get actions (stable references)
+  const { setWindow, setGroup, setTab, clear, exitMultiSelectMode } =
+    useSelectionStore.getState()
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const activeElement = document.activeElement as HTMLElement
     const navItem = activeElement?.closest('[data-nav-type]') as HTMLElement
-    const isMultiSelect = selectionStore.isMultiSelectMode()
+    const isMultiSelect = mode === 'multi-select'
 
     // Arrow keys: behavior depends on mode
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -1693,9 +1686,9 @@ export const useKeyboardNavigation = (
         if (nextItem) {
           const item = getSelectionItemFromElement(nextItem)
           // Select ONLY this item
-          if (item.type === 'tab') selectionStore.setTab(item.id)
-          else if (item.type === 'group') selectionStore.setGroup(item.id)
-          else selectionStore.setWindow(item.id)
+          if (item.type === 'tab') setTab(item.id)
+          else if (item.type === 'group') setGroup(item.id)
+          else setWindow(item.id)
           nextItem.focus()
         }
         return
@@ -1716,13 +1709,17 @@ export const useKeyboardNavigation = (
 
     // Escape: Exit multi-select mode and clear selection
     if (e.key === 'Escape') {
-      selectionStore.clear()
-      selectionStore.exitMultiSelectMode()
+      clear()
+      exitMultiSelectMode()
       return
     }
 
     // Action shortcuts (when items selected)
-    const selectionCount = selectionStore.getTotalCount()
+    // Note: Use getTotalCount() only in event handlers (non-reactive context)
+    const selectionCount =
+      useSelectionStore.getState().windowIds.size +
+      useSelectionStore.getState().groupIds.size +
+      useSelectionStore.getState().tabIds.size
     if (selectionCount > 0) {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         onCloseSelection()

@@ -1,21 +1,32 @@
+import { useMemo } from 'react'
 import { useSelectionStore } from './SelectionStore'
 
 /**
- * Hook for checking if specific items are selected.
- * Returns stable references for selection check functions.
+ * Hook for accessing selection state reactively.
+ *
+ * Returns the selection Sets and mode directly. Components should check
+ * selection status using `windowIds.has(id)`, etc.
+ *
+ * Note: Query methods like `isWindowSelected(id)` are not used because
+ * Zustand function references are stable - subscribing to them won't
+ * trigger re-renders when selection changes. Subscribing to the Sets
+ * directly ensures proper reactivity.
  */
 export const useSelection = () => {
-  const isWindowSelected = useSelectionStore((s) => s.isWindowSelected)
-  const isGroupSelected = useSelectionStore((s) => s.isGroupSelected)
-  const isTabSelected = useSelectionStore((s) => s.isTabSelected)
-  const isMultiSelectMode = useSelectionStore((s) => s.isMultiSelectMode)
-  const getTotalCount = useSelectionStore((s) => s.getTotalCount)
+  const windowIds = useSelectionStore((s) => s.windowIds)
+  const groupIds = useSelectionStore((s) => s.groupIds)
+  const tabIds = useSelectionStore((s) => s.tabIds)
+  const mode = useSelectionStore((s) => s.mode)
 
-  return {
-    isWindowSelected,
-    isGroupSelected,
-    isTabSelected,
-    isMultiSelectMode,
-    getTotalCount,
-  }
+  return useMemo(
+    () => ({
+      windowIds,
+      groupIds,
+      tabIds,
+      mode,
+      isMultiSelectMode: mode === 'multi-select',
+      totalCount: windowIds.size + groupIds.size + tabIds.size,
+    }),
+    [windowIds, groupIds, tabIds, mode],
+  )
 }

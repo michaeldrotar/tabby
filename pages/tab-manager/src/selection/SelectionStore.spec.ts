@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useSelectionStore } from './SelectionStore'
 
+/**
+ * Helper to get total count from store state
+ */
+const getTotalCount = () => {
+  const state = useSelectionStore.getState()
+  return state.windowIds.size + state.groupIds.size + state.tabIds.size
+}
+
 describe('SelectionStore', () => {
   beforeEach(() => {
     // Reset store state before each test
@@ -10,11 +18,12 @@ describe('SelectionStore', () => {
 
   describe('single item selection', () => {
     it('selects a single tab and clears others', () => {
-      const store = useSelectionStore.getState()
-      store.setTab(1)
+      useSelectionStore.getState().setTab(1)
 
-      expect(store.isTabSelected(1)).toBe(true)
-      expect(store.getTotalCount()).toBe(1)
+      // Get fresh state after mutation
+      const state = useSelectionStore.getState()
+      expect(state.tabIds.has(1)).toBe(true)
+      expect(getTotalCount()).toBe(1)
     })
 
     it('selects a single window and clears other types', () => {
@@ -22,9 +31,11 @@ describe('SelectionStore', () => {
       store.setTab(1)
       store.setWindow(2)
 
-      expect(store.isWindowSelected(2)).toBe(true)
-      expect(store.isTabSelected(1)).toBe(false)
-      expect(store.getTotalCount()).toBe(1)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.windowIds.has(2)).toBe(true)
+      expect(state.tabIds.has(1)).toBe(false)
+      expect(getTotalCount()).toBe(1)
     })
 
     it('selects a single group and clears others', () => {
@@ -33,10 +44,12 @@ describe('SelectionStore', () => {
       store.setTab(2)
       store.setGroup(3)
 
-      expect(store.isGroupSelected(3)).toBe(true)
-      expect(store.isWindowSelected(1)).toBe(false)
-      expect(store.isTabSelected(2)).toBe(false)
-      expect(store.getTotalCount()).toBe(1)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.groupIds.has(3)).toBe(true)
+      expect(state.windowIds.has(1)).toBe(false)
+      expect(state.tabIds.has(2)).toBe(false)
+      expect(getTotalCount()).toBe(1)
     })
   })
 
@@ -46,9 +59,11 @@ describe('SelectionStore', () => {
       store.setTab(1)
       store.addTab(2)
 
-      expect(store.isTabSelected(1)).toBe(true)
-      expect(store.isTabSelected(2)).toBe(true)
-      expect(store.getTotalCount()).toBe(2)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.tabIds.has(1)).toBe(true)
+      expect(state.tabIds.has(2)).toBe(true)
+      expect(getTotalCount()).toBe(2)
     })
 
     it('adds multiple tabs to selection', () => {
@@ -56,8 +71,10 @@ describe('SelectionStore', () => {
       store.setTab(1)
       store.addTabs([2, 3, 4])
 
-      expect(store.getTotalCount()).toBe(4)
-      expect(store.isTabSelected(3)).toBe(true)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(getTotalCount()).toBe(4)
+      expect(state.tabIds.has(3)).toBe(true)
     })
 
     it('allows mixed type selections when adding', () => {
@@ -66,10 +83,12 @@ describe('SelectionStore', () => {
       store.addGroup(2)
       store.addWindow(3)
 
-      expect(store.isTabSelected(1)).toBe(true)
-      expect(store.isGroupSelected(2)).toBe(true)
-      expect(store.isWindowSelected(3)).toBe(true)
-      expect(store.getTotalCount()).toBe(3)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.tabIds.has(1)).toBe(true)
+      expect(state.groupIds.has(2)).toBe(true)
+      expect(state.windowIds.has(3)).toBe(true)
+      expect(getTotalCount()).toBe(3)
     })
   })
 
@@ -79,10 +98,12 @@ describe('SelectionStore', () => {
       store.setTabs([1, 2, 3])
       store.removeTab(2)
 
-      expect(store.isTabSelected(1)).toBe(true)
-      expect(store.isTabSelected(2)).toBe(false)
-      expect(store.isTabSelected(3)).toBe(true)
-      expect(store.getTotalCount()).toBe(2)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.tabIds.has(1)).toBe(true)
+      expect(state.tabIds.has(2)).toBe(false)
+      expect(state.tabIds.has(3)).toBe(true)
+      expect(getTotalCount()).toBe(2)
     })
 
     it('removes multiple tabs from selection', () => {
@@ -90,9 +111,11 @@ describe('SelectionStore', () => {
       store.setTabs([1, 2, 3, 4, 5])
       store.removeTabs([2, 4])
 
-      expect(store.getTotalCount()).toBe(3)
-      expect(store.isTabSelected(2)).toBe(false)
-      expect(store.isTabSelected(4)).toBe(false)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(getTotalCount()).toBe(3)
+      expect(state.tabIds.has(2)).toBe(false)
+      expect(state.tabIds.has(4)).toBe(false)
     })
   })
 
@@ -104,28 +127,26 @@ describe('SelectionStore', () => {
       store.addTab(3)
       store.clear()
 
-      expect(store.getTotalCount()).toBe(0)
-      expect(store.isWindowSelected(1)).toBe(false)
-      expect(store.isGroupSelected(2)).toBe(false)
-      expect(store.isTabSelected(3)).toBe(false)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(getTotalCount()).toBe(0)
+      expect(state.windowIds.has(1)).toBe(false)
+      expect(state.groupIds.has(2)).toBe(false)
+      expect(state.tabIds.has(3)).toBe(false)
     })
   })
 
   describe('selection mode', () => {
     it('starts in default mode', () => {
       const store = useSelectionStore.getState()
-      expect(store.isMultiSelectMode()).toBe(false)
       expect(store.mode).toBe('default')
     })
 
     it('can enter multi-select mode', () => {
-      const { enterMultiSelectMode, isMultiSelectMode } =
-        useSelectionStore.getState()
-      enterMultiSelectMode()
+      useSelectionStore.getState().enterMultiSelectMode()
 
       // Need to get fresh state after mutation
       const state = useSelectionStore.getState()
-      expect(isMultiSelectMode()).toBe(true)
       expect(state.mode).toBe('multi-select')
     })
 
@@ -134,7 +155,9 @@ describe('SelectionStore', () => {
       store.enterMultiSelectMode()
       store.exitMultiSelectMode()
 
-      expect(store.isMultiSelectMode()).toBe(false)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.mode).toBe('default')
     })
 
     it('preserves selection when changing modes', () => {
@@ -142,8 +165,10 @@ describe('SelectionStore', () => {
       store.setTab(1)
       store.enterMultiSelectMode()
 
-      expect(store.isTabSelected(1)).toBe(true)
-      expect(store.isMultiSelectMode()).toBe(true)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(state.tabIds.has(1)).toBe(true)
+      expect(state.mode).toBe('multi-select')
     })
   })
 
@@ -152,33 +177,38 @@ describe('SelectionStore', () => {
       const store = useSelectionStore.getState()
       store.setWindows([1, 2, 3])
 
-      expect(store.getTotalCount()).toBe(3)
-      expect(store.isWindowSelected(1)).toBe(true)
-      expect(store.isWindowSelected(2)).toBe(true)
-      expect(store.isWindowSelected(3)).toBe(true)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(getTotalCount()).toBe(3)
+      expect(state.windowIds.has(1)).toBe(true)
+      expect(state.windowIds.has(2)).toBe(true)
+      expect(state.windowIds.has(3)).toBe(true)
     })
 
     it('sets multiple groups at once', () => {
       const store = useSelectionStore.getState()
       store.setGroups([10, 20, 30])
 
-      expect(store.getTotalCount()).toBe(3)
-      expect(store.isGroupSelected(20)).toBe(true)
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
+      expect(getTotalCount()).toBe(3)
+      expect(state.groupIds.has(20)).toBe(true)
     })
   })
 
-  describe('getSelection', () => {
-    it('returns current selection state', () => {
+  describe('accessing selection state', () => {
+    it('can check selection via Sets directly', () => {
       const store = useSelectionStore.getState()
       store.addWindow(1)
       store.addGroup(2)
       store.addTab(3)
 
-      const selection = store.getSelection()
+      // Get fresh state after mutations
+      const state = useSelectionStore.getState()
 
-      expect(selection.windowIds.has(1)).toBe(true)
-      expect(selection.groupIds.has(2)).toBe(true)
-      expect(selection.tabIds.has(3)).toBe(true)
+      expect(state.windowIds.has(1)).toBe(true)
+      expect(state.groupIds.has(2)).toBe(true)
+      expect(state.tabIds.has(3)).toBe(true)
     })
   })
 })

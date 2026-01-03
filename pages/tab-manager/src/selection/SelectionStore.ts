@@ -53,22 +53,7 @@ export type SelectionActions = {
   exitMultiSelectMode: () => void
 }
 
-export type SelectionQueries = {
-  getSelection: () => {
-    windowIds: Set<number>
-    groupIds: Set<number>
-    tabIds: Set<number>
-  }
-  getTotalCount: () => number
-  isWindowSelected: (id: number) => boolean
-  isGroupSelected: (id: number) => boolean
-  isTabSelected: (id: number) => boolean
-  isMultiSelectMode: () => boolean
-}
-
-export type SelectionStore = SelectionState &
-  SelectionActions &
-  SelectionQueries
+export type SelectionStore = SelectionState & SelectionActions
 
 const initialState: SelectionState = {
   windowIds: new Set(),
@@ -77,7 +62,7 @@ const initialState: SelectionState = {
   mode: 'default',
 }
 
-export const useSelectionStore = create<SelectionStore>((set, get) => ({
+export const useSelectionStore = create<SelectionStore>((set) => ({
   ...initialState,
 
   // Single-item setters
@@ -211,21 +196,4 @@ export const useSelectionStore = create<SelectionStore>((set, get) => ({
   // Mode management
   enterMultiSelectMode: () => set({ mode: 'multi-select' }),
   exitMultiSelectMode: () => set({ mode: 'default' }),
-
-  // Queries
-  getSelection: () => ({
-    windowIds: get().windowIds,
-    groupIds: get().groupIds,
-    tabIds: get().tabIds,
-  }),
-
-  getTotalCount: () => {
-    const state = get()
-    return state.windowIds.size + state.groupIds.size + state.tabIds.size
-  },
-
-  isWindowSelected: (id) => get().windowIds.has(id),
-  isGroupSelected: (id) => get().groupIds.has(id),
-  isTabSelected: (id) => get().tabIds.has(id),
-  isMultiSelectMode: () => get().mode === 'multi-select',
 }))

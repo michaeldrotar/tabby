@@ -87,7 +87,8 @@ export const useSelectionInteraction = () => {
 
       if (key === ' ') {
         // Space bar handling
-        const isMultiSelect = state.isMultiSelectMode()
+        // Check mode by accessing state directly (not via method)
+        const isMultiSelect = state.mode === 'multi-select'
 
         if (!isMultiSelect) {
           // First Space press: enter multi-select mode, item already selected by arrow nav
@@ -123,7 +124,8 @@ export const useSelectionInteraction = () => {
   const handleArrowNavigation = useCallback(
     (item: SelectionItemRef, paneContext: PaneContext): boolean => {
       const state = useSelectionStore.getState()
-      const isMultiSelect = state.isMultiSelectMode()
+      // Check mode by accessing state directly (not via method)
+      const isMultiSelect = state.mode === 'multi-select'
 
       // Update pane context
       paneRef.current = paneContext
@@ -195,20 +197,21 @@ const toggleItemSelection = (
   state: ReturnType<typeof useSelectionStore.getState>,
   item: SelectionItemRef,
 ) => {
+  // Check selection by accessing Sets directly
   if (item.type === 'window') {
-    if (state.isWindowSelected(item.id)) {
+    if (state.windowIds.has(item.id)) {
       state.removeWindow(item.id)
     } else {
       state.addWindow(item.id)
     }
   } else if (item.type === 'group') {
-    if (state.isGroupSelected(item.id)) {
+    if (state.groupIds.has(item.id)) {
       state.removeGroup(item.id)
     } else {
       state.addGroup(item.id)
     }
   } else {
-    if (state.isTabSelected(item.id)) {
+    if (state.tabIds.has(item.id)) {
       state.removeTab(item.id)
     } else {
       state.addTab(item.id)
