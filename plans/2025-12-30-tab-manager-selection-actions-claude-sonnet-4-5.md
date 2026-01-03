@@ -9,7 +9,6 @@
 This plan implements a comprehensive selection and action system for the tab manager that supports:
 
 - **Multi-selection** across windows, groups, and tabs with intuitive keyboard and mouse controls
-- **Semi-selection states** to show items within selected containers
 - **Contextual actions toolbar** with adaptive display based on selection type
 - **Progressive action implementation** starting with Close and building to full feature set
 - **Two view modes:** Split view (windows + tabs) and Tree view (unified list) with toggle
@@ -43,31 +42,102 @@ The implementation prioritizes keyboard accessibility, clear visual feedback, an
 
 ## Solution Overview
 
-### Selection System
+### Selection System Architecture
 
-**Keyboard Selection:**
+**Location:** `pages/tab-manager/src/selection/`
 
-- Space: Toggle selection on focused item
-- Shift+Up/Down: Range select from anchor point
-- Cmd/Ctrl+Click: Toggle individual selection
-- Shift+Click: Range select to clicked item
-- Cmd/Ctrl+A: Select all (context-dependent)
-- Cmd/Ctrl+X: Cut selection (for moving)
-- Cmd/Ctrl+C: Copy selection (for duplicating)
-- Cmd/Ctrl+V: Paste cut/copied items
-- Escape: Clear selection
+- Not a generic package - specific to tab manager's browser entity hierarchy
+- Follows YAGNI principle (only tab manager needs multi-selection currently)
+- Can be extracted to `packages/shared` later if another feature needs it
+
+**Store Design:**
+
+```typescript
+interface SelectionStore {
+  // State: Sets for O(1) lookups
+  windowIds: Set<number>
+  groupIds: Set<number>
+  tabIds: Set<number>
+
+  // Mutations - single-ID methods (simple and clear)
+  setWindow: (id: number) => void
+  setGroup: (id: number) => void
+  setTab: (id: number) => void
+  setWindows: (ids: number[]) => void // For bulk operations like Select All
+  setGroups: (ids: number[]) => void
+  setTabs: (ids: number[]) => void
+
+  addWindow: (id: number) => void
+  addGroup: (id: number) => void
+  addTab: (id: number) => void
+  addWindows: (ids: number[]) => void // For range selections
+  addGroups: (ids: number[]) => void
+  addTabs: (ids: number[]) => void
+
+  removeWindow: (id: number) => void
+  removeGroup: (id: number) => void
+  removeTab: (id: number) => void
+  removeWindows: (ids: number[]) => void // For range deselections
+  removeGroups: (ids: number[]) => void
+  removeTabs: (ids: number[]) => void
+
+  clear: () => void
+
+  // Note: Zustand batches synchronous updates automatically
+
+  // Queries
+  getSelection: () => { windowIds; groupIds; tabIds }
+  getTotalCount: () => number
+  isWindowSelected: (id: number) => boolean
+  isGroupSelected: (id: number) => boolean
+  isTabSelected: (id: number) => boolean
+}
+```
+
+**Key Architectural Decisions:**
+
+1. **No anchor in store** - Anchor is interaction/layout state, managed in view layer with refs
+2. **No range logic in store** - Store doesn't know visual order, view layer traverses DOM
+3. **Declarative API** - Store receives "what to select", not "how user interacted"
+4. **Pane-aware interactions** - Clicking different pane clears selection (predictable behavior)
+5. **Selection is ephemeral** - Cleared on unmount, Escape, or clicking away
+6. **Action availability based on selection** - Actions show/hide/disable based on what's selected:
+   - Single-item operations (Rename, Focus Window) only enabled when exactly 1 item of correct type selected
+   - Bulk operations (Close, Pin, Mute) enabled for any count
+   - Mixed selections only show actions that work on all selected types
+7. **Two-mode keyboard system** - Default mode (Finder-style) where arrow keys move focus+selection together; Space bar enters multi-select mode where focus and selection are independent
+
+**Keyboard & Mouse Interactions:**
+
+**Default Mode (Finder-style):**
+
+- **Arrow keys**: Move focus AND select single focused item (deselects others)
+- **Space**: Enter multi-select mode (show checkboxes, check current item, focus/selection become independent)
+- **Click (no modifier)**: Select clicked item only, set anchor
+- **Cmd/Ctrl+Click**: Toggle individual item, move anchor
+- **Shift+Click**: Select range from anchor to clicked item, anchor stays
+- **Cmd/Ctrl+A**: Select all in current pane/view context
+- **Enter on focused item**: Activate/open focused item (separate from selection)
+
+**Multi-Select Mode (entered via Space):**
+
+- **Arrow keys**: Move focus (blue outline) WITHOUT changing selection
+- **Space**: Toggle selection checkbox on focused item
+- **Shift+Arrow**: Move focus AND extend selection from anchor (check/uncheck checkboxes in range)
+- **Mouse interactions**: Same as default mode
+- **Escape**: Exit multi-select mode, return to default mode, clear all selection
+- **Auto-exit**: If user unchecks all items, automatically return to default mode
 
 **Visual States:**
 
-- ☑ Explicitly selected (blue highlight + checked checkbox)
-- ◐ Semi-selected (gray highlight + indeterminate checkbox, items within selected containers)
-- ☐ Not selected
-
-**Smart Container Logic:**
-
-- Selecting a window semi-selects all its tabs
-- Explicitly selecting 2 tabs within selected window shows difference
-- Deselecting window keeps explicitly selected tabs selected
+- **Default Mode:**
+  - Blue outline + blue background: Current focused/selected item
+  - No checkboxes visible (unless hovering)
+- **Multi-Select Mode:**
+  - Blue outline: Keyboard focus (where you are)
+  - Blue background + checked checkbox: Selected items
+  - Unchecked checkbox: Not selected
+  - All checkboxes visible
 
 ### Adaptive Actions Toolbar
 
@@ -121,18 +191,24 @@ Toggle button in top-left of windows pane
 
 ### Phase 1: Selection Foundation (Core Mechanism)
 
-- [ ] Create selection state management in `packages/shared/lib/selection/`
-  - [ ] `SelectionState.ts` - Zustand store for selected items
-  - [ ] `SelectionTypes.ts` - Types for windows, groups, tabs selection
-  - [ ] `selectionUtils.ts` - Helper functions for categorizing, analyzing containment
+- [ ] Create selection state management in `pages/tab-manager/src/selection/`
+  - [ ] `SelectionStore.ts` - Zustand store with Set-based state and declarative API
+  - [ ] `useSelection.ts` - Hook for components to check selection state
+  - [ ] `useSelectionActions.ts` - Hook providing set/add/remove/clear methods
+- [ ] Create interaction layer for selection
+  - [ ] `useSelectionInteraction.ts` - Manages anchor refs and translates user actions to store operations
+  - [ ] Handle pane context (window pane vs tab pane in split view)
+  - [ ] Track anchor item with ref (not in store)
+  - [ ] Track current pane with ref for cross-pane click detection
 - [ ] Implement basic Space bar selection (simplest to start)
   - [ ] Add Space key handler in `useKeyboardNavigation.ts`
-  - [ ] Toggle selection on focused item (window, group, or tab)
-  - [ ] Update selection state
+  - [ ] Call `selectionStore.add()` or `selectionStore.remove()` based on current state
+  - [ ] Move anchor to toggled item
 - [ ] Implement Escape key to clear selection
   - [ ] Add Escape key handler
-  - [ ] Clear all selection when Escape pressed
-  - [ ] Return focus to last focused item
+  - [ ] Call `selectionStore.clear()`
+  - [ ] Clear anchor ref
+  - [ ] Keep focus on current item
 - [ ] Add visual checkbox UI to all items
   - [ ] Update `WindowButton.tsx` to show checkbox
   - [ ] Update `TabGroup.tsx` to show checkbox
@@ -143,16 +219,10 @@ Toggle button in top-left of windows pane
 ### Phase 2: Selection Visual States
 
 - [ ] Implement explicit selection (☑) styling
-  - [ ] Blue highlight background
+  - [ ] Blue background highlight
   - [ ] Checked checkbox state
   - [ ] Update `TabItem`, `TabGroup`, `WindowButton` styling
-- [ ] Implement semi-selection (◐) detection logic
-  - [ ] `getSemiSelectedItems()` - detect items within selected containers
-  - [ ] Return list of semi-selected IDs based on selection hierarchy
-- [ ] Apply semi-selection (◐) styling
-  - [ ] Gray highlight background
-  - [ ] Indeterminate checkbox state
-  - [ ] Ensure visual distinction from explicit selection
+  - [ ] Ensure distinct from focus outline (focus = border, selection = background)
 - [ ] Add selection badge component
   - [ ] Create `SelectionBadge.tsx` in `packages/ui/lib/tab-manager/`
   - [ ] Show count based on selection type
@@ -161,22 +231,44 @@ Toggle button in top-left of windows pane
 
 ### Phase 3: Advanced Selection Methods
 
-- [ ] Implement Shift+Up/Down range selection
-  - [ ] Track anchor point (first selected item)
-  - [ ] Select all items between anchor and current focus
-  - [ ] Update keyboard handler in `useKeyboardNavigation.ts`
+- [ ] Implement click handlers on items
+  - [ ] Add onClick handlers to `TabItemRow`, `TabGroupHeader`, `WindowButton`
+  - [ ] Pass pane context to handlers
+  - [ ] Regular click: `selectionStore.set()` with single item, set anchor, update pane ref
+  - [ ] Cross-pane click: Clear selection first, then handle normally
 - [ ] Implement Cmd/Ctrl+Click toggle selection
-  - [ ] Add click handler to items with Cmd/Ctrl modifier check
-  - [ ] Toggle individual selection on click
+  - [ ] Check if item is selected
+  - [ ] Call `selectionStore.add()` if not selected, `selectionStore.remove()` if selected
+  - [ ] Move anchor to clicked item
+  - [ ] Anchor updates on Cmd+Click (verified Mac behavior)
 - [ ] Implement Shift+Click range selection
-  - [ ] Add click handler with Shift modifier check
-  - [ ] Select from last selected to clicked item
+  - [ ] Only process if anchor exists and in same pane
+  - [ ] If different pane, treat as regular click (clears other pane)
+  - [ ] Traverse DOM to find items between anchor and clicked item
+  - [ ] Calculate items to add and items to remove (for overlapping ranges)
+  - [ ] Call `selectionStore.remove()` then `selectionStore.add()` for both operations
+  - [ ] Zustand batches these into single render
+  - [ ] Anchor stays on original anchor (does not move)
+- [ ] Implement Shift+Up/Down range selection
+  - [ ] Same logic as Shift+Click but with keyboard focus target
+  - [ ] Traverse navigable items from anchor to focused item
+  - [ ] Update selection with range
 - [ ] Add "Select All" shortcut (Cmd+A)
-  - [ ] In tree view: Select all windows, groups, and tabs
+  - [ ] In tree view: Select all windows, groups, and tabs visible in tree
   - [ ] In split view (windows pane focused): Select all windows
   - [ ] In split view (tabs pane focused): Select all tabs/groups in current window
   - [ ] Context-aware based on which pane/view has focus
+  - [ ] Call `selectionStore.set()` with all relevant IDs
+  - [ ] Set anchor to first item in selection
+- [ ] Handle item removal (when tabs/groups/windows close)
+  - [ ] Listen to Chrome events in tab manager
+  - [ ] Call `selectionStore.remove()` for closed items
+  - [ ] If anchor item was removed, clear anchor ref
+  - [ ] Don't auto-select replacement (let user decide next action)
 - [ ] Test all selection methods work together correctly
+  - [ ] Test cross-pane behavior (clicking different pane clears selection)
+  - [ ] Test Cmd+Click moves anchor (Mac behavior)
+  - [ ] Test Shift+Click with overlapping ranges (items get removed/added correctly)
 
 ### Phase 4: Toolbar Foundation & Close Action
 
@@ -208,7 +300,6 @@ Toggle button in top-left of windows pane
   - [ ] Single tab, group, window
   - [ ] Multiple tabs, groups, windows
   - [ ] Mixed selections
-  - [ ] Semi-selected items (container logic)
 
 ### Phase 5: 3-Dot Menu Foundation
 
@@ -537,7 +628,6 @@ Toggle button in top-left of windows pane
   - [ ] Focus trap works in dialogs/menus
 - [ ] Verify color contrast meets WCAG AA
   - [ ] Check selection highlight colors
-  - [ ] Check semi-selection colors
   - [ ] Check toolbar button colors
 - [ ] Test with reduced motion preference
   - [ ] Disable animations if prefers-reduced-motion
@@ -547,8 +637,7 @@ Toggle button in top-left of windows pane
 
 - [ ] Write unit tests for selection logic
   - [ ] Test selection state updates
-  - [ ] Test containment detection
-  - [ ] Test semi-selection calculation
+  - [ ] Test containment detection for actions (window closes its tabs)
 - [ ] Write integration tests for actions
   - [ ] Test each action with single selection
   - [ ] Test each action with bulk selection
@@ -646,77 +735,564 @@ This table summarizes all actions across tabs, groups, and windows with their im
 
 ---
 
+## Interaction Scenarios & Edge Cases
+
+This section validates the selection design through concrete user scenarios.
+
+### Basic Selection Scenarios
+
+**Scenario 1: Simple range selection**
+
+```
+Action: Click tab 1, Shift+click tab 5
+Result: Tabs 1-5 selected, anchor = tab 1
+State: selectionStore = { tabIds: [1,2,3,4,5] }
+```
+
+**Scenario 2: Cmd+click moves anchor**
+
+```
+Action: Click tab 1, Shift+click tab 3, Cmd+click tab 8
+Result: Tabs 1-3 and 8 selected, anchor = tab 8
+State: selectionStore = { tabIds: [1,2,3,8] }
+```
+
+**Scenario 3: Overlapping range deselects**
+
+```
+Action: Click tab 4, Shift+click tab 6, Shift+click tab 2
+Result: Tabs 2-4 selected (5-6 removed), anchor = tab 4
+Explanation: New range (2-4) overlaps with old range (4-6), so 5-6 are removed
+State: selectionStore = { tabIds: [2,3,4] }
+```
+
+**Scenario 4: Shift+click from Cmd+click anchor**
+
+```
+Action: Click tab 3, Shift+click tab 6, Cmd+click tab 8, Shift+click tab 10
+Result: Tabs 3-6 and 8-10 selected, anchor = tab 8
+Explanation: Last Cmd+click moved anchor to 8, so Shift+click extends from 8
+State: selectionStore = { tabIds: [3,4,5,6,8,9,10] }
+```
+
+### Cross-Pane Scenarios (Split View)
+
+**Scenario 5: Click different pane clears selection**
+
+```
+Action: Click window 1 (window pane), click tab 5 (tab pane)
+Result: Only tab 5 selected, window 1 deselected
+State: selectionStore = { tabIds: [5] }, paneRef = 'tab'
+```
+
+**Scenario 6: Shift+click in different pane acts as regular click**
+
+```
+Action: Click window 1 (window pane), Shift+click tab 5 (tab pane)
+Result: Only tab 5 selected, no range (different panes)
+State: selectionStore = { tabIds: [5] }, paneRef = 'tab', anchor = tab 5
+```
+
+**Scenario 7: Cmd+click in different pane clears previous pane**
+
+```
+Action: Click window 1 (window pane), Cmd+click tab 5 (tab pane)
+Result: Only tab 5 selected (window 1 cleared)
+State: selectionStore = { tabIds: [5] }, paneRef = 'tab'
+```
+
+### Keyboard Navigation Scenarios
+
+**Scenario 8: Default mode - arrow keys move focus and selection together**
+
+```
+Mode: Default (Finder-style)
+Action: Arrow down from tab 2 to tab 3
+Result: Focus moves to tab 3, ONLY tab 3 is selected (tab 2 deselected)
+State: selectionStore = { tabIds: [3] }, mode = 'default'
+```
+
+**Scenario 9: Enter multi-select mode with Space**
+
+```
+Mode: Default
+Action: Navigate to tab 3 (arrows), press Space
+Result: Enter multi-select mode, checkboxes appear, tab 3 selected and checked
+State: selectionStore = { tabIds: [3] }, mode = 'multi-select', anchor = tab 3
+```
+
+**Scenario 10: Multi-select mode - arrow keys move focus without changing selection**
+
+```
+Mode: Multi-select (tab 3 selected)
+Action: Arrow down to tab 4, arrow down to tab 5
+Result: Focus on tab 5, but only tab 3 remains selected (checkboxes visible, only tab 3 checked)
+State: selectionStore = { tabIds: [3] }, focus = tab 5
+```
+
+**Scenario 11: Multi-select mode - Space toggles selection**
+
+```
+Mode: Multi-select (tab 3 selected, focus on tab 5)
+Action: Press Space
+Result: Tab 5 gets selected and checked, tab 3 still selected
+State: selectionStore = { tabIds: [3,5] }, anchor = tab 5
+```
+
+**Scenario 12: Multi-select mode - Shift+Arrow extends selection**
+
+```
+Mode: Multi-select (tab 3 selected, anchor = tab 3)
+Action: Shift+Down, Shift+Down
+Result: Tabs 3-5 all selected and checked
+State: selectionStore = { tabIds: [3,4,5] }, anchor = tab 3
+```
+
+**Scenario 13: Exit multi-select mode with Escape**
+
+```
+Mode: Multi-select (tabs 3, 5, 7 selected)
+Action: Press Escape
+Result: Return to default mode, all selection cleared, checkboxes hidden, focus remains
+State: selectionStore = {}, mode = 'default'
+```
+
+**Scenario 14: Auto-exit multi-select when all unchecked**
+
+```
+Mode: Multi-select (only tab 3 selected)
+Action: Navigate to tab 3, press Space (unchecks it)
+Result: Automatically return to default mode, checkboxes hidden
+State: selectionStore = {}, mode = 'default'
+```
+
+**Scenario 15: Cmd+A in different panes**
+
+```
+Context: Split view, window pane focused
+Action: Cmd+A
+Result: All windows selected
+Context: Now tab pane focused
+Action: Cmd+A
+Result: Windows deselected, all tabs in current window selected
+State: selectionStore = { tabIds: [all tabs in window] }, paneRef = 'tab'
+```
+
+### Item Removal Scenarios
+
+**Scenario 16: Close selected tab, anchor removed**
+
+```
+Action: Click tab 5, tab 5 closes
+Result: Selection cleared for tab 5, anchor cleared
+State: selectionStore = { tabIds: [] }, anchorRef = null
+```
+
+**Scenario 17: Close non-anchor selected tab**
+
+```
+Action: Click tab 3, Cmd+click tabs 5 and 7, tab 5 closes
+Result: Tabs 3 and 7 still selected, anchor still tab 3
+State: selectionStore = { tabIds: [3,7] }, anchorRef = tab 3
+```
+
+### Mixed Selection Scenarios
+
+**Scenario 18: Select tabs and groups together (tree view)**
+
+```
+Action: Click tab 3, Shift+click group 1 (tree order: tab3, tab4, group1)
+Result: Tab 3, tab 4, and group 1 selected
+State: selectionStore = { tabIds: [3,4], groupIds: [1] }
+Toolbar: Shows only actions common to tabs and groups (Close, Copy URLs)
+```
+
+**Scenario 19: Select window and tabs (tree view)**
+
+```
+Action: Click window 2, Shift+click tab 8 (window2 contains tabs 5-10)
+Result: Window 2 and tabs 5-8 explicitly selected
+State: selectionStore = { windowIds: [2], tabIds: [5,6,7,8] }
+```
+
+### Context Menu Scenarios
+
+**Scenario 20: Right-click selected item**
+
+```
+Context: Tabs 3-5 selected
+Action: Right-click tab 4
+Result: Context menu shows bulk actions, operates on all 3 selected tabs
+State: Selection unchanged
+```
+
+**Scenario 21: Right-click unselected item**
+
+```
+Context: Tabs 3-5 selected
+Action: Right-click tab 8
+Result: Clears selection, selects only tab 8, shows single-item context menu
+State: selectionStore = { tabIds: [8] }
+```
+
+### View Mode Switch Scenarios
+
+**Scenario 22: Switch from split to tree view**
+
+```
+Context: Split view, window 1 selected in window pane
+Action: Toggle to tree view
+Result: Window 1 still selected, shown in tree with all items visible
+State: selectionStore unchanged, view mode changes
+```
+
+**Scenario 23: Select across windows in tree view**
+
+```
+Context: Tree view showing windows 1 and 2
+Action: Click tab 5 (window 1), Shift+click tab 12 (window 2)
+Result: Tabs 5-12 selected, crossing window boundaries
+State: selectionStore = { tabIds: [5,6,7,8,9,10,11,12] }
+Note: Would also select any groups between if they exist in tree order
+```
+
+### Edge Cases
+
+**Scenario 24: Click already-selected item (no modifier)**
+
+```
+Context: Tabs 3-7 selected
+Action: Click tab 5 (no modifier)
+Result: All others deselected, only tab 5 selected
+State: selectionStore = { tabIds: [5] }, anchor = tab 5
+```
+
+**Scenario 25: Cmd+click already-selected item**
+
+```
+Context: Tabs 3-7 selected
+Action: Cmd+click tab 5
+Result: Tab 5 deselected, tabs 3-4, 6-7 remain selected
+State: selectionStore = { tabIds: [3,4,6,7] }, anchor = tab 5
+```
+
+**Scenario 26: Empty range selection**
+
+```
+Context: No selection, anchor = null
+Action: Shift+click tab 5
+Result: Treated as regular click (no anchor to range from)
+State: selectionStore = { tabIds: [5] }, anchor = tab 5
+```
+
+**Scenario 27: Selection with no applicable actions**
+
+```
+Context: Mix of 2 windows, 3 groups, 5 tabs selected
+Result: Toolbar shows only Close (works on all types)
+State: All other actions disabled/hidden (no bulk rename, no bulk pin, etc.)
+```
+
+**Scenario 28: Rename group with multiple groups selected**
+
+```
+Context: Groups 1, 2, 3 selected
+Result: Rename action disabled (only works with single group)
+Action: User deselects 2 groups, only group 1 selected
+Result: Rename action becomes enabled
+```
+
+**Scenario 29: Default mode - arrow key moves focus and selection together**
+
+```
+Mode: Default
+Context: Tab 3 focused and selected
+Action: Arrow down to tab 4
+Result: Tab 4 becomes focused and selected, tab 3 deselected
+State: selectionStore = { tabIds: [4] }, focus = tab 4, mode = 'default'
+```
+
+**Scenario 30: Multi-select mode - focus independent of selection**
+
+```
+Mode: Multi-select
+Context: Tab 3 selected, focus on tab 5
+Action: Press Space
+Result: Tab 5 becomes selected (both 3 and 5 now selected)
+State: selectionStore = { tabIds: [3,5] }, focus = tab 5, mode = 'multi-select'
+```
+
+**Scenario 31: Collapse selected group**
+
+```
+Context: Group 1 (with 5 tabs) is selected and expanded
+Action: User collapses group 1 (click chevron or Left arrow)
+Result: Group still selected, tabs now hidden
+Visual: Group blue background, chevron points right, tabs not visible
+State: selectionStore = { groupIds: [1] } (unchanged)
+```
+
+**Scenario 32: Move selected tabs to another window**
+
+```
+Context: Tabs 3-5 selected in window 1
+Action: User executes "Move to Window 2" action
+Result: Tabs moved to window 2, selection cleared (items changed context)
+State: selectionStore = {} (cleared after action completes)
+Rationale: Selection clears after successful action to avoid confusion
+```
+
+**Scenario 33: Group selected tabs**
+
+```
+Context: Tabs 3, 5, 7 selected (non-contiguous)
+Action: User executes "Add to New Group"
+Result: New group created with tabs 3, 5, 7, group is now selected
+State: selectionStore = { groupIds: [newGroupId] }
+Visual: New group highlighted with blue background
+```
+
+**Scenario 34: Ungroup selected group**
+
+```
+Context: Group 1 selected (with 5 tabs)
+Action: User executes "Ungroup"
+Result: Group removed, its 5 tabs are now selected individually
+State: selectionStore = { tabIds: [1,2,3,4,5] } (group's tab IDs)
+Rationale: Keeps selection context on affected items
+```
+
+**Scenario 35: Reload selected tabs during loading**
+
+```
+Context: Tabs 1-10 selected, user presses R to reload all
+Action: While tabs are reloading, user clicks tab 15
+Result: Previous selection clears, only tab 15 selected
+State: selectionStore = { tabIds: [15] }
+Note: No special handling for loading state - selection is independent
+```
+
+**Scenario 36: Drag and drop (future consideration)**
+
+```
+Context: Tabs 3-5 selected
+Action: User drags tab 4 to different position
+Result: All 3 selected tabs move together
+Note: Out of scope for initial implementation, but selection should support it
+```
+
+**Scenario 37: Browser shortcut conflicts**
+
+```
+Context: Tab manager has focus, user wants to reload current page
+Action: User presses Cmd+R
+Result: Page reload (browser default), NOT "reload selected tabs"
+Rationale: Browser shortcuts always take precedence
+Note: Tab manager's R key (reload selected) only works without Cmd modifier
+```
+
+**Scenario 38: Select all in empty pane**
+
+```
+Context: Split view, no tabs in current window, tab pane focused
+Action: User presses Cmd+A
+Result: Nothing selected (no items to select)
+State: selectionStore = {} (empty)
+```
+
+**Scenario 39: Checkboxes visibility in two modes**
+
+```
+Mode: Default
+Context: No selection
+Action: User hovers over tab 5
+Result: Checkbox appears on tab 5 (hover state)
+Action: User moves mouse away
+Result: Checkbox hides
+
+Mode: Multi-select
+Context: Entered via Space bar
+Action: User navigates with arrow keys
+Result: All checkboxes remain visible, checked items have blue background
+```
+
+**Scenario 40: Performance with large selection**
+
+```
+Context: 100+ tabs across multiple windows
+Action: User selects all (Cmd+A in tree view)
+Result: Selection completes in <100ms, no UI lag
+State: selectionStore = { windowIds: [all], groupIds: [all], tabIds: [all] }
+Implementation: Bulk operation with single render
+```
+
+---
+
 ## Technical Architecture
 
-### Selection State (`packages/shared/lib/selection/`)
+### Selection Store (`pages/tab-manager/src/selection/`)
+
+### Selection Store (`pages/tab-manager/src/selection/`)
 
 ```typescript
-// SelectionTypes.ts
-export type SelectionItemType = 'window' | 'group' | 'tab'
+// SelectionStore.ts (Zustand store)
+interface SelectionStore {
+  // State: Sets for O(1) lookups
+  windowIds: Set<number>
+  groupIds: Set<number>
+  tabIds: Set<number>
+  mode: 'default' | 'multi-select' // Track interaction mode
 
-export interface SelectionItem {
-  type: SelectionItemType
-  id: number
-  windowId: number // For groups and tabs
-  groupId?: number // For tabs in groups
-}
+  // Mutations - single-ID methods (simple and clear)
+  setWindow: (id: number) => void
+  setGroup: (id: number) => void
+  setTab: (id: number) => void
+  setWindows: (ids: number[]) => void // For bulk operations like Select All
+  setGroups: (ids: number[]) => void
+  setTabs: (ids: number[]) => void
 
-export interface SelectionState {
-  items: SelectionItem[]
-  anchorItem: SelectionItem | null // For range selection
-}
+  addWindow: (id: number) => void
+  addGroup: (id: number) => void
+  addTab: (id: number) => void
+  addWindows: (ids: number[]) => void // For range selections
+  addGroups: (ids: number[]) => void
+  addTabs: (ids: number[]) => void
 
-// SelectionState.ts (Zustand store)
-export interface SelectionStore {
-  selection: SelectionState
+  removeWindow: (id: number) => void
+  removeGroup: (id: number) => void
+  removeTab: (id: number) => void
+  removeWindows: (ids: number[]) => void // For range deselections
+  removeGroups: (ids: number[]) => void
+  removeTabs: (ids: number[]) => void
 
-  // Actions
-  toggleSelection: (item: SelectionItem) => void
-  setSelection: (items: SelectionItem[]) => void
-  addToSelection: (item: SelectionItem) => void
-  removeFromSelection: (id: number) => void
-  clearSelection: () => void
-  selectRange: (from: SelectionItem, to: SelectionItem) => void
+  clear: () => void
+  enterMultiSelectMode: () => void
+  exitMultiSelectMode: () => void
 
   // Queries
-  isSelected: (id: number) => boolean
-  getSelectionCount: () => number
-  hasSelection: () => boolean
+  getSelection: () => {
+    windowIds: Set<number>
+    groupIds: Set<number>
+    tabIds: Set<number>
+  }
+  getTotalCount: () => number
+  isWindowSelected: (id: number) => boolean
+  isGroupSelected: (id: number) => boolean
+  isTabSelected: (id: number) => boolean
+  isMultiSelectMode: () => boolean
 }
 
-// selectionUtils.ts
-export function categorizeSelection(items: SelectionItem[]) {
-  const windows = items.filter((i) => i.type === 'window')
-  const groups = items.filter((i) => i.type === 'group')
-  const tabs = items.filter((i) => i.type === 'tab')
-  return { windows, groups, tabs }
-}
+// useSelectionInteraction.ts
+// Manages anchor, mode, and translates user actions to store calls
+export const useSelectionInteraction = () => {
+  const anchorRef = useRef<{
+    type: 'window' | 'group' | 'tab'
+    id: number
+  } | null>(null)
+  const paneRef = useRef<'window' | 'tab' | 'tree' | null>(null)
+  const selectionStore = useSelectionStore()
 
-export function getSemiSelectedItems(
-  selection: SelectionItem[],
-  allWindows: BrowserWindow[],
-): number[] {
-  // Returns IDs of items that are within selected containers
-  const semiSelected: number[] = []
+  const handleClick = (
+    item: { type; id },
+    event: MouseEvent,
+    paneContext: 'window' | 'tab' | 'tree',
+  ) => {
+    // Cross-pane click clears selection
+    if (paneRef.current !== paneContext && paneRef.current !== null) {
+      selectionStore.clear()
+      anchorRef.current = null
+    }
+    paneRef.current = paneContext
 
-  const selectedWindowIds = selection
-    .filter((s) => s.type === 'window')
-    .map((s) => s.id)
+    if (event.shiftKey && anchorRef.current) {
+      // Range selection from anchor to item
+      const range = getItemsInRange(anchorRef.current, item, paneContext)
+      // Handle overlapping ranges - Zustand batches these
+      if (range.toRemove?.length) {
+        if (range.toRemove[0].type === 'tab')
+          selectionStore.removeTabs(range.toRemove.map((i) => i.id))
+        else if (range.toRemove[0].type === 'group')
+          selectionStore.removeGroups(range.toRemove.map((i) => i.id))
+        else selectionStore.removeWindows(range.toRemove.map((i) => i.id))
+      }
+      if (range.toAdd?.length) {
+        if (range.toAdd[0].type === 'tab')
+          selectionStore.addTabs(range.toAdd.map((i) => i.id))
+        else if (range.toAdd[0].type === 'group')
+          selectionStore.addGroups(range.toAdd.map((i) => i.id))
+        else selectionStore.addWindows(range.toAdd.map((i) => i.id))
+      }
+      // Anchor stays the same
+    } else if (event.metaKey || event.ctrlKey) {
+      // Toggle individual item
+      const isSelected = selectionStore[`is${capitalize(item.type)}Selected`](
+        item.id,
+      )
+      if (isSelected) {
+        if (item.type === 'tab') selectionStore.removeTab(item.id)
+        else if (item.type === 'group') selectionStore.removeGroup(item.id)
+        else selectionStore.removeWindow(item.id)
+      } else {
+        if (item.type === 'tab') selectionStore.addTab(item.id)
+        else if (item.type === 'group') selectionStore.addGroup(item.id)
+        else selectionStore.addWindow(item.id)
+      }
+      anchorRef.current = item // Anchor moves on Cmd+click
+    } else {
+      // Regular click - clear and select only this item
+      if (item.type === 'tab') selectionStore.setTab(item.id)
+      else if (item.type === 'group') selectionStore.setGroup(item.id)
+      else selectionStore.setWindow(item.id)
+      anchorRef.current = item
+      // Exit multi-select mode on regular click
+      selectionStore.exitMultiSelectMode()
+    }
+  }
 
-  const selectedGroupIds = selection
-    .filter((s) => s.type === 'group')
-    .map((s) => s.id)
+  const handleKeyboard = (
+    item: { type; id },
+    key: string,
+    paneContext: 'window' | 'tab' | 'tree',
+  ) => {
+    if (key === ' ') {
+      const isMultiSelect = selectionStore.isMultiSelectMode()
 
-  // For each selected window, all its groups and tabs are semi-selected
-  // Unless they're explicitly selected
-  // Implementation details...
+      if (!isMultiSelect) {
+        // First Space press: enter multi-select mode and select current item
+        selectionStore.enterMultiSelectMode()
+        if (item.type === 'tab') selectionStore.setTab(item.id)
+        else if (item.type === 'group') selectionStore.setGroup(item.id)
+        else selectionStore.setWindow(item.id)
+        anchorRef.current = item
+      } else {
+        // In multi-select mode: toggle like Cmd+click
+        const isSelected = selectionStore[`is${capitalize(item.type)}Selected`](
+          item.id,
+        )
+        if (isSelected) {
+          if (item.type === 'tab') selectionStore.removeTab(item.id)
+          else if (item.type === 'group') selectionStore.removeGroup(item.id)
+          else selectionStore.removeWindow(item.id)
 
-  return semiSelected
-}
+          // Auto-exit if nothing selected
+          if (selectionStore.getTotalCount() === 0) {
+            selectionStore.exitMultiSelectMode()
+          }
+        } else {
+          if (item.type === 'tab') selectionStore.addTab(item.id)
+          else if (item.type === 'group') selectionStore.addGroup(item.id)
+          else selectionStore.addWindow(item.id)
+        }
+        anchorRef.current = item
+      }
+    } else if (key === 'Escape') {
+      selectionStore.clear()
+      selectionStore.exitMultiSelectMode()
+      anchorRef.current = null
+    }
+  }
 
-export function getTotalTabCount(selection: SelectionItem[]): number {
-  // Calculate total tabs affected by selection
-  // Accounts for windows and groups containing tabs
+  return { handleClick, handleKeyboard, anchorRef, paneRef }
 }
 ```
 
@@ -771,33 +1347,59 @@ export const useKeyboardNavigation = (
   onSelectWindow?: (windowId: number) => void,
   onActivateWindow?: (windowId: number) => void,
 ) => {
-  const { selection, toggleSelection, selectRange, clearSelection } =
-    useSelectionStore()
+  const selectionStore = useSelectionStore()
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const activeElement = document.activeElement as HTMLElement
+    const navItem = activeElement?.closest('[data-nav-type]') as HTMLElement
+    const isMultiSelect = selectionStore.isMultiSelectMode()
 
-    // Space bar: Toggle selection
+    // Arrow keys: behavior depends on mode
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (isMultiSelect && e.shiftKey) {
+        // Multi-select mode + Shift: Range selection
+        e.preventDefault()
+        // Get items in range, extend selection
+        return
+      } else if (!isMultiSelect && !e.shiftKey) {
+        // Default mode: Move focus AND select single item
+        e.preventDefault()
+        const nextItem = getNextNavigableItem(navItem, e.key === 'ArrowDown')
+        if (nextItem) {
+          const item = getSelectionItemFromElement(nextItem)
+          // Select ONLY this item
+          if (item.type === 'tab') selectionStore.setTab(item.id)
+          else if (item.type === 'group') selectionStore.setGroup(item.id)
+          else selectionStore.setWindow(item.id)
+          nextItem.focus()
+        }
+        return
+      }
+      // Multi-select mode without Shift: just move focus (default browser)
+    }
+
+    // Space bar: Enter multi-select mode or toggle selection
     if (e.key === ' ') {
       e.preventDefault()
-      const navItem = activeElement?.closest('[data-nav-type]') as HTMLElement
       if (navItem) {
         const item = getSelectionItemFromElement(navItem)
-        toggleSelection(item)
+        // Handled by useSelectionInteraction.handleKeyboard
+        handleKeyboardSelection(item, ' ')
       }
       return
     }
 
-    // Shift+Up/Down: Range selection
-    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-      e.preventDefault()
-      // Get current and target items, call selectRange
+    // Escape: Exit multi-select mode and clear selection
+    if (e.key === 'Escape') {
+      selectionStore.clear()
+      selectionStore.exitMultiSelectMode()
       return
     }
 
     // Action shortcuts (when items selected)
-    if (selection.items.length > 0) {
-      if (e.key === 'x' || e.key === 'X') {
+    const selectionCount = selectionStore.getTotalCount()
+    if (selectionCount > 0) {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
         onCloseSelection()
         return
       }
@@ -808,7 +1410,7 @@ export const useKeyboardNavigation = (
       // ... other shortcuts
     }
 
-    // Existing navigation logic
+    // Existing navigation logic for Left/Right pane switching, etc.
     // ...
   }
 
@@ -858,10 +1460,10 @@ export const useKeyboardNavigation = (
 
 **Acceptance Criteria:**
 
-- [ ] Selected items have clear blue highlights and checkboxes
-- [ ] When I select a window, I see all its tabs are semi-selected (gray)
-- [ ] The badge shows "1 window (15 tabs)" so I know the impact
-- [ ] Before bulk closing, I see a confirmation with the count
+- [ ] Selected items have clear blue background highlights and checkboxes
+- [ ] The badge shows selection count (e.g., "3 tabs" or "1 window (15 tabs)")
+- [ ] Before bulk closing 10+ items, I see a confirmation with the count
+- [ ] Focus outline (blue border) is distinct from selection (blue background)
 
 **Why this matters:** Users fear bulk operations due to potential mistakes. Clear visual feedback + confirmation = confidence to use powerful features.
 
@@ -910,9 +1512,9 @@ None at this time. Design is well-defined and ready for implementation.
 
 ### Design Decisions
 
-1. **Space bar for selection:** Chosen over Cmd+Click as primary method because it's keyboard-friendly and doesn't conflict with existing patterns.
+1. **Two-mode keyboard system:** Default mode (Finder-style) where arrow keys move focus and select single item together; Space bar enters multi-select mode where focus and selection become independent. This gives simple navigation for common case while enabling powerful multi-selection when needed.
 
-2. **Semi-selection state:** Critical for showing container relationships. Without it, users can't tell if individual tabs are selected or just their parent window.
+2. **Single-ID API methods:** Use simple methods like `addTab(id)`, `removeWindow(id)` instead of bulk object methods like `add({ tabIds: [id] })`. Clearer, better autocomplete, more readable. Zustand batches synchronous updates automatically, so `removeTab(1); removeTab(2); removeTab(3)` renders once.
 
 3. **Close action first:** Close is the most common bulk action, applies to all item types, and requires confirmation logic - perfect foundation for the action system.
 
@@ -934,7 +1536,9 @@ None at this time. Design is well-defined and ready for implementation.
 
 12. **F2 for rename:** Standard across file systems (Windows Explorer, macOS Finder, VS Code). Shift+R as alternative maintains R=reload consistency.
 
-13. **Escape to clear selection:** Standard cancellation key across all UIs. Returns user to neutral state without closing sidebar.
+13. **Escape to clear selection:** Standard cancellation key across all UIs. Returns user to neutral state without closing sidebar. Also exits multi-select mode.
+
+14. **No semi-selection:** Simplified design - only show explicit selection. Users learn containment (closing window closes tabs) through experience. Reduces visual and implementation complexity.
 
 ### Implementation Order Rationale
 
