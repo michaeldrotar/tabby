@@ -105,39 +105,112 @@ interface SelectionStore {
    - Single-item operations (Rename, Focus Window) only enabled when exactly 1 item of correct type selected
    - Bulk operations (Close, Pin, Mute) enabled for any count
    - Mixed selections only show actions that work on all selected types
-7. **Two-mode keyboard system** - Default mode (Finder-style) where arrow keys move focus+selection together; Space bar enters multi-select mode where focus and selection are independent
+7. **Keyboard multi-select mode is keyboard-specific** - Entered only via Space bar; mouse Cmd+click does NOT enter this mode. Mouse and keyboard each follow their own interaction patterns.
+8. **Empty selection (0 items) is a valid state** - Both mouse and keyboard support having nothing selected. Implicit focus is tracked so keyboard navigation resumes relative to last position.
+9. **Mouse click exits keyboard multi-select mode** - Regular click signals intent to use mouse-style interaction; exits mode and selects clicked item.
 
-**Keyboard & Mouse Interactions:**
+### Interaction Modes
 
-**Default Mode (Finder-style):**
+The selection system supports three distinct interaction contexts, each with its own behavior and visual design.
 
-- **Arrow keys**: Move focus AND select single focused item (deselects others)
-- **Space**: Enter multi-select mode (show checkboxes, check current item, focus/selection become independent)
-- **Click (no modifier)**: Select clicked item only, set anchor
-- **Cmd/Ctrl+Click**: Toggle individual item, move anchor
+#### Mouse Interactions
+
+**Functionality:**
+
+- **Click (no modifier)**: Select clicked item only, set anchor, deselect all others
+- **Cmd/Ctrl+Click**: Toggle individual item selection, update anchor
 - **Shift+Click**: Select range from anchor to clicked item, anchor stays
 - **Cmd/Ctrl+A**: Select all in current pane/view context
-- **Enter on focused item**: Activate/open focused item (separate from selection)
+- **0 selected items**: Valid state - no blue backgrounds, ready for interaction
+- Mouse cursor acts as implicit "focus" - no visible focus indicator needed
+- Using mouse does NOT enter keyboard multi-select mode, even with Cmd+click
 
-**Multi-Select Mode (entered via Space):**
+**Design:**
 
-- **Arrow keys**: Move focus (blue outline) WITHOUT changing selection
-- **Space**: Toggle selection checkbox on focused item
-- **Shift+Arrow**: Move focus AND extend selection from anchor (check/uncheck checkboxes in range)
-- **Mouse interactions**: Same as default mode
-- **Escape**: Exit multi-select mode, return to default mode, clear all selection
-- **Auto-exit**: If user unchecks all items, automatically return to default mode
+- No focus ring displayed - cursor is the implicit focus
+- **Blue background** = selected items
+- **No background** = unselected items
+- Clean, minimal visual state
 
-**Visual States:**
+#### Keyboard Default Mode
 
-- **Default Mode:**
-  - Blue outline + blue background: Current focused/selected item
-  - No checkboxes visible (unless hovering)
-- **Multi-Select Mode:**
-  - Blue outline: Keyboard focus (where you are)
-  - Blue background + checked checkbox: Selected items
-  - Unchecked checkbox: Not selected
-  - All checkboxes visible
+This is the standard keyboard navigation mode, matching Finder-style behavior where focus and selection move together.
+
+**Functionality:**
+
+- **Arrow keys**: Move focus AND select single focused item (deselects others)
+- **Space**: Enter keyboard multi-select mode (focus ring separates from selection)
+- **Shift+Arrow**: Extend selection from anchor in arrow direction
+- **Enter on focused item**: Activate/open focused item (switch to that tab)
+- **Tab/arrow into new pane**: Focus+select first item in that pane, deselect previous pane
+- **0 selected items**: Implicit focus remains on last item; arrow keys select relative to it
+
+**Design:**
+
+- Focus and selection are **fused** into a single visual state
+- Blue background with integrated focus indicator (e.g., subtle border or ring)
+- Arrow keys move this combined state as one unit
+- User is always "looking at" what's selected
+- If 0 items selected, no visual indicator (implicit focus is tracked internally)
+
+#### Keyboard Multi-Select Mode
+
+Entered via Space bar. Enables non-contiguous selection by separating focus from selection.
+
+**Functionality:**
+
+- **Arrow keys**: Move focus ring WITHOUT changing selection
+- **Space**: Toggle selection (blue background) on focused item
+- **Shift+Arrow**: Move focus AND extend selection from anchor
+- **Escape**: Exit mode, clear all selection, keep focus on current item
+- **0 selected items**: Stay in mode (focus ring remains visible as mode indicator)
+- **Regular mouse click**: Exit mode, hide focus ring, select clicked item (return to mouse-style interaction)
+- **Cmd/Ctrl+Click**: Toggle item selection, keep focus ring visible, stay in mode
+
+**Design:**
+
+- Focus and selection become **visually separated**
+- **Blue background** = selected items (can be multiple, stays in place)
+- **Focus ring/border** = current keyboard position (moves independently)
+- The visual separation itself IS the mode indicator—no checkboxes needed
+- When focus ring is on an unselected item, only the ring is visible (no background)
+- When focus ring is on a selected item, both ring and background are visible
+- Focus ring remains visible even when using mouse (indicates mode is active)
+
+#### Empty Selection State
+
+Empty selection (0 items) is fully supported across all interaction contexts:
+
+- **Mouse with 0 selected**: No visual indicators, just ready for interaction
+- **Keyboard default mode with 0 selected**: Implicit focus on last interacted item (not visible); arrow keys select relative to it
+- **Keyboard multi-select mode with 0 selected**: Focus ring visible on current item, no blue backgrounds
+- **Cmd+click last selected item**: Always deselects it, resulting in 0 selected
+- **Split view pane switch**: Clicking/tabbing to other pane shows its contents; nothing auto-selected until user interacts
+
+#### Mode Transition Animations
+
+Design opportunity for delightful micro-interactions:
+
+- **Entering multi-select (Space)**: Focus ring "lifts off" or "grows out" from the blue background with spring physics
+- **Exiting (Escape)**: Focus ring "merges back" into the focused item, selection clears
+- **Reduced motion**: Instant transition with no animation
+- These micro-interactions reinforce the mental model of focus separating from selection
+
+#### Benefits of Focus Ring Separation Model
+
+- No new UI elements needed (no checkboxes to place, no layout shifts)
+- Works consistently across tabs, groups, and windows
+- Solves favicon/icon displacement concerns
+- Mode is self-evident from visual state alone
+- 0 selected items is visually clear (focus ring visible, no backgrounds)
+
+#### Additional Mode Indicators (Optional)
+
+For discoverability, these can supplement the visual model:
+
+- Toolbar could show mode state or selection count
+- Subtle text hint or icon when in multi-select mode
+- These are not required for understanding but help new users
 
 ### Adaptive Actions Toolbar
 
@@ -209,20 +282,27 @@ Toggle button in top-left of windows pane
   - [ ] Call `selectionStore.clear()`
   - [ ] Clear anchor ref
   - [ ] Keep focus on current item
-- [ ] Add visual checkbox UI to all items
-  - [ ] Update `WindowButton.tsx` to show checkbox
-  - [ ] Update `TabGroup.tsx` to show checkbox
-  - [ ] Update `TabItem.tsx` to show checkbox
-  - [ ] Checkboxes hidden by default, visible on hover or when any item selected
+- [ ] Implement visual states for focus and selection
+  - [ ] Update `WindowButton.tsx` with focus ring and selection background styles
+  - [ ] Update `TabGroup.tsx` with focus ring and selection background styles
+  - [ ] Update `TabItem.tsx` with focus ring and selection background styles
+  - [ ] Default mode: fused focus+selection (single visual state)
+  - [ ] Multi-select mode: separated focus ring and selection background
 - [ ] Test basic selection works with keyboard navigation
 
 ### Phase 2: Selection Visual States
 
-- [ ] Implement explicit selection (☑) styling
-  - [ ] Blue background highlight
-  - [ ] Checked checkbox state
+- [ ] Implement focus ring separation visual model
+  - [ ] Blue background for selected items
+  - [ ] Distinct focus ring/border for keyboard focus position
   - [ ] Update `TabItem`, `TabGroup`, `WindowButton` styling
-  - [ ] Ensure distinct from focus outline (focus = border, selection = background)
+  - [ ] Default mode: combined focus+selection visual (fused state)
+  - [ ] Multi-select mode: focus ring visually separated from selection background
+- [ ] Implement mode transition animations
+  - [ ] "Lift off" animation when entering multi-select mode (Space)
+  - [ ] "Merge back" animation when exiting (Escape)
+  - [ ] Respect `prefers-reduced-motion` (instant transitions)
+  - [ ] Use spring physics for natural feel
 - [ ] Add selection badge component
   - [ ] Create `SelectionBadge.tsx` in `packages/ui/lib/tab-manager/`
   - [ ] Show count based on selection type
@@ -592,7 +672,7 @@ Toggle button in top-left of windows pane
   - [ ] No selection: Show message "Select items to see actions"
 - [ ] Handle performance with large selections
   - [ ] Test with 100+ tabs selected
-  - [ ] Optimize rendering of checkboxes
+  - [ ] Optimize rendering of selection states and focus ring
   - [ ] Debounce selection updates if needed
 - [ ] Handle rapid interactions
   - [ ] Prevent double-clicks from causing issues
@@ -615,7 +695,7 @@ Toggle button in top-left of windows pane
 ### Phase 15: Accessibility Audit
 
 - [ ] Add ARIA labels to all interactive elements
-  - [ ] Checkboxes: "Select tab [title]"
+  - [ ] Selection state: aria-selected on items, announce "selected" state
   - [ ] Toolbar buttons: Proper role and labels
   - [ ] Menu items: Proper roles
 - [ ] Test with screen reader (VoiceOver on macOS)
@@ -741,7 +821,7 @@ This section validates the selection design through concrete user scenarios.
 
 ### Basic Selection Scenarios
 
-**Scenario 1: Simple range selection**
+**Scenario BASIC-1: Simple range selection**
 
 ```
 Action: Click tab 1, Shift+click tab 5
@@ -749,7 +829,7 @@ Result: Tabs 1-5 selected, anchor = tab 1
 State: selectionStore = { tabIds: [1,2,3,4,5] }
 ```
 
-**Scenario 2: Cmd+click moves anchor**
+**Scenario BASIC-2: Cmd+click moves anchor**
 
 ```
 Action: Click tab 1, Shift+click tab 3, Cmd+click tab 8
@@ -757,7 +837,7 @@ Result: Tabs 1-3 and 8 selected, anchor = tab 8
 State: selectionStore = { tabIds: [1,2,3,8] }
 ```
 
-**Scenario 3: Overlapping range deselects**
+**Scenario BASIC-3: Overlapping range deselects**
 
 ```
 Action: Click tab 4, Shift+click tab 6, Shift+click tab 2
@@ -766,7 +846,7 @@ Explanation: New range (2-4) overlaps with old range (4-6), so 5-6 are removed
 State: selectionStore = { tabIds: [2,3,4] }
 ```
 
-**Scenario 4: Shift+click from Cmd+click anchor**
+**Scenario BASIC-4: Shift+click from Cmd+click anchor**
 
 ```
 Action: Click tab 3, Shift+click tab 6, Cmd+click tab 8, Shift+click tab 10
@@ -777,7 +857,7 @@ State: selectionStore = { tabIds: [3,4,5,6,8,9,10] }
 
 ### Cross-Pane Scenarios (Split View)
 
-**Scenario 5: Click different pane clears selection**
+**Scenario CROSS-1: Click different pane clears selection**
 
 ```
 Action: Click window 1 (window pane), click tab 5 (tab pane)
@@ -785,7 +865,7 @@ Result: Only tab 5 selected, window 1 deselected
 State: selectionStore = { tabIds: [5] }, paneRef = 'tab'
 ```
 
-**Scenario 6: Shift+click in different pane acts as regular click**
+**Scenario CROSS-2: Shift+click in different pane acts as regular click**
 
 ```
 Action: Click window 1 (window pane), Shift+click tab 5 (tab pane)
@@ -793,7 +873,7 @@ Result: Only tab 5 selected, no range (different panes)
 State: selectionStore = { tabIds: [5] }, paneRef = 'tab', anchor = tab 5
 ```
 
-**Scenario 7: Cmd+click in different pane clears previous pane**
+**Scenario CROSS-3: Cmd+click in different pane clears previous pane**
 
 ```
 Action: Click window 1 (window pane), Cmd+click tab 5 (tab pane)
@@ -803,7 +883,7 @@ State: selectionStore = { tabIds: [5] }, paneRef = 'tab'
 
 ### Keyboard Navigation Scenarios
 
-**Scenario 8: Default mode - arrow keys move focus and selection together**
+**Scenario KEY-1: Default mode - arrow keys move focus and selection together**
 
 ```
 Mode: Default (Finder-style)
@@ -812,61 +892,78 @@ Result: Focus moves to tab 3, ONLY tab 3 is selected (tab 2 deselected)
 State: selectionStore = { tabIds: [3] }, mode = 'default'
 ```
 
-**Scenario 9: Enter multi-select mode with Space**
+**Scenario KEY-2: Enter multi-select mode with Space**
 
 ```
 Mode: Default
 Action: Navigate to tab 3 (arrows), press Space
-Result: Enter multi-select mode, checkboxes appear, tab 3 selected and checked
+Result: Enter multi-select mode, focus ring visually separates from selection background
+Visual: Tab 3 has blue background (selected) + focus ring (focused)
 State: selectionStore = { tabIds: [3] }, mode = 'multi-select', anchor = tab 3
 ```
 
-**Scenario 10: Multi-select mode - arrow keys move focus without changing selection**
+**Scenario KEY-3: Multi-select mode - arrow keys move focus without changing selection**
 
 ```
 Mode: Multi-select (tab 3 selected)
 Action: Arrow down to tab 4, arrow down to tab 5
-Result: Focus on tab 5, but only tab 3 remains selected (checkboxes visible, only tab 3 checked)
+Result: Focus ring moves to tab 5, blue background stays on tab 3
+Visual: Tab 3 = blue background only, Tab 5 = focus ring only
 State: selectionStore = { tabIds: [3] }, focus = tab 5
 ```
 
-**Scenario 11: Multi-select mode - Space toggles selection**
+**Scenario KEY-4: Multi-select mode - Space toggles selection**
 
 ```
 Mode: Multi-select (tab 3 selected, focus on tab 5)
 Action: Press Space
-Result: Tab 5 gets selected and checked, tab 3 still selected
+Result: Tab 5 gains blue background (selected), tab 3 still selected
+Visual: Tab 3 = blue background, Tab 5 = blue background + focus ring
 State: selectionStore = { tabIds: [3,5] }, anchor = tab 5
 ```
 
-**Scenario 12: Multi-select mode - Shift+Arrow extends selection**
+**Scenario KEY-5: Multi-select mode - Shift+Arrow extends selection**
 
 ```
 Mode: Multi-select (tab 3 selected, anchor = tab 3)
 Action: Shift+Down, Shift+Down
-Result: Tabs 3-5 all selected and checked
+Result: Tabs 3-5 all gain blue backgrounds, focus ring on tab 5
+Visual: Tabs 3-5 = blue background, Tab 5 also has focus ring
 State: selectionStore = { tabIds: [3,4,5] }, anchor = tab 3
 ```
 
-**Scenario 13: Exit multi-select mode with Escape**
+**Scenario KEY-6: Exit multi-select mode with Escape**
 
 ```
-Mode: Multi-select (tabs 3, 5, 7 selected)
+Mode: Multi-select (tabs 3, 5, 7 selected, focus on tab 7)
 Action: Press Escape
-Result: Return to default mode, all selection cleared, checkboxes hidden, focus remains
+Result: Return to default mode, selection cleared, focus ring merges back into fused state on tab 7
+Visual: Tab 7 has fused focus+selection state (default mode appearance)
 State: selectionStore = {}, mode = 'default'
 ```
 
-**Scenario 14: Auto-exit multi-select when all unchecked**
+**Scenario KEY-7: Multi-select mode with 0 selected items (no auto-exit)**
 
 ```
 Mode: Multi-select (only tab 3 selected)
-Action: Navigate to tab 3, press Space (unchecks it)
-Result: Automatically return to default mode, checkboxes hidden
-State: selectionStore = {}, mode = 'default'
+Action: Navigate to tab 3, press Space (deselects it)
+Result: Stay in multi-select mode with 0 items selected
+Visual: Focus ring visible on tab 3, no blue backgrounds anywhere
+State: selectionStore = {}, mode = 'multi-select'
+Rationale: Focus ring remaining visible indicates mode; user explicitly exits with Escape
 ```
 
-**Scenario 15: Cmd+A in different panes**
+**Scenario KEY-7b: Navigating with 0 selected items in multi-select mode**
+
+```
+Mode: Multi-select (0 items selected, focus on tab 3)
+Action: Arrow down to tab 4, press Space
+Result: Tab 4 becomes selected
+Visual: Focus ring on tab 4, blue background on tab 4
+State: selectionStore = { tabIds: [4] }, mode = 'multi-select'
+```
+
+**Scenario KEY-8: Cmd+A in different panes**
 
 ```
 Context: Split view, window pane focused
@@ -878,9 +975,90 @@ Result: Windows deselected, all tabs in current window selected
 State: selectionStore = { tabIds: [all tabs in window] }, paneRef = 'tab'
 ```
 
+### Empty Selection & Mode Transition Scenarios
+
+**Scenario EMPTY-1: Mouse Cmd+click to empty selection**
+
+```
+Mode: N/A (mouse only, no keyboard mode active)
+Context: Tab 3 selected via click
+Action: Cmd+click tab 3
+Result: Tab 3 deselected, 0 items selected, no visible focus ring
+Visual: No blue backgrounds, no focus ring (mouse cursor is implicit focus)
+State: selectionStore = {}, anchor = tab 3 (implicit)
+```
+
+**Scenario EMPTY-2: Keyboard navigation from empty selection (down arrow)**
+
+```
+Mode: Default (implicit, after mouse interaction)
+Context: 0 items selected, tab 3 was last interacted with (implicit focus)
+Action: Press Down arrow
+Result: Tab 4 becomes selected+focused (relative to implicit focus on tab 3)
+Visual: Tab 4 has fused focus+selection state
+State: selectionStore = { tabIds: [4] }, mode = 'default'
+Rationale: Improves on Finder behavior - doesn't jump to first/last item
+```
+
+**Scenario EMPTY-3: Keyboard navigation from empty selection (up arrow)**
+
+```
+Mode: Default (implicit)
+Context: 0 items selected, tab 3 was last interacted with (implicit focus)
+Action: Press Up arrow
+Result: Tab 2 becomes selected+focused
+Visual: Tab 2 has fused focus+selection state
+State: selectionStore = { tabIds: [2] }, mode = 'default'
+```
+
+**Scenario EMPTY-4: Mouse click exits keyboard multi-select mode**
+
+```
+Mode: Multi-select (focus ring visible on tab 3, tabs 5 and 7 selected)
+Action: Regular click on tab 10
+Result: Exit multi-select mode, hide focus ring, select only tab 10
+Visual: Tab 10 has blue background (no focus ring - back to mouse interaction)
+State: selectionStore = { tabIds: [10] }, mode = 'default'
+Rationale: Reaching for mouse indicates intent to use mouse-style interaction
+```
+
+**Scenario EMPTY-5: Cmd+click in keyboard multi-select mode**
+
+```
+Mode: Multi-select (focus ring on tab 3, tabs 3 and 5 selected)
+Action: Cmd+click tab 7
+Result: Stay in multi-select mode, toggle tab 7 selection, focus ring stays on tab 3
+Visual: Focus ring on tab 3, blue backgrounds on tabs 3, 5, and 7
+State: selectionStore = { tabIds: [3,5,7] }, mode = 'multi-select'
+Rationale: Cmd+click is additive behavior, doesn't signal "switch to mouse mode"
+```
+
+**Scenario EMPTY-6: Keyboard after mouse multi-selection (no multi-select mode)**
+
+```
+Mode: N/A (mouse only - Cmd+clicked tabs 3 and 7)
+Context: Tabs 3 and 7 selected via Cmd+click (no focus ring visible)
+Action: Press Down arrow
+Result: Selection moves to tab 4 (relative to anchor tab 7), tabs 3 and 7 deselected
+Visual: Tab 4 has fused focus+selection state
+State: selectionStore = { tabIds: [4] }, mode = 'default'
+Rationale: Mouse Cmd+click does NOT enter keyboard multi-select mode; keyboard follows its own rules
+```
+
+**Scenario EMPTY-7: Tab into empty pane (split view)**
+
+```
+Mode: Default
+Context: Window 1 selected+focused in window pane, tab pane showing Window 1's tabs (nothing selected)
+Action: Press Tab to move focus to tab pane
+Result: First tab in pane becomes selected+focused, window 1 deselected
+Visual: First tab has fused focus+selection, window 1 has no background
+State: selectionStore = { tabIds: [first_tab] }, paneRef = 'tab'
+```
+
 ### Item Removal Scenarios
 
-**Scenario 16: Close selected tab, anchor removed**
+**Scenario REMOVE-1: Close selected tab, anchor removed**
 
 ```
 Action: Click tab 5, tab 5 closes
@@ -888,7 +1066,7 @@ Result: Selection cleared for tab 5, anchor cleared
 State: selectionStore = { tabIds: [] }, anchorRef = null
 ```
 
-**Scenario 17: Close non-anchor selected tab**
+**Scenario REMOVE-2: Close non-anchor selected tab**
 
 ```
 Action: Click tab 3, Cmd+click tabs 5 and 7, tab 5 closes
@@ -898,7 +1076,7 @@ State: selectionStore = { tabIds: [3,7] }, anchorRef = tab 3
 
 ### Mixed Selection Scenarios
 
-**Scenario 18: Select tabs and groups together (tree view)**
+**Scenario MIXED-1: Select tabs and groups together (tree view)**
 
 ```
 Action: Click tab 3, Shift+click group 1 (tree order: tab3, tab4, group1)
@@ -907,7 +1085,7 @@ State: selectionStore = { tabIds: [3,4], groupIds: [1] }
 Toolbar: Shows only actions common to tabs and groups (Close, Copy URLs)
 ```
 
-**Scenario 19: Select window and tabs (tree view)**
+**Scenario MIXED-2: Select window and tabs (tree view)**
 
 ```
 Action: Click window 2, Shift+click tab 8 (window2 contains tabs 5-10)
@@ -917,7 +1095,7 @@ State: selectionStore = { windowIds: [2], tabIds: [5,6,7,8] }
 
 ### Context Menu Scenarios
 
-**Scenario 20: Right-click selected item**
+**Scenario MENU-1: Right-click selected item**
 
 ```
 Context: Tabs 3-5 selected
@@ -926,7 +1104,7 @@ Result: Context menu shows bulk actions, operates on all 3 selected tabs
 State: Selection unchanged
 ```
 
-**Scenario 21: Right-click unselected item**
+**Scenario MENU-2: Right-click unselected item**
 
 ```
 Context: Tabs 3-5 selected
@@ -937,7 +1115,7 @@ State: selectionStore = { tabIds: [8] }
 
 ### View Mode Switch Scenarios
 
-**Scenario 22: Switch from split to tree view**
+**Scenario VIEW-1: Switch from split to tree view**
 
 ```
 Context: Split view, window 1 selected in window pane
@@ -946,7 +1124,7 @@ Result: Window 1 still selected, shown in tree with all items visible
 State: selectionStore unchanged, view mode changes
 ```
 
-**Scenario 23: Select across windows in tree view**
+**Scenario VIEW-2: Select across windows in tree view**
 
 ```
 Context: Tree view showing windows 1 and 2
@@ -958,7 +1136,7 @@ Note: Would also select any groups between if they exist in tree order
 
 ### Edge Cases
 
-**Scenario 24: Click already-selected item (no modifier)**
+**Scenario EDGE-1: Click already-selected item (no modifier)**
 
 ```
 Context: Tabs 3-7 selected
@@ -967,7 +1145,7 @@ Result: All others deselected, only tab 5 selected
 State: selectionStore = { tabIds: [5] }, anchor = tab 5
 ```
 
-**Scenario 25: Cmd+click already-selected item**
+**Scenario EDGE-2: Cmd+click already-selected item**
 
 ```
 Context: Tabs 3-7 selected
@@ -976,7 +1154,7 @@ Result: Tab 5 deselected, tabs 3-4, 6-7 remain selected
 State: selectionStore = { tabIds: [3,4,6,7] }, anchor = tab 5
 ```
 
-**Scenario 26: Empty range selection**
+**Scenario EDGE-3: Empty range selection**
 
 ```
 Context: No selection, anchor = null
@@ -985,7 +1163,7 @@ Result: Treated as regular click (no anchor to range from)
 State: selectionStore = { tabIds: [5] }, anchor = tab 5
 ```
 
-**Scenario 27: Selection with no applicable actions**
+**Scenario EDGE-4: Selection with no applicable actions**
 
 ```
 Context: Mix of 2 windows, 3 groups, 5 tabs selected
@@ -993,7 +1171,7 @@ Result: Toolbar shows only Close (works on all types)
 State: All other actions disabled/hidden (no bulk rename, no bulk pin, etc.)
 ```
 
-**Scenario 28: Rename group with multiple groups selected**
+**Scenario EDGE-5: Rename group with multiple groups selected**
 
 ```
 Context: Groups 1, 2, 3 selected
@@ -1002,7 +1180,7 @@ Action: User deselects 2 groups, only group 1 selected
 Result: Rename action becomes enabled
 ```
 
-**Scenario 29: Default mode - arrow key moves focus and selection together**
+**Scenario EDGE-6: Default mode - arrow key moves focus and selection together**
 
 ```
 Mode: Default
@@ -1012,7 +1190,7 @@ Result: Tab 4 becomes focused and selected, tab 3 deselected
 State: selectionStore = { tabIds: [4] }, focus = tab 4, mode = 'default'
 ```
 
-**Scenario 30: Multi-select mode - focus independent of selection**
+**Scenario EDGE-7: Multi-select mode - focus independent of selection**
 
 ```
 Mode: Multi-select
@@ -1022,7 +1200,7 @@ Result: Tab 5 becomes selected (both 3 and 5 now selected)
 State: selectionStore = { tabIds: [3,5] }, focus = tab 5, mode = 'multi-select'
 ```
 
-**Scenario 31: Collapse selected group**
+**Scenario EDGE-8: Collapse selected group**
 
 ```
 Context: Group 1 (with 5 tabs) is selected and expanded
@@ -1032,7 +1210,7 @@ Visual: Group blue background, chevron points right, tabs not visible
 State: selectionStore = { groupIds: [1] } (unchanged)
 ```
 
-**Scenario 32: Move selected tabs to another window**
+**Scenario EDGE-9: Move selected tabs to another window**
 
 ```
 Context: Tabs 3-5 selected in window 1
@@ -1042,7 +1220,7 @@ State: selectionStore = {} (cleared after action completes)
 Rationale: Selection clears after successful action to avoid confusion
 ```
 
-**Scenario 33: Group selected tabs**
+**Scenario EDGE-10: Group selected tabs**
 
 ```
 Context: Tabs 3, 5, 7 selected (non-contiguous)
@@ -1052,7 +1230,7 @@ State: selectionStore = { groupIds: [newGroupId] }
 Visual: New group highlighted with blue background
 ```
 
-**Scenario 34: Ungroup selected group**
+**Scenario EDGE-11: Ungroup selected group**
 
 ```
 Context: Group 1 selected (with 5 tabs)
@@ -1062,7 +1240,7 @@ State: selectionStore = { tabIds: [1,2,3,4,5] } (group's tab IDs)
 Rationale: Keeps selection context on affected items
 ```
 
-**Scenario 35: Reload selected tabs during loading**
+**Scenario EDGE-12: Reload selected tabs during loading**
 
 ```
 Context: Tabs 1-10 selected, user presses R to reload all
@@ -1072,7 +1250,7 @@ State: selectionStore = { tabIds: [15] }
 Note: No special handling for loading state - selection is independent
 ```
 
-**Scenario 36: Drag and drop (future consideration)**
+**Scenario EDGE-13: Drag and drop (future consideration)**
 
 ```
 Context: Tabs 3-5 selected
@@ -1081,7 +1259,7 @@ Result: All 3 selected tabs move together
 Note: Out of scope for initial implementation, but selection should support it
 ```
 
-**Scenario 37: Browser shortcut conflicts**
+**Scenario EDGE-14: Browser shortcut conflicts**
 
 ```
 Context: Tab manager has focus, user wants to reload current page
@@ -1091,7 +1269,7 @@ Rationale: Browser shortcuts always take precedence
 Note: Tab manager's R key (reload selected) only works without Cmd modifier
 ```
 
-**Scenario 38: Select all in empty pane**
+**Scenario EDGE-15: Select all in empty pane**
 
 ```
 Context: Split view, no tabs in current window, tab pane focused
@@ -1100,23 +1278,27 @@ Result: Nothing selected (no items to select)
 State: selectionStore = {} (empty)
 ```
 
-**Scenario 39: Checkboxes visibility in two modes**
+**Scenario EDGE-16: Visual states in two modes (focus ring separation)**
 
 ```
 Mode: Default
-Context: No selection
-Action: User hovers over tab 5
-Result: Checkbox appears on tab 5 (hover state)
-Action: User moves mouse away
-Result: Checkbox hides
+Context: Tab 3 focused/selected
+Visual: Tab 3 has fused focus+selection state (blue background with integrated focus indicator)
+Action: Arrow down to tab 4
+Result: Fused state moves to tab 4, tab 3 returns to normal
 
 Mode: Multi-select
-Context: Entered via Space bar
-Action: User navigates with arrow keys
-Result: All checkboxes remain visible, checked items have blue background
+Context: Entered via Space bar, tab 3 selected
+Visual: Tab 3 has blue background (selected) AND focus ring (focused)
+Action: Arrow down to tab 4
+Result: Focus ring moves to tab 4, blue background stays on tab 3
+Visual: Tab 3 = blue background only, Tab 4 = focus ring only
+Action: Press Space on tab 4
+Result: Tab 4 gains blue background
+Visual: Tab 3 = blue background, Tab 4 = blue background + focus ring
 ```
 
-**Scenario 40: Performance with large selection**
+**Scenario EDGE-17: Performance with large selection**
 
 ```
 Context: 100+ tabs across multiple windows
@@ -1129,8 +1311,6 @@ Implementation: Bulk operation with single render
 ---
 
 ## Technical Architecture
-
-### Selection Store (`pages/tab-manager/src/selection/`)
 
 ### Selection Store (`pages/tab-manager/src/selection/`)
 
@@ -1273,11 +1453,8 @@ export const useSelectionInteraction = () => {
           if (item.type === 'tab') selectionStore.removeTab(item.id)
           else if (item.type === 'group') selectionStore.removeGroup(item.id)
           else selectionStore.removeWindow(item.id)
-
-          // Auto-exit if nothing selected
-          if (selectionStore.getTotalCount() === 0) {
-            selectionStore.exitMultiSelectMode()
-          }
+          // Note: Stay in multi-select mode even with 0 items (per Decision 7)
+          // Focus ring remains visible as mode indicator
         } else {
           if (item.type === 'tab') selectionStore.addTab(item.id)
           else if (item.type === 'group') selectionStore.addGroup(item.id)
@@ -1460,10 +1637,11 @@ export const useKeyboardNavigation = (
 
 **Acceptance Criteria:**
 
-- [ ] Selected items have clear blue background highlights and checkboxes
+- [ ] Selected items have clear blue background highlights
+- [ ] Focus ring is visually distinct and separates from selection in multi-select mode
 - [ ] The badge shows selection count (e.g., "3 tabs" or "1 window (15 tabs)")
 - [ ] Before bulk closing 10+ items, I see a confirmation with the count
-- [ ] Focus outline (blue border) is distinct from selection (blue background)
+- [ ] Focus ring (border) is distinct from selection (blue background) in multi-select mode
 
 **Why this matters:** Users fear bulk operations due to potential mistakes. Clear visual feedback + confirmation = confidence to use powerful features.
 
