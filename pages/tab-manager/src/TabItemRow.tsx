@@ -1,6 +1,7 @@
 import { Profiler } from '@extension/dev-utils/Profiler'
 import { Favicon } from '@extension/ui/Favicon'
 import { cn } from '@extension/ui/utils/cn'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'
 import type { HTMLAttributes } from 'react'
@@ -29,8 +30,8 @@ export type TabItemRowProps = Omit<
   isDiscarded?: boolean
   /** Whether this tab is part of selection */
   selected?: boolean
-  /** Whether keyboard focus is on this item (for multi-select mode) */
-  isFocused?: boolean
+  /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
+  isMultiSelectMode?: boolean
   /** Called when the tab row is clicked to activate the tab */
   onActivate: () => void
   /** Called when the tab is clicked for selection (with modifier keys) */
@@ -59,7 +60,7 @@ export const TabItemRow = memo(
         isAudible = false,
         isDiscarded = false,
         selected = false,
-        isFocused = false,
+        isMultiSelectMode = false,
         onActivate,
         onSelect,
         onClose,
@@ -68,6 +69,7 @@ export const TabItemRow = memo(
       },
       ref,
     ) => {
+      const prefersReducedMotion = useReducedMotion()
       const handleClick = (e: React.MouseEvent) => {
         // If modifier keys are pressed, handle selection instead of activation
         if (e.metaKey || e.ctrlKey || e.shiftKey) {
@@ -97,19 +99,31 @@ export const TabItemRow = memo(
             data-selected={selected}
             className={cn(
               `group relative overflow-hidden rounded-md`,
-              // Focus ring styling - shown when keyboard focused in multi-select mode
-              // or via default focus-visible
-              isFocused
-                ? `
-                  ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
-                  ring-offset-2 ring-offset-background
-                `
-                : `
-                  has-[button:focus-visible]:ring-2
-                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-2
-                  has-[button:focus-visible]:ring-offset-background
-                `,
+              // Transition for smooth mode changes
+              'transition-shadow duration-150',
+              // Focus ring styling via CSS based on mode
+              isMultiSelectMode
+                ? // Multi-select mode: prominent focus ring with offset
+                  `
+                    has-[button:focus-visible]:ring-2
+                    has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                    has-[button:focus-visible]:ring-offset-2
+                    has-[button:focus-visible]:ring-offset-background
+                  `
+                : // Default mode: subtle fused state ring when selected
+                  selected
+                  ? `
+                    has-[button:focus-visible]:ring-1
+                    has-[button:focus-visible]:ring-inset
+                    has-[button:focus-visible]:ring-foreground/20
+                  `
+                  : // Not selected in default mode: show standard ring
+                    `
+                      has-[button:focus-visible]:ring-2
+                      has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                      has-[button:focus-visible]:ring-offset-2
+                      has-[button:focus-visible]:ring-offset-background
+                    `,
               className,
             )}
             {...props}
@@ -146,7 +160,7 @@ export const TabItemRow = memo(
               onClick={handleClick}
               onKeyDown={handleKeyDown}
             >
-              {/* Favicon */}
+              {/* Favicon with Active Tab Ring */}
               <div
                 className={cn(
                   `
@@ -156,6 +170,46 @@ export const TabItemRow = memo(
                   isDiscarded && 'opacity-50',
                 )}
               >
+                {/* Active Tab Ring - Subtle, elegant pulsing indicator */}
+                <AnimatePresence>
+                  {isActive && !prefersReducedMotion && (
+                    <motion.div
+                      className={`
+                        absolute inset-[-3px] rounded-full border-2
+                        border-accent
+                      `}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{
+                        scale: [1, 1.08, 1],
+                        opacity: [0.7, 0.4, 0.7],
+                      }}
+                      exit={{ scale: 0.9, opacity: 0 }}
+                      transition={{
+                        scale: {
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        },
+                        opacity: {
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        },
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Static ring for reduced motion */}
+                {isActive && prefersReducedMotion && (
+                  <div
+                    className={`
+                      absolute inset-[-3px] rounded-full border-2 border-accent
+                      opacity-70
+                    `}
+                  />
+                )}
+
                 <Favicon
                   pageUrl={faviconUrl}
                   size={20}

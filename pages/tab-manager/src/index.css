@@ -1,1 +1,27 @@
 @import '@extension/tailwindcss-config/base.css';
+
+/**
+ * Focus Ring Animations for Multi-Select Mode
+ *
+ * These animations create a "lift-off" and "merge" effect when
+ * transitioning between default mode (fused focus+selection) and
+ * multi-select mode (separated focus ring).
+ */
+
+/* Base transition for all focusable items in the tab manager */
+[data-selection-mode] [data-nav-type] {
+  @apply transition-shadow duration-150;
+}
+
+/**
+ * Reduced Motion Support
+ *
+ * Respects user preference for reduced motion by disabling
+ * transitions on focus rings. Focus states still work, just
+ * without animation.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-selection-mode] [data-nav-type] {
+    @apply transition-none;
+  }
+}

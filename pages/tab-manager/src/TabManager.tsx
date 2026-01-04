@@ -11,7 +11,8 @@ import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import { SearchPopup } from './SearchPopup'
-import { useSelectionSync } from './selection'
+import { useSelectionStore, useSelectionSync } from './selection'
+import { ModeTransitionEffect } from './selection/ModeTransitionEffect'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerDebugLogger } from './TabManagerDebugLogger'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
@@ -33,6 +34,7 @@ const TabManager = () => {
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const selectionMode = useSelectionStore((s) => s.mode)
 
   // Sync selection state with browser store (removes closed tabs/windows from selection)
   useSelectionSync()
@@ -220,6 +222,12 @@ const TabManager = () => {
     <Profiler id="TabManager">
       <SearchPopup isOpen={isSearchOpen} onClose={closeSearch} />
       <TabManagerShell
+        selectionMode={selectionMode}
+        overlay={
+          <ModeTransitionEffect
+            isMultiSelectMode={selectionMode === 'multi-select'}
+          />
+        }
         sidebar={
           <Profiler id="TabManager.TabManagerSidebarContainer">
             <TabManagerSidebarContainer

@@ -18,8 +18,8 @@ export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   isExpanded: boolean
   /** Whether this window is part of selection */
   selected?: boolean
-  /** Whether keyboard focus is on this item (for multi-select mode) */
-  isFocused?: boolean
+  /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
+  isMultiSelectMode?: boolean
   onClick: (event: React.MouseEvent) => void
   onClose?: () => void
 }
@@ -36,7 +36,7 @@ export const WindowRailItem = memo(
         isViewing,
         isExpanded,
         selected = false,
-        isFocused = false,
+        isMultiSelectMode = false,
         onClick,
         onClose,
         className,
@@ -67,22 +67,39 @@ export const WindowRailItem = memo(
             data-viewing={isViewing}
             className={cn(
               `
-                relative flex w-full items-center gap-3 overflow-clip rounded-md
-                p-2 outline-none
+                relative flex w-full items-center gap-3 overflow-clip p-2
+                outline-none
               `,
-              // Focus ring styling - shown when keyboard focused in multi-select mode
-              // or via default focus-visible
-              isFocused
-                ? `
-                  ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
-                  ring-offset-2 ring-offset-background
-                `
-                : `
-                  focus-visible:ring-2
-                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                  focus-visible:ring-offset-2
-                  focus-visible:ring-offset-background
-                `,
+              // Viewing Window Connection: asymmetric border-radius
+              // When viewing, the right edge is flush (rounded-r-none) to visually
+              // "connect" with the tab pane, creating a sense of context and flow
+              isViewing
+                ? 'rounded-l-lg rounded-r-none' // Left side rounded, right edge flush
+                : 'rounded-md', // Standard rounded when not viewing
+              // Transition for smooth mode changes
+              'transition-all duration-200',
+              // Focus ring styling via CSS based on mode
+              isMultiSelectMode
+                ? // Multi-select mode: prominent focus ring with offset
+                  `
+                    focus-visible:ring-2
+                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-2
+                    focus-visible:ring-offset-background
+                  `
+                : // Default mode: subtle fused state when selected/viewing
+                  selected || isViewing
+                  ? `
+                    focus-visible:ring-1 focus-visible:ring-inset
+                    focus-visible:ring-foreground/20
+                  `
+                  : // Not selected/viewing: show standard focus ring
+                    `
+                      focus-visible:ring-2
+                      focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                      focus-visible:ring-offset-2
+                      focus-visible:ring-offset-background
+                    `,
               // Selection has highest priority for background
               selected
                 ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'

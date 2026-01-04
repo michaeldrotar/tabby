@@ -39,6 +39,7 @@ const WindowItemContainer = ({
   isViewing,
   isExpanded,
   selected,
+  isMultiSelectMode,
   onSelect,
 }: {
   window: BrowserWindow
@@ -46,6 +47,7 @@ const WindowItemContainer = ({
   isViewing: boolean
   isExpanded: boolean
   selected: boolean
+  isMultiSelectMode: boolean
   onSelect: (window: BrowserWindow, event: React.MouseEvent) => void
 }) => {
   const displayTabUrl = useDisplayTabUrl(window.id)
@@ -81,6 +83,7 @@ const WindowItemContainer = ({
         isViewing={isViewing}
         isExpanded={isExpanded}
         selected={selected}
+        isMultiSelectMode={isMultiSelectMode}
         onClick={(e) => onSelect(window, e)}
         onClose={actions.close}
       />
@@ -111,6 +114,8 @@ export const TabManagerSidebarContainer = ({
 
   // Selection state - subscribe to the Set directly for proper re-renders
   const selectedWindowIds = useSelectionStore((s) => s.windowIds)
+  const selectionMode = useSelectionStore((s) => s.mode)
+  const isMultiSelectMode = selectionMode === 'multi-select'
 
   // Selection interaction handler
   const selectionInteraction = useSelectionInteraction()
@@ -169,6 +174,7 @@ export const TabManagerSidebarContainer = ({
           isViewing={window.id === selectedWindowId}
           isExpanded={isExpanded}
           selected={selectedWindowIds.has(window.id)}
+          isMultiSelectMode={isMultiSelectMode}
           onSelect={handleSelectWindow}
         />
       ))}

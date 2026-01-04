@@ -1,5 +1,6 @@
 import { getGroupColorClasses } from '@extension/ui/tab-group/tabGroupColors'
 import { cn } from '@extension/ui/utils/cn'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
   forwardRef,
@@ -21,8 +22,8 @@ export type TabGroupHeaderProps = Omit<
   isRenaming?: boolean
   /** Whether this group is part of selection */
   selected?: boolean
-  /** Whether keyboard focus is on this item (for multi-select mode) */
-  isFocused?: boolean
+  /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
+  isMultiSelectMode?: boolean
   /** Called when the group header is clicked for selection (with modifier keys) */
   onSelect?: (event: React.MouseEvent) => void
   onRenameComplete?: (newTitle: string) => void
@@ -40,7 +41,7 @@ export const TabGroupHeader = memo(
         isActive = false,
         isRenaming = false,
         selected = false,
-        isFocused = false,
+        isMultiSelectMode = false,
         onSelect,
         onRenameComplete,
         onRenameCancel,
@@ -54,6 +55,7 @@ export const TabGroupHeader = memo(
     ) => {
       const inputRef = useRef<HTMLInputElement>(null)
       const [renameValue, setRenameValue] = useState('')
+      const prefersReducedMotion = useReducedMotion()
 
       const colorClasses = getGroupColorClasses(group.color)
 
@@ -128,21 +130,37 @@ export const TabGroupHeader = memo(
         <div
           ref={ref}
           className={cn(
-            `relative flex flex-col rounded-lg p-1 transition-colors`,
-            // Selection background overlay
-            selected
-              ? `
-                ring-2 ring-inset ring-accent/[calc(var(--accent-strength)*1%)]
-              `
-              : '',
-            // Focus ring for multi-select mode
-            isFocused
-              ? `
-                ring-2 ring-accent/[calc(var(--accent-strength)*1%)]
-                ring-offset-2 ring-offset-background
-              `
-              : '',
-            colorClasses.bg,
+            // Bold redesign: clean container with vertical color accent
+            `relative flex flex-col rounded-lg py-1 pl-4 pr-1`,
+            // Transition for smooth mode changes
+            'transition-all duration-200',
+            // Selection styling
+            selected &&
+              `ring-2 ring-inset ring-accent/[calc(var(--accent-strength)*1%)]`,
+            // Focus ring styling via CSS based on mode (on outer container when button is focused)
+            isMultiSelectMode
+              ? // Multi-select mode: prominent focus ring with offset
+                `
+                  has-[button:focus-visible]:ring-2
+                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                  has-[button:focus-visible]:ring-offset-2
+                  has-[button:focus-visible]:ring-offset-background
+                `
+              : // Default mode: subtle fused state when selected
+                selected
+                ? `
+                  has-[button:focus-visible]:ring-1
+                  has-[button:focus-visible]:ring-inset
+                  has-[button:focus-visible]:ring-foreground/20
+                `
+                : // Not selected: show standard focus ring
+                  `
+                    has-[button:focus-visible]:ring-2
+                    has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                    has-[button:focus-visible]:ring-offset-2
+                    has-[button:focus-visible]:ring-offset-background
+                  `,
+            // Removed full background - cleaner, more elegant
             className,
           )}
           data-nav-type="group"
@@ -150,6 +168,15 @@ export const TabGroupHeader = memo(
           data-selected={selected}
           {...props}
         >
+          {/* Bold Vertical Color Line - The signature group indicator */}
+          <div
+            className={cn(
+              'absolute bottom-2 left-1 top-2 w-1 rounded-full',
+              colorClasses.dot, // Use the dot color for the vertical line
+            )}
+            aria-hidden="true"
+          />
+
           {isActive && (
             <div
               className={cn(
@@ -167,20 +194,13 @@ export const TabGroupHeader = memo(
               `
                 mb-1 flex w-full cursor-pointer items-center gap-2 rounded-md
                 px-2 py-1 text-left transition-colors
-                hover:bg-background/50
+                hover:bg-highlighted/30
                 focus:outline-none
+                focus-visible:outline-none
               `,
-              // Only show focus-visible ring when not using isFocused prop
-              !isFocused &&
-                `
-                  focus-visible:ring-2
-                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                  focus-visible:ring-offset-2
-                  focus-visible:ring-offset-transparent
-                `,
             )}
           >
-            {/* Collapse indicator - separate click target for toggle only */}
+            {/* Collapse indicator - animated rotation */}
             <div
               role="button"
               tabIndex={-1}
@@ -193,31 +213,44 @@ export const TabGroupHeader = memo(
                 }
               }}
               className={`
-                flex h-4 w-4 items-center justify-center rounded
+                flex h-5 w-5 items-center justify-center rounded
+                transition-colors
                 hover:bg-background/80
               `}
               aria-label={group.collapsed ? 'Expand group' : 'Collapse group'}
             >
-              {group.collapsed ? (
-                <ChevronRight
-                  className={cn('size-4', colorClasses.text)}
-                  aria-hidden="true"
-                />
+              {prefersReducedMotion ? (
+                // Static icons for reduced motion preference
+                group.collapsed ? (
+                  <ChevronRight
+                    className={cn('size-4', colorClasses.text)}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ChevronDown
+                    className={cn('size-4', colorClasses.text)}
+                    aria-hidden="true"
+                  />
+                )
               ) : (
-                <ChevronDown
-                  className={cn('size-4', colorClasses.text)}
-                  aria-hidden="true"
-                />
+                // Animated rotation for chevron
+                <motion.div
+                  animate={{ rotate: group.collapsed ? -90 : 0 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                >
+                  <ChevronDown
+                    className={cn('size-4', colorClasses.text)}
+                    aria-hidden="true"
+                  />
+                </motion.div>
               )}
             </div>
 
-            {/* Color dot */}
-            <div
-              className={cn('h-3 w-3 rounded-full', colorClasses.dot)}
-              aria-hidden="true"
-            />
-
-            {/* Title */}
+            {/* Title - Bold, prominent */}
             {isRenaming ? (
               <input
                 ref={inputRef}
@@ -250,8 +283,27 @@ export const TabGroupHeader = memo(
             )}
           </button>
 
-          {/* Children (tabs) */}
-          {children}
+          {/* Children (tabs) with animated collapse */}
+          <AnimatePresence initial={false}>
+            {!group.collapsed && children && (
+              <motion.div
+                initial={
+                  prefersReducedMotion ? false : { height: 0, opacity: 0 }
+                }
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={
+                  prefersReducedMotion ? undefined : { height: 0, opacity: 0 }
+                }
+                transition={{
+                  height: { type: 'spring', stiffness: 400, damping: 30 },
+                  opacity: { duration: 0.15 },
+                }}
+                className="overflow-hidden"
+              >
+                {children}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )
     },

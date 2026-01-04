@@ -45,6 +45,7 @@
     "postinstall": "pnpm copy-env"
   },
   "dependencies": {
+    "framer-motion": "^12.23.26",
     "react": "^19.2.1",
     "react-dom": "^19.2.1"
   },

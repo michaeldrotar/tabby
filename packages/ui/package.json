@@ -173,6 +173,10 @@
       "types": "./lib/tab-manager/ui/TabManagerSidebar.tsx",
       "default": "./dist/lib/tab-manager/ui/TabManagerSidebar.js"
     },
+    "./tab-manager/ui/SelectionBadge": {
+      "types": "./lib/tab-manager/ui/SelectionBadge.tsx",
+      "default": "./dist/lib/tab-manager/ui/SelectionBadge.js"
+    },
     "./tab-manager/ui/WindowRailItem": {
       "types": "./lib/tab-manager/ui/WindowRailItem.tsx",
       "default": "./dist/lib/tab-manager/ui/WindowRailItem.js"

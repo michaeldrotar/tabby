@@ -76,7 +76,7 @@ The key visual innovation is separating focus (keyboard position) from selection
 
 ```
 ┌─────────────────────────────┐
-│ 📄 Tab Name                 │  ← Blue background + subtle integrated border
+│ 📄 Tab Name                 │  ← Accent background + subtle integrated border
 │                             │     Focus and selection are ONE visual state
 └─────────────────────────────┘
 ```
@@ -85,7 +85,7 @@ The key visual innovation is separating focus (keyboard position) from selection
 
 ```
 ┌─────────────────────────────┐
-│ 📄 Tab Name                 │  ← Blue background only (selected)
+│ 📄 Tab Name                 │  ← Accent background only (selected)
 │                             │
 └─────────────────────────────┘
 
@@ -94,7 +94,7 @@ The key visual innovation is separating focus (keyboard position) from selection
 └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┘
 
 ┌─────────────────────────────┐
-│ 📄 Third Tab              ╔═╗│  ← Blue background + focus ring (both)
+│ 📄 Third Tab              ╔═╗│  ← Accent background + focus ring (both)
 │                           ╚═╝│
 └─────────────────────────────┘
 ```
@@ -109,27 +109,29 @@ The key visual innovation is separating focus (keyboard position) from selection
 
 ### Color Palette
 
-| State                  | Background      | Border                   | Description            |
-| ---------------------- | --------------- | ------------------------ | ---------------------- |
-| Unselected             | transparent     | none                     | Default state          |
-| Selected               | `bg-primary/15` | none                     | Blue tinted background |
-| Focused (default mode) | `bg-primary/15` | `ring-2 ring-primary/50` | Fused state            |
-| Focused (multi-select) | transparent     | `ring-2 ring-primary`    | Focus ring only        |
-| Selected + Focused     | `bg-primary/15` | `ring-2 ring-primary`    | Both states visible    |
+Uses the existing `accent` color with `--accent-strength` for user customization:
+
+| State                  | Background                                    | Border/Ring                            | Description         |
+| ---------------------- | --------------------------------------------- | -------------------------------------- | ------------------- |
+| Unselected             | transparent                                   | none                                   | Default state       |
+| Selected               | `bg-accent/[calc(var(--accent-strength)*1%)]` | none                                   | Accent tinted bg    |
+| Focused (default mode) | `bg-accent/[calc(var(--accent-strength)*1%)]` | subtle ring (fused)                    | Fused state         |
+| Focused (multi-select) | transparent                                   | `ring-2 ring-accent/[...]`             | Focus ring only     |
+| Selected + Focused     | `bg-accent/[calc(var(--accent-strength)*1%)]` | `ring-2 ring-accent/[...]` with offset | Both states visible |
 
 ### Mode Transition Animations
 
 **Entering Multi-Select Mode (Space bar):**
 
-- Focus ring "lifts off" from the blue background
-- Animation: Ring scales from 0.95 → 1.0, opacity 0.5 → 1.0
+- Focus ring "lifts off" from the background
+- Animation: Ring scales and brightens slightly
 - Duration: 150ms with spring easing
 - The separation visually reinforces that focus is now independent
 
 **Exiting Multi-Select Mode (Escape or mouse click):**
 
 - Focus ring "merges back" into the item
-- Animation: Ring scales 1.0 → 0.95, fades into background
+- Animation: Ring fades and shrinks
 - Duration: 100ms (faster exit feels snappier)
 - Selection clears, returning to single-item focus
 
@@ -348,126 +350,115 @@ This ensures each state uses a **different visual property**, making them distin
 
 ### Phase 1: Focus Ring Styling
 
-- [ ] Define CSS custom properties for selection colors
-  - [ ] `--selection-bg`: Background color for selected items
-  - [ ] `--selection-ring`: Focus ring color
-  - [ ] `--selection-ring-fused`: Fused state ring color (more subtle)
-  - [ ] Add to `packages/tailwindcss-config` or tab-manager local styles
-- [ ] Update `TabItemRow.tsx` with selection visual states
-  - [ ] Add `selected` prop styling (blue background)
-  - [ ] Add `focused` prop styling (focus ring)
-  - [ ] Add `fusedFocusSelection` prop for default mode combined state
-  - [ ] Ensure ring doesn't cause layout shift (use `ring-inset` or absolute positioning)
-- [ ] Update `TabGroupHeader.tsx` with selection visual states
-  - [ ] Same props as TabItemRow
-  - [ ] Ensure collapse/expand chevron remains visible with selection
-- [ ] Update `WindowButton.tsx` (or equivalent) with selection visual states
-  - [ ] Same props as TabItemRow
-  - [ ] Works in both split view rail and tree view
+- [x] Update `TabItemRow.tsx` with distinct focus vs selection visual states
+  - [x] Selection: accent background (already exists)
+  - [x] Focus in multi-select mode: ring with offset (no background unless also selected)
+  - [x] Fused state (default mode): background + subtle integrated ring
+  - [x] Ensure ring doesn't cause layout shift
+- [x] Update `TabGroupHeader.tsx` with same visual state logic
+  - [x] Ensure collapse/expand chevron remains visible with selection
+- [x] Update `WindowRailItem.tsx` with same visual state logic
 - [ ] Test visual consistency across all item types
 
 ### Phase 2: Mode State Integration
 
-- [ ] Connect visual states to selection store mode
-  - [ ] Subscribe to `mode` from `useSelectionStore`
-  - [ ] Pass `isFused={mode === 'default'}` to item components
-  - [ ] Pass `focused` based on keyboard focus tracking
-- [ ] Implement focus tracking for visual state
-  - [ ] Track which item has keyboard focus (ref or state)
-  - [ ] Update focus visual when arrow keys navigate
-  - [ ] Clear focus visual when mouse takes over
+- [x] Pass selection mode to item components
+  - [x] Subscribe to `mode` from `useSelectionStore`
+  - [x] Pass `isMultiSelectMode` prop to determine visual treatment
+  - [x] Added `data-selection-mode` attribute to `TabManagerShell` for CSS cascading
+- [x] Connect focus tracking to visual state
+  - [x] Uses native browser focus-visible (no separate tracking needed)
+  - [x] CSS `has-[button:focus-visible]` detects focused elements
+  - [x] Different styling applied based on `isMultiSelectMode` prop
 - [ ] Test mode-dependent visual behavior
-  - [ ] Default mode: arrow keys move fused state
-  - [ ] Multi-select mode: arrow keys move only focus ring
+  - [ ] Default mode: arrow keys move fused state (bg + subtle ring)
+  - [ ] Multi-select mode: arrow keys move only focus ring (distinct from selection)
 
 ### Phase 3: Mode Transition Animations
 
-- [ ] Create transition animation styles
-  - [ ] Use CSS transitions or Framer Motion
-  - [ ] Define `entering-multiselect` keyframes
-  - [ ] Define `exiting-multiselect` keyframes
-- [ ] Implement "lift off" animation when entering multi-select
-  - [ ] Trigger on mode change from 'default' to 'multi-select'
-  - [ ] Ring scales and brightens
-  - [ ] Duration: 150ms, spring easing
-- [ ] Implement "merge back" animation when exiting
-  - [ ] Trigger on mode change from 'multi-select' to 'default'
-  - [ ] Ring fades and shrinks into background
-  - [ ] Duration: 100ms, ease-out
-- [ ] Respect `prefers-reduced-motion`
-  - [ ] Check media query in component or CSS
-  - [ ] Skip animations when reduced motion preferred
-  - [ ] Ensure instant state changes still work correctly
+- [x] Add Framer Motion library for spring physics animations
+  - [x] Added `framer-motion` to workspace root
+  - [x] Provides `useReducedMotion()` hook for accessibility
+- [x] Add CSS transitions for smooth mode changes
+  - [x] Ring transitions (`transition-shadow duration-150`)
+- [x] Implement `ModeTransitionEffect` component
+  - [x] Expanding ring pulse on entering multi-select (600ms, easeOutQuad)
+  - [x] Quick fade on exiting multi-select (150ms)
+  - [x] Positioned in TabManagerShell as overlay
+- [x] Implement `SelectionFocusRing` component (optional wrapper)
+  - [x] Spring-based scale animation (1.0 → 1.01 on enter)
+  - [x] Slow, powerful spring: stiffness 200, damping 20, mass 1.2
+  - [x] Fast exit spring: stiffness 400, damping 25, mass 0.8
+- [x] Implement `useSelectionModeAnimation` hook
+  - [x] Tracks transition phase: 'idle' | 'entering' | 'exiting'
+  - [x] 400ms entering phase, 250ms exiting phase
+- [x] Respect `prefers-reduced-motion`
+  - [x] All animation components check `useReducedMotion()`
+  - [x] Skip animations entirely when reduced motion preferred
 - [ ] Test animations feel natural and not distracting
 
 ### Phase 4: Selection Badge Component
 
-- [ ] Create `SelectionBadge.tsx` in `packages/ui/lib/tab-manager/`
-  - [ ] Subscribe to selection store counts
-  - [ ] Calculate display text based on selection composition
-  - [ ] Use `useMemo` to avoid recalculating on every render
-- [ ] Implement smart count display logic
-  - [ ] `getSelectionBadgeText(windowIds, groupIds, tabIds)` utility
-  - [ ] Handle pure selections (tabs only, groups only, windows only)
-  - [ ] Handle mixed selections with comma separation
-  - [ ] Calculate contained tab counts for groups/windows
-- [ ] Style the badge component
-  - [ ] Compact size for toolbar integration
-  - [ ] Readable font size (not too small)
-  - [ ] Subtle background to stand out without dominating
-- [ ] Add badge to toolbar area (placeholder until Plan 3)
-  - [ ] Position in designated badge area
-  - [ ] Hide when selection count is 0
-  - [ ] Animate count changes (optional)
+- [x] Create `SelectionBadge.tsx` in `packages/ui/lib/tab-manager/ui/`
+  - [x] Accept windowCount, groupCount, tabCount as props
+  - [x] Calculate display text based on selection composition
+  - [x] Use `useMemo` to avoid recalculating on every render
+- [x] Implement smart count display logic
+  - [x] `getSelectionBadgeText(windowIds, groupIds, tabIds)` utility
+  - [x] Handle pure selections (tabs only, groups only, windows only)
+  - [x] Handle mixed selections with comma separation
+- [x] Style the badge component
+  - [x] Bold, prominent styling with accent color
+  - [x] Readable font size with shadow for depth
+  - [x] Rounded-full with comfortable padding
+- [x] Add spring physics animations
+  - [x] Scale/opacity entrance animation
+  - [x] Quick fade on exit
+  - [x] Respect `prefers-reduced-motion`
+- [ ] Wire badge into toolbar area (Plan 3)
 - [ ] Test badge updates correctly with selection changes
 
 ### Phase 5: Viewing Window Connection
 
-- [ ] Update `WindowRailItem.tsx` with viewing state visual
-  - [ ] Add conditional border-radius (`rounded-l-md rounded-r-none` when viewing)
-  - [ ] Ensure background extends to right edge
-  - [ ] Test visual continuity with tab pane
-- [ ] Handle transitions between viewing states
-  - [ ] Animate border-radius change (subtle, fast)
-  - [ ] Or instant change if animation feels unnecessary
+- [x] Update `WindowRailItem.tsx` with viewing state visual
+  - [x] Add conditional border-radius (`rounded-l-lg rounded-r-none` when viewing)
+  - [x] Standard `rounded-md` when not viewing
+  - [x] Smooth transition with `transition-all duration-200`
+- [x] Background extends to right edge when viewing
 - [ ] Test in collapsed sidebar state
   - [ ] Connection should still be clear at narrow widths
 
 ### Phase 6: Active Tab Favicon Ring
 
-- [ ] Create favicon ring styling for active tabs
-  - [ ] Add ring via `box-shadow` to avoid layout shift
-  - [ ] Use accent color for ring
-- [ ] Implement pulse animation
-  - [ ] Keyframes: scale 1.0 → 1.05 → 1.0
-  - [ ] Duration: ~2s, ease-in-out, infinite
-  - [ ] Subtle opacity variation for "breathing" effect
-- [ ] Add reduced motion support
-  - [ ] Ring visible but static when `prefers-reduced-motion: reduce`
-- [ ] Update `TabItemRow.tsx` to apply ring when `isActive`
+- [x] Create favicon ring styling for active tabs
+  - [x] Ring via absolute positioned border element
+  - [x] Use accent color for ring
+- [x] Implement pulse animation with Framer Motion
+  - [x] Scale 1.0 → 1.15 → 1.0 animation
+  - [x] Duration: 2s, ease-in-out, infinite
+  - [x] Opacity variation for "breathing" effect
+- [x] Add reduced motion support
+  - [x] Ring visible but static when `prefers-reduced-motion: reduce`
+- [x] Update `TabItemRow.tsx` to apply ring when `isActive`
 - [ ] Test that ring doesn't interfere with selection background
 
 ### Phase 7: Tab Group Redesign
 
-- [ ] Remove circle color indicator from `TabGroupHeader.tsx`
-- [ ] Redesign chevron to be filled/chunky
-  - [ ] Apply group color to chevron fill
-  - [ ] Ensure sufficient contrast for all Chrome group colors
-- [ ] Add vertical color line to group items
-  - [ ] Line positioned on left edge of tab rows within group
-  - [ ] Use Chrome's exact group colors
-  - [ ] Line should not overlap with selection background
-- [ ] Remove full background color from tab groups
-  - [ ] Selection/focus now have clean background to render against
-- [ ] Implement expand/collapse animation
-  - [ ] Chevron rotation (existing, may need timing adjustment)
-  - [ ] Line "retracts" into chevron on collapse
-  - [ ] Line "extends" from chevron on expand
-  - [ ] Tab items fade with stagger
-  - [ ] Total duration ~300ms
-- [ ] Add reduced motion support
-  - [ ] Instant expand/collapse, no animation
-- [ ] Fix collapsed state border alignment issues
+- [x] Remove circle color indicator from `TabGroupHeader.tsx`
+- [x] Add bold vertical color line
+  - [x] Line positioned on left edge of group container
+  - [x] Use Chrome's exact group colors (via colorClasses.dot)
+  - [x] Rounded-full for polish
+- [x] Remove full background color from tab groups
+  - [x] Selection/focus now have clean background to render against
+- [x] Implement animated chevron rotation
+  - [x] Spring-based rotation (300 stiffness, 25 damping)
+  - [x] Respect reduced motion (static icons)
+- [x] Implement expand/collapse animation
+  - [x] AnimatePresence with spring-based height animation
+  - [x] Opacity fade with height change
+  - [x] Respect reduced motion
+- [x] Update hover state to be more subtle (`bg-highlighted/30`)
 - [ ] Test with all Chrome group colors against all theme accent colors
 
 ### Phase 8: Polish & Edge Cases

@@ -36,12 +36,14 @@ const TabItemWithContextMenu = memo(
     groups,
     currentWindowId,
     selected,
+    isMultiSelectMode,
     onSelect,
   }: {
     tab: BrowserTab
     groups: BrowserTabGroup[]
     currentWindowId?: number
     selected?: boolean
+    isMultiSelectMode?: boolean
     onSelect?: (event: React.MouseEvent) => void
   }) => {
     const actions = useTabActions(tab)
@@ -88,6 +90,7 @@ const TabItemWithContextMenu = memo(
             isAudible={tab.audible}
             isDiscarded={tab.discarded}
             selected={selected}
+            isMultiSelectMode={isMultiSelectMode}
             onActivate={onActivate}
             onSelect={onSelect}
             onClose={actions.close}
@@ -106,6 +109,7 @@ const TabGroupWithContextMenu = memo(
     groups,
     selected,
     selectedTabIds,
+    isMultiSelectMode,
     onSelectGroup,
     onSelectTab,
   }: {
@@ -115,6 +119,7 @@ const TabGroupWithContextMenu = memo(
     groups: BrowserTabGroup[]
     selected?: boolean
     selectedTabIds: Set<number>
+    isMultiSelectMode?: boolean
     onSelectGroup?: (event: React.MouseEvent) => void
     onSelectTab?: (tabId: number, event: React.MouseEvent) => void
   }) => {
@@ -181,6 +186,7 @@ const TabGroupWithContextMenu = memo(
           isActive={isActive}
           isRenaming={isRenaming}
           selected={selected}
+          isMultiSelectMode={isMultiSelectMode}
           onSelect={onSelectGroup}
           onRenameComplete={handleRenameComplete}
           onRenameCancel={handleRenameCancel}
@@ -196,6 +202,7 @@ const TabGroupWithContextMenu = memo(
                     groups={groups}
                     currentWindowId={currentWindowId}
                     selected={selectedTabIds.has(tab.id)}
+                    isMultiSelectMode={isMultiSelectMode}
                     onSelect={(e) => onSelectTab?.(tab.id, e)}
                   />
                 </TabListItem>
@@ -221,6 +228,8 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   // Selection state - subscribe to Sets directly for proper re-renders
   const selectedTabIds = useSelectionStore((s) => s.tabIds)
   const selectedGroupIds = useSelectionStore((s) => s.groupIds)
+  const selectionMode = useSelectionStore((s) => s.mode)
+  const isMultiSelectMode = selectionMode === 'multi-select'
 
   // Selection interaction handlers
   const selectionInteraction = useSelectionInteraction()
@@ -268,6 +277,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                     groups={groups}
                     currentWindowId={currentWindowId}
                     selected={selectedTabIds.has(item.tab.id)}
+                    isMultiSelectMode={isMultiSelectMode}
                     onSelect={(e) => handleSelectTab(item.tab.id, e)}
                   />
                 </TabListItem>
@@ -283,6 +293,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                   groups={groups}
                   selected={selectedGroupIds.has(item.group.id)}
                   selectedTabIds={selectedTabIds}
+                  isMultiSelectMode={isMultiSelectMode}
                   onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
                   onSelectTab={handleSelectTab}
                 />

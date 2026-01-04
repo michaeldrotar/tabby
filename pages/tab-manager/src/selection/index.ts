@@ -12,3 +12,9 @@ export {
   useSelectionInteraction,
 } from './useSelectionInteraction'
 export { useSelectionSync } from './useSelectionSync'
+
+// Animation components
+export { ModeTransitionEffect } from './ModeTransitionEffect'
+export { SelectionFocusRing } from './SelectionFocusRing'
+export type { ModeTransitionPhase } from './useSelectionModeAnimation'
+export { useSelectionModeAnimation } from './useSelectionModeAnimation'
