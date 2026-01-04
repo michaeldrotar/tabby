@@ -279,13 +279,13 @@ export const useViewingWindowId = (): number | null => {
 
 ### Phase 8: Accessibility
 
-- [ ] Add ARIA attributes to selectable items
-  - [ ] `aria-selected` on items
-  - [ ] Announce selection state changes to screen readers
-- [ ] Test keyboard-only navigation
-  - [ ] All selection features accessible without mouse
-  - [ ] Focus indicators visible at all times
-- [ ] Test with VoiceOver (macOS)
+- [ ] Add ARIA attributes to selectable items (future: requires role="listbox" + role="option" refactor)
+  - [ ] `aria-selected` on items (not valid on buttons - needs structural change)
+  - [ ] Announce selection state changes to screen readers (future: live region for mode changes)
+- [x] Test keyboard-only navigation (code audit)
+  - [x] All selection features accessible without mouse (Space, Escape, Arrow, Shift+Arrow, Cmd+A)
+  - [x] Focus indicators visible at all times (`focus-visible` rings + `isFocused` prop)
+- [ ] Test with VoiceOver (macOS) - manual testing required
   - [ ] Selection state announced correctly
   - [ ] Mode changes announced
 
