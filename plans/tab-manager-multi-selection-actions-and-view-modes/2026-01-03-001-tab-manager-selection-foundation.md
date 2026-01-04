@@ -250,11 +250,11 @@ export const useViewingWindowId = (): number | null => {
 
 ### Phase 5: Item Removal Handling
 
-- [ ] Handle item removal (when tabs/groups/windows close)
-  - [ ] Listen to Chrome events in tab manager
-  - [ ] Call `selectionStore.remove()` for closed items
-  - [ ] If anchor item was removed, clear anchor ref
-  - [ ] Don't auto-select replacement (let user decide next action)
+- [x] Handle item removal (when tabs/groups/windows close)
+  - [x] Listen to Chrome events in tab manager
+  - [x] Call `selectionStore.remove()` for closed items
+  - [x] If anchor item was removed, clear anchor ref
+  - [x] Don't auto-select replacement (let user decide next action)
 
 ### Phase 6: Integration Testing
 

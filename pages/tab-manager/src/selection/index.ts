@@ -7,4 +7,8 @@ export type {
   SelectionItemRef,
   SelectionItemType,
 } from './useSelectionInteraction'
-export { useSelectionInteraction } from './useSelectionInteraction'
+export {
+  clearAnchorIfRemoved,
+  useSelectionInteraction,
+} from './useSelectionInteraction'
+export { useSelectionSync } from './useSelectionSync'

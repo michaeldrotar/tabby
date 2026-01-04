@@ -11,6 +11,7 @@ import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import { SearchPopup } from './SearchPopup'
+import { useSelectionSync } from './selection'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerDebugLogger } from './TabManagerDebugLogger'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
@@ -32,6 +33,9 @@ const TabManager = () => {
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Sync selection state with browser store (removes closed tabs/windows from selection)
+  useSelectionSync()
 
   const onSelectWindow = useCallback(
     (windowId: number) => {

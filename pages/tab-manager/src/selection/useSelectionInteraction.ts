@@ -41,6 +41,43 @@ let baseSelection: SelectionSnapshot | null = null
 let shiftArrowAnchor: SelectionItemRef | null = null
 
 /**
+ * Clear anchor and related state if the given item was the anchor.
+ * Called when items are removed from the browser (tab closed, window closed, etc.).
+ * This is a module-level function (not part of the hook) because it operates on
+ * module-level state.
+ */
+export const clearAnchorIfRemoved = (item: SelectionItemRef): void => {
+  // Clear anchor if it matches the removed item
+  if (
+    anchorItem &&
+    anchorItem.type === item.type &&
+    anchorItem.id === item.id
+  ) {
+    anchorItem = null
+  }
+
+  // Clear shift-arrow anchor if it matches
+  if (
+    shiftArrowAnchor &&
+    shiftArrowAnchor.type === item.type &&
+    shiftArrowAnchor.id === item.id
+  ) {
+    shiftArrowAnchor = null
+  }
+
+  // Clear item from base selection if present
+  if (baseSelection) {
+    if (item.type === 'window') {
+      baseSelection.windowIds.delete(item.id)
+    } else if (item.type === 'group') {
+      baseSelection.groupIds.delete(item.id)
+    } else if (item.type === 'tab') {
+      baseSelection.tabIds.delete(item.id)
+    }
+  }
+}
+
+/**
  * Hook that manages selection interactions.
  * Handles anchor tracking, pane context, and translates user actions to store operations.
  *
