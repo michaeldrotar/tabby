@@ -11,7 +11,7 @@ import { TabList, TabListItem } from '@extension/ui/TabList'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
-import { useSelectionStore } from './selection'
+import { useSelectionInteraction, useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
@@ -36,11 +36,13 @@ const TabItemWithContextMenu = memo(
     groups,
     currentWindowId,
     selected,
+    onSelect,
   }: {
     tab: BrowserTab
     groups: BrowserTabGroup[]
     currentWindowId?: number
     selected?: boolean
+    onSelect?: (event: React.MouseEvent) => void
   }) => {
     const actions = useTabActions(tab)
     const windows = useBrowserWindows()
@@ -87,6 +89,7 @@ const TabItemWithContextMenu = memo(
             isDiscarded={tab.discarded}
             selected={selected}
             onActivate={onActivate}
+            onSelect={onSelect}
             onClose={actions.close}
           />
         </TabContextMenu>
@@ -103,6 +106,8 @@ const TabGroupWithContextMenu = memo(
     groups,
     selected,
     selectedTabIds,
+    onSelectGroup,
+    onSelectTab,
   }: {
     group: BrowserTabGroup
     tabs: BrowserTab[]
@@ -110,11 +115,14 @@ const TabGroupWithContextMenu = memo(
     groups: BrowserTabGroup[]
     selected?: boolean
     selectedTabIds: Set<number>
+    onSelectGroup?: (event: React.MouseEvent) => void
+    onSelectTab?: (tabId: number, event: React.MouseEvent) => void
   }) => {
     // Memoize tabIds array to maintain stable reference
     const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
     const actions = useTabGroupActions(group, tabIds)
     const [isRenaming, setIsRenaming] = useState(false)
+    const selectionStore = useSelectionStore
 
     const handleRename = useCallback(() => {
       setIsRenaming(true)
@@ -139,13 +147,28 @@ const TabGroupWithContextMenu = memo(
       [actions],
     )
 
+    // Wrap toggleCollapse to also remove tabs from selection when collapsing
+    const handleToggleCollapse = useCallback(() => {
+      // If the group is currently expanded (will be collapsed), remove its tabs from selection
+      if (!group.collapsed) {
+        const state = selectionStore.getState()
+        // Remove each tab in this group from selection
+        for (const tabId of tabIds) {
+          if (state.tabIds.has(tabId)) {
+            state.removeTab(tabId)
+          }
+        }
+      }
+      actions.toggleCollapse()
+    }, [group.collapsed, tabIds, actions, selectionStore])
+
     const isActive = tabs.some((t) => t.active)
 
     return (
       <TabGroupContextMenu
         group={group}
         isCollapsed={group.collapsed}
-        onToggleCollapse={actions.toggleCollapse}
+        onToggleCollapse={handleToggleCollapse}
         onRename={handleRename}
         onChangeColor={handleChangeColor}
         onUngroup={actions.ungroup}
@@ -158,9 +181,10 @@ const TabGroupWithContextMenu = memo(
           isActive={isActive}
           isRenaming={isRenaming}
           selected={selected}
+          onSelect={onSelectGroup}
           onRenameComplete={handleRenameComplete}
           onRenameCancel={handleRenameCancel}
-          onToggleCollapse={actions.toggleCollapse}
+          onToggleCollapse={handleToggleCollapse}
           onClose={actions.close}
         >
           {!group.collapsed && (
@@ -172,6 +196,7 @@ const TabGroupWithContextMenu = memo(
                     groups={groups}
                     currentWindowId={currentWindowId}
                     selected={selectedTabIds.has(tab.id)}
+                    onSelect={(e) => onSelectTab?.(tab.id, e)}
                   />
                 </TabListItem>
               ))}
@@ -197,6 +222,39 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   const selectedTabIds = useSelectionStore((s) => s.tabIds)
   const selectedGroupIds = useSelectionStore((s) => s.groupIds)
 
+  // Selection interaction handlers
+  const selectionInteraction = useSelectionInteraction()
+
+  const handleSelectTab = useCallback(
+    (tabId: number, event: React.MouseEvent) => {
+      selectionInteraction.handleClick(
+        { type: 'tab', id: tabId },
+        {
+          shiftKey: event.shiftKey,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+        },
+        'tab',
+      )
+    },
+    [selectionInteraction],
+  )
+
+  const handleSelectGroup = useCallback(
+    (groupId: number, event: React.MouseEvent) => {
+      selectionInteraction.handleClick(
+        { type: 'group', id: groupId },
+        {
+          shiftKey: event.shiftKey,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+        },
+        'tab',
+      )
+    },
+    [selectionInteraction],
+  )
+
   return (
     <div key={`window-tabs-${browserWindowId}`} className="pb-4" data-tab-pane>
       <div className="space-y-4 p-2">
@@ -210,6 +268,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                     groups={groups}
                     currentWindowId={currentWindowId}
                     selected={selectedTabIds.has(item.tab.id)}
+                    onSelect={(e) => handleSelectTab(item.tab.id, e)}
                   />
                 </TabListItem>
               )
@@ -224,6 +283,8 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                   groups={groups}
                   selected={selectedGroupIds.has(item.group.id)}
                   selectedTabIds={selectedTabIds}
+                  onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
+                  onSelectTab={handleSelectTab}
                 />
               </TabListItem>
             )

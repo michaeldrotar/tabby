@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import { SearchPopup } from './SearchPopup'
 import { TabItemPane } from './TabItemPane'
+import { TabManagerDebugLogger } from './TabManagerDebugLogger'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
@@ -233,6 +234,7 @@ const TabManager = () => {
           </Profiler>
         )}
       </TabManagerShell>
+      <TabManagerDebugLogger />
     </Profiler>
   )
 }

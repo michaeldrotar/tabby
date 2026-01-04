@@ -5,7 +5,10 @@ import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'
 import type { HTMLAttributes } from 'react'
 
-export type TabItemRowProps = Omit<HTMLAttributes<HTMLDivElement>, 'title'> & {
+export type TabItemRowProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'title' | 'onSelect'
+> & {
   /** Unique identifier for the tab (used for data attributes) */
   tabId?: number
   /** Display title for the tab */
@@ -30,6 +33,8 @@ export type TabItemRowProps = Omit<HTMLAttributes<HTMLDivElement>, 'title'> & {
   isFocused?: boolean
   /** Called when the tab row is clicked to activate the tab */
   onActivate: () => void
+  /** Called when the tab is clicked for selection (with modifier keys) */
+  onSelect?: (event: React.MouseEvent) => void
   /** Called when the tab should be closed (Delete/Backspace key) */
   onClose?: () => void
 }
@@ -56,12 +61,25 @@ export const TabItemRow = memo(
         selected = false,
         isFocused = false,
         onActivate,
+        onSelect,
         onClose,
         className,
         ...props
       },
       ref,
     ) => {
+      const handleClick = (e: React.MouseEvent) => {
+        // If modifier keys are pressed, handle selection instead of activation
+        if (e.metaKey || e.ctrlKey || e.shiftKey) {
+          e.preventDefault()
+          onSelect?.(e)
+        } else {
+          // Regular click: handle selection first, then activate
+          onSelect?.(e)
+          onActivate()
+        }
+      }
+
       const handleKeyDown = (e: React.KeyboardEvent) => {
         if ((e.key === 'Delete' || e.key === 'Backspace') && onClose) {
           e.preventDefault()
@@ -124,7 +142,7 @@ export const TabItemRow = memo(
                         group-hover:bg-highlighted/50
                       `,
               )}
-              onClick={onActivate}
+              onClick={handleClick}
               onKeyDown={handleKeyDown}
             >
               {/* Favicon */}

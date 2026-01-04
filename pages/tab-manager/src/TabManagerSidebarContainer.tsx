@@ -14,8 +14,9 @@ import {
 import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
 import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
 import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
+import { useCallback } from 'react'
 import { useWindowActions } from './hooks/useWindowActions'
-import { useSelectionStore } from './selection'
+import { useSelectionInteraction, useSelectionStore } from './selection'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 // Helper to get active tab url
@@ -45,7 +46,7 @@ const WindowItemContainer = ({
   isViewing: boolean
   isExpanded: boolean
   selected: boolean
-  onSelect: (window: BrowserWindow) => void
+  onSelect: (window: BrowserWindow, event: React.MouseEvent) => void
 }) => {
   const displayTabUrl = useDisplayTabUrl(window.id)
   const tabs = useBrowserTabsByWindowId(window.id)
@@ -80,7 +81,7 @@ const WindowItemContainer = ({
         isViewing={isViewing}
         isExpanded={isExpanded}
         selected={selected}
-        onClick={() => onSelect(window)}
+        onClick={(e) => onSelect(window, e)}
         onClose={actions.close}
       />
     </WindowContextMenu>
@@ -110,6 +111,28 @@ export const TabManagerSidebarContainer = ({
 
   // Selection state - subscribe to the Set directly for proper re-renders
   const selectedWindowIds = useSelectionStore((s) => s.windowIds)
+
+  // Selection interaction handler
+  const selectionInteraction = useSelectionInteraction()
+
+  const handleSelectWindow = useCallback(
+    (window: BrowserWindow, event: React.MouseEvent) => {
+      // Handle selection
+      selectionInteraction.handleClick(
+        { type: 'window', id: window.id },
+        {
+          shiftKey: event.shiftKey,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+        },
+        'window',
+      )
+      // Also update the viewing window (for now, always show clicked window)
+      // TODO: In the future, derive viewing window from selection store
+      onSelectWindow(window)
+    },
+    [selectionInteraction, onSelectWindow],
+  )
 
   const isExpanded = tabManagerCompactLayout === 'list'
   const toggleExpand = () =>
@@ -146,7 +169,7 @@ export const TabManagerSidebarContainer = ({
           isViewing={window.id === selectedWindowId}
           isExpanded={isExpanded}
           selected={selectedWindowIds.has(window.id)}
-          onSelect={onSelectWindow}
+          onSelect={handleSelectWindow}
         />
       ))}
     </>

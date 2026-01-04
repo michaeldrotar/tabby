@@ -20,7 +20,7 @@ export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   selected?: boolean
   /** Whether keyboard focus is on this item (for multi-select mode) */
   isFocused?: boolean
-  onClick: () => void
+  onClick: (event: React.MouseEvent) => void
   onClose?: () => void
 }
 

@@ -12,7 +12,10 @@ import {
 import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 import type { HTMLAttributes, ReactNode } from 'react'
 
-export type TabGroupHeaderProps = HTMLAttributes<HTMLDivElement> & {
+export type TabGroupHeaderProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onSelect'
+> & {
   group: BrowserTabGroup
   isActive?: boolean
   isRenaming?: boolean
@@ -20,6 +23,8 @@ export type TabGroupHeaderProps = HTMLAttributes<HTMLDivElement> & {
   selected?: boolean
   /** Whether keyboard focus is on this item (for multi-select mode) */
   isFocused?: boolean
+  /** Called when the group header is clicked for selection (with modifier keys) */
+  onSelect?: (event: React.MouseEvent) => void
   onRenameComplete?: (newTitle: string) => void
   onRenameCancel?: () => void
   onToggleCollapse?: () => void
@@ -36,6 +41,7 @@ export const TabGroupHeader = memo(
         isRenaming = false,
         selected = false,
         isFocused = false,
+        onSelect,
         onRenameComplete,
         onRenameCancel,
         onToggleCollapse,
@@ -50,6 +56,33 @@ export const TabGroupHeader = memo(
       const [renameValue, setRenameValue] = useState('')
 
       const colorClasses = getGroupColorClasses(group.color)
+
+      const handleClick = useCallback(
+        (e: React.MouseEvent) => {
+          // If modifier keys are pressed, handle selection
+          if (e.metaKey || e.ctrlKey || e.shiftKey) {
+            e.preventDefault()
+            onSelect?.(e)
+          } else if (e.detail === 0) {
+            // detail === 0 means this was triggered by Enter key, not a real mouse click
+            // Just toggle collapse, don't affect selection
+            onToggleCollapse?.()
+          } else {
+            // Regular mouse click on the main button area: select this group
+            onSelect?.(e)
+          }
+        },
+        [onSelect, onToggleCollapse],
+      )
+
+      const handleChevronClick = useCallback(
+        (e: React.MouseEvent) => {
+          // Stop propagation so the parent button's onClick doesn't fire
+          e.stopPropagation()
+          onToggleCollapse?.()
+        },
+        [onToggleCollapse],
+      )
 
       const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -127,7 +160,7 @@ export const TabGroupHeader = memo(
           {/* Header row */}
           <button
             type="button"
-            onClick={onToggleCollapse}
+            onClick={handleClick}
             onKeyDown={handleButtonKeyDown}
             className={cn(
               `
@@ -146,8 +179,24 @@ export const TabGroupHeader = memo(
                 `,
             )}
           >
-            {/* Collapse indicator */}
-            <div className="flex h-4 w-4 items-center justify-center">
+            {/* Collapse indicator - separate click target for toggle only */}
+            <div
+              role="button"
+              tabIndex={-1}
+              onClick={handleChevronClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onToggleCollapse?.()
+                }
+              }}
+              className={`
+                flex h-4 w-4 items-center justify-center rounded
+                hover:bg-background/80
+              `}
+              aria-label={group.collapsed ? 'Expand group' : 'Collapse group'}
+            >
               {group.collapsed ? (
                 <ChevronRight
                   className={cn('size-4', colorClasses.text)}

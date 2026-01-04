@@ -25,6 +25,9 @@ export type SelectionActions = {
   setGroups: (ids: number[]) => void
   setTabs: (ids: number[]) => void
 
+  // Set all at once (for mixed selections)
+  setAll: (windows: number[], groups: number[], tabs: number[]) => void
+
   // Single-item adders (add to existing selection)
   addWindow: (id: number) => void
   addGroup: (id: number) => void
@@ -107,6 +110,14 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
       windowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set(ids),
+    }),
+
+  // Set all at once (for mixed selections)
+  setAll: (windows, groups, tabs) =>
+    set({
+      windowIds: new Set(windows),
+      groupIds: new Set(groups),
+      tabIds: new Set(tabs),
     }),
 
   // Single-item adders

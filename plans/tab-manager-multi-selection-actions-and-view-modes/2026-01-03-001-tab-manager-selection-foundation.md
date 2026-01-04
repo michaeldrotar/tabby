@@ -68,6 +68,7 @@ The selection store uses Zustand with Set-based state for O(1) lookups. Key char
 
 - **State:** `windowIds`, `groupIds`, `tabIds` as Sets, plus `mode` for keyboard interaction
 - **Mutations:** Single-item (`setTab`, `addTab`, `removeTab`) and bulk (`setTabs`, `addTabs`, `removeTabs`) methods
+- **Mixed selection:** `setAll(windows, groups, tabs)` method for setting mixed selections atomically (individual setters clear other types)
 - **No query methods:** Zustand function references are stable, so components subscribe to Sets directly (`windowIds.has(id)`) for proper reactivity
 
 ### Key Architectural Decisions
@@ -208,30 +209,28 @@ export const useViewingWindowId = (): number | null => {
   - [x] Update `WindowRailItem.tsx` with `selected` prop
   - [x] Update `TabGroupHeader.tsx` with `selected` prop
   - [x] Update `TabItemRow.tsx` with `selected` prop
-  - [ ] **Designer review needed:** Refine visual appearance of selected state
-  - [ ] **Designer review needed:** Distinguish focus ring from selection background in multi-select mode
 - [x] Test basic selection works with keyboard navigation
 
 ### Phase 3: Click Handlers
 
-- [ ] Implement click handlers on items
-  - [ ] Add onClick handlers to `TabItemRow`, `TabGroupHeader`, `WindowButton`
-  - [ ] Pass pane context to handlers
-  - [ ] Regular click: `selectionStore.set()` with single item, set anchor, update pane ref
-  - [ ] Cross-pane click: Clear selection first, then handle normally
-- [ ] Implement Cmd/Ctrl+Click toggle selection
-  - [ ] Check if item is selected
-  - [ ] Call `selectionStore.add()` if not selected, `selectionStore.remove()` if selected
-  - [ ] Move anchor to clicked item
-  - [ ] Anchor updates on Cmd+Click (verified Mac behavior)
-- [ ] Implement Shift+Click range selection
-  - [ ] Only process if anchor exists and in same pane
-  - [ ] If different pane, treat as regular click (clears other pane)
-  - [ ] Traverse DOM to find items between anchor and clicked item
-  - [ ] Calculate items to add and items to remove (for overlapping ranges)
-  - [ ] Call `selectionStore.remove()` then `selectionStore.add()` for both operations
-  - [ ] Zustand batches these into single render
-  - [ ] Anchor stays on original anchor (does not move)
+- [x] Implement click handlers on items
+  - [x] Add onClick handlers to `TabItemRow`, `TabGroupHeader`, `WindowItemContainer`
+  - [x] Pass pane context to handlers
+  - [x] Regular click: `selectionStore.set()` with single item, set anchor, update pane ref
+  - [x] Cross-pane click: Clear selection first, then handle normally
+- [x] Implement Cmd/Ctrl+Click toggle selection
+  - [x] Check if item is selected
+  - [x] Call `selectionStore.add()` if not selected, `selectionStore.remove()` if selected
+  - [x] Move anchor to clicked item
+  - [x] Anchor updates on Cmd+Click (verified Mac behavior)
+- [x] Implement Shift+Click range selection
+  - [x] Only process if anchor exists and in same pane
+  - [x] If different pane, treat as regular click (clears other pane)
+  - [x] Traverse DOM to find items between anchor and clicked item
+  - [x] Calculate items to add and items to remove (for overlapping ranges)
+  - [x] Call `selectionStore.remove()` then `selectionStore.add()` for both operations
+  - [x] Zustand batches these into single render
+  - [x] Anchor stays on original anchor (does not move)
 
 ### Phase 4: Keyboard Range Selection
 
@@ -623,6 +622,7 @@ interface SelectionStore {
   setWindows: (ids: number[]) => void
   setGroups: (ids: number[]) => void
   setTabs: (ids: number[]) => void
+  setAll: (windows: number[], groups: number[], tabs: number[]) => void
 
   addWindows: (ids: number[]) => void
   addGroups: (ids: number[]) => void
