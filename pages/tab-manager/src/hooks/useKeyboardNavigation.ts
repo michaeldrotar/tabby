@@ -109,16 +109,21 @@ export const useKeyboardNavigation = (
           ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)
         ) {
           e.preventDefault()
+          // No focused item - focus the viewing window (or first window) and select it
           const viewingWindow = document.querySelector(
             '[data-nav-type="window"][data-viewing="true"]',
           ) as HTMLElement
-          if (viewingWindow) {
-            viewingWindow.focus()
-          } else {
-            const firstWindow = document.querySelector(
-              '[data-nav-type="window"]',
-            ) as HTMLElement
-            firstWindow?.focus()
+          const targetWindow =
+            viewingWindow ??
+            (document.querySelector('[data-nav-type="window"]') as HTMLElement)
+
+          if (targetWindow) {
+            targetWindow.focus()
+            // Also select the window
+            const item = getSelectionItemFromElement(targetWindow)
+            if (item) {
+              selectionInteraction.handleArrowNavigation(item, 'window')
+            }
           }
         }
         return
