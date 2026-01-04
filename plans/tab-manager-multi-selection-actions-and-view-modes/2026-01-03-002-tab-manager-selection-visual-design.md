@@ -17,6 +17,9 @@ This plan implements the visual design layer for the selection system, transform
 - Selection badge component with smart count display
 - Optional mode indicators for discoverability
 - Consistent styling across tabs, groups, and windows
+- Viewing window → tab pane visual connection
+- Active tab favicon ring with pulse animation
+- Tab group vertical line redesign with animated expand/collapse
 
 **Exit Criteria:**
 
@@ -25,6 +28,10 @@ This plan implements the visual design layer for the selection system, transform
 - Animations respect `prefers-reduced-motion`
 - Selection count badge accurately reflects selection state
 - All visual states pass WCAG AA contrast requirements
+- Viewing window visually "connects" to tab pane (scannable at a glance)
+- Active tab is instantly identifiable without relying solely on color
+- Tab group colors match Chrome exactly (no color mismatch confusion)
+- Tab group selection/focus states don't clash with group colors
 
 ---
 
@@ -37,6 +44,11 @@ This plan implements the visual design layer for the selection system, transform
 - No animation feedback when entering/exiting multi-select mode
 - No visual count of selected items
 - Mode state is not visually obvious to new users
+- **Visual collision problem**: Active tab, viewing window, and selected items ALL use the same accent background
+- Tab group full background color clashes with accent color on selection/focus
+- Tab group collapsed state has misaligned borders
+- No clear visual connection between viewing window and its tab pane
+- Current window vs viewing window distinction is subtle (only a small bar)
 
 **User Needs:**
 
@@ -166,6 +178,170 @@ For users who need extra clarity:
 
 These are optional enhancements, not required for the core experience.
 
+### Viewing Window → Tab Pane Connection
+
+Inspired by how Chrome's active tab connects to the browser content area, the viewing window should visually "attach" to the tab pane:
+
+```
+┌──────────────┐
+│ Window 1     │     ← Disconnected: fully rounded corners
+└──────────────┘
+┌──────────────────────┐
+│ Window 2 (viewing) ══════► Tab Pane content...
+└──────────────────────┘     ← Connected: squared right edge extends to pane
+┌──────────────┐
+│ Window 3     │
+└──────────────┘
+```
+
+**Implementation:**
+
+- Non-viewing windows: `rounded-md` (all corners rounded)
+- Viewing window: `rounded-l-md rounded-r-none` (left rounded, right squared)
+- The squared right edge creates visual continuity with the tab pane
+- Background color extends to meet the pane edge
+
+**Benefits:**
+
+- Instantly scannable - "which window am I viewing?"
+- Metaphor familiar from browser tabs
+- Works with or without accent background (shape is the primary indicator)
+- Accessible: doesn't rely solely on color
+
+### Active Tab Indicator
+
+The active tab (currently focused in its browser window) needs a distinct visual that doesn't collide with selection:
+
+**Favicon Ring with Pulse Animation:**
+
+```
+  📄 Some Tab
+  ◉ Active Tab     ← Accent-colored ring around favicon + subtle pulse
+  📄 Another Tab
+```
+
+**Implementation:**
+
+- Ring around the favicon using `ring-2` or `box-shadow`
+- Subtle "breathing" pulse animation (scale 1.0 → 1.05 → 1.0)
+- Animation duration: ~2s, ease-in-out, infinite
+- Ring remains visible but static when `prefers-reduced-motion: reduce`
+
+**Benefits:**
+
+- Doesn't use background color (no collision with selection)
+- The pulse creates delight and a "live" feeling
+- Ring alone is sufficient indicator for reduced-motion users
+- Favicon is already a scan target, so the ring draws attention naturally
+
+**CSS Sketch:**
+
+```css
+@keyframes active-tab-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.active-tab-favicon-ring {
+  box-shadow: 0 0 0 2px var(--accent);
+  border-radius: 50%;
+  animation: active-tab-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-tab-favicon-ring {
+    animation: none;
+  }
+}
+```
+
+### Tab Group Visual Redesign
+
+The current tab group design has issues:
+
+- Full background color clashes with accent selection color
+- Circle color indicator is redundant if color is shown elsewhere
+- Collapsed state borders don't align properly
+- Focus/selection rings look bad against colored backgrounds
+
+**New Design: Vertical Color Line**
+
+```
+▶ Research                    ← Chevron shows group color, functional for expand/collapse
+┃   📄 Tab 1                  ← Vertical line in Chrome's exact group color
+┃   📄 Tab 2 (selected)       ← Selection background doesn't clash (line is separate)
+┃   📄 Tab 3
+
+▶ Work                        ← Collapsed: just header with colored chevron
+```
+
+**Key Changes:**
+
+1. **Remove** the circle color indicator from tab group header
+2. **Keep** the chevron - it's functional (expand/collapse) and can carry the color
+3. **Add** vertical color line on left edge of group items
+4. **Remove** full background color fill from groups
+5. **Use Chrome's exact group colors** for the line and chevron (no desaturation)
+
+**Chevron Design:**
+
+- Filled/chunky chevron shape to carry visual weight of the removed circle
+- Colored with the group's Chrome color
+- Rotates on expand/collapse (existing behavior)
+
+**Animated Expand/Collapse (Delight Moment):**
+
+On **collapse**:
+
+1. Chevron rotates from ▼ to ▶
+2. Vertical line "retracts" upward into the chevron
+3. Tab items fade out and collapse
+4. Animation feels like the line is being "pulled in"
+
+On **expand**:
+
+1. Chevron rotates from ▶ to ▼
+2. Vertical line "extends" downward from the chevron
+3. Tab items fade in and expand
+4. Animation feels like the line is being "drawn out"
+
+**Timing:**
+
+- Chevron rotation: 150ms
+- Line extension: 200ms with slight delay (staggered)
+- Tab items: fade in 100ms each, staggered 30ms
+- Reduced motion: instant show/hide, no animation
+
+**Benefits:**
+
+- Chrome color accuracy maintained (user sees same color as native tab bar)
+- No color collision with accent (line and background are spatially separated)
+- Cleaner visual hierarchy
+- Selection and focus states have clean backgrounds to display against
+- Expand/collapse animation creates delight and reinforces the structure
+
+### Visual State Hierarchy Summary
+
+To avoid the "everything uses accent background" collision:
+
+| State              | Visual Treatment                      | Property Used          |
+| ------------------ | ------------------------------------- | ---------------------- |
+| **Selected**       | Accent background fill                | Background             |
+| **Focused**        | Ring with offset                      | Border/outline         |
+| **Active Tab**     | Favicon ring + pulse                  | Box-shadow + animation |
+| **Viewing Window** | Squared right edge (connected)        | Border-radius          |
+| **Current Window** | Vertical bar on left                  | Pseudo-element         |
+| **Tab Group**      | Vertical color line + colored chevron | Border + icon color    |
+
+This ensures each state uses a **different visual property**, making them distinguishable even when combined.
+
 ---
 
 ## Checklist
@@ -245,7 +421,56 @@ These are optional enhancements, not required for the core experience.
   - [ ] Animate count changes (optional)
 - [ ] Test badge updates correctly with selection changes
 
-### Phase 5: Polish & Edge Cases
+### Phase 5: Viewing Window Connection
+
+- [ ] Update `WindowRailItem.tsx` with viewing state visual
+  - [ ] Add conditional border-radius (`rounded-l-md rounded-r-none` when viewing)
+  - [ ] Ensure background extends to right edge
+  - [ ] Test visual continuity with tab pane
+- [ ] Handle transitions between viewing states
+  - [ ] Animate border-radius change (subtle, fast)
+  - [ ] Or instant change if animation feels unnecessary
+- [ ] Test in collapsed sidebar state
+  - [ ] Connection should still be clear at narrow widths
+
+### Phase 6: Active Tab Favicon Ring
+
+- [ ] Create favicon ring styling for active tabs
+  - [ ] Add ring via `box-shadow` to avoid layout shift
+  - [ ] Use accent color for ring
+- [ ] Implement pulse animation
+  - [ ] Keyframes: scale 1.0 → 1.05 → 1.0
+  - [ ] Duration: ~2s, ease-in-out, infinite
+  - [ ] Subtle opacity variation for "breathing" effect
+- [ ] Add reduced motion support
+  - [ ] Ring visible but static when `prefers-reduced-motion: reduce`
+- [ ] Update `TabItemRow.tsx` to apply ring when `isActive`
+- [ ] Test that ring doesn't interfere with selection background
+
+### Phase 7: Tab Group Redesign
+
+- [ ] Remove circle color indicator from `TabGroupHeader.tsx`
+- [ ] Redesign chevron to be filled/chunky
+  - [ ] Apply group color to chevron fill
+  - [ ] Ensure sufficient contrast for all Chrome group colors
+- [ ] Add vertical color line to group items
+  - [ ] Line positioned on left edge of tab rows within group
+  - [ ] Use Chrome's exact group colors
+  - [ ] Line should not overlap with selection background
+- [ ] Remove full background color from tab groups
+  - [ ] Selection/focus now have clean background to render against
+- [ ] Implement expand/collapse animation
+  - [ ] Chevron rotation (existing, may need timing adjustment)
+  - [ ] Line "retracts" into chevron on collapse
+  - [ ] Line "extends" from chevron on expand
+  - [ ] Tab items fade with stagger
+  - [ ] Total duration ~300ms
+- [ ] Add reduced motion support
+  - [ ] Instant expand/collapse, no animation
+- [ ] Fix collapsed state border alignment issues
+- [ ] Test with all Chrome group colors against all theme accent colors
+
+### Phase 8: Polish & Edge Cases
 
 - [ ] Handle rapid mode transitions
   - [ ] Debounce animation triggers if needed
@@ -264,7 +489,7 @@ These are optional enhancements, not required for the core experience.
   - [ ] Test in dark mode
   - [ ] Ensure sufficient contrast in both
 
-### Phase 6: Accessibility
+### Phase 9: Accessibility
 
 - [ ] Verify color contrast ratios
   - [ ] Selection background vs text: ≥ 4.5:1 (WCAG AA)
@@ -283,7 +508,7 @@ These are optional enhancements, not required for the core experience.
   - [ ] Badge should have `aria-live="polite"` for count changes
   - [ ] Selection state announced via existing `aria-selected`
 
-### Phase 7: Testing
+### Phase 10: Testing
 
 - [ ] Unit tests for SelectionBadge
   - [ ] Test badge text generation for various selection states
@@ -300,7 +525,7 @@ These are optional enhancements, not required for the core experience.
   - [ ] Test in sidebar at 280px, 320px, 360px widths
   - [ ] Test in light and dark mode
 
-### Phase 8: Documentation
+### Phase 11: Documentation
 
 - [ ] Document visual design decisions
   - [ ] Why focus ring separation vs checkboxes
@@ -623,6 +848,18 @@ export const getSelectionBadgeText = (
 
 6. **Hide badge when empty** - No selection = no badge. Showing "0 selected" adds noise without value.
 
+7. **Viewing window connection via shape, not color** - Using asymmetric border-radius (squared right edge) creates a visual "attachment" to the tab pane. This is inspired by how Chrome's active tab connects to the browser content. Shape is accessible and doesn't compete with selection color.
+
+8. **Active tab uses favicon ring, not background** - Background color is reserved for selection state. The favicon ring with pulse animation creates a "live" indicator that's instantly scannable without color collision. Pulse adds delight; ring alone serves reduced-motion users.
+
+9. **Tab groups use vertical line, not full background** - Full background color clashes with accent on selection. A vertical line in Chrome's exact color maintains accuracy while staying spatially separate from selection backgrounds. This prevents any color collision regardless of theme accent choice.
+
+10. **Chevron carries group color, circle removed** - The chevron is functional (expand/collapse) and can be styled to carry the visual weight of the removed circle indicator. This simplifies the design while maintaining color information.
+
+11. **Animated group expand/collapse for delight** - The line "extending" from the chevron on expand and "retracting" on collapse reinforces the parent-child relationship and creates a memorable micro-interaction. Respects reduced-motion preference.
+
+12. **Each state uses different visual property** - Selection = background, focus = ring, active = favicon ring, viewing = shape, current = bar, groups = vertical line. This ensures states are distinguishable even when combined, and doesn't over-rely on color for accessibility.
+
 ---
 
 ## Keyboard Shortcuts
@@ -665,3 +902,6 @@ This plan does not introduce new keyboard shortcuts. All shortcuts are inherited
 - Cut/paste visual indicators (Plan 3+)
 - Loading state animations (Plan 3+)
 - Toolbar component itself (Plan 3)
+- Tab group drag reordering animations
+- Window reordering in sidebar
+- Favicon loading/error states (separate concern)
