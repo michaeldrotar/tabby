@@ -2,56 +2,47 @@
 
 This is the main entry point for AI assistant guidance on this project. For detailed instructions on specific topics, refer to the specialized instruction files below.
 
-## Reading Instructions and Plans Completely
+## ⚠️ CRITICAL: Read Instructions Before ANY Code Changes
 
-### Critical: Read Files in Their Entirety
+**STOP. Before editing ANY code file, you MUST:**
 
-When reading instruction files, plan documents, or any substantial documentation:
+1. **Identify which instruction files apply** (based on file patterns in the sections below)
 
-- **Read ALL lines:** Instruction files can be hundreds of lines long, plan documents can be thousands
-- **Don't stop at 100-200 lines:** Important context and guidance can appear anywhere in the file
-- **Continue reading to the end:** If you start reading a file, read it completely before making decisions
-- **Build complete context:** Partial reads lead to missing critical information
+2. **Read ALL applicable instruction files completely** (start to finish, every line)
+   - Early sections often provide overview and context
+   - Middle sections contain detailed implementation guidance
+   - Later sections may include critical edge cases, gotchas, or important constraints
+   - Missing any section can lead to incomplete or incorrect implementations
 
-### Why This Matters
+3. **Then proceed** with changes following those guidelines
 
-- Early sections often provide overview and context
-- Middle sections contain detailed implementation guidance
-- Later sections may include critical edge cases, gotchas, or important constraints
-- Missing any section can lead to incomplete or incorrect implementations
+**This is not optional.** Skipping this step leads to:
 
-### How to Read Large Files
+- Code that doesn't follow project patterns
+- Missing required testing
+- Violations of architectural principles
+- Work that needs to be redone
 
-1. Read the entire file from start to finish
-2. If the file is very long, read it in complete sections (not arbitrary cutoffs)
-3. Take note of cross-references to other files that should also be read
-4. After reading, synthesize the complete picture before taking action
+**If you're unsure, read the instructions. Always read instructions first.**
 
-## Project: Tabby
+### Standard Workflow for ANY Code Change
 
-**Tabby** is a Chrome Extension that provides keyboard-centric tab and bookmark management. Built as a monorepo using **pnpm workspaces** and **Turborepo**.
+When receiving a code change request:
 
-### Tech Stack
-
-- **React 19** with functional components and hooks
-- **TypeScript 5.x** targeting ES2022
-- **Vite** for bundling with custom plugins for Chrome Extension builds
-- **Tailwind CSS** with custom theming and dark mode
-- **Vitest** for testing with jsdom environment
-
-### Monorepo Structure
-
-- `chrome-extension/` - Background service worker, manifest generation
-- `pages/` - Individual UI entry points (omnibar-overlay, tab-manager, etc.)
-- `packages/` - Shared internal libraries with `@extension/*` namespace
+- [ ] Identify file types being modified (`.ts`, `.tsx`, `.md`, etc.)
+- [ ] Check which instruction files apply (see "Instruction Files" section below)
+- [ ] Read all applicable instruction files completely (do not stop partway through)
+- [ ] Make changes following those guidelines
+- [ ] Run appropriate commands per commands.instructions.md
+- [ ] Verify changes meet project standards
 
 ## Instruction Files (Skills)
 
-These specialized instruction files provide focused guidance for different aspects of development:
+These specialized instruction files provide focused guidance for different aspects of development. Each file includes frontmatter with a description and `applyTo` patterns to help determine when to reference them.
 
 ### Core Development
 
-- **[workflow.instructions.md](.github/instructions/workflow.instructions.md)** - Planning, creating plan documents in the plans folder, release management, documentation updates, definition of done
+- **[planning.instructions.md](.github/instructions/planning.instructions.md)** - Creating plans, managing checklists, definition of done
 - **[commands.instructions.md](.github/instructions/commands.instructions.md)** - **CRITICAL: Read before running ANY command** - Which commands to run when, npm scripts vs direct tool invocation, development workflow
 - **[architecture.instructions.md](.github/instructions/architecture.instructions.md)** - Code organization, component design patterns, package structure
 - **[chrome-extension.instructions.md](.github/instructions/chrome-extension.instructions.md)** - Chrome extension architecture, permissions, storage patterns
@@ -62,15 +53,93 @@ These specialized instruction files provide focused guidance for different aspec
 - **[typescript-5-es2022.instructions.md](.github/instructions/typescript-5-es2022.instructions.md)** - TypeScript guidelines and conventions
 - **[testing.instructions.md](.github/instructions/testing.instructions.md)** - Testing practices, when to test, test structure
 
+### Documentation & Process
+
+- **[documentation.instructions.md](.github/instructions/documentation.instructions.md)** - README, PRIVACY, and general documentation updates
+- **[release-notes.instructions.md](.github/instructions/release-notes.instructions.md)** - When and how to update release notes
+
 ### Role-Specific
 
 - **[design-ux.instructions.md](.github/instructions/design-ux.instructions.md)** - Design philosophy, UX principles, accessibility, shadcn components
 - **[product-owner.instructions.md](.github/instructions/product-owner.instructions.md)** - Discovering user needs, feature validation, persona-driven development
 - **[marketing.instructions.md](.github/instructions/marketing.instructions.md)** - Messaging, positioning, outcomes over features, Chrome Web Store optimization
 
-### Meta
+## Maintaining Instructions
 
-- **[meta-instructions.instructions.md](.github/instructions/meta-instructions.instructions.md)** - How to create and maintain instruction files
+### When to Update Instructions
+
+Update instruction files when you learn important information during a conversation that would be valuable for future work, such as:
+
+- Architectural decisions and patterns
+- Workflow processes and best practices
+- Common pitfalls and their solutions
+- Tool usage and conventions
+- Domain-specific knowledge
+
+### Creating New Instruction Files
+
+Create a new instruction file when:
+
+- A topic is substantial enough to deserve its own focus (50+ lines)
+- Multiple people or contexts will reference this knowledge
+- The guidance applies to a specific type of work (e.g., testing, deployment)
+
+**File naming:** Use the pattern `topic-name.instructions.md`
+
+**Required frontmatter:**
+
+```yaml
+---
+description: Brief description of what this file covers
+applyTo: Glob patterns for files this applies to (e.g., **/*.ts, packages/**/*)
+---
+```
+
+### Instruction File Structure
+
+```markdown
+---
+description: [Clear, concise description]
+applyTo: [Relevant file patterns]
+---
+
+# [Topic Name] Instructions
+
+## [Section Name]
+
+### When to Use
+
+Clear criteria for when this applies.
+
+### How to Implement
+
+Step-by-step or code examples.
+
+### Rationale
+
+Why we do it this way.
+
+## Common Pitfalls
+
+What to avoid and why.
+```
+
+### Content Guidelines
+
+- **Be Specific:** "Use `pnpm type-check` after TypeScript changes" vs. "verify your changes"
+- **Be Declarative:** "Do X" vs. "You should consider X"
+- **Be Complete:** Include all context needed to follow the instruction
+- **Be Concise:** Remove unnecessary words while maintaining clarity
+- **Include Examples:** Code samples help clarify abstract concepts
+- **Explain Rationale:** Help readers understand the "why" behind non-obvious rules
+
+### Keeping Instructions Updated
+
+- Review instruction files when major architectural changes occur
+- Remove outdated guidance promptly
+- Keep examples in sync with actual codebase patterns
+- Cross-reference related instruction files where appropriate
+- Update copilot-instructions.md index when adding new files
 
 ## Quick Reference
 

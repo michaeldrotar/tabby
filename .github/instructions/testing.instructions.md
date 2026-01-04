@@ -1,3 +1,8 @@
+---
+description: Testing practices, when to test, and test structure using Vitest
+applyTo: **/*.spec.{ts,tsx}, **/*.test.{ts,tsx}, tests/**/*
+---
+
 # Testing Guidelines
 
 ## Test Framework

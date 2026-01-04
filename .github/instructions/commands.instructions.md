@@ -1,3 +1,8 @@
+---
+description: Which commands to run when, npm scripts vs direct tool invocation
+applyTo: package.json, turbo.json, **/*.sh
+---
+
 # Command Execution Guidelines
 
 ## CRITICAL: Use Package.json Scripts, Not Direct Tool Invocation

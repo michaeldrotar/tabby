@@ -1,3 +1,8 @@
+---
+description: Code organization, component design patterns, and architectural principles
+applyTo: **/*.{ts,tsx}
+---
+
 # Architecture & Component Design
 
 ## Core Architectural Principles

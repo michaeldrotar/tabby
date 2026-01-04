@@ -1,3 +1,8 @@
+---
+description: Design philosophy, UX principles, accessibility, and UI component guidelines
+applyTo: packages/ui/**/*.{ts,tsx}, pages/**/*.{ts,tsx}, **/*.css
+---
+
 # Design & UX Instructions
 
 ## Design Philosophy

@@ -1,3 +1,8 @@
+---
+description: Discovering user needs, feature validation, and persona-driven development
+applyTo: plans/**/*.md, product/**/*.md
+---
+
 # Product Owner Instructions
 
 ## Role & Mindset

@@ -1,3 +1,8 @@
+---
+description: Chrome extension architecture, permissions, storage patterns, and manifest configuration
+applyTo: **/*.{ts,tsx}, **/manifest.{ts}
+---
+
 # Chrome Extension Architecture
 
 ## Project Structure

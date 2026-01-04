@@ -1,3 +1,8 @@
+---
+description: Messaging, positioning, outcomes over features, and Chrome Web Store optimization
+applyTo: product/**/*.md, README.md, PRIVACY.md
+---
+
 # Marketing Instructions
 
 ## Core Philosophy
