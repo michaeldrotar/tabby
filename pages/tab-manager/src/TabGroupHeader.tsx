@@ -147,6 +147,7 @@ export const TabGroupHeader = memo(
           )}
           data-nav-type="group"
           data-group-id={group.id}
+          data-selected={selected}
           {...props}
         >
           {isActive && (

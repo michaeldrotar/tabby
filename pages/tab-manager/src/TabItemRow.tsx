@@ -94,6 +94,7 @@ export const TabItemRow = memo(
             data-tab-item={tabId}
             data-nav-type="tab"
             data-active={isActive}
+            data-selected={selected}
             className={cn(
               `group relative overflow-hidden rounded-md`,
               // Focus ring styling - shown when keyboard focused in multi-select mode
