@@ -291,16 +291,16 @@ export const useViewingWindowId = (): number | null => {
 
 ### Phase 9: Documentation & Release
 
-- [ ] Update README.md with selection feature overview
-- [ ] Document keyboard shortcuts for selection:
-  - [ ] Space: Toggle selection / Enter multi-select mode
-  - [ ] Escape: Clear selection, exit multi-select mode
-  - [ ] Shift+Click: Range selection
-  - [ ] Cmd/Ctrl+Click: Toggle individual item
-  - [ ] Cmd/Ctrl+A: Select all in context
-  - [ ] Arrow keys: Navigate (and select in default mode)
-  - [ ] Shift+Arrow: Extend selection range
-- [ ] Write release notes for selection foundation
+- [x] Update README.md with selection feature overview
+- [x] Document keyboard shortcuts for selection:
+  - [x] Space: Toggle selection / Enter multi-select mode
+  - [x] Escape: Clear selection, exit multi-select mode
+  - [x] Shift+Click: Range selection
+  - [x] Cmd/Ctrl+Click: Toggle individual item
+  - [x] Cmd/Ctrl+A: Select all in context
+  - [x] Arrow keys: Navigate (and select in default mode)
+  - [x] Shift+Arrow: Extend selection range
+- [x] Write release notes for selection foundation
 
 ---
 

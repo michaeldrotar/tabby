@@ -21,6 +21,15 @@ Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
+- **Multi-Selection**: Select multiple tabs using familiar keyboard and mouse patterns:
+  - Click to select a single tab
+  - `Shift+Click` to select a range
+  - `Cmd/Ctrl+Click` to toggle individual items
+  - `Cmd/Ctrl+A` to select all tabs in the current window
+  - Arrow keys to navigate
+  - `Shift+Up/Down` to select a range
+  - `Space` to toggle individual items in multi-select mode
+  - `ESC` to clear selections and return to standard selection mode
 
 ## Privacy & Security
 
