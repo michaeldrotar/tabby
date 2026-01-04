@@ -109,11 +109,11 @@ export const useKeyboardNavigation = (
           ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)
         ) {
           e.preventDefault()
-          const selectedWindow = document.querySelector(
-            '[data-nav-type="window"][data-selected="true"]',
+          const viewingWindow = document.querySelector(
+            '[data-nav-type="window"][data-viewing="true"]',
           ) as HTMLElement
-          if (selectedWindow) {
-            selectedWindow.focus()
+          if (viewingWindow) {
+            viewingWindow.focus()
           } else {
             const firstWindow = document.querySelector(
               '[data-nav-type="window"]',
@@ -161,6 +161,14 @@ export const useKeyboardNavigation = (
         return
       }
 
+      // Cmd/Ctrl+A: Select all in current pane
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault()
+        const paneContext = getPaneContextFromElement(navItem)
+        selectionInteraction.selectAll(paneContext)
+        return
+      }
+
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault()
 
@@ -183,13 +191,25 @@ export const useKeyboardNavigation = (
 
           const target = elements[nextIndex]
           if (target) {
+            // Get item info before moving focus
+            const focusedBeforeMove = getSelectionItemFromElement(navItem)
+
             target.focus()
             target.scrollIntoView({ block: 'nearest' })
 
-            // In default mode, arrow keys select the focused window
             const item = getSelectionItemFromElement(target)
             if (item) {
-              selectionInteraction.handleArrowNavigation(item, 'window')
+              if (e.shiftKey) {
+                // Shift+Arrow: extend range selection
+                selectionInteraction.handleShiftArrow(
+                  item,
+                  'window',
+                  focusedBeforeMove ?? undefined,
+                )
+              } else {
+                // In default mode, arrow keys select the focused window
+                selectionInteraction.handleArrowNavigation(item, 'window')
+              }
             }
 
             if (onSelectWindow) {
@@ -219,12 +239,24 @@ export const useKeyboardNavigation = (
 
           const nextItem = allNavigableItems[nextIndex]
           if (nextItem) {
+            // Get item info before moving focus
+            const focusedBeforeMove = getSelectionItemFromElement(navItem)
+
             focusNavigableItem(nextItem.element, nextItem.type)
 
-            // In default mode, arrow keys select the focused item
             const item = getSelectionItemFromElement(nextItem.element)
             if (item) {
-              selectionInteraction.handleArrowNavigation(item, 'tab')
+              if (e.shiftKey) {
+                // Shift+Arrow: extend range selection
+                selectionInteraction.handleShiftArrow(
+                  item,
+                  'tab',
+                  focusedBeforeMove ?? undefined,
+                )
+              } else {
+                // In default mode, arrow keys select the focused item
+                selectionInteraction.handleArrowNavigation(item, 'tab')
+              }
             }
           }
         }
@@ -255,28 +287,36 @@ export const useKeyboardNavigation = (
               item.type === 'tab' &&
               item.element.getAttribute('data-active') === 'true',
           )
-          if (activeItem) {
-            focusNavigableItem(activeItem.element, activeItem.type)
-          } else {
-            const firstItem = items[0]
-            if (firstItem) {
-              focusNavigableItem(firstItem.element, firstItem.type)
+          const targetItem = activeItem ?? items[0]
+          if (targetItem) {
+            focusNavigableItem(targetItem.element, targetItem.type)
+            // Pane switch: exit multi-select mode and select the focused item
+            const item = getSelectionItemFromElement(targetItem.element)
+            if (item) {
+              selectionInteraction.handleArrowNavigation(item, 'tab', {
+                forceSingleSelect: true,
+              })
             }
           }
         }
       } else if (e.key === 'ArrowLeft') {
         if (navType === 'tab' || navType === 'group') {
           e.preventDefault()
-          const selectedWindow = document.querySelector(
-            '[data-nav-type="window"][data-selected="true"]',
+          const viewingWindow = document.querySelector(
+            '[data-nav-type="window"][data-viewing="true"]',
           ) as HTMLElement
-          if (selectedWindow) {
-            selectedWindow.focus()
-          } else {
-            const firstWindow = document.querySelector(
-              '[data-nav-type="window"]',
-            ) as HTMLElement
-            firstWindow?.focus()
+          const targetWindow =
+            viewingWindow ??
+            (document.querySelector('[data-nav-type="window"]') as HTMLElement)
+          if (targetWindow) {
+            targetWindow.focus()
+            // Pane switch: exit multi-select mode and select the focused window
+            const item = getSelectionItemFromElement(targetWindow)
+            if (item) {
+              selectionInteraction.handleArrowNavigation(item, 'window', {
+                forceSingleSelect: true,
+              })
+            }
           }
         }
       }

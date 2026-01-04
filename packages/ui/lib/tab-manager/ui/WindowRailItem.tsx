@@ -63,6 +63,8 @@ export const WindowRailItem = memo(
             data-nav-type="window"
             data-nav-id={id}
             data-active={isActive}
+            data-selected={selected}
+            data-viewing={isViewing}
             className={cn(
               `
                 relative flex w-full items-center gap-3 overflow-clip rounded-md

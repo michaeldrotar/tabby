@@ -234,17 +234,19 @@ export const useViewingWindowId = (): number | null => {
 
 ### Phase 4: Keyboard Range Selection
 
-- [ ] Implement Shift+Up/Down range selection
-  - [ ] Same logic as Shift+Click but with keyboard focus target
-  - [ ] Traverse navigable items from anchor to focused item
-  - [ ] Update selection with range
-- [ ] Add "Select All" shortcut (Cmd+A)
-  - [ ] In tree view: Select all windows, groups, and tabs visible in tree
-  - [ ] In split view (windows pane focused): Select all windows
-  - [ ] In split view (tabs pane focused): Select all tabs/groups in current window
-  - [ ] Context-aware based on which pane/view has focus
-  - [ ] Call `selectionStore.set()` with all relevant IDs
-  - [ ] Set anchor to first item in selection
+- [x] Implement Shift+Up/Down range selection
+  - [x] Add `handleShiftArrow` method to `useSelectionInteraction`
+  - [x] Same logic as Shift+Click but with keyboard focus target
+  - [x] Traverse navigable items from anchor to focused item
+  - [x] Update selection with range using `setAll`
+- [x] Add "Select All" shortcut (Cmd+A)
+  - [x] Add `selectAll` method to `useSelectionInteraction`
+  - [x] In tree view: Select all windows, groups, and tabs visible in tree
+  - [x] In split view (windows pane focused): Select all windows
+  - [x] In split view (tabs pane focused): Select all tabs/groups in current window
+  - [x] Context-aware based on which pane/view has focus
+  - [x] Uses `setAll` with all relevant IDs
+  - [x] Sets anchor to first item in selection
 
 ### Phase 5: Item Removal Handling
 
@@ -739,6 +741,35 @@ The existing `windowSlice.selectedWindowId` in `packages/chrome/lib/windowSlice.
 4. [ ] On initial load, select current window (same as current behavior)
 5. [ ] Remove `selectedWindowId` and `selectWindow()` from `windowSlice`
 6. [ ] Update tests
+
+---
+
+## Implementation Notes
+
+### `setAll` Method (Phase 3 Bug Fix)
+
+The individual bulk setters (`setWindows`, `setGroups`, `setTabs`) each clear the other item types. This was intentional for "select only windows" scenarios, but breaks mixed selections.
+
+**Problem:**
+
+```typescript
+state.setWindows([]) // → windows=[], groups=[], tabs=[]
+state.setGroups([g1]) // → windows=[], groups=[g1], tabs=[]
+state.setTabs([t1, t2]) // → windows=[], groups=[], tabs=[t1,t2] ← groups wiped!
+```
+
+**Solution:**
+Added `setAll(windows, groups, tabs)` method that sets all three atomically:
+
+```typescript
+state.setAll(
+  Array.from(newWindowIds),
+  Array.from(newGroupIds),
+  Array.from(newTabIds),
+)
+```
+
+This is used for range selection (Shift+click, Shift+arrow) and Select All (Cmd+A).
 
 ---
 
