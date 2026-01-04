@@ -35,6 +35,8 @@
     "measure": "node --enable-source-maps scripts/measure-dist.mjs",
     "prepare": "husky",
     "test": "vitest run",
+    "test:e2e": "turbo e2e",
+    "test:e2e:ui": "turbo e2e:ui",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "prep": "node scripts/prep-release.mjs",

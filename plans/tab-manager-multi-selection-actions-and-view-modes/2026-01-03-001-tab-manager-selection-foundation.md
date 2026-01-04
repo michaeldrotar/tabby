@@ -258,7 +258,7 @@ export const useViewingWindowId = (): number | null => {
 
 ### Phase 6: Integration Testing
 
-- [ ] Test all selection methods work together correctly
+- [ ] Test all selection methods work together correctly with test/e2e tests using playwright
   - [ ] Test cross-pane behavior (clicking different pane clears selection)
   - [ ] Test Cmd+Click moves anchor (Mac behavior)
   - [ ] Test Shift+Click with overlapping ranges (items get removed/added correctly)
