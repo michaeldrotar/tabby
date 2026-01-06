@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import { BUILD_OUT_DIR } from '@extension/env/const'
 import { withPageConfig } from '@extension/vite-config/with-page-config'
 
 const rootDir = resolve(import.meta.dirname)
@@ -12,6 +13,6 @@ export default withPageConfig({
   },
   publicDir: resolve(rootDir, 'public'),
   build: {
-    outDir: resolve(rootDir, '..', '..', 'dist', 'omnibar-overlay'),
+    outDir: resolve(rootDir, '..', '..', BUILD_OUT_DIR, 'omnibar-overlay'),
   },
 })

@@ -1,7 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { IS_FIREFOX } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_FIREFOX } from '@extension/env/const'
 import { zipBundle } from './lib/zip-bundle.js'
+
+console.log('zipper: BUILD_OUT_DIR=', BUILD_OUT_DIR)
 
 const packageJsonPath = resolve(
   import.meta.dirname,
@@ -69,7 +71,7 @@ if (existsSync(finalArchivePath)) {
 }
 
 await zipBundle({
-  distDirectory: resolve(import.meta.dirname, '..', '..', '..', 'dist'),
+  distDirectory: resolve(import.meta.dirname, '..', '..', '..', BUILD_OUT_DIR),
   buildDirectory,
   archiveName: finalArchiveName,
 })

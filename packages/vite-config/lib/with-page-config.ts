@@ -15,8 +15,8 @@ export const watchOption = IS_DEV
     }
   : undefined
 
-export const withPageConfig = (config: UserConfig) =>
-  defineConfig(
+export const withPageConfig = (config: UserConfig) => {
+  return defineConfig(
     deepmerge(
       {
         define: {
@@ -42,3 +42,4 @@ export const withPageConfig = (config: UserConfig) =>
       config,
     ),
   )
+}

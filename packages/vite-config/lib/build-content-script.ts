@@ -2,7 +2,7 @@
 /// <reference path="../tailwind.d.ts" />
 import { readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { IS_DEV } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_DEV } from '@extension/env/const'
 import { makeEntryPointPlugin } from '@extension/hmr/make-entry-point-plugin'
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
@@ -67,7 +67,7 @@ const configsBuilder = ({
           entry,
           fileName: name,
         },
-        outDir: resolve(rootDir, '..', '..', 'dist', contentName),
+        outDir: resolve(rootDir, '..', '..', BUILD_OUT_DIR, contentName),
       },
     }),
   }))
@@ -85,7 +85,7 @@ const builds = async ({
         const folder = resolve(matchesDir, name)
         const args = {
           ['--input']: resolve(folder, 'index.css'),
-          ['--output']: resolve(rootDir, 'dist', name, 'index.css'),
+          ['--output']: resolve(rootDir, BUILD_OUT_DIR, name, 'index.css'),
           ['--config']: resolve(rootDir, 'tailwind.config.ts'),
           ['--watch']: IS_DEV,
         }

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@extension/chrome": "workspace:*",
+    "@extension/env": "workspace:*",
     "@extension/omnibar": "workspace:*",
     "@extension/ui": "workspace:*",
     "@tanstack/react-query": "5.90.7",

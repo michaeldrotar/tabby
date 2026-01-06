@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { env } from '@extension/env/config'
-import { IS_DEV, IS_PROD } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_DEV, IS_PROD } from '@extension/env/const'
 import { watchPublicPlugin } from '@extension/hmr/watch-public-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/watch-rebuild-plugin'
 import { watchOption } from '@extension/vite-config/watch-option'
@@ -12,7 +12,8 @@ import type { PluginOption } from 'vite'
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
 
-const outDir = resolve(rootDir, '..', 'dist')
+const outDir = resolve(rootDir, '..', BUILD_OUT_DIR)
+
 export default defineConfig({
   define: {
     'process.env': env,

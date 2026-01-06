@@ -1,6 +1,7 @@
 import fs from 'fs/promises'
 import { statSync, existsSync, readFileSync } from 'fs'
 import path from 'path'
+import { resolve } from 'path'
 import { spawn } from 'child_process'
 import fg from 'fast-glob'
 import chalk from 'chalk'
@@ -8,6 +9,9 @@ import chalk from 'chalk'
 // ============================================================================
 // CONFIGURATION - Customize colors, defaults, and formatting here
 // ============================================================================
+
+// Folder to use for measuring the build (separate from dev/prod dist folder)
+const MEASURE_DIST_FOLDER = 'dist-zip/measure-dist'
 
 /**
  * Dependency usage overrides
@@ -908,7 +912,9 @@ const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', 
 let spinnerIndex = 0
 const getSpinner = () => SPINNER_FRAMES[spinnerIndex++ % SPINNER_FRAMES.length]
 const showProgress = (msg) =>
-  process.stdout.write(`\r${chalk.cyan(getSpinner())} ${msg}${' '.repeat(20)}`)
+  process.stdout.write(
+    `\r  ${chalk.cyan(getSpinner())} ${msg}${' '.repeat(20)}`,
+  )
 const clearProgress = () => process.stdout.write('\r' + ' '.repeat(100) + '\r')
 
 // ----------------------------------------------------------------------------
@@ -2262,60 +2268,52 @@ const printFooter = () => {
 }
 
 const collectAllData = async ({ versionsBack }) => {
-  // Ensure we have sourcemaps
-  const existingMaps = await fg(['dist/**/*.map'], { onlyFiles: true })
-  if (!existingMaps.length) {
+  // Clean the measure dist folder if it exists
+  showProgress(`Cleaning ${MEASURE_DIST_FOLDER} folder...`)
+  try {
+    await fs.rm(MEASURE_DIST_FOLDER, { recursive: true, force: true })
+    clearProgress()
+    console.log(colors.success(`  ✓ Cleaned ${MEASURE_DIST_FOLDER} folder`))
+  } catch (_e) {
+    clearProgress()
     console.log(
-      colors.warning('! No sourcemaps found - generating them now...\n'),
+      colors.warning(
+        `  ! Warning: failed to clean ${MEASURE_DIST_FOLDER} folder`,
+      ),
     )
-
-    // Clean dist folder first
-    showProgress('Cleaning dist folder...')
-    try {
-      await runCmd('pnpm', ['clean:bundle'], {})
-      clearProgress()
-      console.log(colors.success('  ✓ Cleaned dist folder'))
-    } catch (_e) {
-      clearProgress()
-      console.log(colors.warning('  ! Warning: failed to clean dist folder'))
-    }
-
-    // Build all pages with sourcemaps
-    showProgress('Building all pages with sourcemaps...')
-    try {
-      await runCmd('turbo', ['build'], {
-        env: { ...process.env, CLI_CEB_SOURCEMAPS: 'true' },
-      })
-      clearProgress()
-      console.log(colors.success('  ✓ Built all pages'))
-    } catch (_e) {
-      clearProgress()
-      console.log(
-        colors.error('  × turbo build failed - sourcemap analysis unavailable'),
-      )
-    }
-    clearProgress()
-
-    // Check sourcemaps
-    showProgress('Checking for generated sourcemaps...')
-    const mapsAfter = await fg(['dist/**/*.map'], { onlyFiles: true })
-    clearProgress()
-    if (!mapsAfter.length) {
-      console.log(
-        colors.error(
-          '  × No sourcemaps produced. Run builds with CLI_CEB_SOURCEMAPS=true manually.',
-        ),
-      )
-    } else {
-      console.log(colors.success('  ✓ Sourcemaps generated successfully'))
-    }
-  } else {
-    console.log(colors.success('  ✓ Found existing sourcemaps'))
   }
+
+  // Build all pages with sourcemaps to the measure dist folder
+  showProgress(
+    `Building all pages with sourcemaps to ${MEASURE_DIST_FOLDER}...`,
+  )
+  try {
+    const output = await runCmd(
+      'pnpm',
+      ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
+      {
+        env: {
+          ...process.env,
+          CLI_CEB_SOURCEMAPS: 'true',
+          CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER,
+        },
+      },
+    )
+    clearProgress()
+    console.log(colors.success('  ✓ Built all pages'))
+  } catch (_e) {
+    clearProgress()
+    console.log(
+      colors.error('  × turbo build failed - sourcemap analysis unavailable'),
+    )
+  }
+  clearProgress()
 
   // Analyze sourcemaps
   showProgress('Analyzing sourcemaps...')
-  const jsFiles = await fg(['dist/**/*.js'], { onlyFiles: true })
+  const jsFiles = await fg([`${MEASURE_DIST_FOLDER}/**/*.js`], {
+    onlyFiles: true,
+  })
   const { deps, own, totalMapped } = await analyzeSourcemaps(jsFiles)
   clearProgress()
   console.log(colors.success('  ✓ Sourcemap analysis complete'))
@@ -2330,7 +2328,9 @@ const collectAllData = async ({ versionsBack }) => {
   showProgress('Creating tabby-dist.zip...')
   let zipCreated = false
   try {
-    await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'])
+    await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'], {
+      env: { ...process.env, CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER },
+    })
     clearProgress()
     console.log(colors.success('  ✓ Created tabby-dist.zip'))
     zipCreated = true

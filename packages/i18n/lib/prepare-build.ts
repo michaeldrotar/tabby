@@ -1,13 +1,20 @@
 import { cpSync, existsSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { IS_DEV } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_DEV } from '@extension/env/const'
 import setRelatedLocaleImports from './set-related-locale-import.js'
 
 const runPrepareBuild = () => {
   const i18nPath = IS_DEV ? 'lib/i18n-dev.ts' : 'lib/i18n-prod.ts'
   cpSync(i18nPath, resolve('lib', 'i18n.ts'))
 
-  const outDir = resolve(import.meta.dirname, '..', '..', '..', '..', 'dist')
+  const outDir = resolve(
+    import.meta.dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    BUILD_OUT_DIR,
+  )
   if (!existsSync(outDir)) {
     mkdirSync(outDir)
   }
