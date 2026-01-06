@@ -7,7 +7,7 @@ import {
   createMockWindow,
   installChromeMock,
   resetChromeMock,
-} from '../../../../tests/mocks/chrome'
+} from '../mocks/chrome'
 import { useWindowActions } from './useWindowActions'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'

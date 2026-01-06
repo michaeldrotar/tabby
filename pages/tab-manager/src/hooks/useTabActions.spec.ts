@@ -6,7 +6,7 @@ import {
   createMockTab,
   installChromeMock,
   resetChromeMock,
-} from '../../../../tests/mocks/chrome'
+} from '../mocks/chrome'
 import { useTabActions } from './useTabActions'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 

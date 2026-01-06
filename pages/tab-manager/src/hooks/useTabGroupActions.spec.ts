@@ -7,7 +7,7 @@ import {
   createMockTabGroup,
   installChromeMock,
   resetChromeMock,
-} from '../../../../tests/mocks/chrome'
+} from '../mocks/chrome'
 import { useTabGroupActions } from './useTabGroupActions'
 import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 
