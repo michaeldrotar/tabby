@@ -2294,6 +2294,7 @@ const collectAllData = async ({ versionsBack }) => {
       {
         env: {
           ...process.env,
+          CLI_CEB_DEV: 'false',
           CLI_CEB_SOURCEMAPS: 'true',
           CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER,
         },
