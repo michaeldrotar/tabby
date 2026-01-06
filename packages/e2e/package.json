@@ -13,8 +13,6 @@
     "clean": "pnpm clean:turbo && pnpm clean:node_modules"
   },
   "devDependencies": {
-    "@extension/env": "workspace:*",
-    "@extension/tsconfig": "workspace:*",
     "@playwright/test": "^1.57.0"
   }
 }
