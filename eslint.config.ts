@@ -177,7 +177,7 @@ export default defineConfig([
   },
   // Playwright E2E tests - disable React hooks rules since `use` is a Playwright function
   {
-    files: ['tests/e2e/**/*.ts'],
+    files: ['packages/e2e/**/*.ts'],
     rules: {
       'react-hooks/rules-of-hooks': 'off',
     },
