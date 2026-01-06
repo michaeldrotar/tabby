@@ -1,15 +1,15 @@
-import { tt } from '@extension/i18n/plurals'
 import { forwardRef, memo } from 'react'
-import { Favicon } from '../../Favicon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'
 import { cn } from '../../utils/cn'
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 
 export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   id: number
   title: string
-  activeTabUrl?: string
-  tabCount: number
+  /** Icon/image to display (e.g., favicon component) */
+  icon?: ReactNode
+  /** Subtitle text (e.g., "8 tabs") */
+  subtitle: string
   /** Whether this is the current browser window */
   isActive: boolean
   /** Whether this window's tabs are displayed in the tab pane */
@@ -30,8 +30,8 @@ export const WindowRailItem = memo(
       {
         id,
         title,
-        activeTabUrl,
-        tabCount,
+        icon,
+        subtitle,
         isActive,
         isViewing,
         isExpanded,
@@ -131,11 +131,7 @@ export const WindowRailItem = memo(
                 flex h-8 w-8 flex-shrink-0 items-center justify-center
               `}
             >
-              {activeTabUrl ? (
-                <Favicon pageUrl={activeTabUrl} size={24} />
-              ) : (
-                <div className="h-4 w-4 rounded-full bg-muted/40" />
-              )}
+              {icon || <div className="h-4 w-4 rounded-full bg-muted/40" />}
             </div>
 
             {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
@@ -151,7 +147,7 @@ export const WindowRailItem = memo(
                     isViewing ? 'text-foreground/70' : 'text-muted',
                   )}
                 >
-                  {tt('nTabs', tabCount)}
+                  {subtitle}
                 </span>
               </div>
             </div>
@@ -166,9 +162,7 @@ export const WindowRailItem = memo(
           <TooltipTrigger asChild>{button}</TooltipTrigger>
           <TooltipContent side="right">
             <div>{title}</div>
-            <div className="text-xs text-tooltip-foreground/50">
-              {tt('nTabs', tabCount)}
-            </div>
+            <div className="text-xs text-tooltip-foreground/50">{subtitle}</div>
           </TooltipContent>
         </Tooltip>
       )

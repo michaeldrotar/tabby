@@ -2,9 +2,11 @@ import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsBy
 import { createBrowserWindow } from '@extension/chrome/window/createBrowserWindow'
 import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { tt } from '@extension/i18n/plurals'
 import { usePreferenceStorage } from '@extension/shared/hooks/preference'
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { WindowContextMenu } from '@extension/ui/context-menu/WindowContextMenu'
+import { Favicon } from '@extension/ui/Favicon'
 import {
   PlusIcon,
   ScrollToActiveIcon,
@@ -77,8 +79,12 @@ const WindowItemContainer = ({
       <WindowRailItem
         id={window.id}
         title={title}
-        activeTabUrl={displayTabUrl}
-        tabCount={tabs.length}
+        icon={
+          displayTabUrl ? (
+            <Favicon pageUrl={displayTabUrl} size={24} />
+          ) : undefined
+        }
+        subtitle={tt('nTabs', tabs.length)}
         isActive={isCurrent}
         isViewing={isViewing}
         isExpanded={isExpanded}
