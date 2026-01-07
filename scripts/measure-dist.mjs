@@ -1055,21 +1055,21 @@ const buildZipVersionData = (zipContents, versionsBack) => {
     })
   })
 
-  // If a tabby-dist (working) zip exists, ensure it's included and shown first
-  const tabbyDistIdx = sortedVersions.findIndex((ver) =>
-    String(ver).startsWith('tabby-dist'),
+  // If a measure-dist (working) zip exists, ensure it's included and shown first
+  const measureDistIdx = sortedVersions.findIndex((ver) =>
+    String(ver).startsWith('measure-dist'),
   )
   let versions = []
-  if (tabbyDistIdx !== -1) {
-    const [tabbyDist] = sortedVersions.splice(tabbyDistIdx, 1)
-    versions = [tabbyDist, ...sortedVersions.slice(0, versionsBack)]
+  if (measureDistIdx !== -1) {
+    const [measureDist] = sortedVersions.splice(measureDistIdx, 1)
+    versions = [measureDist, ...sortedVersions.slice(0, versionsBack)]
   } else {
     versions = sortedVersions.slice(0, versionsBack)
   }
 
-  // Find the tabby-dist version (current working version)
-  const tabbyDistVersion = versions.find((ver) =>
-    String(ver).startsWith('tabby-dist'),
+  // Find the measure-dist version (current working version)
+  const measureDistVersion = versions.find((ver) =>
+    String(ver).startsWith('measure-dist'),
   )
 
   // Build the union of all asset names from selected versions
@@ -1082,11 +1082,11 @@ const buildZipVersionData = (zipContents, versionsBack) => {
   for (const name of allNames) {
     let recentSize = 0
     if (
-      tabbyDistVersion &&
-      zipEntriesMap[tabbyDistVersion] &&
-      zipEntriesMap[tabbyDistVersion][name] != null
+      measureDistVersion &&
+      zipEntriesMap[measureDistVersion] &&
+      zipEntriesMap[measureDistVersion][name] != null
     ) {
-      recentSize = zipEntriesMap[tabbyDistVersion][name]
+      recentSize = zipEntriesMap[measureDistVersion][name]
     } else {
       for (const ver of versions) {
         if (zipEntriesMap[ver] && zipEntriesMap[ver][name] != null) {
@@ -1098,15 +1098,15 @@ const buildZipVersionData = (zipContents, versionsBack) => {
   }
   nameMeta.sort((a, b) => b.recentSize - a.recentSize)
 
-  // Display versions (exclude tabby-dist since we show it as "Current")
+  // Display versions (exclude measure-dist since we show it as "Current")
   const displayVersions = versions.filter(
-    (ver) => !String(ver).startsWith('tabby-dist'),
+    (ver) => !String(ver).startsWith('measure-dist'),
   )
 
   return {
     versions,
     displayVersions,
-    tabbyDistVersion,
+    measureDistVersion,
     zipIndex,
     zipEntriesMap,
     nameMeta,
@@ -1126,9 +1126,9 @@ const calculateBundleTotals = (deps, own, totalMapped) => {
   }
 }
 
-const calculateCurrentVersionStats = (tabbyDistVersion, zipContents) => {
-  const currentEntries = tabbyDistVersion
-    ? zipContents.find((zc) => zc.zip.includes('tabby-dist'))?.entries || []
+const calculateCurrentVersionStats = (measureDistVersion, zipContents) => {
+  const currentEntries = measureDistVersion
+    ? zipContents.find((zc) => zc.zip.includes('measure-dist'))?.entries || []
     : []
   return {
     currentEntries,
@@ -1192,6 +1192,11 @@ async function listZipContents() {
 
 async function analyzeSourcemaps(jsFiles) {
   // For each js file with a sourcemap, parse the .map file (prefer embedded sourcesContent, otherwise estimate via on-disk files)
+  // IMPORTANT: This analyzes ORIGINAL SOURCE SIZE (pre-bundling) from sourcemaps.
+  // The dependency sizes shown will be LARGER than the actual bundled output because:
+  // - Dependencies are minified/bundled/tree-shaken
+  // - This traces back to original unprocessed source files
+  // - Example: 4MB of dependencies may bundle down to 2MB in the final output
   const perPackage = new Map()
   const perOwn = new Map()
   let totalMapped = 0
@@ -1479,7 +1484,7 @@ const printBundleOverview = (results) => {
     displayVersions,
     zipIndex,
     zipEntriesMap,
-    tabbyDistVersion,
+    measureDistVersion,
     currentUncompressed,
     currentZipped,
     currentFileCount,
@@ -1522,7 +1527,7 @@ const printBundleOverview = (results) => {
 
   // Current size with version comparison
   const currentVersion = versions.find((ver) =>
-    String(ver).startsWith('tabby-dist'),
+    String(ver).startsWith('measure-dist'),
   )
     ? 'Current'
     : versions[0]
@@ -1618,6 +1623,8 @@ const printBundleOverview = (results) => {
   }
 
   // Deps vs Own with bars
+  // NOTE: These sizes represent ORIGINAL SOURCE sizes from sourcemaps (pre-bundling).
+  // They will be larger than the actual bundled output shown in "Uncompressed" size.
   console.log(
     '\n' + colors.muted(chars.lines.v) + ' ' + chalk.bold('Code Composition:'),
   )
@@ -1708,9 +1715,10 @@ const printSourceFiles = (results, topLimit) => {
 }
 
 const printFileBreakdown = (results) => {
-  const { tabbyDistVersion, zipEntriesMap, allNames, displayVersions } = results
+  const { measureDistVersion, zipEntriesMap, allNames, displayVersions } =
+    results
 
-  if (!tabbyDistVersion || !zipEntriesMap[tabbyDistVersion]) return
+  if (!measureDistVersion || !zipEntriesMap[measureDistVersion]) return
 
   console.log(sectionHeader('File Breakdown'))
 
@@ -1719,15 +1727,17 @@ const printFileBreakdown = (results) => {
 
   // Calculate totals
   for (const name of allNames) {
-    if (zipEntriesMap[tabbyDistVersion]?.[name] != null) {
-      totalsByVersion.dist += zipEntriesMap[tabbyDistVersion][name]
+    if (zipEntriesMap[measureDistVersion]?.[name] != null) {
+      totalsByVersion.dist += zipEntriesMap[measureDistVersion][name]
     }
   }
 
   const pageBreakdown = new Map()
   const packageBreakdown = new Map()
 
-  for (const [name, size] of Object.entries(zipEntriesMap[tabbyDistVersion])) {
+  for (const [name, size] of Object.entries(
+    zipEntriesMap[measureDistVersion],
+  )) {
     // Determine page (first path segment)
     const parts = name.split('/')
     if (parts.length > 1) {
@@ -2134,7 +2144,7 @@ const printAssetDetails = (results) => {
     zipIndex,
     zipEntriesMap,
     nameMeta,
-    tabbyDistVersion,
+    measureDistVersion,
   } = results
 
   console.log(sectionHeader('Asset Details'))
@@ -2191,8 +2201,8 @@ const printAssetDetails = (results) => {
     }
 
     let distBytes = 0
-    if (zipEntriesMap[tabbyDistVersion]?.[name] != null) {
-      distBytes = zipEntriesMap[tabbyDistVersion][name]
+    if (zipEntriesMap[measureDistVersion]?.[name] != null) {
+      distBytes = zipEntriesMap[measureDistVersion][name]
       totalsByVersion.dist += distBytes
     }
 
@@ -2244,8 +2254,8 @@ const printAssetDetails = (results) => {
     ].join(gap),
   )
 
-  const distZippedSize = tabbyDistVersion
-    ? zipIndex[tabbyDistVersion].actualBytes
+  const distZippedSize = measureDistVersion
+    ? zipIndex[measureDistVersion].actualBytes
     : 0
   console.log(
     [
@@ -2326,21 +2336,21 @@ const collectAllData = async ({ versionsBack }) => {
   // Detect duplicate bundled dependencies
   const actualDuplicates = detectDuplicateBundledDeps(deps)
 
-  // Create tabby-dist.zip
-  showProgress('Creating tabby-dist.zip...')
+  // Create measure-dist.zip
+  showProgress('Creating measure-dist.zip...')
   let zipCreated = false
   try {
-    await runCmd('pnpm', ['zip', '--', '-f', 'tabby-dist.zip'], {
+    await runCmd('pnpm', ['zip', '--', '-f', 'measure-dist.zip'], {
       env: { ...process.env, CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER },
     })
     clearProgress()
-    console.log(colors.success('  ✓ Created tabby-dist.zip'))
+    console.log(colors.success('  ✓ Created measure-dist.zip'))
     zipCreated = true
   } catch (err) {
     clearProgress()
     console.log(
       colors.warning(
-        `  ⚠ Failed to create tabby-dist.zip: ${String(err.message || err)}`,
+        `  ⚠ Failed to create measure-dist.zip: ${String(err.message || err)}`,
       ),
     )
     console.log(colors.muted('  (Continuing with dependency analysis...)'))
@@ -2359,7 +2369,7 @@ const collectAllData = async ({ versionsBack }) => {
     zipEntriesMap,
     allNames,
     nameMeta,
-    tabbyDistVersion,
+    measureDistVersion,
   } = buildZipVersionData(zipContents, versionsBack)
 
   // Collect workspace packages
@@ -2385,15 +2395,15 @@ const collectAllData = async ({ versionsBack }) => {
   // Calculate derived values
   const totalSize = depsBytes + ownBytes
   const displayVersions = versions.filter(
-    (ver) => !String(ver).startsWith('tabby-dist'),
+    (ver) => !String(ver).startsWith('measure-dist'),
   )
   const { currentUncompressed, currentZipped } = calculateCurrentVersionStats(
-    tabbyDistVersion,
+    measureDistVersion,
     zipContents,
   )
   const sizeCategory = calculateSizeCategory(currentZipped)
-  const currentFileCount = tabbyDistVersion
-    ? Object.keys(zipEntriesMap[tabbyDistVersion] || {}).length
+  const currentFileCount = measureDistVersion
+    ? Object.keys(zipEntriesMap[measureDistVersion] || {}).length
     : 0
 
   return {
@@ -2415,7 +2425,7 @@ const collectAllData = async ({ versionsBack }) => {
     zipEntriesMap,
     allNames,
     nameMeta,
-    tabbyDistVersion,
+    measureDistVersion,
     zipCreated,
 
     // Current version stats
