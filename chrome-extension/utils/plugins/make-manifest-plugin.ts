@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { platform } from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { ManifestParserImpl as ManifestParser } from '@extension/dev-utils/ManifestParser'
-import { IS_DEV, IS_FIREFOX } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_DEV, IS_FIREFOX } from '@extension/env/const'
 import { colorfulLog } from '@extension/shared/utils/colorful-logger'
 import type { ManifestType } from '@extension/shared/utils/types'
 import type { PluginOption } from 'vite'
@@ -16,7 +16,7 @@ const refreshFilePath = resolve(
   '..',
   'packages',
   'hmr',
-  'dist',
+  BUILD_OUT_DIR,
   'lib',
   'injections',
   'refresh.js',

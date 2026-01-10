@@ -226,10 +226,11 @@ importers:
         version: link:../tsconfig
 
   packages/hmr:
-    devDependencies:
+    dependencies:
       '@extension/env':
         specifier: workspace:*
         version: link:../env
+    devDependencies:
       '@extension/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig

@@ -35,8 +35,10 @@
     "dev": "tsx lib/initializers/init-reload-server.ts",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "@extension/env": "workspace:*"
+  },
   "devDependencies": {
-    "@extension/env": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@rollup/plugin-sucrase": "^5.0.2",
     "@types/ws": "^8.18.1",

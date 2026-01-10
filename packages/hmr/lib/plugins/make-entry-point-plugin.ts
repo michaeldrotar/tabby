@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, resolve, sep } from 'node:path'
-import { IS_FIREFOX } from '@extension/env/const'
+import { BUILD_OUT_DIR, IS_FIREFOX } from '@extension/env/const'
 import type { PluginOption } from 'vite'
 
 /**
@@ -9,7 +9,7 @@ import type { PluginOption } from 'vite'
  */
 const extractContentDir = (outputDir: string) => {
   const parts = outputDir.split(sep)
-  const distIndex = parts.indexOf('dist')
+  const distIndex = parts.indexOf(BUILD_OUT_DIR)
 
   if (distIndex !== -1 && distIndex < parts.length - 1) {
     return parts.slice(distIndex + 1)
