@@ -2,11 +2,13 @@
 /// <reference path="../tailwind.d.ts" />
 import { readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { BUILD_OUT_DIR, IS_DEV } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
 import { makeEntryPointPlugin } from '@extension/hmr/make-entry-point-plugin'
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
 import { withPageConfig } from './with-page-config.js'
+
+const ENV = getEnv()
 
 interface IContentBuilderProps {
   matchesDir: string
@@ -52,14 +54,14 @@ const configsBuilder = ({
   Object.entries(getContentScriptEntries(matchesDir)).map(([name, entry]) => ({
     name,
     config: withPageConfig({
-      mode: IS_DEV ? 'development' : undefined,
+      mode: ENV['IS_DEV'] ? 'development' : undefined,
       resolve: {
         alias: {
           '@src': srcDir,
         },
       },
       publicDir: resolve(rootDir, 'public'),
-      plugins: [IS_DEV && makeEntryPointPlugin()],
+      plugins: [ENV['IS_DEV'] && makeEntryPointPlugin()],
       build: {
         lib: {
           name: name,
@@ -67,7 +69,7 @@ const configsBuilder = ({
           entry,
           fileName: name,
         },
-        outDir: resolve(rootDir, '..', '..', BUILD_OUT_DIR, contentName),
+        outDir: resolve(rootDir, '..', '..', ENV['BUILD_OUT_DIR'], contentName),
       },
     }),
   }))
@@ -85,9 +87,14 @@ const builds = async ({
         const folder = resolve(matchesDir, name)
         const args = {
           ['--input']: resolve(folder, 'index.css'),
-          ['--output']: resolve(rootDir, BUILD_OUT_DIR, name, 'index.css'),
+          ['--output']: resolve(
+            rootDir,
+            ENV['BUILD_OUT_DIR'],
+            name,
+            'index.css',
+          ),
           ['--config']: resolve(rootDir, 'tailwind.config.ts'),
-          ['--watch']: IS_DEV,
+          ['--watch']: ENV['IS_DEV'],
         }
 
         await buildTW(args)

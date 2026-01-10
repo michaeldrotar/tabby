@@ -3,10 +3,12 @@ import { resolve } from 'node:path'
 import { platform } from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { ManifestParserImpl as ManifestParser } from '@extension/dev-utils/ManifestParser'
-import { BUILD_OUT_DIR, IS_DEV, IS_FIREFOX } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
 import { colorfulLog } from '@extension/shared/utils/colorful-logger'
 import type { ManifestType } from '@extension/shared/utils/types'
 import type { PluginOption } from 'vite'
+
+const ENV = getEnv()
 
 const manifestFile = resolve(import.meta.dirname, '..', '..', 'manifest.js')
 const refreshFilePath = resolve(
@@ -16,7 +18,7 @@ const refreshFilePath = resolve(
   '..',
   'packages',
   'hmr',
-  BUILD_OUT_DIR,
+  ENV['BUILD_OUT_DIR'],
   'lib',
   'injections',
   'refresh.js',
@@ -56,18 +58,18 @@ export default (config: { outDir: string }): PluginOption => {
 
     const manifestPath = resolve(to, 'manifest.json')
 
-    if (IS_DEV) {
+    if (ENV['IS_DEV']) {
       addRefreshContentScript(manifest)
     }
 
     writeFileSync(
       manifestPath,
-      ManifestParser.convertManifestToString(manifest, IS_FIREFOX),
+      ManifestParser.convertManifestToString(manifest, ENV['IS_FIREFOX']),
     )
 
     const refreshFileString = readFileSync(refreshFilePath, 'utf-8')
 
-    if (IS_DEV) {
+    if (ENV['IS_DEV']) {
       writeFileSync(resolve(to, 'refresh.js'), withHMRId(refreshFileString))
     }
 

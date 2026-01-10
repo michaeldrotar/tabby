@@ -4,7 +4,9 @@ import {
   getProfilerSummary,
   logProfilerSummary,
 } from '@extension/dev-utils/Profiler'
-import { IS_DEV } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
+
+const ENV = getEnv()
 
 /**
  * Exposes profiler utilities to the browser console in development mode.
@@ -36,7 +38,7 @@ declare global {
 }
 
 export const initDevProfiler = () => {
-  if (!IS_DEV) return
+  if (!ENV['IS_DEV']) return
 
   window.tabbyProfiler = {
     summary: logProfilerSummary,

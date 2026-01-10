@@ -1,7 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { BUILD_OUT_DIR, IS_FIREFOX } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
 import { zipBundle } from './lib/zip-bundle.js'
+
+const ENV = getEnv()
 
 const packageJsonPath = resolve(
   import.meta.dirname,
@@ -13,7 +15,7 @@ const packageJsonPath = resolve(
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
 const version = packageJson.version
 const fileName = `tabby-${version}`
-const archiveName = IS_FIREFOX ? `${fileName}.xpi` : `${fileName}.zip`
+const archiveName = ENV['IS_FIREFOX'] ? `${fileName}.xpi` : `${fileName}.zip`
 const buildDirectory = resolve(
   import.meta.dirname,
   '..',
@@ -40,7 +42,7 @@ let finalArchiveName = archiveName
 if (providedName) {
   // If providedName has no extension, append .zip or .xpi based on target
   if (!/\.(zip|xpi)$/i.test(providedName)) {
-    finalArchiveName = IS_FIREFOX
+    finalArchiveName = ENV['IS_FIREFOX']
       ? `${providedName}.xpi`
       : `${providedName}.zip`
   } else {
@@ -69,7 +71,13 @@ if (existsSync(finalArchivePath)) {
 }
 
 await zipBundle({
-  distDirectory: resolve(import.meta.dirname, '..', '..', '..', BUILD_OUT_DIR),
+  distDirectory: resolve(
+    import.meta.dirname,
+    '..',
+    '..',
+    '..',
+    ENV['BUILD_OUT_DIR'],
+  ),
   buildDirectory,
   archiveName: finalArchiveName,
 })

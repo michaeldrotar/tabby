@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { env } from '@extension/env/config'
-import { BUILD_OUT_DIR, IS_DEV, IS_PROD } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
 import { watchPublicPlugin } from '@extension/hmr/watch-public-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/watch-rebuild-plugin'
 import { watchOption } from '@extension/vite-config/watch-option'
@@ -9,10 +9,12 @@ import { defineConfig } from 'vite'
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin.js'
 import type { PluginOption } from 'vite'
 
+const ENV = getEnv()
+
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
 
-const outDir = resolve(rootDir, '..', BUILD_OUT_DIR)
+const outDir = resolve(rootDir, '..', ENV['BUILD_OUT_DIR'])
 
 export default defineConfig({
   define: {
@@ -31,7 +33,8 @@ export default defineConfig({
     }) as PluginOption,
     watchPublicPlugin(),
     makeManifestPlugin({ outDir }),
-    IS_DEV && watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }),
+    ENV['IS_DEV'] &&
+      watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }),
   ],
   publicDir: resolve(rootDir, 'public'),
   build: {
@@ -43,9 +46,9 @@ export default defineConfig({
     },
     outDir,
     emptyOutDir: false,
-    sourcemap: IS_DEV,
-    minify: IS_PROD,
-    reportCompressedSize: IS_PROD,
+    sourcemap: ENV['IS_DEV'],
+    minify: ENV['IS_PROD'],
+    reportCompressedSize: ENV['IS_PROD'],
     watch: watchOption,
     rollupOptions: {
       external: ['chrome'],

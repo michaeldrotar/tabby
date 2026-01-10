@@ -1,6 +1,8 @@
-import { IS_DEV } from '@extension/env/const'
+import { getEnv } from '@extension/env/getEnv'
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
+
+const ENV = getEnv()
 
 type ProfilerLogEntry = {
   id: string
@@ -51,14 +53,15 @@ type ProfilerProps = {
  * Uses performance.now() to measure render time since React's Profiler API
  * doesn't work with production React builds (used by @vitejs/plugin-react-swc).
  *
- * Pass `enabled={IS_DEV}` from the consuming page to ensure the check happens
+ * Pass `enabled={ENV['IS_DEV']}` from the consuming page to ensure the check happens
  * at Vite bundle time, not at package build time.
  *
  * @example
  * ```tsx
- * import { IS_DEV } from '@extension/env/const'
+ * import { getEnv } from '@extension/env/getEnv'
+ * const ENV = getEnv()
  *
- * <Profiler id="TabManager" enabled={IS_DEV}>
+ * <Profiler id="TabManager" enabled={ENV['IS_DEV']}>
  *   <TabManagerContent />
  * </Profiler>
  * ```
@@ -66,7 +69,7 @@ type ProfilerProps = {
 export const Profiler = ({ id, children }: ProfilerProps) => {
   const renderStartRef = useRef<number>(0)
   const isMountedRef = useRef(false)
-  const enabled = IS_DEV
+  const enabled = ENV['IS_DEV']
 
   // Capture start time at beginning of render
   if (enabled) {
