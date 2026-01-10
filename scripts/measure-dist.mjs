@@ -2296,10 +2296,15 @@ const collectAllData = async ({ versionsBack }) => {
     console.log(colors.warning('  ! Warning: failed to clean measure dist'))
   }
 
-  // Start parallel builds and workspace analysis
-  showProgress('Building and analyzing workspace...')
+  // Start workspace analysis in parallel with builds
+  showProgress('Analyzing workspace...')
+  const workspacePackages = await collectWorkspacePackages()
+  clearProgress()
+  console.log(colors.success('  ✓ Workspace dependencies analyzed'))
 
-  const sourcemapsBuildPromise = runCmd(
+  // Build with sourcemaps first
+  showProgress('Building with sourcemaps...')
+  const sourcemapsResult = await runCmd(
     'pnpm',
     ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
     {
@@ -2311,13 +2316,19 @@ const collectAllData = async ({ versionsBack }) => {
       },
     },
   ).catch((err) => {
+    clearProgress()
     console.log(
       colors.error('  × Sourcemaps build failed - analysis unavailable'),
     )
     return null
   })
 
-  const prodBuildPromise = runCmd(
+  clearProgress()
+  if (sourcemapsResult) console.log(colors.success('  ✓ Built with sourcemaps'))
+
+  // Build production version second
+  showProgress('Building production version...')
+  const prodResult = await runCmd(
     'pnpm',
     ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
     {
@@ -2329,23 +2340,13 @@ const collectAllData = async ({ versionsBack }) => {
       },
     },
   ).catch((err) => {
+    clearProgress()
     console.log(colors.error('  × Production build failed'))
     return null
   })
 
-  const workspacePackagesPromise = collectWorkspacePackages()
-
-  // Wait for all parallel operations
-  const [sourcemapsResult, prodResult, workspacePackages] = await Promise.all([
-    sourcemapsBuildPromise,
-    prodBuildPromise,
-    workspacePackagesPromise,
-  ])
-
   clearProgress()
-  if (sourcemapsResult) console.log(colors.success('  ✓ Built with sourcemaps'))
   if (prodResult) console.log(colors.success('  ✓ Built production version'))
-  console.log(colors.success('  ✓ Workspace dependencies analyzed'))
 
   // Analyze sourcemaps (depends on sourcemaps build)
   showProgress('Analyzing sourcemaps...')
