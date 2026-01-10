@@ -10,8 +10,10 @@ import chalk from 'chalk'
 // CONFIGURATION - Customize colors, defaults, and formatting here
 // ============================================================================
 
-// Folder to use for measuring the build (separate from dev/prod dist folder)
-const MEASURE_DIST_FOLDER = 'dist-zip/measure-dist'
+// Folders to use for measuring the build (separate from dev/prod dist folder)
+const MEASURE_DIST_SOURCEMAPS = 'dist-zip/measure-dist-sourcemaps'
+const MEASURE_DIST_PROD = 'dist-zip/measure-dist-prod'
+const MEASURE_DIST_ZIP_FILENAME = 'measure-dist-prod.zip'
 
 /**
  * Dependency usage overrides
@@ -2279,25 +2281,23 @@ const printFooter = () => {
 }
 
 const collectAllData = async ({ versionsBack }) => {
-  // Clean the measure dist folder if it exists
-  showProgress(`Cleaning ${MEASURE_DIST_FOLDER} folder...`)
+  // Clean folders and files
+  showProgress('Cleaning measure dist...')
   try {
-    await fs.rm(MEASURE_DIST_FOLDER, { recursive: true, force: true })
+    await Promise.all([
+      fs.rm(MEASURE_DIST_SOURCEMAPS, { recursive: true, force: true }),
+      fs.rm(MEASURE_DIST_PROD, { recursive: true, force: true }),
+      fs.rm(`dist-zip/${MEASURE_DIST_ZIP_FILENAME}`, { force: true }),
+    ])
     clearProgress()
-    console.log(colors.success(`  ✓ Cleaned ${MEASURE_DIST_FOLDER} folder`))
+    console.log(colors.success('  ✓ Cleaned measure dist'))
   } catch (_e) {
     clearProgress()
-    console.log(
-      colors.warning(
-        `  ! Warning: failed to clean ${MEASURE_DIST_FOLDER} folder`,
-      ),
-    )
+    console.log(colors.warning('  ! Warning: failed to clean measure dist'))
   }
 
-  // Build all pages with sourcemaps to the measure dist folder
-  showProgress(
-    `Building all pages with sourcemaps to ${MEASURE_DIST_FOLDER}...`,
-  )
+  // Build all pages with sourcemaps to the sourcefiles folder for analysis
+  showProgress(`Building with sourcemaps to ${MEASURE_DIST_SOURCEMAPS}...`)
   try {
     const output = await runCmd(
       'pnpm',
@@ -2307,12 +2307,12 @@ const collectAllData = async ({ versionsBack }) => {
           ...process.env,
           CLI_CEB_DEV: 'false',
           CLI_CEB_SOURCEMAPS: 'true',
-          CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER,
+          CLI_CEB_OUT_DIR: MEASURE_DIST_SOURCEMAPS,
         },
       },
     )
     clearProgress()
-    console.log(colors.success('  ✓ Built all pages'))
+    console.log(colors.success('  ✓ Built with sourcemaps'))
   } catch (_e) {
     clearProgress()
     console.log(
@@ -2323,7 +2323,7 @@ const collectAllData = async ({ versionsBack }) => {
 
   // Analyze sourcemaps
   showProgress('Analyzing sourcemaps...')
-  const jsFiles = await fg([`${MEASURE_DIST_FOLDER}/**/*.js`], {
+  const jsFiles = await fg([`${MEASURE_DIST_SOURCEMAPS}/**/*.js`], {
     onlyFiles: true,
   })
   const { deps, own, totalMapped } = await analyzeSourcemaps(jsFiles)
@@ -2336,13 +2336,43 @@ const collectAllData = async ({ versionsBack }) => {
   // Detect duplicate bundled dependencies
   const actualDuplicates = detectDuplicateBundledDeps(deps)
 
-  // Create measure-dist.zip
-  showProgress('Creating measure-dist.zip...')
+  // Build production version for size comparison
+  showProgress(`Building production version to ${MEASURE_DIST_PROD}...`)
+  try {
+    await runCmd(
+      'pnpm',
+      ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
+      {
+        env: {
+          ...process.env,
+          CLI_CEB_DEV: 'false',
+          CLI_CEB_SOURCEMAPS: 'false',
+          CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
+        },
+      },
+    )
+    clearProgress()
+    console.log(colors.success('  ✓ Built production version'))
+  } catch (_e) {
+    clearProgress()
+    console.log(colors.error('  × Production build failed'))
+  }
+  clearProgress()
+
+  // Create zip from prod build
+  showProgress(`Creating ${MEASURE_DIST_ZIP_FILENAME}...`)
   let zipCreated = false
   try {
-    await runCmd('pnpm', ['zip', '--', '-f', 'measure-dist.zip'], {
-      env: { ...process.env, CLI_CEB_OUT_DIR: MEASURE_DIST_FOLDER },
-    })
+    await runCmd(
+      'pnpm',
+      ['-F', 'zipper', 'zip', '--', '-f', MEASURE_DIST_ZIP_FILENAME],
+      {
+        env: {
+          ...process.env,
+          CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
+        },
+      },
+    )
     clearProgress()
     console.log(colors.success('  ✓ Created measure-dist.zip'))
     zipCreated = true
