@@ -11,7 +11,7 @@ const ENV = getEnv()
  */
 const extractContentDir = (outputDir: string) => {
   const parts = outputDir.split(sep)
-  const distIndex = parts.indexOf(ENV['BUILD_OUT_DIR'])
+  const distIndex = parts.indexOf('dist')
 
   if (distIndex !== -1 && distIndex < parts.length - 1) {
     return parts.slice(distIndex + 1)

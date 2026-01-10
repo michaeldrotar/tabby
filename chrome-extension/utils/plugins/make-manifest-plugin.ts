@@ -18,7 +18,7 @@ const refreshFilePath = resolve(
   '..',
   'packages',
   'hmr',
-  ENV['BUILD_OUT_DIR'],
+  'dist',
   'lib',
   'injections',
   'refresh.js',
