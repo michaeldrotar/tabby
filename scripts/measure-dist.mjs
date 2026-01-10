@@ -2296,32 +2296,58 @@ const collectAllData = async ({ versionsBack }) => {
     console.log(colors.warning('  ! Warning: failed to clean measure dist'))
   }
 
-  // Build all pages with sourcemaps to the sourcefiles folder for analysis
-  showProgress(`Building with sourcemaps to ${MEASURE_DIST_SOURCEMAPS}...`)
-  try {
-    const output = await runCmd(
-      'pnpm',
-      ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
-      {
-        env: {
-          ...process.env,
-          CLI_CEB_DEV: 'false',
-          CLI_CEB_SOURCEMAPS: 'true',
-          CLI_CEB_OUT_DIR: MEASURE_DIST_SOURCEMAPS,
-        },
-      },
-    )
-    clearProgress()
-    console.log(colors.success('  ✓ Built with sourcemaps'))
-  } catch (_e) {
-    clearProgress()
-    console.log(
-      colors.error('  × turbo build failed - sourcemap analysis unavailable'),
-    )
-  }
-  clearProgress()
+  // Start parallel builds and workspace analysis
+  showProgress('Building and analyzing workspace...')
 
-  // Analyze sourcemaps
+  const sourcemapsBuildPromise = runCmd(
+    'pnpm',
+    ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
+    {
+      env: {
+        ...process.env,
+        CLI_CEB_DEV: 'false',
+        CLI_CEB_SOURCEMAPS: 'true',
+        CLI_CEB_OUT_DIR: MEASURE_DIST_SOURCEMAPS,
+      },
+    },
+  ).catch((err) => {
+    console.log(
+      colors.error('  × Sourcemaps build failed - analysis unavailable'),
+    )
+    return null
+  })
+
+  const prodBuildPromise = runCmd(
+    'pnpm',
+    ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
+    {
+      env: {
+        ...process.env,
+        CLI_CEB_DEV: 'false',
+        CLI_CEB_SOURCEMAPS: 'false',
+        CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
+      },
+    },
+  ).catch((err) => {
+    console.log(colors.error('  × Production build failed'))
+    return null
+  })
+
+  const workspacePackagesPromise = collectWorkspacePackages()
+
+  // Wait for all parallel operations
+  const [sourcemapsResult, prodResult, workspacePackages] = await Promise.all([
+    sourcemapsBuildPromise,
+    prodBuildPromise,
+    workspacePackagesPromise,
+  ])
+
+  clearProgress()
+  if (sourcemapsResult) console.log(colors.success('  ✓ Built with sourcemaps'))
+  if (prodResult) console.log(colors.success('  ✓ Built production version'))
+  console.log(colors.success('  ✓ Workspace dependencies analyzed'))
+
+  // Analyze sourcemaps (depends on sourcemaps build)
   showProgress('Analyzing sourcemaps...')
   const jsFiles = await fg([`${MEASURE_DIST_SOURCEMAPS}/**/*.js`], {
     onlyFiles: true,
@@ -2336,54 +2362,36 @@ const collectAllData = async ({ versionsBack }) => {
   // Detect duplicate bundled dependencies
   const actualDuplicates = detectDuplicateBundledDeps(deps)
 
-  // Build production version for size comparison
-  showProgress(`Building production version to ${MEASURE_DIST_PROD}...`)
-  try {
-    await runCmd(
-      'pnpm',
-      ['exec', 'turbo', 'build', '--force', '--env-mode=loose'],
-      {
-        env: {
-          ...process.env,
-          CLI_CEB_DEV: 'false',
-          CLI_CEB_SOURCEMAPS: 'false',
-          CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
-        },
-      },
-    )
-    clearProgress()
-    console.log(colors.success('  ✓ Built production version'))
-  } catch (_e) {
-    clearProgress()
-    console.log(colors.error('  × Production build failed'))
-  }
-  clearProgress()
-
-  // Create zip from prod build
+  // Create zip from prod build (depends on prod build)
   showProgress(`Creating ${MEASURE_DIST_ZIP_FILENAME}...`)
   let zipCreated = false
-  try {
-    await runCmd(
-      'pnpm',
-      ['-F', 'zipper', 'zip', '--', '-f', MEASURE_DIST_ZIP_FILENAME],
-      {
-        env: {
-          ...process.env,
-          CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
+  if (prodResult) {
+    try {
+      await runCmd(
+        'pnpm',
+        ['-F', 'zipper', 'zip', '--', '-f', MEASURE_DIST_ZIP_FILENAME],
+        {
+          env: {
+            ...process.env,
+            CLI_CEB_OUT_DIR: MEASURE_DIST_PROD,
+          },
         },
-      },
-    )
+      )
+      clearProgress()
+      console.log(colors.success('  ✓ Created measure-dist.zip'))
+      zipCreated = true
+    } catch (err) {
+      clearProgress()
+      console.log(
+        colors.warning(
+          `  ⚠ Failed to create measure-dist.zip: ${String(err.message || err)}`,
+        ),
+      )
+      console.log(colors.muted('  (Continuing with dependency analysis...)'))
+    }
+  } else {
     clearProgress()
-    console.log(colors.success('  ✓ Created measure-dist.zip'))
-    zipCreated = true
-  } catch (err) {
-    clearProgress()
-    console.log(
-      colors.warning(
-        `  ⚠ Failed to create measure-dist.zip: ${String(err.message || err)}`,
-      ),
-    )
-    console.log(colors.muted('  (Continuing with dependency analysis...)'))
+    console.log(colors.warning('  ⚠ Skipping zip creation (prod build failed)'))
   }
 
   // Read zip contents
@@ -2401,12 +2409,6 @@ const collectAllData = async ({ versionsBack }) => {
     nameMeta,
     measureDistVersion,
   } = buildZipVersionData(zipContents, versionsBack)
-
-  // Collect workspace packages
-  showProgress('Analyzing workspace dependencies...')
-  const workspacePackages = await collectWorkspacePackages()
-  clearProgress()
-  console.log(colors.success('  ✓ Workspace dependencies analyzed'))
 
   // Analyze imports
   const { issues, cssImports, actualImports, actualNpmImports } =
