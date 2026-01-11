@@ -1,4 +1,4 @@
-import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import type { OmnibarSearchResult } from '@extension/ui'
 
 /**
  * Searches recently closed tabs/windows and returns matching results.

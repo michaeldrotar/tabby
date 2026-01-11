@@ -1,9 +1,9 @@
-import { t } from '@extension/i18n/t'
-
 export const ErrorResetButton = ({
   resetErrorBoundary,
+  label,
 }: {
   resetErrorBoundary?: () => void
+  label: string
 }) => (
   <div className="flex items-center justify-center">
     <button
@@ -16,7 +16,7 @@ export const ErrorResetButton = ({
         focus-visible:ring-red-500 focus-visible:ring-offset-2
       `}
     >
-      {t('displayErrorReset')}
+      {label}
     </button>
   </div>
 )

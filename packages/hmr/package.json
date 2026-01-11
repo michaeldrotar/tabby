@@ -9,21 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    "./make-entry-point-plugin": {
-      "types": "./lib/plugins/make-entry-point-plugin.ts",
-      "default": "./dist/lib/plugins/make-entry-point-plugin.js"
-    },
-    "./watch-i18n-plugin": {
-      "types": "./lib/plugins/watch-i18n-plugin.ts",
-      "default": "./dist/lib/plugins/watch-i18n-plugin.js"
-    },
-    "./watch-public-plugin": {
-      "types": "./lib/plugins/watch-public-plugin.ts",
-      "default": "./dist/lib/plugins/watch-public-plugin.js"
-    },
-    "./watch-rebuild-plugin": {
-      "types": "./lib/plugins/watch-rebuild-plugin.ts",
-      "default": "./dist/lib/plugins/watch-rebuild-plugin.js"
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {

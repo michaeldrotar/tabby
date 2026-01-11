@@ -259,6 +259,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@extension/env':
+        specifier: workspace:*
+        version: link:../env
       react-error-boundary:
         specifier: ^6.0.0
         version: 6.0.0(react@19.2.3)
@@ -317,18 +320,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@extension/chrome':
-        specifier: workspace:*
-        version: link:../chrome
-      '@extension/env':
-        specifier: workspace:*
-        version: link:../env
-      '@extension/i18n':
-        specifier: workspace:*
-        version: link:../i18n
-      '@extension/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@radix-ui/react-context-menu':
         specifier: ^2.2.16
         version: 2.2.16(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -363,6 +354,9 @@ importers:
         specifier: ^3.4.0
         version: 3.4.0
     devDependencies:
+      '@extension/chrome':
+        specifier: workspace:*
+        version: link:../chrome
       '@extension/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
@@ -486,6 +480,9 @@ importers:
       '@extension/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@extension/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@extension/shared':
         specifier: workspace:*
         version: link:../../packages/shared

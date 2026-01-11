@@ -1,5 +1,5 @@
 import { resolve } from 'node:path'
-import { contentBuilder } from '@extension/vite-config/build-content-script'
+import { contentBuilder } from '@extension/vite-config'
 
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')

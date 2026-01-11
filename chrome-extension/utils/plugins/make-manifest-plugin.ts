@@ -2,10 +2,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { platform } from 'node:process'
 import { pathToFileURL } from 'node:url'
-import { getEnv } from '@extension/env/getEnv'
-import { colorfulLog } from '@extension/shared/utils/colorful-logger'
+import { getEnv } from '@extension/env'
+import { colorfulLog } from '@extension/shared'
 import { ManifestParserImpl as ManifestParser } from './manifest-parser/impl.js'
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/shared'
 import type { PluginOption } from 'vite'
 
 const ENV = getEnv()

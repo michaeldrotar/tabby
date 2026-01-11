@@ -1,5 +1,4 @@
-import { getGroupColorClasses } from '@extension/ui/tab-group/tabGroupColors'
-import { cn } from '@extension/ui/utils/cn'
+import { cn, getGroupColorClasses } from '@extension/ui'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
@@ -10,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroup } from '@extension/chrome'
 import type { HTMLAttributes, ReactNode } from 'react'
 
 export type TabGroupHeaderProps = Omit<

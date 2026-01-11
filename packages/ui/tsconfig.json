@@ -9,5 +9,5 @@
     "noEmit": false,
     "declaration": true
   },
-  "include": ["lib"]
+  "include": ["lib", "index.ts"]
 }

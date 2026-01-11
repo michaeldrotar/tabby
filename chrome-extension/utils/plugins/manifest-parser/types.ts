@@ -1,4 +1,4 @@
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/shared'
 
 export interface IManifestParser {
   convertManifestToString: (

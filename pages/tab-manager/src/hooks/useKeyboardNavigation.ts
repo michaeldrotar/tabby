@@ -1,7 +1,9 @@
-import { moveTabGroupBackward } from '@extension/chrome/actions/tabGroups/moveTabGroupBackward'
-import { moveTabGroupForward } from '@extension/chrome/actions/tabGroups/moveTabGroupForward'
-import { moveTabBackward } from '@extension/chrome/actions/tabs/moveTabBackward'
-import { moveTabForward } from '@extension/chrome/actions/tabs/moveTabForward'
+import {
+  moveTabBackward,
+  moveTabForward,
+  moveTabGroupBackward,
+  moveTabGroupForward,
+} from '@extension/chrome'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useSelectionInteraction } from '../selection'
 import type { PaneContext, SelectionItemType } from '../selection'

@@ -9,41 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    "./executeOmnibarUrl": {
-      "types": "./lib/executeOmnibarUrl.ts",
-      "default": "./dist/lib/executeOmnibarUrl.js"
-    },
-    "./omnibarResultGenerators": {
-      "types": "./lib/omnibarResultGenerators.ts",
-      "default": "./dist/lib/omnibarResultGenerators.js"
-    },
-    "./searchBookmarks": {
-      "types": "./lib/searchBookmarks.ts",
-      "default": "./dist/lib/searchBookmarks.js"
-    },
-    "./searchClosedTabs": {
-      "types": "./lib/searchClosedTabs.ts",
-      "default": "./dist/lib/searchClosedTabs.js"
-    },
-    "./searchHistory": {
-      "types": "./lib/searchHistory.ts",
-      "default": "./dist/lib/searchHistory.js"
-    },
-    "./useOmnibarExternalSearch": {
-      "types": "./lib/useOmnibarExternalSearch.ts",
-      "default": "./dist/lib/useOmnibarExternalSearch.js"
-    },
-    "./useOmnibarGenerators": {
-      "types": "./lib/useOmnibarGenerators.ts",
-      "default": "./dist/lib/useOmnibarGenerators.js"
-    },
-    "./useOmnibarTabs": {
-      "types": "./lib/useOmnibarTabs.ts",
-      "default": "./dist/lib/useOmnibarTabs.js"
-    },
-    "./WiredOmnibar": {
-      "types": "./lib/WiredOmnibar.tsx",
-      "default": "./dist/lib/WiredOmnibar.js"
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
     },
     "./omnibar-tailwind-config": {
       "types": "./lib/omnibar-tailwind-config.ts",

@@ -1,4 +1,5 @@
-import { Omnibar } from '@extension/ui/omnibar/Omnibar'
+import { usePlatformInfo } from '@extension/chrome'
+import { Omnibar } from '@extension/ui'
 import { useCallback, useMemo } from 'react'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'
@@ -24,6 +25,8 @@ export const WiredOmnibar = ({
   const tabs = useOmnibarTabs()
   const onSearch = useOmnibarExternalSearch()
   const generators = useOmnibarGenerators()
+  const { data: platformInfo } = usePlatformInfo()
+  const isMac = platformInfo?.os === 'mac'
 
   const originalWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -54,6 +57,7 @@ export const WiredOmnibar = ({
       hideTabManagerAction={hideTabManagerAction}
       onOpenTabManager={onOpenTabManager}
       originalWindowId={originalWindowId}
+      isMac={isMac}
     />
   )
 }

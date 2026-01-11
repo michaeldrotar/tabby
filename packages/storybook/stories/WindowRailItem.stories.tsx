@@ -1,4 +1,4 @@
-import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
+import { WindowRailItem } from '@extension/ui'
 import { useEffect, useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 

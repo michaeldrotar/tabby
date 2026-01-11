@@ -1,22 +1,22 @@
-import { useResolvedTheme } from '@extension/shared/hooks/preference'
 import { Toaster as Sonner } from 'sonner'
 import { CheckCircleIcon, CloseIcon, InfoIcon, LoaderIcon } from '../icons'
 import type { ToasterProps } from 'sonner'
 
 /**
  * Themed Toaster component wrapping sonner.
- * Uses the resolved theme from user preferences (light/dark/system).
+ * Accepts theme as a prop to maintain UI package purity (no storage dependencies).
  *
  * Design note: Following Tabby's design philosophy, we use bold accent colors
  * to celebrate actions and provide delightful feedback. Errors use the same
  * accent treatment with helpful messaging rather than alarming red.
  */
-export const Toaster = ({ ...props }: ToasterProps) => {
-  const resolvedTheme = useResolvedTheme()
-
+export const Toaster = ({
+  theme = 'dark',
+  ...props
+}: ToasterProps & { theme?: 'light' | 'dark' }) => {
   return (
     <Sonner
-      theme={resolvedTheme}
+      theme={theme}
       className="toaster group"
       position="bottom-right"
       icons={{

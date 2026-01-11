@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { getEnv } from '@extension/env/getEnv'
+import { getEnv } from '@extension/env'
 import { zipBundle } from './lib/zip-bundle.js'
 
 const ENV = getEnv()

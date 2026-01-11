@@ -1,14 +1,15 @@
-import { closeWindow } from '@extension/chrome/actions/windows/closeWindow'
-import { copyAllUrlsInWindow } from '@extension/chrome/actions/windows/copyAllUrlsInWindow'
-import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
-import { muteAllTabsInWindow } from '@extension/chrome/actions/windows/muteAllTabsInWindow'
-import { reloadAllTabsInWindow } from '@extension/chrome/actions/windows/reloadAllTabsInWindow'
-import { unmuteAllTabsInWindow } from '@extension/chrome/actions/windows/unmuteAllTabsInWindow'
-import { tt } from '@extension/i18n/plurals'
-import { toast } from '@extension/ui/components/Toaster'
+import {
+  closeWindow,
+  copyAllUrlsInWindow,
+  focusWindow,
+  muteAllTabsInWindow,
+  reloadAllTabsInWindow,
+  unmuteAllTabsInWindow,
+} from '@extension/chrome'
+import { tt } from '@extension/i18n'
+import { toast } from '@extension/ui'
 import { useCallback, useMemo } from 'react'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
-import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { BrowserTab, BrowserWindow } from '@extension/chrome'
 
 /**
  * Actions for managing browser windows via context menu.

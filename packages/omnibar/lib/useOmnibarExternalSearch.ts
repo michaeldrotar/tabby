@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { searchBookmarks } from './searchBookmarks.js'
 import { searchClosedTabs } from './searchClosedTabs.js'
 import { searchHistory } from './searchHistory.js'
-import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import type { OmnibarSearchResult } from '@extension/ui'
 
 /**
  * Provides a search handler that searches history, bookmarks, and closed tabs.

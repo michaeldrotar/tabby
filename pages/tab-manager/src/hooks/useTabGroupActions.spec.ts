@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
 
-import { moveTabGroupToNewWindow } from '@extension/chrome/actions/tabGroups/moveTabGroupToNewWindow'
+import {
+  changeTabGroupColor,
+  closeTabs,
+  moveTabGroupToNewWindow,
+  renameTabGroup,
+  toggleTabGroupCollapsed,
+  ungroupTabs,
+} from '@extension/chrome'
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -9,10 +16,10 @@ import {
   resetChromeMock,
 } from '../mocks/chrome'
 import { useTabGroupActions } from './useTabGroupActions'
-import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroup } from '@extension/chrome'
 
 // Mock the toast module
-vi.mock('@extension/ui/components/Toaster', () => ({
+vi.mock('@extension/ui', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -20,13 +27,21 @@ vi.mock('@extension/ui/components/Toaster', () => ({
 }))
 
 // Mock the i18n module
-vi.mock('@extension/i18n/plurals', () => ({
+vi.mock('@extension/i18n', () => ({
   tt: vi.fn((key: string, count: number) => `${key}:${count}`),
 }))
 
 // Mock the action modules
-vi.mock('@extension/chrome/actions/tabGroups/moveTabGroupToNewWindow', () => ({
+vi.mock('@extension/chrome', () => ({
+  changeTabGroupColor: vi.fn().mockResolvedValue(undefined),
+  closeTabs: vi.fn().mockResolvedValue(undefined),
+  copyTabGroupUrls: vi.fn().mockResolvedValue(undefined),
+  moveTabGroupBackward: vi.fn().mockResolvedValue(undefined),
+  moveTabGroupForward: vi.fn().mockResolvedValue(undefined),
   moveTabGroupToNewWindow: vi.fn().mockResolvedValue(undefined),
+  renameTabGroup: vi.fn().mockResolvedValue(undefined),
+  toggleTabGroupCollapsed: vi.fn().mockResolvedValue(undefined),
+  ungroupTabs: vi.fn().mockResolvedValue(undefined),
 }))
 
 describe('useTabGroupActions', () => {
@@ -66,42 +81,38 @@ describe('useTabGroupActions', () => {
   })
 
   describe('changeColor', () => {
-    it('calls chrome.tabGroups.update with new color', async () => {
+    it('calls changeTabGroupColor with group id and color', async () => {
       const { result } = renderHook(() =>
         useTabGroupActions(mockGroup, mockTabIds),
       )
 
       await result.current.changeColor('red')
 
-      expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(123, {
-        color: 'red',
-      })
+      expect(changeTabGroupColor).toHaveBeenCalledWith(123, 'red')
     })
   })
 
   describe('close', () => {
-    it('calls chrome.tabs.remove with all tab ids', async () => {
+    it('calls closeTabs with all tab ids', async () => {
       const { result } = renderHook(() =>
         useTabGroupActions(mockGroup, mockTabIds),
       )
 
       await result.current.close()
 
-      expect(chromeMock.tabs.remove).toHaveBeenCalledWith([1, 2, 3])
+      expect(closeTabs).toHaveBeenCalledWith([1, 2, 3])
     })
   })
 
   describe('rename', () => {
-    it('calls chrome.tabGroups.update with new title', async () => {
+    it('calls renameTabGroup with group id and title', async () => {
       const { result } = renderHook(() =>
         useTabGroupActions(mockGroup, mockTabIds),
       )
 
       await result.current.rename('New Title')
 
-      expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(123, {
-        title: 'New Title',
-      })
+      expect(renameTabGroup).toHaveBeenCalledWith(123, 'New Title')
     })
   })
 
@@ -113,9 +124,7 @@ describe('useTabGroupActions', () => {
 
       await result.current.toggleCollapse()
 
-      expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(123, {
-        collapsed: true,
-      })
+      expect(toggleTabGroupCollapsed).toHaveBeenCalledWith(123, false)
     })
 
     it('expands group when currently collapsed', async () => {
@@ -130,21 +139,19 @@ describe('useTabGroupActions', () => {
 
       await result.current.toggleCollapse()
 
-      expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(123, {
-        collapsed: false,
-      })
+      expect(toggleTabGroupCollapsed).toHaveBeenCalledWith(123, true)
     })
   })
 
   describe('ungroup', () => {
-    it('calls chrome.tabs.ungroup with all tab ids', async () => {
+    it('calls ungroupTabs with all tab ids', async () => {
       const { result } = renderHook(() =>
         useTabGroupActions(mockGroup, mockTabIds),
       )
 
       await result.current.ungroup()
 
-      expect(chromeMock.tabs.ungroup).toHaveBeenCalledWith([1, 2, 3])
+      expect(ungroupTabs).toHaveBeenCalledWith([1, 2, 3])
     })
   })
 

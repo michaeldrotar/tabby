@@ -1,4 +1,3 @@
-import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { CmdIcon, ShiftIcon } from '../icons'
 import { Kbd, KbdGroup } from '../Kbd'
 import { cn } from '../utils/cn'
@@ -14,15 +13,15 @@ type OmnibarEmptyStateProps = {
   query: string
   hasResults: boolean
   quickActions?: QuickAction[]
+  isMac?: boolean
 }
 
 export const OmnibarEmptyState = ({
   query,
   hasResults,
   quickActions,
+  isMac = false,
 }: OmnibarEmptyStateProps) => {
-  const { data: { os } = {} } = usePlatformInfo()
-
   if (hasResults) return null
 
   if (query) {
@@ -100,7 +99,7 @@ export const OmnibarEmptyState = ({
           <li className="flex items-start gap-2">
             <span className="mt-0.5 text-muted">•</span>
             <span>
-              {os === 'mac' && (
+              {isMac && (
                 <KbdGroup>
                   <Kbd>
                     <CmdIcon />
@@ -108,7 +107,7 @@ export const OmnibarEmptyState = ({
                   <Kbd>Enter</Kbd>
                 </KbdGroup>
               )}
-              {os !== 'mac' && (
+              {!isMac && (
                 <KbdGroup>
                   <Kbd>Ctrl</Kbd>
                   <span>+</span>
@@ -121,7 +120,7 @@ export const OmnibarEmptyState = ({
           <li className="flex items-start gap-2">
             <span className="mt-0.5 text-muted">•</span>
             <span>
-              {os === 'mac' && (
+              {isMac && (
                 <KbdGroup>
                   <Kbd>
                     <ShiftIcon />
@@ -129,7 +128,7 @@ export const OmnibarEmptyState = ({
                   <Kbd>Enter</Kbd>
                 </KbdGroup>
               )}
-              {os !== 'mac' && (
+              {!isMac && (
                 <KbdGroup>
                   <Kbd>Shift</Kbd>
                   <span>+</span>

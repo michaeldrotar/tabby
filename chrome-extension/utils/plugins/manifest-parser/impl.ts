@@ -1,5 +1,5 @@
 import type { IManifestParser } from './types.js'
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/shared'
 
 const convertToFirefoxCompatibleManifest = (manifest: ManifestType) => {
   const manifestCopy = {

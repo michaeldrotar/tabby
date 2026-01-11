@@ -1,5 +1,5 @@
 import { executeOmnibarUrl } from './executeOmnibarUrl.js'
-import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import type { OmnibarSearchResult } from '@extension/ui'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`

@@ -9,11 +9,10 @@ import {
   resetChromeMock,
 } from '../mocks/chrome'
 import { useWindowActions } from './useWindowActions'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
-import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { BrowserTab, BrowserWindow } from '@extension/chrome'
 
 // Mock the toast module
-vi.mock('@extension/ui/components/Toaster', () => ({
+vi.mock('@extension/ui', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -21,7 +20,7 @@ vi.mock('@extension/ui/components/Toaster', () => ({
 }))
 
 // Mock the i18n module
-vi.mock('@extension/i18n/plurals', () => ({
+vi.mock('@extension/i18n', () => ({
   tt: vi.fn((key: string, count: number) => `${key}:${count}`),
 }))
 
@@ -75,7 +74,7 @@ describe('useWindowActions', () => {
         clipboard: { writeText: mockWriteText },
       })
 
-      const { toast } = await import('@extension/ui/components/Toaster')
+      const { toast } = await import('@extension/ui')
 
       const { result } = renderHook(() =>
         useWindowActions(mockWindow, mockTabs),

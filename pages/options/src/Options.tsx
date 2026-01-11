@@ -1,31 +1,36 @@
 import '@src/Options.css'
-import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
-import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
-import { withSuspense } from '@extension/shared/hoc/with-suspense'
+import { usePlatformInfo } from '@extension/chrome'
+import { t } from '@extension/i18n'
 import {
   usePreferenceStorage,
+  useResolvedTheme,
   useThemeApplicator,
-} from '@extension/shared/hooks/preference'
-import { preferenceStorage } from '@extension/storage/impl/preference-storage'
-import { ErrorDisplay } from '@extension/ui/components/error-display/ErrorDisplay'
-import { LoadingSpinner } from '@extension/ui/components/LoadingSpinner'
-import { Toaster } from '@extension/ui/components/Toaster'
-import { CmdIcon, ExternalLinkIcon, ShiftIcon } from '@extension/ui/icons'
-import { Kbd, KbdGroup } from '@extension/ui/Kbd'
+  withErrorBoundary,
+  withSuspense,
+} from '@extension/shared'
+import { preferenceStorage } from '@extension/storage'
 import {
+  CmdIcon,
+  cn,
+  ErrorDisplay,
+  ExternalLinkIcon,
+  Kbd,
+  KbdGroup,
+  LoadingSpinner,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@extension/ui/Select'
-import { Slider } from '@extension/ui/Slider'
-import { cn } from '@extension/ui/utils/cn'
+  ShiftIcon,
+  Slider,
+  Toaster,
+} from '@extension/ui'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type {
   ThemeAccentPalette,
   ThemeNeutralPalette,
-} from '@extension/storage/base/types'
+} from '@extension/storage'
 
 const queryClient = new QueryClient()
 
@@ -827,10 +832,11 @@ const OptionsContent = () => {
 
 const Options = () => {
   useThemeApplicator()
+  const theme = useResolvedTheme()
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
+      <Toaster theme={theme} />
       <OptionsContent />
     </QueryClientProvider>
   )
@@ -838,5 +844,14 @@ const Options = () => {
 
 export default withErrorBoundary(
   withSuspense(Options, <LoadingSpinner />),
-  ErrorDisplay,
+  (props) => (
+    <ErrorDisplay
+      {...props}
+      title={t('displayErrorInfo')}
+      description={t('displayErrorDescription')}
+      detailsLabel={t('displayErrorDetailsInfo')}
+      unknownErrorLabel={t('displayErrorUnknownErrorInfo')}
+      resetLabel={t('displayErrorReset')}
+    />
+  ),
 )

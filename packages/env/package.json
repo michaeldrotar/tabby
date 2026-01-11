@@ -9,13 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    "./config": {
-      "types": "./lib/config.ts",
-      "default": "./dist/lib/config.js"
-    },
-    "./getEnv": {
-      "types": "./lib/getEnv.ts",
-      "default": "./dist/lib/getEnv.js"
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {

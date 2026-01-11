@@ -1,5 +1,4 @@
-import { t } from '@extension/i18n/t'
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/chrome'
 
 /**
  * Tab group color configuration matching Chrome's chrome.tabGroups.Color enum.
@@ -8,16 +7,12 @@ import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTab
  * @see https://developer.chrome.com/docs/extensions/reference/api/tabGroups#type-Color
  */
 
-/** Tailwind classes and display label for a tab group color */
-type TabGroupColorConfig = {
-  label: string
+/** Tailwind classes for a tab group color */
+type TabGroupColorClasses = {
   dot: string
   text: string
   bg: string
 }
-
-/** Static Tailwind classes for each color (label excluded - added dynamically via i18n) */
-type TabGroupColorClasses = Omit<TabGroupColorConfig, 'label'>
 
 /**
  * Color configuration.
@@ -71,19 +66,6 @@ const TAB_GROUP_COLORS: Record<BrowserTabGroupColor, TabGroupColorClasses> = {
   },
 }
 
-/** i18n keys for each color label */
-const COLOR_LABEL_KEYS: Record<BrowserTabGroupColor, string> = {
-  grey: 'groupColor_grey',
-  blue: 'groupColor_blue',
-  red: 'groupColor_red',
-  yellow: 'groupColor_yellow',
-  green: 'groupColor_green',
-  pink: 'groupColor_pink',
-  purple: 'groupColor_purple',
-  cyan: 'groupColor_cyan',
-  orange: 'groupColor_orange',
-}
-
 /** All tab group color IDs for iteration (e.g., color pickers) */
 export const TAB_GROUP_COLOR_IDS = Object.keys(
   TAB_GROUP_COLORS,
@@ -95,10 +77,7 @@ export const TAB_GROUP_COLOR_IDS = Object.keys(
  */
 export const getGroupColorClasses = (
   color: BrowserTabGroupColor | undefined,
-): TabGroupColorConfig => {
+): TabGroupColorClasses => {
   const resolvedColor = color ?? 'grey'
-  const classes = TAB_GROUP_COLORS[resolvedColor]
-  // Cast needed because t() expects specific keys from LocalesJSONType
-  const label = t(COLOR_LABEL_KEYS[resolvedColor] as Parameters<typeof t>[0])
-  return { ...classes, label }
+  return TAB_GROUP_COLORS[resolvedColor]
 }

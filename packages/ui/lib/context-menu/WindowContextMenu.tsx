@@ -1,5 +1,3 @@
-import { tt } from '@extension/i18n/plurals'
-import { t } from '@extension/i18n/t'
 import {
   Copy,
   Focus,
@@ -15,8 +13,18 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from './ContextMenu'
-import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { BrowserWindow } from '@extension/chrome'
 import type { ReactNode } from 'react'
+
+export type WindowContextMenuLabels = {
+  focusWindow: string
+  muteAllTabs: string
+  unmuteAllTabs: string
+  reloadAllTabs: string
+  copyAllUrls: string
+  closeWindow: string
+  nTabs: (count: number) => string
+}
 
 export type WindowContextMenuProps = {
   children: ReactNode
@@ -25,6 +33,7 @@ export type WindowContextMenuProps = {
   hasAudibleTabs?: boolean
   hasMutedTabs?: boolean
   isCurrent?: boolean
+  labels: WindowContextMenuLabels
   onFocus?: () => void
   onMuteAll?: () => void
   onUnmuteAll?: () => void
@@ -40,6 +49,7 @@ export const WindowContextMenu = ({
   hasAudibleTabs = false,
   hasMutedTabs = false,
   isCurrent = false,
+  labels,
   onFocus,
   onMuteAll,
   onUnmuteAll,
@@ -55,7 +65,7 @@ export const WindowContextMenu = ({
           <>
             <ContextMenuItem onSelect={onFocus}>
               <Focus className="size-4" aria-hidden="true" />
-              <span>{t('windowContextMenu_focusWindow')}</span>
+              <span>{labels.focusWindow}</span>
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>
@@ -64,27 +74,27 @@ export const WindowContextMenu = ({
         {hasAudibleTabs && !hasMutedTabs && (
           <ContextMenuItem onSelect={onMuteAll}>
             <VolumeOff className="size-4" aria-hidden="true" />
-            <span>{t('windowContextMenu_muteAllTabs')}</span>
+            <span>{labels.muteAllTabs}</span>
           </ContextMenuItem>
         )}
 
         {hasMutedTabs && (
           <ContextMenuItem onSelect={onUnmuteAll}>
             <Volume2 className="size-4" aria-hidden="true" />
-            <span>{t('windowContextMenu_unmuteAllTabs')}</span>
+            <span>{labels.unmuteAllTabs}</span>
           </ContextMenuItem>
         )}
 
         <ContextMenuItem onSelect={onReloadAll}>
           <RefreshCw className="size-4" aria-hidden="true" />
-          <span>{t('windowContextMenu_reloadAllTabs')}</span>
+          <span>{labels.reloadAllTabs}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={onCopyAllUrls}>
           <Copy className="size-4" aria-hidden="true" />
-          <span>{t('windowContextMenu_copyAllUrls')}</span>
+          <span>{labels.copyAllUrls}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -95,10 +105,10 @@ export const WindowContextMenu = ({
           disabled={tabCount === 0}
         >
           <Trash2 className="size-4" aria-hidden="true" />
-          <span>{t('windowContextMenu_closeWindow')}</span>
+          <span>{labels.closeWindow}</span>
           {tabCount > 0 && (
             <span className="ml-auto text-xs opacity-60">
-              {tt('nTabs', tabCount)}
+              {labels.nTabs(tabCount)}
             </span>
           )}
         </ContextMenuItem>

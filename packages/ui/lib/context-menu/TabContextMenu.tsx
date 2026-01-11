@@ -1,5 +1,3 @@
-import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
-import { t } from '@extension/i18n/t'
 import {
   ArrowDown,
   Copy,
@@ -31,10 +29,39 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from './ContextMenu'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
-import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
-import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type {
+  BrowserTab,
+  BrowserTabGroup,
+  BrowserWindow,
+} from '@extension/chrome'
 import type { ReactNode } from 'react'
+
+export type TabContextMenuLabels = {
+  duplicateTab: string
+  reload: string
+  pinTab: string
+  unpinTab: string
+  muteTab: string
+  unmuteTab: string
+  addToGroup: string
+  newGroup: string
+  untitledGroup: string
+  removeFromGroup: string
+  moveToWindow: string
+  newWindow: string
+  copy: string
+  copyUrl: string
+  copyTitle: string
+  copyTitleAndUrl: string
+  closeOtherTabs: string
+  closeTabsBelow: string
+  closeTab: string
+  windowLabelPopup: string
+  windowLabelDevtools: string
+  windowLabelPrivate: string
+  windowLabelIncognito: string
+  windowLabelDefault: (id: string) => string
+}
 
 export type TabContextMenuProps = {
   children: ReactNode
@@ -42,6 +69,8 @@ export type TabContextMenuProps = {
   groups?: BrowserTabGroup[]
   windows?: BrowserWindow[]
   currentWindowId?: number
+  labels: TabContextMenuLabels
+  isMac?: boolean
   onPin?: () => void
   onUnpin?: () => void
   onMute?: () => void
@@ -67,6 +96,8 @@ export const TabContextMenu = ({
   groups = [],
   windows = [],
   currentWindowId,
+  labels,
+  isMac = false,
   onPin,
   onUnpin,
   onMute,
@@ -85,9 +116,6 @@ export const TabContextMenu = ({
   onMoveToWindow,
   onMoveToNewWindow,
 }: TabContextMenuProps) => {
-  const { data: platformInfo } = usePlatformInfo()
-  const isMac = platformInfo?.os === 'mac'
-
   const isPinned = tab.pinned
   const isMuted = tab.mutedInfo?.muted ?? false
   const isInGroup = tab.groupId !== undefined && tab.groupId !== -1
@@ -103,12 +131,12 @@ export const TabContextMenu = ({
         {/* Navigation */}
         <ContextMenuItem onSelect={onDuplicate}>
           <Layers className="size-4" aria-hidden="true" />
-          <span>{t('tabContextMenu_duplicateTab')}</span>
+          <span>{labels.duplicateTab}</span>
         </ContextMenuItem>
 
         <ContextMenuItem onSelect={onReload}>
           <RefreshCw className="size-4" aria-hidden="true" />
-          <span>{t('tabContextMenu_reload')}</span>
+          <span>{labels.reload}</span>
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -117,12 +145,12 @@ export const TabContextMenu = ({
         {isPinned ? (
           <ContextMenuItem onSelect={onUnpin}>
             <PinOff className="size-4" aria-hidden="true" />
-            <span>{t('tabContextMenu_unpinTab')}</span>
+            <span>{labels.unpinTab}</span>
           </ContextMenuItem>
         ) : (
           <ContextMenuItem onSelect={onPin}>
             <Pin className="size-4" aria-hidden="true" />
-            <span>{t('tabContextMenu_pinTab')}</span>
+            <span>{labels.pinTab}</span>
           </ContextMenuItem>
         )}
 
@@ -130,12 +158,12 @@ export const TabContextMenu = ({
           (isMuted ? (
             <ContextMenuItem onSelect={onUnmute}>
               <Volume2 className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_unmuteTab')}</span>
+              <span>{labels.unmuteTab}</span>
             </ContextMenuItem>
           ) : (
             <ContextMenuItem onSelect={onMute}>
               <VolumeOff className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_muteTab')}</span>
+              <span>{labels.muteTab}</span>
             </ContextMenuItem>
           ))}
 
@@ -145,12 +173,12 @@ export const TabContextMenu = ({
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <FolderPlus className="size-4" aria-hidden="true" />
-            <span>{t('tabContextMenu_addToGroup')}</span>
+            <span>{labels.addToGroup}</span>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onSelect={onAddToNewGroup}>
               <FolderPlus className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_newGroup')}</span>
+              <span>{labels.newGroup}</span>
             </ContextMenuItem>
             {availableGroups.length > 0 && (
               <>
@@ -167,9 +195,7 @@ export const TabContextMenu = ({
                       )}
                       aria-hidden="true"
                     />
-                    <span>
-                      {group.title || t('tabContextMenu_untitledGroup')}
-                    </span>
+                    <span>{group.title || labels.untitledGroup}</span>
                   </ContextMenuItem>
                 ))}
               </>
@@ -180,7 +206,7 @@ export const TabContextMenu = ({
         {isInGroup && (
           <ContextMenuItem onSelect={onRemoveFromGroup}>
             <Ungroup className="size-4" aria-hidden="true" />
-            <span>{t('tabContextMenu_removeFromGroup')}</span>
+            <span>{labels.removeFromGroup}</span>
           </ContextMenuItem>
         )}
 
@@ -192,12 +218,12 @@ export const TabContextMenu = ({
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <MonitorUp className="size-4" aria-hidden="true" />
-                <span>{t('tabContextMenu_moveToWindow')}</span>
+                <span>{labels.moveToWindow}</span>
               </ContextMenuSubTrigger>
               <ContextMenuSubContent>
                 <ContextMenuItem onSelect={onMoveToNewWindow}>
                   <ExternalLink className="size-4" aria-hidden="true" />
-                  <span>{t('tabContextMenu_newWindow')}</span>
+                  <span>{labels.newWindow}</span>
                 </ContextMenuItem>
                 {otherWindows.length > 0 && (
                   <>
@@ -209,7 +235,7 @@ export const TabContextMenu = ({
                       >
                         <MonitorUp className="size-4" aria-hidden="true" />
                         <span className="truncate">
-                          {getWindowLabel(window, isMac)}
+                          {getWindowLabel(window, isMac, labels)}
                         </span>
                       </ContextMenuItem>
                     ))}
@@ -225,20 +251,20 @@ export const TabContextMenu = ({
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Copy className="size-4" aria-hidden="true" />
-            <span>{t('tabContextMenu_copy')}</span>
+            <span>{labels.copy}</span>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
             <ContextMenuItem onSelect={onCopyUrl}>
               <Link2 className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_copyUrl')}</span>
+              <span>{labels.copyUrl}</span>
             </ContextMenuItem>
             <ContextMenuItem onSelect={onCopyTitle}>
               <FileText className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_copyTitle')}</span>
+              <span>{labels.copyTitle}</span>
             </ContextMenuItem>
             <ContextMenuItem onSelect={onCopyTitleAndUrl}>
               <Copy className="size-4" aria-hidden="true" />
-              <span>{t('tabContextMenu_copyTitleAndUrl')}</span>
+              <span>{labels.copyTitleAndUrl}</span>
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
@@ -248,15 +274,15 @@ export const TabContextMenu = ({
         {/* Close actions */}
         <ContextMenuItem onSelect={onCloseOther}>
           <Trash2 className="size-4" aria-hidden="true" />
-          <span>{t('tabContextMenu_closeOtherTabs')}</span>
+          <span>{labels.closeOtherTabs}</span>
         </ContextMenuItem>
         <ContextMenuItem onSelect={onCloseAfter}>
           <ArrowDown className="size-4" aria-hidden="true" />
-          <span>{t('tabContextMenu_closeTabsBelow')}</span>
+          <span>{labels.closeTabsBelow}</span>
         </ContextMenuItem>
         <ContextMenuItem variant="destructive" onSelect={onClose}>
           <Trash2 className="size-4" aria-hidden="true" />
-          <span>{t('tabContextMenu_closeTab')}</span>
+          <span>{labels.closeTab}</span>
           <ContextMenuShortcut>
             <Kbd>{isMac ? '⌫' : 'Del'}</Kbd>
           </ContextMenuShortcut>
@@ -266,10 +292,14 @@ export const TabContextMenu = ({
   )
 }
 
-const getWindowLabel = (window: BrowserWindow, isMac: boolean): string => {
-  if (window.type === 'popup') return t('windowLabel_popup')
-  if (window.type === 'devtools') return t('windowLabel_devtools')
+const getWindowLabel = (
+  window: BrowserWindow,
+  isMac: boolean,
+  labels: TabContextMenuLabels,
+): string => {
+  if (window.type === 'popup') return labels.windowLabelPopup
+  if (window.type === 'devtools') return labels.windowLabelDevtools
   if (window.incognito)
-    return isMac ? t('windowLabel_privateMac') : t('windowLabel_incognito')
-  return t('windowLabel_default', String(window.id))
+    return isMac ? labels.windowLabelPrivate : labels.windowLabelIncognito
+  return labels.windowLabelDefault(String(window.id))
 }

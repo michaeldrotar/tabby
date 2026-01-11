@@ -29,6 +29,8 @@ export type OmnibarProps = {
   onOpenTabManager?: () => void
   /** The window ID that originally opened the omnibar (for routing results back) */
   originalWindowId?: number
+  /** Whether running on macOS (for keyboard shortcuts) */
+  isMac?: boolean
 }
 
 export const Omnibar = ({
@@ -40,6 +42,7 @@ export const Omnibar = ({
   hideTabManagerAction,
   onOpenTabManager,
   originalWindowId,
+  isMac = false,
 }: OmnibarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const { query, setQuery } = useOmnibarQuery(inputRef)
@@ -177,6 +180,7 @@ export const Omnibar = ({
           query={query}
           hasResults={filteredItems.length > 0}
           quickActions={quickActions}
+          isMac={isMac}
         />
       </ScrollArea>
     </div>

@@ -1,9 +1,7 @@
-import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
-import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
-import { useBrowserTabs } from '@extension/chrome/tab/useBrowserTabs'
+import { activateTab, focusWindow, useBrowserTabs } from '@extension/chrome'
 import { useMemo } from 'react'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
-import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import type { BrowserTab } from '@extension/chrome'
+import type { OmnibarSearchResult } from '@extension/ui'
 
 const toOmnibarSearchResult = (tab: BrowserTab): OmnibarSearchResult => ({
   id: tab.id,

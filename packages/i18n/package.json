@@ -9,13 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    "./t": {
-      "types": "./lib/i18n.ts",
-      "default": "./dist/lib/i18n.js"
-    },
-    "./plurals": {
-      "types": "./lib/plurals.ts",
-      "default": "./dist/lib/plurals.js"
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {

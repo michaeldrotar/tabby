@@ -1,26 +1,87 @@
-import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
-import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
-import { useBrowserTabGroupsByWindowId } from '@extension/chrome/tabGroup/useBrowserTabGroupsByWindowId'
-import { useTabListItems } from '@extension/chrome/useTabListItems'
-import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
-import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
-import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
-import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
-import { Profiler } from '@extension/ui/Profiler'
-import { TabList, TabListItem } from '@extension/ui/TabList'
+import {
+  activateTab,
+  focusWindow,
+  useBrowserTabGroupsByWindowId,
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+  usePlatformInfo,
+  useTabListItems,
+} from '@extension/chrome'
+import { t } from '@extension/i18n'
+import { Profiler } from '@extension/shared'
+import {
+  TabContextMenu,
+  TabGroupContextMenu,
+  TabList,
+  TabListItem,
+} from '@extension/ui'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
-import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
-import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
+  BrowserTab,
   BrowserTabGroup,
   BrowserTabGroupColor,
-} from '@extension/chrome/tabGroup/BrowserTabGroup'
-import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
+  BrowserTabID,
+  BrowserWindowID,
+} from '@extension/chrome'
+import type {
+  TabContextMenuLabels,
+  TabGroupContextMenuLabels,
+} from '@extension/ui'
+
+// Build label objects for context menus
+const tabContextMenuLabels: TabContextMenuLabels = {
+  duplicateTab: t('tabContextMenu_duplicateTab'),
+  reload: t('tabContextMenu_reload'),
+  pinTab: t('tabContextMenu_pinTab'),
+  unpinTab: t('tabContextMenu_unpinTab'),
+  muteTab: t('tabContextMenu_muteTab'),
+  unmuteTab: t('tabContextMenu_unmuteTab'),
+  addToGroup: t('tabContextMenu_addToGroup'),
+  newGroup: t('tabContextMenu_newGroup'),
+  untitledGroup: t('tabContextMenu_untitledGroup'),
+  removeFromGroup: t('tabContextMenu_removeFromGroup'),
+  moveToWindow: t('tabContextMenu_moveToWindow'),
+  newWindow: t('tabContextMenu_newWindow'),
+  copy: t('tabContextMenu_copy'),
+  copyUrl: t('tabContextMenu_copyUrl'),
+  copyTitle: t('tabContextMenu_copyTitle'),
+  copyTitleAndUrl: t('tabContextMenu_copyTitleAndUrl'),
+  closeOtherTabs: t('tabContextMenu_closeOtherTabs'),
+  closeTabsBelow: t('tabContextMenu_closeTabsBelow'),
+  closeTab: t('tabContextMenu_closeTab'),
+  windowLabelPopup: t('windowLabel_popup'),
+  windowLabelDevtools: t('windowLabel_devtools'),
+  windowLabelPrivate: t('windowLabel_privateMac'),
+  windowLabelIncognito: t('windowLabel_incognito'),
+  windowLabelDefault: (id: string) => t('windowLabel_default', id),
+}
+
+const tabGroupContextMenuLabels: TabGroupContextMenuLabels = {
+  expandGroup: t('groupContextMenu_expandGroup'),
+  collapseGroup: t('groupContextMenu_collapseGroup'),
+  renameGroup: t('groupContextMenu_renameGroup'),
+  changeColor: t('groupContextMenu_changeColor'),
+  colorLabels: {
+    grey: t('groupColor_grey'),
+    blue: t('groupColor_blue'),
+    red: t('groupColor_red'),
+    yellow: t('groupColor_yellow'),
+    green: t('groupColor_green'),
+    pink: t('groupColor_pink'),
+    purple: t('groupColor_purple'),
+    cyan: t('groupColor_cyan'),
+    orange: t('groupColor_orange'),
+  },
+  ungroupTabs: t('groupContextMenu_ungroupTabs'),
+  moveToNewWindow: t('groupContextMenu_moveToNewWindow'),
+  copyAllUrls: t('groupContextMenu_copyAllUrls'),
+  closeGroup: t('groupContextMenu_closeGroup'),
+}
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
@@ -48,6 +109,8 @@ const TabItemWithContextMenu = memo(
   }) => {
     const actions = useTabActions(tab)
     const windows = useBrowserWindows()
+    const { data: platformInfo } = usePlatformInfo()
+    const isMac = platformInfo?.os === 'mac'
 
     const onActivate = useCallback(
       () => onActivateTab(tab.windowId, tab.id),
@@ -61,6 +124,8 @@ const TabItemWithContextMenu = memo(
           groups={groups}
           windows={windows}
           currentWindowId={currentWindowId}
+          labels={tabContextMenuLabels}
+          isMac={isMac}
           onPin={actions.pin}
           onUnpin={actions.unpin}
           onMute={actions.mute}
@@ -173,6 +238,7 @@ const TabGroupWithContextMenu = memo(
       <TabGroupContextMenu
         group={group}
         isCollapsed={group.collapsed}
+        labels={tabGroupContextMenuLabels}
         onToggleCollapse={handleToggleCollapse}
         onRename={handleRename}
         onChangeColor={handleChangeColor}

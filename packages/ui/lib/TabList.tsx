@@ -1,6 +1,6 @@
 import { getGroupColorClasses } from './tab-group/tabGroupColors'
 import { cn } from './utils/cn'
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/chrome'
 
 /**
  * A container for a list of tabs.

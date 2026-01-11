@@ -1,10 +1,10 @@
-import { getEnv } from '@extension/env/getEnv'
+import { getEnv } from '@extension/env'
 import {
   clearProfilerHistory,
   getProfilerHistory,
   getProfilerSummary,
   logProfilerSummary,
-} from '@extension/ui/Profiler'
+} from '@extension/shared'
 
 const ENV = getEnv()
 

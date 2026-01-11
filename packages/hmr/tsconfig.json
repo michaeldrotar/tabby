@@ -5,5 +5,5 @@
     "rootDir": ".",
     "types": ["chrome", "node"]
   },
-  "include": ["rollup.config.ts", "lib"]
+  "include": ["index.ts", "rollup.config.ts", "lib"]
 }

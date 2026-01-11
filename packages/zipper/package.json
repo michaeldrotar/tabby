@@ -9,9 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    "./zip-bundle": {
-      "types": "./lib/zip-bundle.ts",
-      "default": "./dist/lib/zip-bundle.js"
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {

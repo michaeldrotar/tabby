@@ -1,25 +1,39 @@
-import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
-import { createBrowserWindow } from '@extension/chrome/window/createBrowserWindow'
-import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
-import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
-import { tt } from '@extension/i18n/plurals'
-import { usePreferenceStorage } from '@extension/shared/hooks/preference'
-import { preferenceStorage } from '@extension/storage/impl/preference-storage'
-import { WindowContextMenu } from '@extension/ui/context-menu/WindowContextMenu'
-import { Favicon } from '@extension/ui/Favicon'
 import {
+  createBrowserWindow,
+  useBrowserTabsByWindowId,
+  useBrowserWindows,
+  useCurrentBrowserWindow,
+} from '@extension/chrome'
+import { t, tt } from '@extension/i18n'
+import { usePreferenceStorage } from '@extension/shared'
+import { preferenceStorage } from '@extension/storage'
+import {
+  Favicon,
   PlusIcon,
   ScrollToActiveIcon,
   SearchIcon,
   SettingsIcon,
-} from '@extension/ui/icons'
-import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
-import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
-import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
+  SidebarAction,
+  TabManagerSidebar,
+  WindowContextMenu,
+  WindowRailItem,
+} from '@extension/ui'
 import { useCallback } from 'react'
 import { useWindowActions } from './hooks/useWindowActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
-import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { BrowserWindow } from '@extension/chrome'
+import type { WindowContextMenuLabels } from '@extension/ui'
+
+// Build label object for window context menu
+const windowContextMenuLabels: WindowContextMenuLabels = {
+  focusWindow: t('windowContextMenu_focusWindow'),
+  muteAllTabs: t('windowContextMenu_muteAllTabs'),
+  unmuteAllTabs: t('windowContextMenu_unmuteAllTabs'),
+  reloadAllTabs: t('windowContextMenu_reloadAllTabs'),
+  copyAllUrls: t('windowContextMenu_copyAllUrls'),
+  closeWindow: t('windowContextMenu_closeWindow'),
+  nTabs: (count: number) => tt('nTabs', count),
+}
 
 // Helper to get active tab url
 const useDisplayTabUrl = (windowId: number) => {
@@ -69,6 +83,7 @@ const WindowItemContainer = ({
       hasAudibleTabs={hasAudibleTabs}
       hasMutedTabs={hasMutedTabs}
       isCurrent={isCurrent}
+      labels={windowContextMenuLabels}
       onFocus={actions.focus}
       onMuteAll={actions.muteAll}
       onUnmuteAll={actions.unmuteAll}
@@ -223,6 +238,8 @@ export const TabManagerSidebarContainer = ({
       windowList={windowList}
       actions={actions}
       windowCount={browserWindows.length}
+      collapseSidebarLabel={t('sidebar_collapseSidebar')}
+      expandSidebarLabel={t('sidebar_expandSidebar')}
     />
   )
 }

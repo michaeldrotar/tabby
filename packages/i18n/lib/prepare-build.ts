@@ -1,6 +1,6 @@
 import { cpSync, existsSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { getEnv } from '@extension/env/getEnv'
+import { getEnv } from '@extension/env'
 import setRelatedLocaleImports from './set-related-locale-import.js'
 
 const ENV = getEnv()

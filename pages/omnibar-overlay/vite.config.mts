@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
-import { getEnv } from '@extension/env/getEnv'
-import { withPageConfig } from '@extension/vite-config/with-page-config'
+import { getEnv } from '@extension/env'
+import { withPageConfig } from '@extension/vite-config'
 
 const ENV = getEnv()
 
