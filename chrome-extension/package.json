@@ -22,7 +22,6 @@
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
-    "@extension/dev-utils": "workspace:*",
     "@extension/hmr": "workspace:*",
     "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",

@@ -58,7 +58,7 @@ type ProfilerProps = {
  *
  * @example
  * ```tsx
- * import { getEnv } from '@extension/env/getEnv'
+ * import { getEnv } from '@extension/env'
  * const ENV = getEnv()
  *
  * <Profiler id="TabManager" enabled={ENV['IS_DEV']}>

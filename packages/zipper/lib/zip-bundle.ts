@@ -1,8 +1,8 @@
 import { createWriteStream, existsSync, mkdirSync } from 'node:fs'
 import { posix, resolve } from 'node:path'
-import { streamFileToZip } from '@extension/dev-utils/stream-file-to-zip'
 import fg from 'fast-glob'
 import { Zip } from 'fflate'
+import { streamFileToZip } from './stream-file-to-zip.js'
 
 const toMB = (bytes: number): number => bytes / 1024 / 1024
 

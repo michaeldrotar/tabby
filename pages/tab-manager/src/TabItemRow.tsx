@@ -1,5 +1,5 @@
-import { Profiler } from '@extension/dev-utils/Profiler'
 import { Favicon } from '@extension/ui/Favicon'
+import { Profiler } from '@extension/ui/Profiler'
 import { cn } from '@extension/ui/utils/cn'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Pin, Volume2, VolumeOff } from 'lucide-react'

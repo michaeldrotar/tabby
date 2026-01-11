@@ -164,9 +164,6 @@ importers:
         specifier: ^0.12.0
         version: 0.12.0
     devDependencies:
-      '@extension/dev-utils':
-        specifier: workspace:*
-        version: link:../packages/dev-utils
       '@extension/hmr':
         specifier: workspace:*
         version: link:../packages/hmr
@@ -192,19 +189,6 @@ importers:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@extension/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-
-  packages/dev-utils:
-    dependencies:
-      '@extension/env':
-        specifier: workspace:*
-        version: link:../env
-    devDependencies:
-      '@extension/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@extension/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
@@ -336,6 +320,9 @@ importers:
       '@extension/chrome':
         specifier: workspace:*
         version: link:../chrome
+      '@extension/env':
+        specifier: workspace:*
+        version: link:../env
       '@extension/i18n':
         specifier: workspace:*
         version: link:../i18n
@@ -401,9 +388,6 @@ importers:
 
   packages/zipper:
     devDependencies:
-      '@extension/dev-utils':
-        specifier: workspace:*
-        version: link:../dev-utils
       '@extension/env':
         specifier: workspace:*
         version: link:../env
@@ -530,9 +514,6 @@ importers:
       '@extension/chrome':
         specifier: workspace:*
         version: link:../../packages/chrome
-      '@extension/dev-utils':
-        specifier: workspace:*
-        version: link:../../packages/dev-utils
       '@extension/env':
         specifier: workspace:*
         version: link:../../packages/env

@@ -77,6 +77,10 @@
       "types": "./lib/Kbd.tsx",
       "default": "./dist/lib/Kbd.js"
     },
+    "./Profiler": {
+      "types": "./lib/Profiler.tsx",
+      "default": "./dist/lib/Profiler.js"
+    },
     "./omnibar/compareOmnibarScoredItems": {
       "types": "./lib/omnibar/compareOmnibarScoredItems.ts",
       "default": "./dist/lib/omnibar/compareOmnibarScoredItems.js"
@@ -212,6 +216,7 @@
   },
   "dependencies": {
     "@extension/chrome": "workspace:*",
+    "@extension/env": "workspace:*",
     "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
     "@radix-ui/react-context-menu": "^2.2.16",
