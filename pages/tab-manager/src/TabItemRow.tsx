@@ -1,5 +1,6 @@
-import { Profiler } from '@extension/shared'
-import { cn, Favicon } from '@extension/ui'
+import { Profiler } from '@extension/shared/Profiler'
+import { Favicon } from '@extension/ui/Favicon'
+import { cn } from '@extension/ui/utils/cn'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo } from 'react'

@@ -1,4 +1,4 @@
-import { getEnv } from '@extension/env'
+import { getEnv } from '@extension/env/getEnv'
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 

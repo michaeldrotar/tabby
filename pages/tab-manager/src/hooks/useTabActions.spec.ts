@@ -8,10 +8,10 @@ import {
   resetChromeMock,
 } from '../mocks/chrome'
 import { useTabActions } from './useTabActions'
-import type { BrowserTab } from '@extension/chrome'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 
 // Mock the toast module
-vi.mock('@extension/ui', () => ({
+vi.mock('@extension/ui/components/Toaster', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('@extension/ui', () => ({
 }))
 
 // Mock the i18n module
-vi.mock('@extension/i18n', () => ({
+vi.mock('@extension/i18n/i18n', () => ({
   t: vi.fn((key: string) => key),
 }))
 

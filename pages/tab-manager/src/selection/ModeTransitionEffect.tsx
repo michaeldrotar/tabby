@@ -1,4 +1,4 @@
-import { cn } from '@extension/ui'
+import { cn } from '@extension/ui/utils/cn'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 

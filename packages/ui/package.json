@@ -9,13 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    ".": {
-      "types": "./index.ts",
-      "default": "./dist/index.js"
-    },
-    "./ui-tailwind-config": {
-      "types": "./lib/ui-tailwind-config.ts",
-      "default": "./dist/lib/ui-tailwind-config.js"
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
     }
   },
   "scripts": {

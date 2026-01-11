@@ -1,5 +1,5 @@
 import { executeOmnibarUrl } from './executeOmnibarUrl.js'
-import type { OmnibarSearchResult } from '@extension/ui'
+import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
 
 /**
  * Searches browser history and returns results as OmnibarSearchResult items.

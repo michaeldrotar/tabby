@@ -1,5 +1,5 @@
-import { usePlatformInfo } from '@extension/chrome'
-import { Omnibar } from '@extension/ui'
+import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useMemo } from 'react'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'

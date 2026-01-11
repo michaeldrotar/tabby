@@ -1,4 +1,4 @@
-import { WiredOmnibar } from '@extension/omnibar'
+import { WiredOmnibar } from '@extension/omnibar/WiredOmnibar'
 
 type SearchPopupProps = {
   isOpen: boolean

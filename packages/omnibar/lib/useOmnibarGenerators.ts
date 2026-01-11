@@ -5,7 +5,7 @@ import {
   getMatchingTabs,
   getUrlNavigationItem,
 } from './omnibarResultGenerators.js'
-import type { OmnibarResultGenerators } from '@extension/ui'
+import type { OmnibarResultGenerators } from '@extension/ui/omnibar/Omnibar'
 
 /**
  * Provides the omnibar result generators.

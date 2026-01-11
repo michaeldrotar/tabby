@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { toast } from '@extension/ui/components/Toaster'
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -9,10 +10,11 @@ import {
   resetChromeMock,
 } from '../mocks/chrome'
 import { useWindowActions } from './useWindowActions'
-import type { BrowserTab, BrowserWindow } from '@extension/chrome'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 // Mock the toast module
-vi.mock('@extension/ui', () => ({
+vi.mock('@extension/ui/components/Toaster', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -20,7 +22,7 @@ vi.mock('@extension/ui', () => ({
 }))
 
 // Mock the i18n module
-vi.mock('@extension/i18n', () => ({
+vi.mock('@extension/i18n/plurals', () => ({
   tt: vi.fn((key: string, count: number) => `${key}:${count}`),
 }))
 
@@ -73,8 +75,6 @@ describe('useWindowActions', () => {
       Object.assign(navigator, {
         clipboard: { writeText: mockWriteText },
       })
-
-      const { toast } = await import('@extension/ui')
 
       const { result } = renderHook(() =>
         useWindowActions(mockWindow, mockTabs),

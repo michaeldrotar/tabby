@@ -1,37 +1,30 @@
-import {
-  activateTab,
-  focusWindow,
-  useBrowserTabGroupsByWindowId,
-  useBrowserWindows,
-  useCurrentBrowserWindow,
-  usePlatformInfo,
-  useTabListItems,
-} from '@extension/chrome'
-import { t } from '@extension/i18n'
-import { Profiler } from '@extension/shared'
-import {
-  TabContextMenu,
-  TabGroupContextMenu,
-  TabList,
-  TabListItem,
-} from '@extension/ui'
+import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
+import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
+import { useBrowserTabGroupsByWindowId } from '@extension/chrome/tabGroup/useBrowserTabGroupsByWindowId'
+import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import { useTabListItems } from '@extension/chrome/useTabListItems'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { t } from '@extension/i18n/i18n'
+import { Profiler } from '@extension/shared/Profiler'
+import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
+import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
+import { TabList, TabListItem } from '@extension/ui/TabList'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
 import { TabItemRow } from './TabItemRow'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
+import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
-  BrowserTab,
   BrowserTabGroup,
   BrowserTabGroupColor,
-  BrowserTabID,
-  BrowserWindowID,
-} from '@extension/chrome'
-import type {
-  TabContextMenuLabels,
-  TabGroupContextMenuLabels,
-} from '@extension/ui'
+} from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
+import type { TabContextMenuLabels } from '@extension/ui/context-menu/TabContextMenu'
+import type { TabGroupContextMenuLabels } from '@extension/ui/context-menu/TabGroupContextMenu'
 
 // Build label objects for context menus
 const tabContextMenuLabels: TabContextMenuLabels = {

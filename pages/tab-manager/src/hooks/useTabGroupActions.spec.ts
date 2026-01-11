@@ -1,13 +1,11 @@
 // @vitest-environment jsdom
 
-import {
-  changeTabGroupColor,
-  closeTabs,
-  moveTabGroupToNewWindow,
-  renameTabGroup,
-  toggleTabGroupCollapsed,
-  ungroupTabs,
-} from '@extension/chrome'
+import { changeTabGroupColor } from '@extension/chrome/actions/tabGroups/changeTabGroupColor'
+import { moveTabGroupToNewWindow } from '@extension/chrome/actions/tabGroups/moveTabGroupToNewWindow'
+import { renameTabGroup } from '@extension/chrome/actions/tabGroups/renameTabGroup'
+import { toggleTabGroupCollapsed } from '@extension/chrome/actions/tabGroups/toggleTabGroupCollapsed'
+import { closeTabs } from '@extension/chrome/actions/tabs/closeTabs'
+import { ungroupTabs } from '@extension/chrome/actions/tabs/ungroupTabs'
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -16,10 +14,10 @@ import {
   resetChromeMock,
 } from '../mocks/chrome'
 import { useTabGroupActions } from './useTabGroupActions'
-import type { BrowserTabGroup } from '@extension/chrome'
+import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 
 // Mock the toast module
-vi.mock('@extension/ui', () => ({
+vi.mock('@extension/ui/components/Toaster', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -27,20 +25,36 @@ vi.mock('@extension/ui', () => ({
 }))
 
 // Mock the i18n module
-vi.mock('@extension/i18n', () => ({
+vi.mock('@extension/i18n/plurals', () => ({
   tt: vi.fn((key: string, count: number) => `${key}:${count}`),
 }))
 
 // Mock the action modules
-vi.mock('@extension/chrome', () => ({
+vi.mock('@extension/chrome/actions/tabGroups/changeTabGroupColor', () => ({
   changeTabGroupColor: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabs/closeTabs', () => ({
   closeTabs: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/copyTabGroupUrls', () => ({
   copyTabGroupUrls: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/moveTabGroupBackward', () => ({
   moveTabGroupBackward: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/moveTabGroupForward', () => ({
   moveTabGroupForward: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/moveTabGroupToNewWindow', () => ({
   moveTabGroupToNewWindow: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/renameTabGroup', () => ({
   renameTabGroup: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabGroups/toggleTabGroupCollapsed', () => ({
   toggleTabGroupCollapsed: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@extension/chrome/actions/tabs/ungroupTabs', () => ({
   ungroupTabs: vi.fn().mockResolvedValue(undefined),
 }))
 

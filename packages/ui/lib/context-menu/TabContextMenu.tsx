@@ -29,11 +29,9 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from './ContextMenu'
-import type {
-  BrowserTab,
-  BrowserTabGroup,
-  BrowserWindow,
-} from '@extension/chrome'
+import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
+import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 import type { ReactNode } from 'react'
 
 export type TabContextMenuLabels = {

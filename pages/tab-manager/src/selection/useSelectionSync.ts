@@ -1,4 +1,4 @@
-import { useBrowserStore } from '@extension/chrome'
+import { useBrowserStore } from '@extension/chrome/useBrowserStore'
 import { useEffect, useRef } from 'react'
 import { useSelectionStore } from './SelectionStore'
 import { clearAnchorIfRemoved } from './useSelectionInteraction'

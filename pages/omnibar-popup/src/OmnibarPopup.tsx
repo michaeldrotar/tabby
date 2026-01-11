@@ -1,7 +1,10 @@
-import { BrowserStoreProvider } from '@extension/chrome'
-import { WiredOmnibar } from '@extension/omnibar'
-import { useResolvedTheme, useThemeApplicator } from '@extension/shared'
-import { Toaster } from '@extension/ui'
+import { BrowserStoreProvider } from '@extension/chrome/BrowserStoreProvider'
+import { WiredOmnibar } from '@extension/omnibar/WiredOmnibar'
+import {
+  useResolvedTheme,
+  useThemeApplicator,
+} from '@extension/shared/hooks/preference'
+import { Toaster } from '@extension/ui/components/Toaster'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 

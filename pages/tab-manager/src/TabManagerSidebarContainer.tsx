@@ -1,28 +1,27 @@
+import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
+import { createBrowserWindow } from '@extension/chrome/window/createBrowserWindow'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { t } from '@extension/i18n/i18n'
+import { tt } from '@extension/i18n/plurals'
+import { usePreferenceStorage } from '@extension/shared/hooks/preference'
+import { preferenceStorage } from '@extension/storage/impl/preference-storage'
+import { WindowContextMenu } from '@extension/ui/context-menu/WindowContextMenu'
+import { Favicon } from '@extension/ui/Favicon'
 import {
-  createBrowserWindow,
-  useBrowserTabsByWindowId,
-  useBrowserWindows,
-  useCurrentBrowserWindow,
-} from '@extension/chrome'
-import { t, tt } from '@extension/i18n'
-import { usePreferenceStorage } from '@extension/shared'
-import { preferenceStorage } from '@extension/storage'
-import {
-  Favicon,
   PlusIcon,
   ScrollToActiveIcon,
   SearchIcon,
   SettingsIcon,
-  SidebarAction,
-  TabManagerSidebar,
-  WindowContextMenu,
-  WindowRailItem,
-} from '@extension/ui'
+} from '@extension/ui/icons'
+import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
+import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
+import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
 import { useCallback } from 'react'
 import { useWindowActions } from './hooks/useWindowActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
-import type { BrowserWindow } from '@extension/chrome'
-import type { WindowContextMenuLabels } from '@extension/ui'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { WindowContextMenuLabels } from '@extension/ui/context-menu/WindowContextMenu'
 
 // Build label object for window context menu
 const windowContextMenuLabels: WindowContextMenuLabels = {

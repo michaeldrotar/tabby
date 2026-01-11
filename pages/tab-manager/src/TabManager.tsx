@@ -1,13 +1,13 @@
-import {
-  focusWindow,
-  useBrowserStoreState,
-  useBrowserTabsByWindowId,
-  useCurrentBrowserWindow,
-  useSelectedWindowId,
-  useSetSelectedWindowId,
-} from '@extension/chrome'
-import { Profiler } from '@extension/shared'
-import { Skeleton, TabListSkeleton, TabManagerShell } from '@extension/ui'
+import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
+import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
+import { useBrowserStoreState } from '@extension/chrome/useBrowserStoreState'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
+import { useSelectedWindowId } from '@extension/chrome/window/useSelectedWindowId'
+import { useSetSelectedWindowId } from '@extension/chrome/window/useSetSelectedWindowId'
+import { Profiler } from '@extension/shared/Profiler'
+import { Skeleton } from '@extension/ui/components/Skeleton'
+import { TabListSkeleton } from '@extension/ui/components/TabListSkeleton'
+import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import { SearchPopup } from './SearchPopup'
@@ -16,7 +16,7 @@ import { ModeTransitionEffect } from './selection/ModeTransitionEffect'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerDebugLogger } from './TabManagerDebugLogger'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
-import type { BrowserWindow } from '@extension/chrome'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 /** Skeleton for the sidebar while loading */
 const SidebarSkeleton = () => (

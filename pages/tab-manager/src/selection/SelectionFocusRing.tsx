@@ -1,4 +1,4 @@
-import { cn } from '@extension/ui'
+import { cn } from '@extension/ui/utils/cn'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { ReactNode } from 'react'
 

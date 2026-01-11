@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, resolve, sep } from 'node:path'
-import { getEnv } from '@extension/env'
+import { getEnv } from '@extension/env/getEnv'
 import type { PluginOption } from 'vite'
 
 const ENV = getEnv()

@@ -6,9 +6,9 @@
   "private": true,
   "sideEffects": true,
   "exports": {
-    ".": {
-      "types": "./index.ts",
-      "default": "./dist/index.js"
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
     }
   },
   "scripts": {

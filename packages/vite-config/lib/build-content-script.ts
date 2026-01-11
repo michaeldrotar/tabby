@@ -2,8 +2,8 @@
 /// <reference path="../tailwind.d.ts" />
 import { readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { getEnv } from '@extension/env'
-import { makeEntryPointPlugin } from '@extension/hmr'
+import { getEnv } from '@extension/env/getEnv'
+import { makeEntryPointPlugin } from '@extension/hmr/plugins/make-entry-point-plugin'
 import { build as buildTW } from 'tailwindcss/lib/cli/build/index.js'
 import { build } from 'vite'
 import { withPageConfig } from './with-page-config.js'

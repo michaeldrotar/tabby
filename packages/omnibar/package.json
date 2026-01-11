@@ -9,13 +9,9 @@
     "dist/**"
   ],
   "exports": {
-    ".": {
-      "types": "./index.ts",
-      "default": "./dist/index.js"
-    },
-    "./omnibar-tailwind-config": {
-      "types": "./lib/omnibar-tailwind-config.ts",
-      "default": "./dist/lib/omnibar-tailwind-config.js"
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
     }
   },
   "scripts": {
