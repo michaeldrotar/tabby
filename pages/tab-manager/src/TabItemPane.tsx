@@ -9,13 +9,14 @@ import { t } from '@extension/i18n/i18n'
 import { Profiler } from '@extension/shared/Profiler'
 import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
 import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
+import { Favicon } from '@extension/ui/Favicon'
+import { TabItemRow } from '@extension/ui/tab-manager/ui/TabItemRow'
 import { TabList, TabListItem } from '@extension/ui/TabList'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
-import { TabItemRow } from './TabItemRow'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type {
@@ -140,7 +141,18 @@ const TabItemWithContextMenu = memo(
           <TabItemRow
             tabId={tab.id}
             title={tab.title}
-            faviconUrl={tab.url}
+            icon={
+              tab.url ? (
+                <Favicon
+                  pageUrl={tab.url}
+                  size={20}
+                  className={`
+                    transition-transform
+                    group-hover:scale-110
+                  `}
+                />
+              ) : undefined
+            }
             isActive={tab.active}
             isHighlighted={tab.highlighted}
             isPinned={tab.pinned}
