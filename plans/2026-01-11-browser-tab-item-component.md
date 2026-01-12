@@ -1,24 +1,23 @@
-# BrowserTabListViewItem Component
+# BrowserTabItem Component
 
 **Created:** 2026-01-11  
 **Status:** Planning  
-**Component Location:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**Component Location:** `packages/ui/BrowserTabItem.tsx`
 
 ## Overview
 
-Create a dumb UI component that displays a browser tab in a list view. This component will be presentation-only, receiving all data via props without any Chrome API calls or business logic. It will eventually replace the current `TabItemRow` component.
+Create a dumb UI component that displays a browser tab. This component will be presentation-only, receiving all data via props without any Chrome API calls or business logic. It will eventually replace the current `TabItemRow` component.
 
 ## Component Design
 
 ### Name
 
-`BrowserTabListViewItem`
+`BrowserTabItem`
 
 ### Rationale
 
 - Distinguishes from data type (`BrowserTab`)
-- Clear visual role ("ListView")
-- Future-proof for `BrowserTabTreeViewItem` variant
+- Clear visual role
 - Follows pattern: data type + visual structure = component name
 
 ### Information Display
@@ -61,24 +60,26 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 1.1: Create Base Component Structure
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Create component file
-- [ ] Define TypeScript props interface
-  - `tab: { id, title, url, favIconUrl }`
+- [x] Create component file
+- [x] Define TypeScript props interface
+  - `tab: { id, title, url, favIcon }`
   - Optional display props (className, style)
-- [ ] Implement basic layout: favicon + title + domain
-- [ ] Export component and types from package
+- [x] Implement basic layout: favicon + title + domain
+- [x] Export component and types from package
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Default.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Default.stories.tsx`
 
-- [ ] Create story file
-- [ ] Add story with mock tab data (GitHub, Gmail, Docs examples)
-- [ ] Verify component renders in Storybook
+- [x] Create story file
+- [x] Add story with mock tab data (GitHub, Gmail, Docs examples)
+- [x] Verify component renders in Storybook
+
+**Status:** ✅ Complete
 
 #### ✅ Task 1.2: Visual States - Interactive
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add hover state styling (background, shadow, or border)
 - [ ] Add focus state with visible keyboard indicator
@@ -88,7 +89,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Add `isFocused` prop (for keyboard nav)
 - [ ] Add `isActive` prop (current browser tab)
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/InteractiveStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/InteractiveStates.stories.tsx`
 
 - [ ] Story with controls to toggle hover/focus/selected/active
 - [ ] Document each state's purpose
@@ -96,7 +97,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 1.3: Visual States - Content
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add loading skeleton variant
 - [ ] Add favicon error/fallback (generic icon)
@@ -105,7 +106,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Add `isPinned` prop
 - [ ] Add `isDiscarded` prop (grayed out styling)
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/ContentStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/ContentStates.stories.tsx`
 
 - [ ] Story showing loading skeleton
 - [ ] Story showing missing favicon
@@ -119,7 +120,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 2.1: Audio States
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add audio playing indicator (speaker icon, positioned right)
 - [ ] Add muted indicator (muted icon)
@@ -128,7 +129,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Import/use appropriate icons (Lucide or custom)
 - [ ] Style for subtle but visible presence
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/AudioStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/AudioStates.stories.tsx`
 
 - [ ] Story with toggle for audio playing
 - [ ] Story with toggle for muted
@@ -137,7 +138,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 2.2: Tab Metadata Display
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add domain display (extract from URL, show as secondary text)
 - [ ] Add relative timestamp display ("2m ago", "3h ago")
@@ -145,7 +146,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Implement time-ago formatting utility
 - [ ] Style metadata as subtle, secondary information
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/MetadataVariations.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/MetadataVariations.stories.tsx`
 
 - [ ] Story with various timestamp ranges (seconds, minutes, hours, days)
 - [ ] Story with different domain lengths
@@ -154,7 +155,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 2.3: Duplicate & Special States
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add duplicate indicator (badge or subtle visual cue)
 - [ ] Add attention-seeking title detection (regex for "(N)" patterns)
@@ -162,7 +163,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Add `hasAttentionTitle` prop (or detect from title)
 - [ ] Style indicators to avoid clutter
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/SpecialIndicators.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/SpecialIndicators.stories.tsx`
 
 - [ ] Story showing duplicate tabs
 - [ ] Story showing attention titles: "(3) Gmail", "• Slack"
@@ -175,7 +176,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 3.1: Multi-Selection Support
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add checkbox or selection indicator (appears on hover or always visible)
 - [ ] Add `isMultiSelected` prop
@@ -184,7 +185,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Style for clear multi-select state
 - [ ] Add ARIA attributes: `aria-selected`, `role="option"`
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/MultiSelection.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/MultiSelection.stories.tsx`
 
 - [ ] Story with list of multiple items
 - [ ] Interactive selection (click to toggle)
@@ -193,7 +194,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 3.2: Animation & Transitions
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add spring-based hover animation (scale or background)
 - [ ] Add focus ring animation (smooth appearance)
@@ -203,7 +204,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Use CSS transitions or Framer Motion
 - [ ] Spring physics: cubic-bezier or spring config
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Animations.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Animations.stories.tsx`
 
 - [ ] Story demonstrating all animations
 - [ ] Toggle control for reduced motion
@@ -212,7 +213,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 3.3: Action Affordances
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add close button (appears on hover)
 - [ ] Add pin/unpin button (appears on hover)
@@ -223,7 +224,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Add keyboard shortcuts (Delete for close, Ctrl+D for pin)
 - [ ] Prevent action button clicks from selecting row
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Actions.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Actions.stories.tsx`
 
 - [ ] Story with interactive close button
 - [ ] Story with interactive pin/unpin
@@ -237,7 +238,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 4.1: Accessibility Pass
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Add full ARIA labeling
   - `role="option"` or `role="listitem"`
@@ -253,7 +254,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Test with screen reader (VoiceOver on macOS)
 - [ ] Verify color contrast (WCAG AA)
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Accessibility.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Accessibility.stories.tsx`
 
 - [ ] Story with keyboard navigation instructions
 - [ ] Story showing focus indicators
@@ -263,7 +264,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 4.2: Theme & Customization
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Ensure dark theme support
 - [ ] Ensure light theme support
@@ -273,7 +274,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Verify contrast ratios in both themes
 - [ ] Add custom theme props if needed
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Theming.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Theming.stories.tsx`
 
 - [ ] Story with theme switcher
 - [ ] Show all states in dark theme
@@ -283,7 +284,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 4.3: Performance & Optimization
 
-**File:** `packages/ui/lib/tab-manager/BrowserTabListViewItem.tsx`
+**File:** `packages/ui/lib/BrowserTabItem.tsx`
 
 - [ ] Wrap component in `React.memo()` with custom comparator
 - [ ] Memoize expensive calculations (time-ago formatting)
@@ -292,7 +293,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 - [ ] Test rendering performance with many items
 - [ ] Optimize re-renders (avoid inline functions in props)
 
-**Storybook:** `packages/storybook/stories/BrowserTabListViewItem/Performance.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem/Performance.stories.tsx`
 
 - [ ] Stress test story with 100+ items
 - [ ] Story measuring render time
@@ -305,9 +306,9 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 
 #### ✅ Task 5.1: Create Migration Guide
 
-**File:** `packages/ui/lib/tab-manager/MIGRATION.md`
+**File:** `packages/ui/lib/MIGRATION.md`
 
-- [ ] Document prop mapping: `TabItemRow` → `BrowserTabListViewItem`
+- [ ] Document prop mapping: `TabItemRow` → `BrowserTabItem`
 - [ ] List breaking changes
 - [ ] Provide code examples (before/after)
 - [ ] Note any behavioral differences
@@ -318,7 +319,7 @@ Create a dumb UI component that displays a browser tab in a list view. This comp
 **Files:** Tab manager pages and components
 
 - [ ] Find all usages of `TabItemRow`
-- [ ] Replace with `BrowserTabListViewItem`
+- [ ] Replace with `BrowserTabItem`
 - [ ] Update props to match new interface
 - [ ] Update tests
 - [ ] Verify Chrome API integration works

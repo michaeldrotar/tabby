@@ -7,6 +7,7 @@ import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { t } from '@extension/i18n/i18n'
 import { Profiler } from '@extension/shared/Profiler'
+import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
 import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
 import { Favicon } from '@extension/ui/Favicon'
@@ -339,38 +340,72 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
     <div key={`window-tabs-${browserWindowId}`} className="pb-4" data-tab-pane>
       <div className="space-y-4 p-2">
         <TabList>
-          {items.map((item) => {
-            if (item.type === 'tab') {
+          <div>
+            {items.map((item) => {
+              if (item.type === 'tab') {
+                return (
+                  <TabListItem key={item.tab.id}>
+                    <TabItemWithContextMenu
+                      tab={item.tab}
+                      groups={groups}
+                      currentWindowId={currentWindowId}
+                      selected={selectedTabIds.has(item.tab.id)}
+                      isMultiSelectMode={isMultiSelectMode}
+                      onSelect={(e) => handleSelectTab(item.tab.id, e)}
+                    />
+                  </TabListItem>
+                )
+              }
+
               return (
-                <TabListItem key={item.tab.id}>
-                  <TabItemWithContextMenu
-                    tab={item.tab}
-                    groups={groups}
+                <TabListItem key={item.group.id}>
+                  <TabGroupWithContextMenu
+                    group={item.group}
+                    tabs={item.tabs}
                     currentWindowId={currentWindowId}
-                    selected={selectedTabIds.has(item.tab.id)}
+                    groups={groups}
+                    selected={selectedGroupIds.has(item.group.id)}
+                    selectedTabIds={selectedTabIds}
                     isMultiSelectMode={isMultiSelectMode}
-                    onSelect={(e) => handleSelectTab(item.tab.id, e)}
+                    onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
+                    onSelectTab={handleSelectTab}
                   />
                 </TabListItem>
               )
-            }
+            })}
+          </div>
+          <div>
+            {items.map((item) => {
+              if (item.type === 'tab') {
+                return (
+                  <TabListItem key={item.tab.id}>
+                    <BrowserTabItem
+                      tabId={item.tab.id}
+                      title={item.tab.title}
+                      url={item.tab.url}
+                      favicon={<Favicon pageUrl={item.tab.url} size={20} />}
+                    />
+                  </TabListItem>
+                )
+              }
 
-            return (
-              <TabListItem key={item.group.id}>
-                <TabGroupWithContextMenu
-                  group={item.group}
-                  tabs={item.tabs}
-                  currentWindowId={currentWindowId}
-                  groups={groups}
-                  selected={selectedGroupIds.has(item.group.id)}
-                  selectedTabIds={selectedTabIds}
-                  isMultiSelectMode={isMultiSelectMode}
-                  onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
-                  onSelectTab={handleSelectTab}
-                />
-              </TabListItem>
-            )
-          })}
+              return (
+                <TabListItem key={item.group.id}>
+                  <TabGroupWithContextMenu
+                    group={item.group}
+                    tabs={item.tabs}
+                    currentWindowId={currentWindowId}
+                    groups={groups}
+                    selected={selectedGroupIds.has(item.group.id)}
+                    selectedTabIds={selectedTabIds}
+                    isMultiSelectMode={isMultiSelectMode}
+                    onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
+                    onSelectTab={handleSelectTab}
+                  />
+                </TabListItem>
+              )
+            })}
+          </div>
         </TabList>
       </div>
     </div>
