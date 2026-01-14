@@ -28,6 +28,11 @@ const preview: Preview = {
     backgrounds: {
       disable: true,
     },
+    options: {
+      storySort: {
+        order: ['Theme', '*'],
+      },
+    },
   },
   globalTypes: {
     theme: {
