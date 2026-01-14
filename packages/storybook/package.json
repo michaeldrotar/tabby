@@ -16,7 +16,6 @@
     "@extension/ui": "workspace:*"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@storybook/react": "^10.1.10",
     "@storybook/react-vite": "^10.1.10",

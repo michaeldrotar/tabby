@@ -21,13 +21,13 @@ export const SidebarAction = ({
       aria-label={label}
       className={cn(
         `
-          group flex w-full items-center gap-3 overflow-clip rounded-md p-2
-          text-foreground transition-colors
+          text-foreground group flex w-full items-center gap-3 overflow-clip
+          rounded-md p-2 transition-colors
           hover:bg-highlighted/50
-          focus:outline-none
-          focus-visible:outline-none focus-visible:ring-2
           focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-          focus-visible:ring-offset-2 focus-visible:ring-offset-background
+          focus-visible:ring-offset-background focus-visible:outline-none
+          focus-visible:ring-2 focus-visible:ring-offset-2
+          focus:outline-none
         `,
       )}
     >

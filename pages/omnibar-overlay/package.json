@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@extension/shared": "workspace:*",
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*",
     "@types/react": "^19.2.7",

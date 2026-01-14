@@ -136,29 +136,29 @@ export const TabGroupHeader = memo(
             'transition-all duration-200',
             // Selection styling
             selected &&
-              `ring-2 ring-inset ring-accent/[calc(var(--accent-strength)*1%)]`,
+              `ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset`,
             // Focus ring styling via CSS based on mode (on outer container when button is focused)
             isMultiSelectMode
               ? // Multi-select mode: prominent focus ring with offset
                 `
-                  has-[button:focus-visible]:ring-2
                   has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-2
                   has-[button:focus-visible]:ring-offset-background
+                  has-[button:focus-visible]:ring-2
+                  has-[button:focus-visible]:ring-offset-2
                 `
               : // Default mode: subtle fused state when selected
                 selected
                 ? `
+                  has-[button:focus-visible]:ring-foreground/20
                   has-[button:focus-visible]:ring-1
                   has-[button:focus-visible]:ring-inset
-                  has-[button:focus-visible]:ring-foreground/20
                 `
                 : // Not selected: show standard focus ring
                   `
-                    has-[button:focus-visible]:ring-2
                     has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                    has-[button:focus-visible]:ring-offset-2
                     has-[button:focus-visible]:ring-offset-background
+                    has-[button:focus-visible]:ring-2
+                    has-[button:focus-visible]:ring-offset-2
                   `,
             // Removed full background - cleaner, more elegant
             className,
@@ -192,9 +192,9 @@ export const TabGroupHeader = memo(
             onKeyDown={handleButtonKeyDown}
             className={cn(
               `
+                hover:bg-highlighted/30
                 mb-1 flex w-full cursor-pointer items-center gap-2 rounded-md
                 px-2 py-1 text-left transition-colors
-                hover:bg-highlighted/30
                 focus:outline-none
                 focus-visible:outline-none
               `,
@@ -213,9 +213,9 @@ export const TabGroupHeader = memo(
                 }
               }}
               className={`
+                hover:bg-background/80
                 flex h-5 w-5 items-center justify-center rounded
                 transition-colors
-                hover:bg-background/80
               `}
               aria-label={group.collapsed ? 'Expand group' : 'Collapse group'}
             >
@@ -263,10 +263,10 @@ export const TabGroupHeader = memo(
                 onClick={(e) => e.stopPropagation()}
                 className={cn(
                   `
-                    flex-1 rounded border border-border bg-background px-1.5
+                    border-border bg-background flex-1 rounded border px-1.5
                     py-0.5 text-xs font-bold uppercase tracking-wider
                     outline-none
-                    focus:border-accent focus:ring-1 focus:ring-accent
+                    focus:border-accent focus:ring-accent focus:ring-1
                   `,
                   colorClasses.text,
                 )}

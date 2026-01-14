@@ -77,12 +77,12 @@ export const OmnibarItem = ({
         type="button"
         className={cn(
           `
+            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+            focus-visible:ring-offset-background focus-visible:outline-none
+            focus-visible:ring-2 focus-visible:ring-offset-2
             relative flex w-full items-center gap-3 rounded-md px-4 py-2
             text-left text-sm
             focus:outline-none
-            focus-visible:outline-none focus-visible:ring-2
-            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-            focus-visible:ring-offset-2 focus-visible:ring-offset-background
           `,
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
@@ -102,8 +102,8 @@ export const OmnibarItem = ({
         {item.type === 'command' ? (
           <div
             className={`
-              flex h-8 w-8 items-center justify-center rounded bg-input text-xs
-              font-bold text-muted
+              bg-input text-muted flex h-8 w-8 items-center justify-center
+              rounded text-xs font-bold
             `}
           >
             &gt;
@@ -111,8 +111,8 @@ export const OmnibarItem = ({
         ) : item.type === 'search' ? (
           <div
             className={`
-              flex h-8 w-8 flex-shrink-0 items-center justify-center
-              rounded-full bg-card p-0.5 shadow-sm ring-1 ring-border
+              bg-card ring-border flex h-8 w-8 flex-shrink-0 items-center
+              justify-center rounded-full p-0.5 shadow-sm ring-1
             `}
           >
             <svg viewBox="0 0 24 24" className="h-full w-full">
@@ -190,7 +190,7 @@ export const OmnibarItem = ({
         </div>
 
         {isSelected && (
-          <span className="flex-shrink-0 text-xs text-muted">
+          <span className="text-muted flex-shrink-0 text-xs">
             {getOmnibarActionLabel(item)}
             {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
               item.type,

@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@extension/hmr": "workspace:*",
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*",
     "@laynezh/vite-plugin-lib-assets": "^2.1.3"

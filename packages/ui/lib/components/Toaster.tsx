@@ -20,12 +20,12 @@ export const Toaster = ({
       className="toaster group"
       position="bottom-right"
       icons={{
-        success: <CheckCircleIcon className="size-5 text-accent" />,
-        info: <InfoIcon className="size-5 text-accent" />,
-        warning: <InfoIcon className="size-5 text-accent" />,
-        error: <InfoIcon className="size-5 text-accent" />,
-        loading: <LoaderIcon className="size-5 animate-spin text-accent" />,
-        close: <CloseIcon className="size-5 text-accent" />,
+        success: <CheckCircleIcon className="text-accent size-5" />,
+        info: <InfoIcon className="text-accent size-5" />,
+        warning: <InfoIcon className="text-accent size-5" />,
+        error: <InfoIcon className="text-accent size-5" />,
+        loading: <LoaderIcon className="text-accent size-5 animate-spin" />,
+        close: <CloseIcon className="text-accent size-5" />,
       }}
       toastOptions={{
         unstyled: true,

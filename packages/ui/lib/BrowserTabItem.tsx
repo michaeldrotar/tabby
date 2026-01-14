@@ -106,7 +106,7 @@ export const BrowserTabItem = memo(
               <div className="flex h-5 w-5 items-center justify-center rounded">
                 {
                   // Generic fallback icon when no favicon
-                  <div className="h-4 w-4 rounded-sm bg-muted/40" />
+                  <div className="bg-muted/40 h-4 w-4 rounded-sm" />
                 }
               </div>
             )}
@@ -115,12 +115,12 @@ export const BrowserTabItem = memo(
           {/* Tab info */}
           <div className="min-w-0 flex-1">
             {/* Title */}
-            <div className="truncate text-sm font-medium text-foreground">
+            <div className="text-foreground truncate text-sm font-medium">
               {title || 'Untitled'}
             </div>
 
             {/* Domain */}
-            <div className="truncate text-xs text-muted">{domain}</div>
+            <div className="text-muted truncate text-xs">{domain}</div>
           </div>
         </div>
       )

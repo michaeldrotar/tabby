@@ -102,24 +102,24 @@ export const TabItemRow = memo(
             isMultiSelectMode
               ? // Multi-select mode: prominent focus ring with offset
                 `
-                  has-[button:focus-visible]:ring-2
                   has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-2
                   has-[button:focus-visible]:ring-offset-background
+                  has-[button:focus-visible]:ring-2
+                  has-[button:focus-visible]:ring-offset-2
                 `
               : // Default mode: subtle fused state ring when selected
                 selected
                 ? `
+                  has-[button:focus-visible]:ring-foreground/20
                   has-[button:focus-visible]:ring-1
                   has-[button:focus-visible]:ring-inset
-                  has-[button:focus-visible]:ring-foreground/20
                 `
                 : // Not selected in default mode: show standard ring
                   `
-                    has-[button:focus-visible]:ring-2
                     has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                    has-[button:focus-visible]:ring-offset-2
                     has-[button:focus-visible]:ring-offset-background
+                    has-[button:focus-visible]:ring-2
+                    has-[button:focus-visible]:ring-offset-2
                   `,
             className,
           )}
@@ -169,7 +169,7 @@ export const TabItemRow = memo(
                 {isActive && !prefersReducedMotion && (
                   <motion.div
                     className={`
-                      absolute inset-[-3px] rounded-full border-2 border-accent
+                      border-accent absolute inset-[-3px] rounded-full border-2
                     `}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{
@@ -197,18 +197,18 @@ export const TabItemRow = memo(
               {isActive && prefersReducedMotion && (
                 <div
                   className={`
-                    absolute inset-[-3px] rounded-full border-2 border-accent
+                    border-accent absolute inset-[-3px] rounded-full border-2
                     opacity-70
                   `}
                 />
               )}
 
-              {icon || <div className="h-5 w-5 rounded-full bg-muted/40" />}
+              {icon || <div className="bg-muted/40 h-5 w-5 rounded-full" />}
               {isDiscarded && (
                 <div
                   className={`
-                    absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border
-                    border-background bg-muted
+                    border-background bg-muted absolute -bottom-0.5 -right-0.5
+                    h-2 w-2 rounded-full border
                   `}
                 />
               )}
@@ -229,19 +229,19 @@ export const TabItemRow = memo(
             <div className="flex items-center gap-1">
               {isPinned && (
                 <Pin
-                  className="size-3 text-muted opacity-60"
+                  className="text-muted size-3 opacity-60"
                   aria-hidden="true"
                 />
               )}
               {isAudible && !isMuted && (
                 <Volume2
-                  className="size-3 animate-pulse text-accent"
+                  className="text-accent size-3 animate-pulse"
                   aria-hidden="true"
                 />
               )}
               {isMuted && (
                 <VolumeOff
-                  className="size-3 text-muted opacity-60"
+                  className="text-muted size-3 opacity-60"
                   aria-hidden="true"
                 />
               )}

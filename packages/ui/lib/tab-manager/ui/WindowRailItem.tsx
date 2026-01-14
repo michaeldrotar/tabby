@@ -82,23 +82,21 @@ export const WindowRailItem = memo(
               isMultiSelectMode
                 ? // Multi-select mode: prominent focus ring with offset
                   `
-                    focus-visible:ring-2
                     focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-offset-background focus-visible:ring-2
                     focus-visible:ring-offset-2
-                    focus-visible:ring-offset-background
                   `
                 : // Default mode: subtle fused state when selected/viewing
                   selected || isViewing
                   ? `
-                    focus-visible:ring-1 focus-visible:ring-inset
-                    focus-visible:ring-foreground/20
+                    focus-visible:ring-foreground/20 focus-visible:ring-1
+                    focus-visible:ring-inset
                   `
                   : // Not selected/viewing: show standard focus ring
                     `
-                      focus-visible:ring-2
                       focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                      focus-visible:ring-offset-background focus-visible:ring-2
                       focus-visible:ring-offset-2
-                      focus-visible:ring-offset-background
                     `,
               // Selection has highest priority for background
               selected
@@ -120,7 +118,7 @@ export const WindowRailItem = memo(
                 aria-hidden
                 className={cn(
                   'pointer-events-none absolute left-0 top-1/2 -translate-y-1/2',
-                  'h-6 w-1 rounded-r-full bg-foreground/60',
+                  'bg-foreground/60 h-6 w-1 rounded-r-full',
                   isViewing ? 'bg-foreground/50' : 'bg-muted/20',
                 )}
               />
@@ -131,7 +129,7 @@ export const WindowRailItem = memo(
                 flex h-8 w-8 flex-shrink-0 items-center justify-center
               `}
             >
-              {icon || <div className="h-4 w-4 rounded-full bg-muted/40" />}
+              {icon || <div className="bg-muted/40 h-4 w-4 rounded-full" />}
             </div>
 
             {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
@@ -162,7 +160,7 @@ export const WindowRailItem = memo(
           <TooltipTrigger asChild>{button}</TooltipTrigger>
           <TooltipContent side="right">
             <div>{title}</div>
-            <div className="text-xs text-tooltip-foreground/50">{subtitle}</div>
+            <div className="text-tooltip-foreground/50 text-xs">{subtitle}</div>
           </TooltipContent>
         </Tooltip>
       )

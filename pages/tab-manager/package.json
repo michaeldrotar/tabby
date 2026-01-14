@@ -29,7 +29,6 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*"
   },

@@ -87,8 +87,8 @@ export const ModeTransitionEffect = ({
             // Entering multi-select: expanding ring effect
             <motion.div
               className={`
-                absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2
-                -translate-y-1/2 rounded-full bg-accent/30
+                bg-accent/30 absolute left-1/2 top-1/2 h-32 w-32
+                -translate-x-1/2 -translate-y-1/2 rounded-full
               `}
               initial={{
                 scale: 0,
@@ -106,7 +106,7 @@ export const ModeTransitionEffect = ({
           ) : (
             // Exiting multi-select: quick fade
             <motion.div
-              className="absolute inset-0 bg-background/30"
+              className="bg-background/30 absolute inset-0"
               initial={{ opacity: 0.3 }}
               animate={{ opacity: 0 }}
               transition={{ duration: 0.15 }}

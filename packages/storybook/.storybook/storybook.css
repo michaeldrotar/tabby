@@ -1,4 +1,4 @@
-@import '@extension/tailwindcss-config/base.css';
+@import '@extension/ui/base.css';
 
 /* Storybook-specific styles */
 body {

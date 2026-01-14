@@ -6,13 +6,15 @@
   "private": true,
   "sideEffects": true,
   "files": [
-    "dist/**"
+    "dist/**",
+    "base.css"
   ],
   "exports": {
     "./*": {
       "types": "./lib/*.ts",
       "default": "./dist/lib/*.js"
-    }
+    },
+    "./base.css": "./base.css"
   },
   "scripts": {
     "clean:bundle": "rimraf dist",

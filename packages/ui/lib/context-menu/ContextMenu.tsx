@@ -26,20 +26,20 @@ export const ContextMenuContent = forwardRef<
       collisionPadding={16}
       className={cn(
         `
-          animate-in fade-in-0 zoom-in-95 z-50
+          animate-in fade-in-0 zoom-in-95 border-border bg-popover
+          text-popover-foreground z-50
           max-h-[min(var(--radix-context-menu-content-available-height),480px)]
-          min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border
-          border-border bg-popover p-1 text-popover-foreground shadow-lg
-          shadow-black/10 outline-none
+          min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border p-1
+          shadow-lg shadow-black/10 outline-none
           data-[state=closed]:animate-out data-[state=closed]:fade-out-0
           data-[state=closed]:zoom-out-95
           data-[side=bottom]:slide-in-from-top-2
           data-[side=left]:slide-in-from-right-2
           data-[side=right]:slide-in-from-left-2
           data-[side=top]:slide-in-from-bottom-2
-          dark:shadow-black/20
-          [&::-webkit-scrollbar-thumb]:rounded-full
           [&::-webkit-scrollbar-thumb]:bg-muted/60
+          [&::-webkit-scrollbar-thumb]:rounded-full
+          dark:shadow-black/20
           [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2
         `,
         className,
@@ -60,11 +60,11 @@ export const ContextMenuSubTrigger = forwardRef<
     ref={ref}
     className={cn(
       `
+        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
+        data-[state=open]:bg-accent/[calc(var(--accent-strength)*0.5%)]
         flex cursor-default select-none items-center gap-2 rounded-md px-2.5
         py-2 text-sm outline-none
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
-        data-[state=open]:bg-accent/[calc(var(--accent-strength)*0.5%)]
       `,
       inset && 'pl-8',
       className,
@@ -86,16 +86,16 @@ export const ContextMenuSubContent = forwardRef<
     collisionPadding={16}
     className={cn(
       `
-        animate-in fade-in-0 slide-in-from-left-1 z-50
+        animate-in fade-in-0 slide-in-from-left-1 border-border bg-popover
+        text-popover-foreground z-50
         max-h-[min(var(--radix-context-menu-content-available-height),320px)]
-        min-w-[10rem] overflow-y-auto overflow-x-hidden rounded-lg border
-        border-border bg-popover p-1 text-popover-foreground shadow-lg
-        shadow-black/10 outline-none
+        min-w-[10rem] overflow-y-auto overflow-x-hidden rounded-lg border p-1
+        shadow-lg shadow-black/10 outline-none
         data-[state=closed]:animate-out data-[state=closed]:fade-out-0
         data-[state=closed]:slide-out-to-left-1
-        dark:shadow-black/20
-        [&::-webkit-scrollbar-thumb]:rounded-full
         [&::-webkit-scrollbar-thumb]:bg-muted/60
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        dark:shadow-black/20
         [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2
       `,
       className,
@@ -116,10 +116,10 @@ export const ContextMenuItem = forwardRef<
     ref={ref}
     className={cn(
       `
+        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
         relative flex cursor-default select-none items-center gap-2 rounded-md
         px-2.5 py-2 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
         [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0
         [&_svg]:opacity-60
       `,
@@ -145,10 +145,10 @@ export const ContextMenuCheckboxItem = forwardRef<
     ref={ref}
     className={cn(
       `
+        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
         relative flex cursor-default select-none items-center gap-2 rounded-md
         py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
       `,
       className,
     )}
@@ -174,10 +174,10 @@ export const ContextMenuRadioItem = forwardRef<
     ref={ref}
     className={cn(
       `
+        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
         relative flex cursor-default select-none items-center gap-2 rounded-md
         py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
       `,
       className,
     )}
@@ -202,7 +202,7 @@ export const ContextMenuLabel = forwardRef<
   <ContextMenuPrimitive.Label
     ref={ref}
     className={cn(
-      'px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted',
+      'text-muted px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider',
       inset && 'pl-8',
       className,
     )}
@@ -217,7 +217,7 @@ export const ContextMenuSeparator = forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-border', className)}
+    className={cn('bg-border -mx-1 my-1 h-px', className)}
     {...props}
   />
 ))
@@ -230,7 +230,7 @@ export const ContextMenuShortcut = ({
   return (
     <span
       className={cn(
-        'ml-auto text-xs tracking-widest text-muted opacity-60',
+        'text-muted ml-auto text-xs tracking-widest opacity-60',
         className,
       )}
       {...props}

@@ -103,8 +103,9 @@ export const SelectionBadge = ({
       className={cn(
         // Bold, prominent styling
         `
-          text-accent-foreground inline-flex items-center gap-2 rounded-full
-          bg-accent px-4 py-1.5 text-sm font-semibold shadow-lg shadow-accent/25
+          text-accent-foreground bg-accent shadow-accent/25 inline-flex
+          items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold
+          shadow-lg
         `,
         className,
       )}

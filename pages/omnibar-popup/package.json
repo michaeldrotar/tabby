@@ -25,7 +25,6 @@
     "@tanstack/react-query": "5.90.7"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*"
   },

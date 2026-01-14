@@ -27,7 +27,7 @@ const OmnibarOverlayContent = () => {
       <WiredOmnibar
         onDismiss={onDismiss}
         className={`
-          max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border border-border
+          border-border max-h-[75vh] w-[600px] max-w-[90vw] rounded-xl border
           shadow-2xl
         `}
       />

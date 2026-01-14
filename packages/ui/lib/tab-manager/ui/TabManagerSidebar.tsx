@@ -28,7 +28,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
     <div
       className={cn(
         `
-          flex h-full flex-col overflow-x-clip bg-input/30 transition-[width]
+          bg-input/30 flex h-full flex-col overflow-x-clip transition-[width]
           duration-300 ease-in-out
         `,
         isExpanded ? 'w-64' : 'w-16',
@@ -45,13 +45,13 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         <button
           onClick={onToggleExpand}
           className={`
-            flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md
-            text-muted transition-colors
+            text-muted flex h-10 w-10 flex-shrink-0 items-center justify-center
+            rounded-md transition-colors
             hover:bg-highlighted/50 hover:text-foreground
-            focus:outline-none
-            focus-visible:outline-none focus-visible:ring-2
             focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-            focus-visible:ring-offset-2 focus-visible:ring-offset-background
+            focus-visible:ring-offset-background focus-visible:outline-none
+            focus-visible:ring-2 focus-visible:ring-offset-2
+            focus:outline-none
           `}
           title={isExpanded ? collapseSidebarLabel : expandSidebarLabel}
           aria-label={isExpanded ? collapseSidebarLabel : expandSidebarLabel}
@@ -66,7 +66,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
           <span
             className={cn(
               `
-                whitespace-nowrap text-xs font-medium text-muted
+                text-muted whitespace-nowrap text-xs font-medium
                 transition-[visibility] duration-300
               `,
               isExpanded ? 'visible' : 'invisible',
@@ -77,7 +77,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         )}
       </div>
 
-      <div className="h-[1px] w-full bg-border"></div>
+      <div className="bg-border h-[1px] w-full"></div>
 
       {/* Middle Scrollable: Window List */}
       <ScrollArea className="flex-1 py-2" orientation="vertical">
@@ -87,7 +87,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
       {/* Bottom Sticky: Actions */}
       <div
         className={`
-          flex flex-shrink-0 flex-col gap-1 border-t border-border p-2
+          border-border flex flex-shrink-0 flex-col gap-1 border-t p-2
         `}
       >
         {actions}

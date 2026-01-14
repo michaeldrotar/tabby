@@ -22,8 +22,8 @@ export const SearchPopup = ({ isOpen, onClose }: SearchPopupProps) => {
         onDismiss={onClose}
         hideTabManagerAction
         className={`
-          max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl border
-          border-border shadow-2xl
+          border-border max-h-[80vh] w-full max-w-lg overflow-hidden rounded-xl
+          border shadow-2xl
         `}
       />
     </div>

@@ -22,11 +22,11 @@ export const TabManagerShell = ({
     <div
       data-selection-mode={selectionMode}
       className={cn(
-        'relative flex h-screen w-full overflow-hidden bg-background',
+        'bg-background relative flex h-screen w-full overflow-hidden',
         className,
       )}
     >
-      <aside className="flex-shrink-0 border-r border-border">{sidebar}</aside>
+      <aside className="border-border flex-shrink-0 border-r">{sidebar}</aside>
       <ScrollArea className="flex-1" orientation="vertical">
         <main className="h-full">{children}</main>
       </ScrollArea>

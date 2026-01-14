@@ -1,6 +1,11 @@
 # UI Package
 
-This package provides components that make up the UI.
+This package provides the complete UI system for Tabby, including:
+
+- **Components** - Reusable React components
+- **Theme system** - CSS variables, color palettes, and theme configuration
+- **Tailwind configuration** - Base config and merge utilities
+- **Icons and utilities** - Shared UI helpers
 
 ## Installation
 
@@ -26,10 +31,12 @@ Then, run:
 pnpm install
 ```
 
+## Setup Tailwind
+
 Add the following to the `tailwind.config.ts` file.
 
 ```ts
-import { createTailwindConfig } from '@extension/tailwindcss-config/create-tailwind-config'
+import { createTailwindConfig } from '@extension/ui/create-tailwind-config'
 import { uiTailwindConfig } from '@extension/ui/ui-tailwind-config'
 
 export default createTailwindConfig(uiTailwindConfig, {
@@ -40,7 +47,21 @@ export default createTailwindConfig(uiTailwindConfig, {
 Add the following to the first line of `index.css` file.
 
 ```css
-@import '@extension/tailwindcss-config/base.css';
+@import '@extension/ui/base.css';
+```
+
+## Theme Colors
+
+Import theme types and constants:
+
+```typescript
+import {
+  THEME_ACCENT_PALETTES,
+  THEME_NEUTRAL_PALETTES,
+  THEME_ACCENT_STRENGTH_OPTIONS,
+  type ThemeAccentPalette,
+  type ThemeNeutralPalette,
+} from '@extension/ui/theme-colors'
 ```
 
 ## Add Custom Component
