@@ -4,7 +4,10 @@
   "description": "chrome extension - hot module reload/refresh",
   "type": "module",
   "private": true,
-  "sideEffects": true,
+  "sideEffects": [
+    "lib/injections/refresh.ts",
+    "dist/lib/injections/refresh.js"
+  ],
   "files": [
     "dist/**"
   ],

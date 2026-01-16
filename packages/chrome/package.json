@@ -4,6 +4,7 @@
   "description": "React-friendly access to chrome APIs",
   "type": "module",
   "private": true,
+  "sideEffects": false,
   "files": [
     "dist/**"
   ],
