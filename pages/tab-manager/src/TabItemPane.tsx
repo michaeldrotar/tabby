@@ -383,7 +383,13 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                       tabId={item.tab.id}
                       title={item.tab.title}
                       url={item.tab.url}
-                      favicon={<Favicon pageUrl={item.tab.url} size={20} />}
+                      favicon={
+                        item.tab.url ? (
+                          <Favicon pageUrl={item.tab.url} size={20} />
+                        ) : undefined
+                      }
+                      active={item.tab.active}
+                      selected={selectedTabIds.has(item.tab.id)}
                     />
                   </TabListItem>
                 )

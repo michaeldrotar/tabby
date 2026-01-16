@@ -22,6 +22,12 @@ export type BrowserTabItemProps = Omit<
   className?: string
   /** Handler for when tab is clicked */
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+
+  // Interactive state props
+  /** Whether this tab is currently selected (for keyboard navigation or multi-select) */
+  selected?: boolean
+  /** Whether this tab represents the currently active browser tab */
+  active?: boolean
 }
 
 /**
@@ -50,7 +56,20 @@ export type BrowserTabItemProps = Omit<
  */
 export const BrowserTabItem = memo(
   forwardRef<HTMLDivElement, BrowserTabItemProps>(
-    ({ tabId, title, url, favicon, className, onClick, ...props }, ref) => {
+    (
+      {
+        tabId,
+        title,
+        url,
+        favicon,
+        className,
+        onClick,
+        selected = false,
+        active = false,
+        ...props
+      },
+      ref,
+    ) => {
       // Extract domain from URL for display
       const getDomain = (url?: string): string => {
         if (!url) return ''
@@ -74,30 +93,56 @@ export const BrowserTabItem = memo(
       return (
         <div
           ref={ref}
-          role="button"
+          role="option"
           tabIndex={0}
           className={cn(
-            // Base layout
-            'group flex items-center gap-3 px-4 py-2',
-            // Sizing
-            'min-h-[48px]',
-            // Styling
-            'rounded-lg',
-            'transition-colors duration-150',
-            // Interactive states
-            'hover:bg-highlighted/50',
-            'focus-visible:ring-2',
-            'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]',
-            'focus-visible:ring-offset-2',
-            'focus-visible:ring-offset-background',
-            // Cursor
-            'cursor-pointer',
+            // Base styles
+            `
+              focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+              focus-visible:ring-offset-background focus-visible:outline-none
+              focus-visible:ring-2 focus-visible:ring-offset-2
+              data-[focus]:ring-accent/[calc(var(--accent-strength)*1%)]
+              data-[focus]:ring-offset-background data-[focus]:ring-2
+              data-[focus]:ring-offset-2
+              group relative flex min-h-[48px] cursor-pointer items-center gap-3
+              rounded-lg border-l-4 border-transparent px-4 py-2 transition-all
+              duration-200 ease-out
+            `,
+
+            // Selected state: Multi-select or keyboard navigation
+            // Uses accent at full strength for clear, accessible selection
+            selected &&
+              `bg-accent/[calc(var(--accent-strength)*1%)] text-foreground`,
+
+            // Active state: Currently active browser tab
+            // Bold left border indicator at full accent strength
+            active && `border-l-accent/[calc(var(--accent-strength)*1%)]`,
+
+            // Hover state: 50% accent strength
+            // Only applies when NOT selected (selected has its own hover behavior)
+            !selected &&
+              `
+                hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+              `,
+
+            // Hover on selected: Slightly darker/more prominent
+            selected &&
+              `
+                hover:brightness-95
+                data-[hover]:brightness-95
+              `,
+
             className,
           )}
           onClick={onClick}
           onKeyDown={handleKeyDown}
           data-tab-id={tabId}
+          data-selected={selected || undefined}
+          data-active={active || undefined}
           aria-label={`Tab: ${title}`}
+          aria-selected={selected}
+          aria-current={active ? 'page' : undefined}
           {...props}
         >
           {/* Favicon */}

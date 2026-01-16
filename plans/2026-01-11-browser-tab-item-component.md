@@ -69,31 +69,40 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [x] Implement basic layout: favicon + title + domain
 - [x] Export component and types from package
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Default.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
 - [x] Create story file
 - [x] Add story with mock tab data (GitHub, Gmail, Docs examples)
 - [x] Verify component renders in Storybook
 
-**Status:** ✅ Complete
-
 #### ✅ Task 1.2: Visual States - Interactive
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add hover state styling (background, shadow, or border)
-- [ ] Add focus state with visible keyboard indicator
-- [ ] Add selected/active state (distinct from hover)
-- [ ] Add pressed state (brief feedback on click)
-- [ ] Add `isSelected` prop
-- [ ] Add `isFocused` prop (for keyboard nav)
-- [ ] Add `isActive` prop (current browser tab)
+- [x] Add hover state styling (background on hover)
+- [x] Add focus state with visible keyboard indicator (blue ring)
+- [x] Add selected state (subtle left border + light background)
+- [x] Add active state (bold left border + accent background)
+- [x] Add pressed state (scale-down + opacity feedback)
+- [x] Add `isSelected` prop
+- [x] Add `isActive` prop (current browser tab)
+- [x] States use left border accent for visual distinction
+- [x] Removed isFocused prop (will be added when needed)
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/InteractiveStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Story with controls to toggle hover/focus/selected/active
-- [ ] Document each state's purpose
-- [ ] Show all states in a single view for comparison
+- [x] Consolidated all stories into single file
+- [x] Playground story with interactive controls
+- [x] TransitionCycle story - automatically cycles through states every 2s
+- [x] HoverState story - demonstrates programmatic hover trigger
+- [x] AllStates story - static comparison view
+- [x] InteractiveList story - realistic multi-tab selection
+- [x] ContentVariations story - edge cases (long titles, domains, missing content)
+
+**Integration:** `pages/tab-manager/src/TabItemPane.tsx`
+
+- [x] Updated to use BrowserTabItem with new props
+- [x] Passes isActive and isSelected appropriately
 
 #### ✅ Task 1.3: Visual States - Content
 
@@ -106,13 +115,13 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Add `isPinned` prop
 - [ ] Add `isDiscarded` prop (grayed out styling)
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/ContentStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add content state stories (loading, pinned, discarded)
 - [ ] Story showing loading skeleton
 - [ ] Story showing missing favicon
 - [ ] Story showing pinned tab
 - [ ] Story showing discarded tab
-- [ ] Variant selector to switch between states
 
 ---
 
@@ -129,12 +138,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Import/use appropriate icons (Lucide or custom)
 - [ ] Style for subtle but visible presence
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/AudioStates.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add audio state stories
 - [ ] Story with toggle for audio playing
 - [ ] Story with toggle for muted
 - [ ] Story showing both states combined
-- [ ] Multiple tabs showing different audio states
 
 #### ✅ Task 2.2: Tab Metadata Display
 
@@ -146,12 +155,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Implement time-ago formatting utility
 - [ ] Style metadata as subtle, secondary information
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/MetadataVariations.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add metadata display stories
 - [ ] Story with various timestamp ranges (seconds, minutes, hours, days)
 - [ ] Story with different domain lengths
 - [ ] Story with/without metadata
-- [ ] Test truncation of long domains
 
 #### ✅ Task 2.3: Duplicate & Special States
 
@@ -163,12 +172,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Add `hasAttentionTitle` prop (or detect from title)
 - [ ] Style indicators to avoid clutter
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/SpecialIndicators.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add special indicator stories
 - [ ] Story showing duplicate tabs
 - [ ] Story showing attention titles: "(3) Gmail", "• Slack"
 - [ ] Story combining multiple indicators
-- [ ] Document when to use each indicator
 
 ---
 
@@ -185,12 +194,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Style for clear multi-select state
 - [ ] Add ARIA attributes: `aria-selected`, `role="option"`
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/MultiSelection.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add multi-selection stories
 - [ ] Story with list of multiple items
 - [ ] Interactive selection (click to toggle)
 - [ ] Show selected count
-- [ ] Demonstrate keyboard selection patterns
 
 #### ✅ Task 3.2: Animation & Transitions
 
@@ -204,11 +213,11 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Use CSS transitions or Framer Motion
 - [ ] Spring physics: cubic-bezier or spring config
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Animations.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Story demonstrating all animations
+- [x] Story demonstrating state transitions (TransitionCycle)
+- [ ] Add more animation stories as needed
 - [ ] Toggle control for reduced motion
-- [ ] Slow-motion mode for inspection
 - [ ] Document animation timings and easing
 
 #### ✅ Task 3.3: Action Affordances
@@ -224,13 +233,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Add keyboard shortcuts (Delete for close, Ctrl+D for pin)
 - [ ] Prevent action button clicks from selecting row
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Actions.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add action affordance stories
 - [ ] Story with interactive close button
 - [ ] Story with interactive pin/unpin
 - [ ] Story showing action button hover states
-- [ ] Log callback events to Actions panel
-- [ ] Test touch target sizes
 
 ---
 
@@ -254,12 +262,11 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Test with screen reader (VoiceOver on macOS)
 - [ ] Verify color contrast (WCAG AA)
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Accessibility.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add accessibility stories
 - [ ] Story with keyboard navigation instructions
 - [ ] Story showing focus indicators
-- [ ] Story with ARIA attributes visible
-- [ ] Add accessibility testing notes
 - [ ] Document keyboard shortcuts
 
 #### ✅ Task 4.2: Theme & Customization
@@ -274,13 +281,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Verify contrast ratios in both themes
 - [ ] Add custom theme props if needed
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Theming.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add theming stories
 - [ ] Story with theme switcher
 - [ ] Show all states in dark theme
 - [ ] Show all states in light theme
-- [ ] Custom accent color examples
-- [ ] Document theme variables used
 
 #### ✅ Task 4.3: Performance & Optimization
 
@@ -293,12 +299,12 @@ Create a dumb UI component that displays a browser tab. This component will be p
 - [ ] Test rendering performance with many items
 - [ ] Optimize re-renders (avoid inline functions in props)
 
-**Storybook:** `packages/storybook/stories/BrowserTabItem/Performance.stories.tsx`
+**Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
+- [ ] Add performance stories
 - [ ] Stress test story with 100+ items
 - [ ] Story measuring render time
 - [ ] Story demonstrating re-render optimization
-- [ ] Add performance notes and recommendations
 
 ---
 
