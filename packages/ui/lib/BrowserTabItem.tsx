@@ -96,7 +96,6 @@ export const BrowserTabItem = memo(
           role="option"
           tabIndex={0}
           className={cn(
-            // Base styles
             `
               focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
               focus-visible:ring-offset-background focus-visible:outline-none
@@ -105,32 +104,33 @@ export const BrowserTabItem = memo(
               data-[focus]:ring-offset-background data-[focus]:ring-2
               data-[focus]:ring-offset-2
               group relative flex min-h-[48px] cursor-pointer items-center gap-3
-              rounded-lg border-l-4 border-transparent px-4 py-2 transition-all
+              rounded-lg border border-transparent px-4 py-2 transition-all
               duration-200 ease-out
+              motion-reduce:transition-none
             `,
 
-            // Selected state: Multi-select or keyboard navigation
-            // Uses accent at full strength for clear, accessible selection
-            selected &&
-              `bg-accent/[calc(var(--accent-strength)*1%)] text-foreground`,
-
-            // Active state: Currently active browser tab
-            // Bold left border indicator at full accent strength
-            active && `border-l-accent/[calc(var(--accent-strength)*1%)]`,
-
-            // Hover state: 50% accent strength
-            // Only applies when NOT selected (selected has its own hover behavior)
             !selected &&
               `
                 hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
                 data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
               `,
 
-            // Hover on selected: Slightly darker/more prominent
             selected &&
               `
+                bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
                 hover:brightness-95
                 data-[hover]:brightness-95
+              `,
+
+            active &&
+              `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
+
+            active &&
+              selected &&
+              `
+                bg-accent/[calc(var(--accent-strength)*1.2%)]
+                border-accent/[calc(var(--accent-strength)*1%)] shadow-accent/25
+                shadow-md
               `,
 
             className,
