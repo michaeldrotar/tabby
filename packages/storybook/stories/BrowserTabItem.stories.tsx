@@ -1,11 +1,23 @@
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { useEffect, useRef, useState } from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Decorator, Meta, StoryObj } from '@storybook/react'
 import type { MouseEvent } from 'react'
 
 // Simple colored icon for demonstration
 const ColoredIcon = ({ color }: { color: string }) => (
   <div className="h-5 w-5 rounded" style={{ backgroundColor: color }} />
+)
+
+const maxWidthXsDecorator: Decorator = (Story) => (
+  <div className="flex w-full max-w-xs flex-col gap-2 p-4">
+    <Story />
+  </div>
+)
+
+const maxWidth2xlDecorator: Decorator = (Story) => (
+  <div className="flex w-full max-w-2xl flex-col gap-2 p-4">
+    <Story />
+  </div>
 )
 
 const meta = {
@@ -52,13 +64,6 @@ const meta = {
       description: 'Called when the tab item is clicked',
     },
   },
-  decorators: [
-    (Story) => (
-      <div className="flex w-96 flex-col gap-2 p-4">
-        <Story />
-      </div>
-    ),
-  ],
 } satisfies Meta<typeof BrowserTabItem>
 
 export default meta
@@ -77,6 +82,7 @@ export const Default: Story = {
     selected: false,
     active: false,
   },
+  decorators: [maxWidthXsDecorator],
 }
 
 /**
@@ -93,6 +99,7 @@ export const AllStates = {
       },
     },
   },
+  decorators: [maxWidth2xlDecorator],
   render: () => (
     <div className="grid grid-cols-2 gap-8">
       {/* Left Column: Simple States */}
@@ -189,6 +196,25 @@ export const AllStates = {
             favicon={<ColoredIcon color="#6b7280" />}
             active
             selected
+          />
+        </div>
+
+        {/* Active + Selected + Focus */}
+        <div>
+          <h3
+            className="text-muted mb-2 text-xs font-semibold uppercase"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            Active + Selected + Focus
+          </h3>
+          <BrowserTabItem
+            tabId={11}
+            title="Focused Active Selected Tab"
+            url="https://example.com/focus-active-selected"
+            favicon={<ColoredIcon color="#6b7280" />}
+            active
+            selected
+            data-focus
           />
         </div>
 
@@ -315,6 +341,7 @@ export const InteractiveList = {
       },
     },
   },
+  decorators: [maxWidthXsDecorator],
   render: () => <InteractiveListComponent />,
 }
 
@@ -325,6 +352,7 @@ export const ContentVariations = {
   parameters: {
     controls: { disable: true },
   },
+  decorators: [maxWidthXsDecorator],
   render: () => (
     <div className="flex flex-col gap-2">
       <BrowserTabItem
@@ -763,6 +791,7 @@ export const MouseWorkflow = {
       },
     },
   },
+  decorators: [maxWidthXsDecorator],
   render: () => <WorkflowDemo scenario={MOUSE_SCENARIO} showCursor />,
 }
 
@@ -780,5 +809,6 @@ export const KeyboardWorkflow = {
       },
     },
   },
+  decorators: [maxWidthXsDecorator],
   render: () => <WorkflowDemo scenario={KEYBOARD_SCENARIO} />,
 }
