@@ -155,12 +155,25 @@ const onChromeTabReplaced = (
   void chrome.tabs
     .get(addedTabId)
     .then((newChromeTab) => {
+      const state = useBrowserStore.getState()
+      const removedBrowserTab = state.tabById[removedTabId]
+
+      // Derive lifecycle based on the new tab's state
+      // Discarded tabs use this to replace the tab with a discarded one
+      // that has the same info but gets a new ID generated.
+      const lifecycle = removedBrowserTab?.lifecycle || 'initializing'
+
       const newBrowserTab = toBrowserTab(newChromeTab, {
-        lifecycle: 'initializing',
+        lifecycle,
       })
       if (!newBrowserTab) return
 
-      const state = useBrowserStore.getState()
+      // TODO: maybe add a similar replace method to handle preserving
+      // the BrowserTab props and for keeping a stable id reference different
+      // from Chrome's internal id that gets replaced. It could simply be a
+      // new stableId property on BrowserTab that gets set initially from
+      // the chrome tab id and never changes. ASSUMPTION: chrome doesn't
+      // reuse tab ids for different tabs during the same session.
       state.removeTabById(removedTabId)
       state.addTab(newBrowserTab)
     })
