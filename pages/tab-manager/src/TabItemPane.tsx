@@ -13,6 +13,7 @@ import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextM
 import { Favicon } from '@extension/ui/Favicon'
 import { TabItemRow } from '@extension/ui/tab-manager/ui/TabItemRow'
 import { TabList, TabListItem } from '@extension/ui/TabList'
+import { AnimatePresence } from 'framer-motion'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
@@ -375,45 +376,55 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
             })}
           </div>
           <div>
-            {items.map((item) => {
-              if (item.type === 'tab') {
+            <AnimatePresence mode="popLayout" initial={false}>
+              {items.map((item) => {
+                if (item.type === 'tab') {
+                  return (
+                    <TabListItem key={item.tab.id}>
+                      <BrowserTabItem
+                        tabId={item.tab.id}
+                        title={item.tab.title || 'Untitled'}
+                        url={item.tab.url}
+                        favicon={
+                          item.tab.url ? (
+                            <Favicon pageUrl={item.tab.url} size={20} />
+                          ) : undefined
+                        }
+                        active={item.tab.active}
+                        selected={selectedTabIds.has(item.tab.id)}
+                        loading={
+                          item.tab.lifecycle === 'initializing' ||
+                          item.tab.lifecycle === 'loading' ||
+                          item.tab.lifecycle === 'reloading'
+                        }
+                        blurred={
+                          item.tab.lifecycle === 'initializing' ||
+                          item.tab.lifecycle === 'loading'
+                        }
+                        pinned={item.tab.pinned}
+                        discarded={item.tab.discarded}
+                      />
+                    </TabListItem>
+                  )
+                }
+
                 return (
-                  <TabListItem key={item.tab.id}>
-                    <BrowserTabItem
-                      tabId={item.tab.id}
-                      title={item.tab.title}
-                      url={item.tab.url}
-                      favicon={
-                        item.tab.url ? (
-                          <Favicon pageUrl={item.tab.url} size={20} />
-                        ) : undefined
-                      }
-                      active={item.tab.active}
-                      selected={selectedTabIds.has(item.tab.id)}
-                      loading={!item.tab.title || !item.tab.url}
-                      pinned={item.tab.pinned}
-                      discarded={item.tab.discarded}
+                  <TabListItem key={item.group.id}>
+                    <TabGroupWithContextMenu
+                      group={item.group}
+                      tabs={item.tabs}
+                      currentWindowId={currentWindowId}
+                      groups={groups}
+                      selected={selectedGroupIds.has(item.group.id)}
+                      selectedTabIds={selectedTabIds}
+                      isMultiSelectMode={isMultiSelectMode}
+                      onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
+                      onSelectTab={handleSelectTab}
                     />
                   </TabListItem>
                 )
-              }
-
-              return (
-                <TabListItem key={item.group.id}>
-                  <TabGroupWithContextMenu
-                    group={item.group}
-                    tabs={item.tabs}
-                    currentWindowId={currentWindowId}
-                    groups={groups}
-                    selected={selectedGroupIds.has(item.group.id)}
-                    selectedTabIds={selectedTabIds}
-                    isMultiSelectMode={isMultiSelectMode}
-                    onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
-                    onSelectTab={handleSelectTab}
-                  />
-                </TabListItem>
-              )
-            })}
+              })}
+            </AnimatePresence>
           </div>
         </TabList>
       </div>

@@ -1,4 +1,5 @@
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
+import { AnimatePresence } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Decorator, Meta, StoryObj } from '@storybook/react'
 import type { MouseEvent } from 'react'
@@ -60,7 +61,13 @@ const meta = {
       control: 'boolean',
     },
     loading: {
-      description: 'Whether the tab is currently loading',
+      description:
+        'Whether the tab is loading - shows radial spinner over favicon',
+      control: 'boolean',
+    },
+    blurred: {
+      description:
+        'Whether to blur title and URL text (typically during initial load)',
       control: 'boolean',
     },
     pinned: {
@@ -93,6 +100,10 @@ export const Default: Story = {
     favicon: <ColoredIcon color="#24292e" />,
     selected: false,
     active: false,
+    loading: false,
+    blurred: false,
+    pinned: false,
+    discarded: false,
   },
   decorators: [singleColumnDecorator],
 }
@@ -193,7 +204,28 @@ export const AllStates = {
           <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
             Loading
           </h3>
-          <BrowserTabItem tabId={12} title="" url="" loading={true} />
+          <BrowserTabItem
+            tabId={12}
+            title="GitHub - microsoft/vscode"
+            url="https://github.com/microsoft/vscode"
+            favicon={<ColoredIcon color="#24292e" />}
+            loading={true}
+          />
+        </div>
+
+        {/* Loading + Blurred */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Loading + Blurred
+          </h3>
+          <BrowserTabItem
+            tabId={13}
+            title="New Tab"
+            url="https://example.com/new"
+            favicon={<ColoredIcon color="#6b7280" />}
+            loading={true}
+            blurred={true}
+          />
         </div>
 
         {/* Pinned */}
@@ -202,7 +234,7 @@ export const AllStates = {
             Pinned
           </h3>
           <BrowserTabItem
-            tabId={13}
+            tabId={15}
             title="Gmail"
             url="https://mail.google.com"
             favicon={<ColoredIcon color="#EA4335" />}
@@ -216,7 +248,7 @@ export const AllStates = {
             Discarded
           </h3>
           <BrowserTabItem
-            tabId={14}
+            tabId={16}
             title="Unloaded Tab"
             url="https://example.com/unloaded"
             favicon={<ColoredIcon color="#888888" />}
@@ -352,6 +384,23 @@ export const AllStates = {
             favicon={<ColoredIcon color="#9ca3af" />}
             discarded={true}
             pinned={true}
+          />
+        </div>
+
+        {/* Loading + Blurred + Active + Selected */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Loading + Blurred + Active + Selected
+          </h3>
+          <BrowserTabItem
+            tabId={14}
+            title="Loading Tab"
+            url="https://example.com/loading"
+            favicon={<ColoredIcon color="#6b7280" />}
+            loading={true}
+            blurred={true}
+            active={true}
+            selected={true}
           />
         </div>
       </div>
@@ -490,6 +539,7 @@ type InitialState = {
   pinned?: number[]
   discarded?: number[]
   loading?: number[]
+  blurred?: number[]
   visible?: number[]
 }
 
@@ -503,6 +553,7 @@ type Action = {
   pinned?: number[]
   discarded?: number[]
   loading?: number[]
+  blurred?: number[]
   visible?: number[]
 }
 
@@ -523,6 +574,7 @@ type CompiledAction = {
     selected: number[]
     active: number
     loading?: number[]
+    blurred?: number[]
     pinned?: number[]
     discarded?: number[]
     visible?: number[]
@@ -555,6 +607,7 @@ const compileScenario = (
     selected: initial.selected,
     active: initial.active,
     loading: initial.loading,
+    blurred: initial.blurred,
     pinned: initial.pinned,
     discarded: initial.discarded,
     visible: initial.visible,
@@ -583,6 +636,7 @@ const compileScenario = (
         ...(action.selected !== undefined && { selected: action.selected }),
         ...(action.active !== undefined && { active: action.active }),
         ...(action.loading !== undefined && { loading: action.loading }),
+        ...(action.blurred !== undefined && { blurred: action.blurred }),
         ...(action.pinned !== undefined && { pinned: action.pinned }),
         ...(action.discarded !== undefined && {
           discarded: action.discarded,
@@ -640,12 +694,12 @@ const SHARED_TABS: Tab[] = [
     url: 'https://stackoverflow.com/questions/53945763',
     color: '#F48024',
   },
+  { title: 'New Tab', url: 'chrome://newtab', color: '#8B5CF6' },
   {
     title: 'MDN Web Docs',
     url: 'https://developer.mozilla.org/en-US/',
     color: '#000000',
   },
-  { title: 'New Tab', url: 'chrome://newtab', color: '#8B5CF6' },
 ]
 
 const MOUSE_SCENARIO: CompactScenarioConfig = {
@@ -655,7 +709,7 @@ const MOUSE_SCENARIO: CompactScenarioConfig = {
     selected: [2],
     active: 2,
     discarded: [3],
-    visible: [1, 2, 3, 4, 5],
+    visible: [1, 2, 3, 4, 6],
   },
   steps: [
     [
@@ -678,17 +732,18 @@ const MOUSE_SCENARIO: CompactScenarioConfig = {
     [
       { ms: 600, label: 'Open new tab', hover: 1 },
       {
-        ms: 500,
-        active: 6,
-        selected: [6],
-        loading: [6],
+        ms: 800,
+        active: 5,
+        selected: [5],
+        loading: [5],
+        blurred: [5],
         visible: [1, 2, 3, 4, 5, 6],
       },
-      { ms: 700, loading: [] },
+      { ms: 700, loading: [], blurred: [] },
     ],
     [
       { ms: 800, label: 'Close new tab', hover: 1 },
-      { ms: 750, active: 1, selected: [1], visible: [1, 2, 3, 4, 5] },
+      { ms: 800, active: 1, selected: [1], visible: [1, 2, 3, 4, 6] },
     ],
     [
       { ms: 750, label: 'Unpin tab 1' },
@@ -708,7 +763,7 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
     selected: [2],
     active: 2,
     discarded: [3],
-    visible: [1, 2, 3, 4, 5],
+    visible: [1, 2, 3, 4, 6],
   },
   steps: [
     [
@@ -731,14 +786,15 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
     [
       { ms: 600, label: 'Open new tab with Cmd+T' },
       {
-        ms: 500,
-        active: 6,
-        selected: [6],
-        focus: 6,
-        loading: [6],
+        ms: 800,
+        active: 5,
+        selected: [5],
+        focus: 5,
+        loading: [5],
+        blurred: [5],
         visible: [1, 2, 3, 4, 5, 6],
       },
-      { ms: 700, loading: [] },
+      { ms: 700, loading: [], blurred: [] },
     ],
     [
       { ms: 800, label: 'Close new tab with Cmd+W' },
@@ -747,7 +803,7 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
         active: 1,
         selected: [1],
         focus: 1,
-        visible: [1, 2, 3, 4, 5],
+        visible: [1, 2, 3, 4, 6],
       },
     ],
     [
@@ -977,37 +1033,43 @@ const WorkflowDemo = ({
           </div>
         )}
 
-        {visibleTabs.map((tab, idx) => {
-          const tabId = visible ? visible[idx]! : idx + 1
-          const isHovered = currentAction?.state.hover === tabId
-          const isFocused = currentAction?.state.focus === tabId
-          const isSelected =
-            currentAction?.state.selected.includes(tabId) || false
-          const isActive = currentAction?.state.active === tabId
-          const isLoading =
-            currentAction?.state.loading?.includes(tabId) || false
-          const isPinned = currentAction?.state.pinned?.includes(tabId) || false
-          const isDiscarded =
-            currentAction?.state.discarded?.includes(tabId) || false
+        <AnimatePresence mode="sync" initial={false}>
+          {visibleTabs.map((tab, idx) => {
+            const tabId = visible ? visible[idx]! : idx + 1
+            const isHovered = currentAction?.state.hover === tabId
+            const isFocused = currentAction?.state.focus === tabId
+            const isSelected =
+              currentAction?.state.selected.includes(tabId) || false
+            const isActive = currentAction?.state.active === tabId
+            const isLoading =
+              currentAction?.state.loading?.includes(tabId) || false
+            const isBlurred =
+              currentAction?.state.blurred?.includes(tabId) || false
+            const isPinned =
+              currentAction?.state.pinned?.includes(tabId) || false
+            const isDiscarded =
+              currentAction?.state.discarded?.includes(tabId) || false
 
-          return (
-            <BrowserTabItem
-              key={tabId}
-              tabId={tabId}
-              title={tab.title}
-              url={tab.url}
-              favicon={<ColoredIcon color={tab.color} />}
-              selected={isSelected}
-              active={isActive}
-              loading={isLoading}
-              pinned={isPinned}
-              discarded={isDiscarded}
-              data-hover={isHovered || undefined}
-              data-focus={isFocused || undefined}
-              data-tab-id={tabId}
-            />
-          )
-        })}
+            return (
+              <BrowserTabItem
+                key={tabId}
+                tabId={tabId}
+                title={tab.title}
+                url={tab.url}
+                favicon={<ColoredIcon color={tab.color} />}
+                selected={isSelected}
+                active={isActive}
+                loading={isLoading}
+                blurred={isBlurred}
+                pinned={isPinned}
+                discarded={isDiscarded}
+                data-hover={isHovered || undefined}
+                data-focus={isFocused || undefined}
+                data-tab-id={tabId}
+              />
+            )
+          })}
+        </AnimatePresence>
       </div>
     </div>
   )
@@ -1047,4 +1109,191 @@ export const KeyboardWorkflow = {
   },
   decorators: [singleColumnDecorator],
   render: () => <WorkflowDemo scenario={KEYBOARD_SCENARIO} />,
+}
+
+/**
+ * Side-by-side comparison of normal animations vs reduced motion
+ */
+const ReducedMotionComparisonComponent = () => {
+  const [loading, setLoading] = useState(true)
+  const [blurred, setBlurred] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLoading((prev) => {
+        if (!prev) {
+          setBlurred(true)
+          return true
+        }
+        if (blurred) {
+          setBlurred(false)
+          return true
+        }
+        return false
+      })
+    }, 1500)
+
+    return () => clearInterval(interval)
+  }, [blurred])
+
+  return (
+    <div className="grid grid-cols-2 gap-8">
+      {/* Normal Motion */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-foreground mb-2 text-sm font-semibold">
+          Normal Motion
+        </h2>
+        <p className="text-muted text-xs">
+          Full animations with spring physics
+        </p>
+        <BrowserTabItem
+          tabId={1}
+          title="GitHub - microsoft/vscode"
+          url="https://github.com/microsoft/vscode"
+          favicon={<ColoredIcon color="#24292e" />}
+          loading={loading}
+          active
+        />
+      </div>
+
+      {/* Reduced Motion */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-foreground mb-2 text-sm font-semibold">
+          Reduced Motion
+        </h2>
+        <p className="text-muted text-xs">
+          Simplified animations (simulated with CSS class)
+        </p>
+        <div className="motion-reduce">
+          <BrowserTabItem
+            tabId={2}
+            title="GitHub - microsoft/vscode"
+            url="https://github.com/microsoft/vscode"
+            favicon={<ColoredIcon color="#24292e" />}
+            loading={loading}
+            active
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const ReducedMotionComparison = {
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Compare normal animations with reduced motion. Left shows full spring-based animations, right shows simplified version for users with motion sensitivity.',
+      },
+    },
+  },
+  decorators: [twoColumnDecorator],
+  render: () => <ReducedMotionComparisonComponent />,
+}
+
+/**
+ * Animated list with add/remove demonstrating layout animations
+ */
+const AnimatedListComponent = () => {
+  const [tabs, setTabs] = useState([
+    {
+      id: 1,
+      title: 'GitHub - microsoft/vscode',
+      url: 'https://github.com/microsoft/vscode',
+      color: '#24292e',
+    },
+    {
+      id: 2,
+      title: 'Gmail - Inbox',
+      url: 'https://mail.google.com/mail/u/0/#inbox',
+      color: '#EA4335',
+    },
+    {
+      id: 3,
+      title: 'Google Docs - Project Plan',
+      url: 'https://docs.google.com/document/d/abc123',
+      color: '#4285F4',
+    },
+  ])
+  const [nextId, setNextId] = useState(4)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+
+  const addTab = () => {
+    const insertIndex = 2 // Add in middle to show layout shift
+    const newTab = {
+      id: nextId,
+      title: `New Tab ${nextId}`,
+      url: `https://example.com/tab-${nextId}`,
+      color: '#10b981',
+    }
+    const newTabs = [...tabs]
+    newTabs.splice(insertIndex, 0, newTab)
+    setTabs(newTabs)
+    setNextId(nextId + 1)
+  }
+
+  const removeTab = (id: number) => {
+    setTabs(tabs.filter((tab) => tab.id !== id))
+    if (selectedId === id) setSelectedId(null)
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={addTab}
+          className={`
+            bg-accent/10 rounded px-3 py-1 text-xs
+            hover:bg-accent/20
+          `}
+          type="button"
+        >
+          Add Tab (at position 2)
+        </button>
+        <p className="text-muted text-xs">
+          Watch items smoothly shift to make room
+        </p>
+      </div>
+
+      <AnimatePresence mode="popLayout">
+        {tabs.map((tab) => (
+          <BrowserTabItem
+            key={tab.id}
+            tabId={tab.id}
+            title={tab.title}
+            url={tab.url}
+            favicon={<ColoredIcon color={tab.color} />}
+            selected={selectedId === tab.id}
+            onClick={() => {
+              if (selectedId === tab.id) {
+                removeTab(tab.id)
+              } else {
+                setSelectedId(tab.id)
+              }
+            }}
+          />
+        ))}
+      </AnimatePresence>
+
+      <p className="text-muted text-xs">
+        Click a tab to select it. Click selected tab to remove it.
+      </p>
+    </div>
+  )
+}
+
+export const AnimatedList = {
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Demonstrates smooth list animations when adding/removing tabs. Items shift gracefully to make room for new tabs using Framer Motion layout animations.',
+      },
+    },
+  },
+  decorators: [singleColumnDecorator],
+  render: () => <AnimatedListComponent />,
 }

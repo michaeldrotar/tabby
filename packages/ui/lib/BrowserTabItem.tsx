@@ -1,5 +1,7 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { Pin } from 'lucide-react'
 import { forwardRef, memo } from 'react'
+import { RadialLoadingSpinner } from './RadialLoadingSpinner'
 import { cn } from './utils/cn'
 import type { HTMLAttributes, ReactNode } from 'react'
 
@@ -31,8 +33,10 @@ export type BrowserTabItemProps = Omit<
   active?: boolean
 
   // Content state props
-  /** Whether the tab is currently loading */
+  /** Whether the tab is loading - shows radial spinner over favicon */
   loading?: boolean
+  /** Whether to blur title and URL text (typically during initial load) */
+  blurred?: boolean
   /** Whether the tab is pinned */
   pinned?: boolean
   /** Whether the tab is discarded/unloaded (grayed out) */
@@ -76,6 +80,7 @@ export const BrowserTabItem = memo(
         selected = false,
         active = false,
         loading = false,
+        blurred = false,
         pinned = false,
         discarded = false,
         ...props
@@ -103,10 +108,19 @@ export const BrowserTabItem = memo(
       }
 
       return (
-        <div
+        <motion.div
           ref={ref}
           role="option"
           tabIndex={0}
+          layout
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{
+            type: 'spring',
+            stiffness: 300,
+            damping: 25,
+          }}
           className={cn(
             `
               focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
@@ -155,21 +169,30 @@ export const BrowserTabItem = memo(
           data-selected={selected || undefined}
           data-active={active || undefined}
           data-loading={loading || undefined}
+          data-blurred={blurred || undefined}
           data-pinned={pinned || undefined}
           data-discarded={discarded || undefined}
-          aria-label={`Tab: ${title}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}`}
+          aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}`}
           aria-selected={selected}
           aria-current={active ? 'page' : undefined}
           aria-busy={loading}
-          {...props}
+          {...(props as Record<string, unknown>)}
         >
           {/* Favicon */}
-          <div className="flex-shrink-0">
-            {loading ? (
-              // Loading skeleton for favicon
-              <div className="bg-muted/40 h-5 w-5 animate-pulse rounded" />
-            ) : (
-              (favicon ?? (
+          <div className="relative flex-shrink-0">
+            {/* Favicon with scale animation during loading */}
+            <motion.div
+              animate={{
+                scale: loading ? 0.75 : 1,
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 300,
+                damping: 25,
+              }}
+              className="flex items-center justify-center"
+            >
+              {favicon ?? (
                 <div
                   className={`flex h-5 w-5 items-center justify-center rounded`}
                 >
@@ -178,30 +201,70 @@ export const BrowserTabItem = memo(
                     <div className="bg-muted/40 h-4 w-4 rounded-sm" />
                   }
                 </div>
-              ))
-            )}
+              )}
+            </motion.div>
+
+            {/* Radial loading spinner overlay */}
+            <AnimatePresence>
+              {loading && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1.15 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  className={`
+                    pointer-events-none absolute inset-0 flex items-center
+                    justify-center
+                  `}
+                >
+                  <RadialLoadingSpinner
+                    size={22}
+                    variant={active ? 'accent' : 'muted'}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Tab info */}
           <div className="min-w-0 flex-1">
-            {loading ? (
-              // Loading skeleton for text
-              <>
-                <div
-                  className={`bg-muted/40 mb-1 h-4 w-3/4 animate-pulse rounded`}
-                />
-                <div className="bg-muted/40 h-3 w-1/2 animate-pulse rounded" />
-              </>
-            ) : (
-              <>
-                {/* Title */}
-                <div className="text-foreground truncate text-sm font-medium">
-                  {title || 'Untitled'}
-                </div>
+            {/* Title */}
+            {title && (
+              <motion.div
+                className="text-foreground truncate text-sm font-medium"
+                animate={{
+                  filter: blurred ? 'blur(4px)' : 'blur(0px)',
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 25,
+                }}
+              >
+                {title}
+              </motion.div>
+            )}
 
-                {/* Domain */}
-                <div className="text-muted truncate text-xs">{domain}</div>
-              </>
+            {/* Domain */}
+            {domain && (
+              <motion.div
+                className="text-muted truncate text-xs"
+                animate={{
+                  filter: blurred ? 'blur(4px)' : 'blur(0px)',
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 25,
+                  delay: 0.05,
+                }}
+              >
+                {status} {domain}
+              </motion.div>
             )}
           </div>
 
@@ -215,7 +278,7 @@ export const BrowserTabItem = memo(
               <Pin className="h-3.5 w-3.5" />
             </div>
           )}
-        </div>
+        </motion.div>
       )
     },
   ),
