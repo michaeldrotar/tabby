@@ -1,5 +1,6 @@
 import { useBrowserStore } from '../useBrowserStore.js'
 import { toBrowserTab } from './toBrowserTab.js'
+import type { BrowserTabLifecycle } from './BrowserTabLifecycle.js'
 
 /**
  * Handles when a tab becomes active in a window.
@@ -60,7 +61,9 @@ const onChromeTabAttached = (
  * Handles when a new chrome tab is created.
  */
 const onChromeTabCreated = (newChromeTab: chrome.tabs.Tab): void => {
-  const newBrowserTab = toBrowserTab(newChromeTab)
+  const newBrowserTab = toBrowserTab(newChromeTab, {
+    lifecycle: 'initializing',
+  })
   if (!newBrowserTab) return
   const state = useBrowserStore.getState()
   state.addTab(newBrowserTab)
@@ -152,7 +155,9 @@ const onChromeTabReplaced = (
   void chrome.tabs
     .get(addedTabId)
     .then((newChromeTab) => {
-      const newBrowserTab = toBrowserTab(newChromeTab)
+      const newBrowserTab = toBrowserTab(newChromeTab, {
+        lifecycle: 'initializing',
+      })
       if (!newBrowserTab) return
 
       const state = useBrowserStore.getState()
@@ -172,11 +177,47 @@ const onChromeTabUpdated = (
   changeInfo: chrome.tabs.OnUpdatedInfo,
   tab: chrome.tabs.Tab,
 ): void => {
-  const browserTab = toBrowserTab(tab)
-  if (!browserTab) return
-
   const state = useBrowserStore.getState()
-  state.updateTabById(tabId, changeInfo)
+  const existingTab = state.tabById[tabId]
+
+  let lifecycle: BrowserTabLifecycle = existingTab
+    ? existingTab.lifecycle
+    : tab.status === 'loading'
+      ? 'loading'
+      : 'loaded'
+
+  if (changeInfo.status) {
+    if (changeInfo.status === 'loading') {
+      if (lifecycle === 'initializing') {
+        lifecycle = 'loading'
+      } else if (lifecycle === 'loaded') {
+        lifecycle = 'reloading'
+      }
+    } else if (
+      changeInfo.status === 'complete' ||
+      changeInfo.status === 'unloaded'
+    ) {
+      lifecycle = 'loaded'
+    } else {
+      console.warn(`Unknown tab status: ${changeInfo.status}`)
+    }
+  }
+
+  // If URL appears for first time and we're initializing, move to loading.
+  // The initial chrome status is "loading" so it doesn't change to it, but url
+  // does change ~100ms later.
+  if (
+    changeInfo.url &&
+    lifecycle === 'initializing' &&
+    tab.status === 'loading'
+  ) {
+    lifecycle = 'loading'
+  }
+
+  state.updateTabById(tabId, {
+    ...changeInfo,
+    lifecycle,
+  })
 }
 
 /**
