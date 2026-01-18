@@ -1,5 +1,5 @@
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Decorator, Meta, StoryObj } from '@storybook/react'
 import type { MouseEvent } from 'react'
 
@@ -474,519 +474,290 @@ export const ContentVariations = {
   ),
 }
 
-type ScenarioAction = {
+// New compact API types
+type Tab = {
+  title: string
+  url: string
+  color: string
+}
+
+type InitialState = {
+  tabs: Tab[]
+  hover?: number
+  focus?: number
+  selected: number[]
+  active: number
+  pinned?: number[]
+  discarded?: number[]
+  loading?: number[]
+  visible?: number[]
+}
+
+type Action = {
+  ms: number
+  label?: string
+  hover?: number | null
+  focus?: number | null
+  selected?: number[]
+  active?: number
+  pinned?: number[]
+  discarded?: number[]
+  loading?: number[]
+  visible?: number[]
+}
+
+type Step = Action[]
+
+type CompactScenarioConfig = {
+  initial: InitialState
+  steps: Step[]
+  endPadding?: number
+}
+
+// Compiled/runtime types (what WorkflowDemo expects)
+type CompiledAction = {
   timestamp: number
   state: {
-    hoverId?: number | null
-    focusId?: number | null
-    selectedIds: number[]
-    activeId: number
-    loadingIds?: number[]
-    pinnedIds?: number[]
-    discardedIds?: number[]
-    visibleTabIds?: number[]
+    hover?: number | null
+    focus?: number | null
+    selected: number[]
+    active: number
+    loading?: number[]
+    pinned?: number[]
+    discarded?: number[]
+    visible?: number[]
   }
 }
 
-type ScenarioStep = {
+type CompiledStep = {
   label: string
   startTime: number
   endTime: number
-  actions: ScenarioAction[]
+  actions: CompiledAction[]
 }
 
-type ScenarioConfig = {
-  steps: ScenarioStep[]
+type CompiledScenarioConfig = {
+  tabs: Tab[]
+  steps: CompiledStep[]
   totalDuration: number
 }
 
-const MOUSE_SCENARIO: ScenarioConfig = {
-  totalDuration: 14000,
+// Compiler function
+const compileScenario = (
+  config: CompactScenarioConfig,
+): CompiledScenarioConfig => {
+  const { initial, steps, endPadding = 1000 } = config
+
+  // Build initial state
+  let currentState = {
+    hover: initial.hover,
+    focus: initial.focus,
+    selected: initial.selected,
+    active: initial.active,
+    loading: initial.loading,
+    pinned: initial.pinned,
+    discarded: initial.discarded,
+    visible: initial.visible,
+  }
+
+  const compiledSteps: CompiledStep[] = []
+  let cumulativeTime = 0
+
+  // Compile each step
+  steps.forEach((step, stepIndex) => {
+    const compiledActions: CompiledAction[] = []
+    const stepLabel =
+      step.find((a) => a.label)?.label || `Step ${stepIndex + 1}`
+    const stepStartTime = cumulativeTime
+
+    step.forEach((action) => {
+      // Merge with previous state (state diffing)
+      currentState = {
+        ...currentState,
+        ...(action.hover !== undefined && {
+          hover: action.hover ?? undefined,
+        }),
+        ...(action.focus !== undefined && {
+          focus: action.focus ?? undefined,
+        }),
+        ...(action.selected !== undefined && { selected: action.selected }),
+        ...(action.active !== undefined && { active: action.active }),
+        ...(action.loading !== undefined && { loading: action.loading }),
+        ...(action.pinned !== undefined && { pinned: action.pinned }),
+        ...(action.discarded !== undefined && {
+          discarded: action.discarded,
+        }),
+        ...(action.visible !== undefined && { visible: action.visible }),
+      }
+
+      compiledActions.push({
+        timestamp: cumulativeTime,
+        state: { ...currentState },
+      })
+
+      // Display this state for the specified duration
+      cumulativeTime += action.ms
+    })
+
+    const stepEndTime = cumulativeTime
+
+    compiledSteps.push({
+      label: stepLabel,
+      startTime: stepStartTime,
+      endTime: stepEndTime,
+      actions: compiledActions,
+    })
+  })
+
+  // Add final padding
+  const totalDuration = cumulativeTime + endPadding
+
+  return {
+    tabs: initial.tabs,
+    steps: compiledSteps,
+    totalDuration,
+  }
+}
+
+const SHARED_TABS: Tab[] = [
+  {
+    title: 'GitHub - microsoft/vscode',
+    url: 'https://github.com/microsoft/vscode',
+    color: '#24292e',
+  },
+  {
+    title: 'Gmail - Inbox',
+    url: 'https://mail.google.com/mail/u/0/#inbox',
+    color: '#EA4335',
+  },
+  {
+    title: 'Google Docs - Project Plan',
+    url: 'https://docs.google.com/document/d/abc123',
+    color: '#4285F4',
+  },
+  {
+    title: 'Stack Overflow - React Hooks',
+    url: 'https://stackoverflow.com/questions/53945763',
+    color: '#F48024',
+  },
+  {
+    title: 'MDN Web Docs',
+    url: 'https://developer.mozilla.org/en-US/',
+    color: '#000000',
+  },
+  { title: 'New Tab', url: 'chrome://newtab', color: '#8B5CF6' },
+]
+
+const MOUSE_SCENARIO: CompactScenarioConfig = {
+  initial: {
+    tabs: SHARED_TABS,
+    hover: 2,
+    selected: [2],
+    active: 2,
+    discarded: [3],
+    visible: [1, 2, 3, 4, 5],
+  },
   steps: [
-    {
-      label: 'Tab 2 (Gmail) is active',
-      startTime: 0,
-      endTime: 1500,
-      actions: [
-        {
-          timestamp: 0,
-          state: {
-            hoverId: 2,
-            selectedIds: [2],
-            activeId: 2,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Pin tab 1',
-      startTime: 1500,
-      endTime: 3000,
-      actions: [
-        {
-          timestamp: 1500,
-          state: {
-            hoverId: 1,
-            selectedIds: [2],
-            activeId: 2,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 1900,
-          state: {
-            hoverId: 1,
-            selectedIds: [1],
-            activeId: 1,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 2500,
-          state: {
-            hoverId: 1,
-            selectedIds: [1],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Click tab 4 to activate',
-      startTime: 3000,
-      endTime: 5000,
-      actions: [
-        {
-          timestamp: 3000,
-          state: {
-            hoverId: 2,
-            selectedIds: [1],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 3400,
-          state: {
-            hoverId: 3,
-            selectedIds: [1],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 3800,
-          state: {
-            hoverId: 4,
-            selectedIds: [1],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 4500,
-          state: {
-            hoverId: 4,
-            selectedIds: [4],
-            activeId: 4,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Shift+Click tab 1 to select range',
-      startTime: 5000,
-      endTime: 7000,
-      actions: [
-        {
-          timestamp: 5000,
-          state: {
-            hoverId: 3,
-            selectedIds: [4],
-            activeId: 4,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 5400,
-          state: {
-            hoverId: 2,
-            selectedIds: [4],
-            activeId: 4,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 5800,
-          state: {
-            hoverId: 1,
-            selectedIds: [4],
-            activeId: 4,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 6400,
-          state: {
-            hoverId: 1,
-            selectedIds: [1, 2, 3, 4],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Open new tab',
-      startTime: 7000,
-      endTime: 9000,
-      actions: [
-        {
-          timestamp: 7000,
-          state: {
-            hoverId: 1,
-            selectedIds: [1, 2, 3, 4],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 7500,
-          state: {
-            hoverId: 1,
-            selectedIds: [6],
-            activeId: 6,
-            loadingIds: [6],
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5, 6],
-          },
-        },
-        {
-          timestamp: 8200,
-          state: {
-            hoverId: 1,
-            selectedIds: [6],
-            activeId: 6,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5, 6],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Close new tab',
-      startTime: 9000,
-      endTime: 10500,
-      actions: [
-        {
-          timestamp: 9000,
-          state: {
-            hoverId: 1,
-            selectedIds: [6],
-            activeId: 6,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5, 6],
-          },
-        },
-        {
-          timestamp: 9750,
-          state: {
-            hoverId: 1,
-            selectedIds: [1],
-            activeId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Unpin tab 1',
-      startTime: 10500,
-      endTime: 12000,
-      actions: [
-        {
-          timestamp: 11250,
-          state: {
-            hoverId: 1,
-            selectedIds: [1],
-            activeId: 1,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Return to tab 2',
-      startTime: 12000,
-      endTime: 14000,
-      actions: [
-        {
-          timestamp: 12000,
-          state: {
-            hoverId: 2,
-            selectedIds: [1],
-            activeId: 1,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 12750,
-          state: {
-            hoverId: 2,
-            selectedIds: [2],
-            activeId: 2,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
+    [
+      { ms: 1500, label: 'Pin tab 1', hover: 1 },
+      { ms: 400, active: 1, selected: [1] },
+      { ms: 600, pinned: [1] },
+    ],
+    [
+      { ms: 500, label: 'Click tab 4 to activate', hover: 2 },
+      { ms: 400, hover: 3 },
+      { ms: 400, hover: 4 },
+      { ms: 700, active: 4, selected: [4] },
+    ],
+    [
+      { ms: 500, label: 'Shift+Click tab 1 to select range', hover: 3 },
+      { ms: 400, hover: 2 },
+      { ms: 400, hover: 1 },
+      { ms: 600, active: 1, selected: [1, 2, 3, 4] },
+    ],
+    [
+      { ms: 600, label: 'Open new tab', hover: 1 },
+      {
+        ms: 500,
+        active: 6,
+        selected: [6],
+        loading: [6],
+        visible: [1, 2, 3, 4, 5, 6],
+      },
+      { ms: 700, loading: [] },
+    ],
+    [
+      { ms: 800, label: 'Close new tab', hover: 1 },
+      { ms: 750, active: 1, selected: [1], visible: [1, 2, 3, 4, 5] },
+    ],
+    [
+      { ms: 750, label: 'Unpin tab 1' },
+      { ms: 750, pinned: [] },
+    ],
+    [
+      { ms: 750, label: 'Return to tab 2', hover: 2 },
+      { ms: 750, active: 2, selected: [2] },
+    ],
   ],
 }
 
-const KEYBOARD_SCENARIO: ScenarioConfig = {
-  totalDuration: 14000,
+const KEYBOARD_SCENARIO: CompactScenarioConfig = {
+  initial: {
+    tabs: SHARED_TABS,
+    focus: 2,
+    selected: [2],
+    active: 2,
+    discarded: [3],
+    visible: [1, 2, 3, 4, 5],
+  },
   steps: [
-    {
-      label: 'Tab 2 (Gmail) is active',
-      startTime: 0,
-      endTime: 1500,
-      actions: [
-        {
-          timestamp: 0,
-          state: {
-            selectedIds: [2],
-            activeId: 2,
-            focusId: 2,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Press ↑ to tab 1, pin it',
-      startTime: 1500,
-      endTime: 3000,
-      actions: [
-        {
-          timestamp: 1900,
-          state: {
-            selectedIds: [1],
-            activeId: 1,
-            focusId: 1,
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 2500,
-          state: {
-            selectedIds: [1],
-            activeId: 1,
-            focusId: 1,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Press ↓ three times to reach tab 4',
-      startTime: 3000,
-      endTime: 5000,
-      actions: [
-        {
-          timestamp: 3400,
-          state: {
-            selectedIds: [2],
-            activeId: 2,
-            focusId: 2,
-            pinnedIds: [1],
-            discardedIds: [3],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 3900,
-          state: {
-            selectedIds: [3],
-            activeId: 3,
-            focusId: 3,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 4500,
-          state: {
-            selectedIds: [4],
-            activeId: 4,
-            focusId: 4,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Shift+↑ three times to select range',
-      startTime: 5000,
-      endTime: 7000,
-      actions: [
-        {
-          timestamp: 5400,
-          state: {
-            selectedIds: [3, 4],
-            activeId: 3,
-            focusId: 3,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 5900,
-          state: {
-            selectedIds: [2, 3, 4],
-            activeId: 2,
-            focusId: 2,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 6400,
-          state: {
-            selectedIds: [1, 2, 3, 4],
-            activeId: 1,
-            focusId: 1,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Open new tab with Cmd+T',
-      startTime: 7000,
-      endTime: 9000,
-      actions: [
-        {
-          timestamp: 7000,
-          state: {
-            selectedIds: [1, 2, 3, 4],
-            activeId: 1,
-            focusId: 1,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-        {
-          timestamp: 7500,
-          state: {
-            selectedIds: [6],
-            activeId: 6,
-            focusId: 6,
-            loadingIds: [6],
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5, 6],
-          },
-        },
-        {
-          timestamp: 8200,
-          state: {
-            selectedIds: [6],
-            activeId: 6,
-            focusId: 6,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5, 6],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Close new tab with Cmd+W',
-      startTime: 9000,
-      endTime: 10500,
-      actions: [
-        {
-          timestamp: 9750,
-          state: {
-            selectedIds: [1],
-            activeId: 1,
-            focusId: 1,
-            pinnedIds: [1],
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Unpin tab 1',
-      startTime: 10500,
-      endTime: 12000,
-      actions: [
-        {
-          timestamp: 11250,
-          state: {
-            selectedIds: [1],
-            activeId: 1,
-            focusId: 1,
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
-    {
-      label: 'Press ↓ to return to tab 2',
-      startTime: 12000,
-      endTime: 14000,
-      actions: [
-        {
-          timestamp: 12750,
-          state: {
-            selectedIds: [2],
-            activeId: 2,
-            focusId: 2,
-            visibleTabIds: [1, 2, 3, 4, 5],
-          },
-        },
-      ],
-    },
+    [
+      { ms: 1500, label: 'Press ↑ to tab 1, pin it' },
+      { ms: 400, active: 1, selected: [1], focus: 1 },
+      { ms: 600, pinned: [1] },
+    ],
+    [
+      { ms: 500, label: 'Press ↓ three times to reach tab 4' },
+      { ms: 400, active: 2, selected: [2], focus: 2 },
+      { ms: 500, active: 3, selected: [3], focus: 3, discarded: [] },
+      { ms: 600, active: 4, selected: [4], focus: 4 },
+    ],
+    [
+      { ms: 500, label: 'Shift+↑ three times to select range' },
+      { ms: 400, active: 3, selected: [3, 4], focus: 3 },
+      { ms: 500, active: 2, selected: [2, 3, 4], focus: 2 },
+      { ms: 500, active: 1, selected: [1, 2, 3, 4], focus: 1 },
+    ],
+    [
+      { ms: 600, label: 'Open new tab with Cmd+T' },
+      {
+        ms: 500,
+        active: 6,
+        selected: [6],
+        focus: 6,
+        loading: [6],
+        visible: [1, 2, 3, 4, 5, 6],
+      },
+      { ms: 700, loading: [] },
+    ],
+    [
+      { ms: 800, label: 'Close new tab with Cmd+W' },
+      {
+        ms: 750,
+        active: 1,
+        selected: [1],
+        focus: 1,
+        visible: [1, 2, 3, 4, 5],
+      },
+    ],
+    [
+      { ms: 750, label: 'Unpin tab 1' },
+      { ms: 750, pinned: [] },
+    ],
+    [
+      { ms: 750, label: 'Press ↓ to return to tab 2' },
+      { ms: 750, active: 2, selected: [2], focus: 2 },
+    ],
   ],
 }
 
@@ -994,7 +765,7 @@ const WorkflowDemo = ({
   scenario,
   showCursor = false,
 }: {
-  scenario: ScenarioConfig
+  scenario: CompactScenarioConfig
   showCursor?: boolean
 }) => {
   const [isPlaying, setIsPlaying] = useState(true)
@@ -1002,61 +773,26 @@ const WorkflowDemo = ({
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
   const tabListRef = useRef<HTMLDivElement>(null)
 
-  const tabs = [
-    {
-      id: 1,
-      title: 'GitHub - microsoft/vscode',
-      url: 'https://github.com/microsoft/vscode',
-      color: '#24292e',
-    },
-    {
-      id: 2,
-      title: 'Gmail - Inbox',
-      url: 'https://mail.google.com/mail/u/0/#inbox',
-      color: '#EA4335',
-    },
-    {
-      id: 3,
-      title: 'Google Docs - Project Plan',
-      url: 'https://docs.google.com/document/d/abc123',
-      color: '#4285F4',
-    },
-    {
-      id: 4,
-      title: 'Stack Overflow - React Hooks',
-      url: 'https://stackoverflow.com/questions/53945763',
-      color: '#F48024',
-    },
-    {
-      id: 5,
-      title: 'MDN Web Docs',
-      url: 'https://developer.mozilla.org/en-US/',
-      color: '#000000',
-    },
-    {
-      id: 6,
-      title: 'New Tab',
-      url: 'chrome://newtab',
-      color: '#8B5CF6',
-    },
-  ]
+  // Compile the compact scenario into runtime format
+  const compiled = useMemo(() => compileScenario(scenario), [scenario])
+  const { tabs, steps: compiledSteps, totalDuration } = compiled
 
   // Find current action and step based on time
-  const allActions = scenario.steps.flatMap((step) => step.actions)
+  const allActions = compiledSteps.flatMap((step) => step.actions)
   const currentAction = allActions.reduce(
     (prev, curr) => (currentTime >= curr.timestamp ? curr : prev),
     allActions[0]!,
   )
 
   const currentStep =
-    scenario.steps.find(
+    compiledSteps.find(
       (step) => currentTime >= step.startTime && currentTime < step.endTime,
-    ) || scenario.steps[scenario.steps.length - 1]!
+    ) || compiledSteps[compiledSteps.length - 1]!
 
-  // Filter tabs based on visibleTabIds if provided
-  const visibleTabIds = currentAction?.state.visibleTabIds
-  const visibleTabs = visibleTabIds
-    ? tabs.filter((tab) => visibleTabIds.includes(tab.id))
+  // Filter tabs based on visible if provided
+  const visible = currentAction?.state.visible
+  const visibleTabs = visible
+    ? tabs.filter((_, idx) => visible.includes(idx + 1))
     : tabs
 
   useEffect(() => {
@@ -1066,7 +802,7 @@ const WorkflowDemo = ({
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimestamp
 
-      if (elapsed >= scenario.totalDuration) {
+      if (elapsed >= totalDuration) {
         setCurrentTime(0)
       } else {
         setCurrentTime(elapsed)
@@ -1074,17 +810,17 @@ const WorkflowDemo = ({
     }, 16) // 60fps
 
     return () => clearInterval(timer)
-  }, [isPlaying, currentTime, scenario.totalDuration])
+  }, [isPlaying, currentTime, totalDuration])
 
   // Update cursor position for mouse demo
   useEffect(() => {
     if (!showCursor || !tabListRef.current) return
 
-    const hoveredId = currentAction?.state.hoverId
-    if (!hoveredId) return
+    const hovered = currentAction?.state.hover
+    if (!hovered) return
 
     const tabElement = tabListRef.current.querySelector(
-      `[data-tab-id="${hoveredId}"]`,
+      `[data-tab-id="${hovered}"]`,
     )
     if (tabElement) {
       const rect = tabElement.getBoundingClientRect()
@@ -1104,13 +840,13 @@ const WorkflowDemo = ({
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
     const percent = x / rect.width
-    const targetTime = percent * scenario.totalDuration
+    const targetTime = percent * totalDuration
 
     // Find which section was clicked
     const clickedStep =
-      scenario.steps.find(
+      compiledSteps.find(
         (step) => targetTime >= step.startTime && targetTime < step.endTime,
-      ) || scenario.steps[scenario.steps.length - 1]!
+      ) || compiledSteps[compiledSteps.length - 1]!
 
     setCurrentTime(clickedStep.startTime)
     setIsPlaying(true)
@@ -1165,9 +901,9 @@ const WorkflowDemo = ({
             }}
             aria-label="Progress bar - click to jump to step"
           >
-            {scenario.steps.map((step, idx) => {
+            {compiledSteps.map((step, idx) => {
               const segmentWidth =
-                ((step.endTime - step.startTime) / scenario.totalDuration) * 100
+                ((step.endTime - step.startTime) / totalDuration) * 100
               const isActive =
                 currentTime >= step.startTime && currentTime < step.endTime
               const isPast = currentTime >= step.endTime
@@ -1203,7 +939,7 @@ const WorkflowDemo = ({
                   )}
 
                   {/* Gap between segments (white line) */}
-                  {idx < scenario.steps.length - 1 && (
+                  {idx < compiledSteps.length - 1 && (
                     <div
                       className={`
                         bg-background absolute right-0 top-0 h-full w-px
@@ -1220,7 +956,7 @@ const WorkflowDemo = ({
       {/* Tab List with optional cursor */}
       <div ref={tabListRef} className="relative flex flex-col gap-1">
         {/* Visible cursor for mouse demo */}
-        {showCursor && currentAction?.state.hoverId && (
+        {showCursor && currentAction?.state.hover && (
           <div
             className={`
               pointer-events-none absolute z-10 transition-all duration-300
@@ -1241,23 +977,23 @@ const WorkflowDemo = ({
           </div>
         )}
 
-        {visibleTabs.map((tab) => {
-          const isHovered = currentAction?.state.hoverId === tab.id
-          const isFocused = currentAction?.state.focusId === tab.id
+        {visibleTabs.map((tab, idx) => {
+          const tabId = visible ? visible[idx]! : idx + 1
+          const isHovered = currentAction?.state.hover === tabId
+          const isFocused = currentAction?.state.focus === tabId
           const isSelected =
-            currentAction?.state.selectedIds.includes(tab.id) || false
-          const isActive = currentAction?.state.activeId === tab.id
+            currentAction?.state.selected.includes(tabId) || false
+          const isActive = currentAction?.state.active === tabId
           const isLoading =
-            currentAction?.state.loadingIds?.includes(tab.id) || false
-          const isPinned =
-            currentAction?.state.pinnedIds?.includes(tab.id) || false
+            currentAction?.state.loading?.includes(tabId) || false
+          const isPinned = currentAction?.state.pinned?.includes(tabId) || false
           const isDiscarded =
-            currentAction?.state.discardedIds?.includes(tab.id) || false
+            currentAction?.state.discarded?.includes(tabId) || false
 
           return (
             <BrowserTabItem
-              key={tab.id}
-              tabId={tab.id}
+              key={tabId}
+              tabId={tabId}
               title={tab.title}
               url={tab.url}
               favicon={<ColoredIcon color={tab.color} />}
@@ -1268,6 +1004,7 @@ const WorkflowDemo = ({
               discarded={isDiscarded}
               data-hover={isHovered || undefined}
               data-focus={isFocused || undefined}
+              data-tab-id={tabId}
             />
           )
         })}
