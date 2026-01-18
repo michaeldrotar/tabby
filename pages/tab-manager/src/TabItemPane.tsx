@@ -390,6 +390,9 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                       }
                       active={item.tab.active}
                       selected={selectedTabIds.has(item.tab.id)}
+                      loading={!item.tab.title || !item.tab.url}
+                      pinned={item.tab.pinned}
+                      discarded={item.tab.discarded}
                     />
                   </TabListItem>
                 )
