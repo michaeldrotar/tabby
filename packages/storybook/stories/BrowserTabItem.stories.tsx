@@ -8,14 +8,14 @@ const ColoredIcon = ({ color }: { color: string }) => (
   <div className="h-5 w-5 rounded" style={{ backgroundColor: color }} />
 )
 
-const maxWidthXsDecorator: Decorator = (Story) => (
-  <div className="flex w-full max-w-xs flex-col gap-2 p-4">
+const singleColumnDecorator: Decorator = (Story) => (
+  <div className="flex w-[320px] max-w-full flex-col gap-2 p-4">
     <Story />
   </div>
 )
 
-const maxWidth2xlDecorator: Decorator = (Story) => (
-  <div className="flex w-full max-w-2xl flex-col gap-2 p-4">
+const twoColumnDecorator: Decorator = (Story) => (
+  <div className="flex w-[640px] max-w-full flex-col gap-2 p-4">
     <Story />
   </div>
 )
@@ -59,6 +59,18 @@ const meta = {
       description: 'Whether this is the currently active browser tab',
       control: 'boolean',
     },
+    loading: {
+      description: 'Whether the tab is currently loading',
+      control: 'boolean',
+    },
+    pinned: {
+      description: 'Whether the tab is pinned',
+      control: 'boolean',
+    },
+    discarded: {
+      description: 'Whether the tab is discarded/unloaded (grayed out)',
+      control: 'boolean',
+    },
     onClick: {
       action: 'clicked',
       description: 'Called when the tab item is clicked',
@@ -82,12 +94,11 @@ export const Default: Story = {
     selected: false,
     active: false,
   },
-  decorators: [maxWidthXsDecorator],
+  decorators: [singleColumnDecorator],
 }
 
 /**
- * All interactive states displayed side by side.
- * Shows all possible state combinations for visual comparison.
+ * All states displayed side by side for visual comparison.
  */
 export const AllStates = {
   parameters: {
@@ -99,7 +110,7 @@ export const AllStates = {
       },
     },
   },
-  decorators: [maxWidth2xlDecorator],
+  decorators: [twoColumnDecorator],
   render: () => (
     <div className="grid grid-cols-2 gap-8">
       {/* Left Column: Simple States */}
@@ -174,6 +185,42 @@ export const AllStates = {
             url="https://example.com/active"
             favicon={<ColoredIcon color="#6b7280" />}
             active
+          />
+        </div>
+
+        {/* Loading */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Loading
+          </h3>
+          <BrowserTabItem tabId={12} title="" url="" loading={true} />
+        </div>
+
+        {/* Pinned */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Pinned
+          </h3>
+          <BrowserTabItem
+            tabId={13}
+            title="Gmail"
+            url="https://mail.google.com"
+            favicon={<ColoredIcon color="#EA4335" />}
+            pinned={true}
+          />
+        </div>
+
+        {/* Discarded */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Discarded
+          </h3>
+          <BrowserTabItem
+            tabId={14}
+            title="Unloaded Tab"
+            url="https://example.com/unloaded"
+            favicon={<ColoredIcon color="#888888" />}
+            discarded={true}
           />
         </div>
       </div>
@@ -262,6 +309,51 @@ export const AllStates = {
             data-hover
           />
         </div>
+
+        {/* Pinned + Selected */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Pinned + Selected
+          </h3>
+          <BrowserTabItem
+            tabId={15}
+            title="GitHub"
+            url="https://github.com/notifications"
+            favicon={<ColoredIcon color="#24292e" />}
+            pinned={true}
+            selected={true}
+          />
+        </div>
+
+        {/* Pinned + Active */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Pinned + Active
+          </h3>
+          <BrowserTabItem
+            tabId={16}
+            title="Calendar"
+            url="https://calendar.google.com"
+            favicon={<ColoredIcon color="#4285F4" />}
+            pinned={true}
+            active={true}
+          />
+        </div>
+
+        {/* Discarded + Pinned */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Discarded + Pinned
+          </h3>
+          <BrowserTabItem
+            tabId={17}
+            title="Background Tab"
+            url="https://example.com/background"
+            favicon={<ColoredIcon color="#9ca3af" />}
+            discarded={true}
+            pinned={true}
+          />
+        </div>
       </div>
     </div>
   ),
@@ -341,7 +433,7 @@ export const InteractiveList = {
       },
     },
   },
-  decorators: [maxWidthXsDecorator],
+  decorators: [singleColumnDecorator],
   render: () => <InteractiveListComponent />,
 }
 
@@ -352,7 +444,7 @@ export const ContentVariations = {
   parameters: {
     controls: { disable: true },
   },
-  decorators: [maxWidthXsDecorator],
+  decorators: [singleColumnDecorator],
   render: () => (
     <div className="flex flex-col gap-2">
       <BrowserTabItem
@@ -389,6 +481,10 @@ type ScenarioAction = {
     focusId?: number | null
     selectedIds: number[]
     activeId: number
+    loadingIds?: number[]
+    pinnedIds?: number[]
+    discardedIds?: number[]
+    visibleTabIds?: number[]
   }
 }
 
@@ -405,52 +501,276 @@ type ScenarioConfig = {
 }
 
 const MOUSE_SCENARIO: ScenarioConfig = {
-  totalDuration: 9000,
+  totalDuration: 14000,
   steps: [
     {
-      label: 'Starting state - Gmail is active',
+      label: 'Tab 2 (Gmail) is active',
       startTime: 0,
-      endTime: 1000,
-      actions: [{ timestamp: 0, state: { selectedIds: [], activeId: 2 } }],
-    },
-    {
-      label: 'Select GitHub tab',
-      startTime: 1000,
-      endTime: 4000,
+      endTime: 1500,
       actions: [
         {
-          timestamp: 1000,
-          state: { hoverId: 1, selectedIds: [], activeId: 2 },
-        },
-        {
-          timestamp: 2200,
-          state: { hoverId: 1, selectedIds: [1], activeId: 2 },
+          timestamp: 0,
+          state: {
+            hoverId: 2,
+            selectedIds: [2],
+            activeId: 2,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
     {
-      label: 'Move cursor to Stack Overflow tab',
-      startTime: 4000,
+      label: 'Pin tab 1',
+      startTime: 1500,
+      endTime: 3000,
+      actions: [
+        {
+          timestamp: 1500,
+          state: {
+            hoverId: 1,
+            selectedIds: [2],
+            activeId: 2,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 1900,
+          state: {
+            hoverId: 1,
+            selectedIds: [1],
+            activeId: 1,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 2500,
+          state: {
+            hoverId: 1,
+            selectedIds: [1],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Click tab 4 to activate',
+      startTime: 3000,
+      endTime: 5000,
+      actions: [
+        {
+          timestamp: 3000,
+          state: {
+            hoverId: 2,
+            selectedIds: [1],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 3400,
+          state: {
+            hoverId: 3,
+            selectedIds: [1],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 3800,
+          state: {
+            hoverId: 4,
+            selectedIds: [1],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 4500,
+          state: {
+            hoverId: 4,
+            selectedIds: [4],
+            activeId: 4,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Shift+Click tab 1 to select range',
+      startTime: 5000,
       endTime: 7000,
       actions: [
         {
-          timestamp: 4000,
-          state: { hoverId: 2, selectedIds: [1], activeId: 2 },
+          timestamp: 5000,
+          state: {
+            hoverId: 3,
+            selectedIds: [4],
+            activeId: 4,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
         {
-          timestamp: 6000,
-          state: { hoverId: 4, selectedIds: [1, 2, 3, 4], activeId: 2 },
+          timestamp: 5400,
+          state: {
+            hoverId: 2,
+            selectedIds: [4],
+            activeId: 4,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 5800,
+          state: {
+            hoverId: 1,
+            selectedIds: [4],
+            activeId: 4,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 6400,
+          state: {
+            hoverId: 1,
+            selectedIds: [1, 2, 3, 4],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
     {
-      label: 'Double-click Stack Overflow to activate',
+      label: 'Open new tab',
       startTime: 7000,
       endTime: 9000,
       actions: [
         {
-          timestamp: 7200,
-          state: { hoverId: 4, selectedIds: [], activeId: 4 },
+          timestamp: 7000,
+          state: {
+            hoverId: 1,
+            selectedIds: [1, 2, 3, 4],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 7500,
+          state: {
+            hoverId: 1,
+            selectedIds: [6],
+            activeId: 6,
+            loadingIds: [6],
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          timestamp: 8200,
+          state: {
+            hoverId: 1,
+            selectedIds: [6],
+            activeId: 6,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5, 6],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Close new tab',
+      startTime: 9000,
+      endTime: 10500,
+      actions: [
+        {
+          timestamp: 9000,
+          state: {
+            hoverId: 1,
+            selectedIds: [6],
+            activeId: 6,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          timestamp: 9750,
+          state: {
+            hoverId: 1,
+            selectedIds: [1],
+            activeId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Unpin tab 1',
+      startTime: 10500,
+      endTime: 12000,
+      actions: [
+        {
+          timestamp: 11250,
+          state: {
+            hoverId: 1,
+            selectedIds: [1],
+            activeId: 1,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Return to tab 2',
+      startTime: 12000,
+      endTime: 14000,
+      actions: [
+        {
+          timestamp: 12000,
+          state: {
+            hoverId: 2,
+            selectedIds: [1],
+            activeId: 1,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 12750,
+          state: {
+            hoverId: 2,
+            selectedIds: [2],
+            activeId: 2,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
@@ -458,58 +778,212 @@ const MOUSE_SCENARIO: ScenarioConfig = {
 }
 
 const KEYBOARD_SCENARIO: ScenarioConfig = {
-  totalDuration: 7500,
+  totalDuration: 14000,
   steps: [
     {
-      label: 'Starting state - Gmail has focus',
+      label: 'Tab 2 (Gmail) is active',
       startTime: 0,
-      endTime: 1000,
-      actions: [
-        { timestamp: 0, state: { selectedIds: [], activeId: 2, focusId: 2 } },
-      ],
-    },
-    {
-      label: 'Press ↓ to navigate down',
-      startTime: 1000,
-      endTime: 3500,
+      endTime: 1500,
       actions: [
         {
-          timestamp: 1000,
-          state: { selectedIds: [], activeId: 2, focusId: 3 },
-        },
-        {
-          timestamp: 2000,
-          state: { selectedIds: [], activeId: 2, focusId: 4 },
+          timestamp: 0,
+          state: {
+            selectedIds: [2],
+            activeId: 2,
+            focusId: 2,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
     {
-      label: 'Press Space to select items',
-      startTime: 3500,
-      endTime: 6000,
+      label: 'Press ↑ to tab 1, pin it',
+      startTime: 1500,
+      endTime: 3000,
       actions: [
         {
-          timestamp: 3500,
-          state: { selectedIds: [4], activeId: 2, focusId: 4 },
+          timestamp: 1900,
+          state: {
+            selectedIds: [1],
+            activeId: 1,
+            focusId: 1,
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 2500,
+          state: {
+            selectedIds: [1],
+            activeId: 1,
+            focusId: 1,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Press ↓ three times to reach tab 4',
+      startTime: 3000,
+      endTime: 5000,
+      actions: [
+        {
+          timestamp: 3400,
+          state: {
+            selectedIds: [2],
+            activeId: 2,
+            focusId: 2,
+            pinnedIds: [1],
+            discardedIds: [3],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 3900,
+          state: {
+            selectedIds: [3],
+            activeId: 3,
+            focusId: 3,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
         {
           timestamp: 4500,
-          state: { selectedIds: [4], activeId: 2, focusId: 3 },
-        },
-        {
-          timestamp: 5500,
-          state: { selectedIds: [3, 4], activeId: 2, focusId: 3 },
+          state: {
+            selectedIds: [4],
+            activeId: 4,
+            focusId: 4,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
     {
-      label: 'Press Enter to activate selected tab',
-      startTime: 6000,
-      endTime: 7500,
+      label: 'Shift+↑ three times to select range',
+      startTime: 5000,
+      endTime: 7000,
       actions: [
         {
-          timestamp: 6000,
-          state: { selectedIds: [], activeId: 3, focusId: 3 },
+          timestamp: 5400,
+          state: {
+            selectedIds: [3, 4],
+            activeId: 3,
+            focusId: 3,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 5900,
+          state: {
+            selectedIds: [2, 3, 4],
+            activeId: 2,
+            focusId: 2,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 6400,
+          state: {
+            selectedIds: [1, 2, 3, 4],
+            activeId: 1,
+            focusId: 1,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Open new tab with Cmd+T',
+      startTime: 7000,
+      endTime: 9000,
+      actions: [
+        {
+          timestamp: 7000,
+          state: {
+            selectedIds: [1, 2, 3, 4],
+            activeId: 1,
+            focusId: 1,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          timestamp: 7500,
+          state: {
+            selectedIds: [6],
+            activeId: 6,
+            focusId: 6,
+            loadingIds: [6],
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5, 6],
+          },
+        },
+        {
+          timestamp: 8200,
+          state: {
+            selectedIds: [6],
+            activeId: 6,
+            focusId: 6,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5, 6],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Close new tab with Cmd+W',
+      startTime: 9000,
+      endTime: 10500,
+      actions: [
+        {
+          timestamp: 9750,
+          state: {
+            selectedIds: [1],
+            activeId: 1,
+            focusId: 1,
+            pinnedIds: [1],
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Unpin tab 1',
+      startTime: 10500,
+      endTime: 12000,
+      actions: [
+        {
+          timestamp: 11250,
+          state: {
+            selectedIds: [1],
+            activeId: 1,
+            focusId: 1,
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
+        },
+      ],
+    },
+    {
+      label: 'Press ↓ to return to tab 2',
+      startTime: 12000,
+      endTime: 14000,
+      actions: [
+        {
+          timestamp: 12750,
+          state: {
+            selectedIds: [2],
+            activeId: 2,
+            focusId: 2,
+            visibleTabIds: [1, 2, 3, 4, 5],
+          },
         },
       ],
     },
@@ -559,6 +1033,12 @@ const WorkflowDemo = ({
       url: 'https://developer.mozilla.org/en-US/',
       color: '#000000',
     },
+    {
+      id: 6,
+      title: 'New Tab',
+      url: 'chrome://newtab',
+      color: '#8B5CF6',
+    },
   ]
 
   // Find current action and step based on time
@@ -572,6 +1052,12 @@ const WorkflowDemo = ({
     scenario.steps.find(
       (step) => currentTime >= step.startTime && currentTime < step.endTime,
     ) || scenario.steps[scenario.steps.length - 1]!
+
+  // Filter tabs based on visibleTabIds if provided
+  const visibleTabIds = currentAction?.state.visibleTabIds
+  const visibleTabs = visibleTabIds
+    ? tabs.filter((tab) => visibleTabIds.includes(tab.id))
+    : tabs
 
   useEffect(() => {
     if (!isPlaying) return
@@ -648,9 +1134,13 @@ const WorkflowDemo = ({
         </button>
 
         {/* Progress Bar + Label */}
-        <div className="flex flex-1 flex-col gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           {/* Current Step Label */}
-          <div className="text-foreground text-sm font-medium">
+          <div
+            className={`
+              text-foreground min-h-[1.25rem] min-w-0 text-sm font-medium
+            `}
+          >
             {currentStep.label}
           </div>
 
@@ -751,12 +1241,18 @@ const WorkflowDemo = ({
           </div>
         )}
 
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const isHovered = currentAction?.state.hoverId === tab.id
           const isFocused = currentAction?.state.focusId === tab.id
           const isSelected =
             currentAction?.state.selectedIds.includes(tab.id) || false
           const isActive = currentAction?.state.activeId === tab.id
+          const isLoading =
+            currentAction?.state.loadingIds?.includes(tab.id) || false
+          const isPinned =
+            currentAction?.state.pinnedIds?.includes(tab.id) || false
+          const isDiscarded =
+            currentAction?.state.discardedIds?.includes(tab.id) || false
 
           return (
             <BrowserTabItem
@@ -767,6 +1263,9 @@ const WorkflowDemo = ({
               favicon={<ColoredIcon color={tab.color} />}
               selected={isSelected}
               active={isActive}
+              loading={isLoading}
+              pinned={isPinned}
+              discarded={isDiscarded}
               data-hover={isHovered || undefined}
               data-focus={isFocused || undefined}
             />
@@ -779,7 +1278,7 @@ const WorkflowDemo = ({
 
 /**
  * Demonstrates realistic mouse-driven workflow with hover, selection, and activation.
- * Shows how users interact with tabs using a mouse.
+ * Shows how clicking activates tabs and Shift+Click multi-selects.
  */
 export const MouseWorkflow = {
   parameters: {
@@ -787,17 +1286,17 @@ export const MouseWorkflow = {
     docs: {
       description: {
         story:
-          'Simulates a realistic mouse workflow with a visible cursor: hovering over tabs, selecting with clicks, multi-selecting with Shift+Click, and switching active tabs.',
+          'Simulates realistic mouse interactions: clicking tabs to activate them, Shift+Click to multi-select, and working with pinned and discarded tabs.',
       },
     },
   },
-  decorators: [maxWidthXsDecorator],
+  decorators: [singleColumnDecorator],
   render: () => <WorkflowDemo scenario={MOUSE_SCENARIO} showCursor />,
 }
 
 /**
  * Demonstrates keyboard navigation workflow with arrow keys, Space, and Enter.
- * Shows accessible keyboard-driven interaction patterns.
+ * Shows how arrow keys navigate and activate tabs.
  */
 export const KeyboardWorkflow = {
   parameters: {
@@ -805,10 +1304,10 @@ export const KeyboardWorkflow = {
     docs: {
       description: {
         story:
-          'Simulates keyboard navigation: arrow keys to move focus, Space to select, Enter to activate. Demonstrates accessible keyboard-driven workflow for power users.',
+          'Simulates keyboard navigation: arrow keys to navigate and activate tabs, Space to multi-select without activating, Enter to activate the focused tab.',
       },
     },
   },
-  decorators: [maxWidthXsDecorator],
+  decorators: [singleColumnDecorator],
   render: () => <WorkflowDemo scenario={KEYBOARD_SCENARIO} />,
 }

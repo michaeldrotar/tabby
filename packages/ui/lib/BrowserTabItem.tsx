@@ -1,3 +1,4 @@
+import { Pin } from 'lucide-react'
 import { forwardRef, memo } from 'react'
 import { cn } from './utils/cn'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -28,6 +29,14 @@ export type BrowserTabItemProps = Omit<
   selected?: boolean
   /** Whether this tab represents the currently active browser tab */
   active?: boolean
+
+  // Content state props
+  /** Whether the tab is currently loading */
+  loading?: boolean
+  /** Whether the tab is pinned */
+  pinned?: boolean
+  /** Whether the tab is discarded/unloaded (grayed out) */
+  discarded?: boolean
 }
 
 /**
@@ -66,6 +75,9 @@ export const BrowserTabItem = memo(
         onClick,
         selected = false,
         active = false,
+        loading = false,
+        pinned = false,
+        discarded = false,
         ...props
       },
       ref,
@@ -133,40 +145,76 @@ export const BrowserTabItem = memo(
                 shadow-md
               `,
 
+            discarded && 'cursor-default opacity-50 grayscale',
+
             className,
           )}
-          onClick={onClick}
+          onClick={discarded ? undefined : onClick}
           onKeyDown={handleKeyDown}
           data-tab-id={tabId}
           data-selected={selected || undefined}
           data-active={active || undefined}
-          aria-label={`Tab: ${title}`}
+          data-loading={loading || undefined}
+          data-pinned={pinned || undefined}
+          data-discarded={discarded || undefined}
+          aria-label={`Tab: ${title}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}`}
           aria-selected={selected}
           aria-current={active ? 'page' : undefined}
+          aria-busy={loading}
           {...props}
         >
           {/* Favicon */}
           <div className="flex-shrink-0">
-            {favicon ?? (
-              <div className="flex h-5 w-5 items-center justify-center rounded">
-                {
-                  // Generic fallback icon when no favicon
-                  <div className="bg-muted/40 h-4 w-4 rounded-sm" />
-                }
-              </div>
+            {loading ? (
+              // Loading skeleton for favicon
+              <div className="bg-muted/40 h-5 w-5 animate-pulse rounded" />
+            ) : (
+              (favicon ?? (
+                <div
+                  className={`flex h-5 w-5 items-center justify-center rounded`}
+                >
+                  {
+                    // Generic fallback icon when no favicon
+                    <div className="bg-muted/40 h-4 w-4 rounded-sm" />
+                  }
+                </div>
+              ))
             )}
           </div>
 
           {/* Tab info */}
           <div className="min-w-0 flex-1">
-            {/* Title */}
-            <div className="text-foreground truncate text-sm font-medium">
-              {title || 'Untitled'}
-            </div>
+            {loading ? (
+              // Loading skeleton for text
+              <>
+                <div
+                  className={`bg-muted/40 mb-1 h-4 w-3/4 animate-pulse rounded`}
+                />
+                <div className="bg-muted/40 h-3 w-1/2 animate-pulse rounded" />
+              </>
+            ) : (
+              <>
+                {/* Title */}
+                <div className="text-foreground truncate text-sm font-medium">
+                  {title || 'Untitled'}
+                </div>
 
-            {/* Domain */}
-            <div className="text-muted truncate text-xs">{domain}</div>
+                {/* Domain */}
+                <div className="text-muted truncate text-xs">{domain}</div>
+              </>
+            )}
           </div>
+
+          {/* Pinned indicator */}
+          {pinned && !loading && (
+            <div
+              className="text-muted flex-shrink-0"
+              aria-label="Pinned"
+              title="Pinned tab"
+            >
+              <Pin className="h-3.5 w-3.5" />
+            </div>
+          )}
         </div>
       )
     },

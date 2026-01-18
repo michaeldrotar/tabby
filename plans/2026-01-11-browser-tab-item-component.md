@@ -108,20 +108,20 @@ Create a dumb UI component that displays a browser tab. This component will be p
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add loading skeleton variant
-- [ ] Add favicon error/fallback (generic icon)
-- [ ] Add pinned tab indicator (pin icon)
-- [ ] Add `isLoading` prop
-- [ ] Add `isPinned` prop
-- [ ] Add `isDiscarded` prop (grayed out styling)
+- [x] Add loading skeleton variant
+- [x] Add favicon error/fallback (generic icon)
+- [x] Add pinned tab indicator (pin icon)
+- [x] Add `isLoading` prop
+- [x] Add `isPinned` prop
+- [x] Add `isDiscarded` prop (grayed out styling)
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Add content state stories (loading, pinned, discarded)
-- [ ] Story showing loading skeleton
-- [ ] Story showing missing favicon
-- [ ] Story showing pinned tab
-- [ ] Story showing discarded tab
+- [x] Add content state stories (loading, pinned, discarded)
+- [x] Story showing loading skeleton
+- [x] Story showing missing favicon
+- [x] Story showing pinned tab
+- [x] Story showing discarded tab
 
 ---
 
