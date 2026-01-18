@@ -30,7 +30,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Theme', '*'],
+        order: ['Theme', 'Components', '*'],
       },
     },
   },
