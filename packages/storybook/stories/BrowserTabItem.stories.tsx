@@ -1,6 +1,7 @@
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { AnimatePresence } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { fn } from 'storybook/test'
 import type { Decorator, Meta, StoryObj } from '@storybook/react'
 import type { MouseEvent } from 'react'
 
@@ -34,6 +35,10 @@ const meta = {
     },
   },
   tags: [],
+  args: {
+    onClick: fn(),
+    onClose: fn(),
+  },
   argTypes: {
     tabId: {
       description: 'Unique identifier for the browser tab',
@@ -93,8 +98,15 @@ const meta = {
       control: 'boolean',
     },
     onClick: {
-      action: 'clicked',
       description: 'Called when the tab item is clicked',
+      control: false,
+      table: { disable: true },
+    },
+    onClose: {
+      description:
+        'Called when the close button is clicked or Delete/Backspace is pressed. When provided, a close button is shown.',
+      control: false,
+      table: { disable: true },
     },
   },
 } satisfies Meta<typeof BrowserTabItem>
@@ -346,6 +358,21 @@ const AllStatesComponent = () => {
             lastAccessed={now}
           />
         </div>
+
+        {/* With close button (hover to see) */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            With close button
+          </h3>
+          <BrowserTabItem
+            tabId={28}
+            title="Hover to see close"
+            url="https://example.com/close"
+            favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
+            onClose={() => {}}
+          />
+        </div>
       </div>
 
       {/* Right Column: Combination States */}
@@ -470,6 +497,22 @@ const AllStatesComponent = () => {
           />
         </div>
 
+        {/* Active + close (button always visible) */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Active + close
+          </h3>
+          <BrowserTabItem
+            tabId={29}
+            title="Close always visible"
+            url="https://example.com/active-close"
+            favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
+            active
+            onClose={() => {}}
+          />
+        </div>
+
         {/* Discarded + Pinned */}
         <div>
           <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
@@ -589,81 +632,128 @@ export const AllStates = {
  * Interactive tab list with realistic selection behavior.
  * Click to select tabs - demonstrates real-world usage.
  */
+type InteractiveListTab = {
+  id: number
+  title: string
+  url: string
+  color: string
+  lastAccessed: number
+  audio?: 'muted' | 'on' | 'off'
+  duplicate?: boolean
+}
+
+const INTERACTIVE_LIST_TABS = (now: number): InteractiveListTab[] => [
+  {
+    id: 1,
+    title: 'GitHub - microsoft/vscode',
+    url: 'https://github.com/microsoft/vscode',
+    color: '#24292e',
+    lastAccessed: now - 5 * 60 * 1000,
+  },
+  {
+    id: 2,
+    title: 'Gmail - Inbox',
+    url: 'https://mail.google.com/mail/u/0/#inbox',
+    color: '#EA4335',
+    lastAccessed: now - 2 * 60 * 1000,
+  },
+  {
+    id: 3,
+    title: 'Google Docs - Project Plan',
+    url: 'https://docs.google.com/document/d/abc123',
+    color: '#4285F4',
+    lastAccessed: now - 30 * 60 * 1000,
+  },
+  {
+    id: 4,
+    title: 'Stack Overflow - React Hooks',
+    url: 'https://stackoverflow.com/questions/53945763',
+    color: '#F48024',
+    duplicate: true,
+    lastAccessed: now - 2 * 60 * 60 * 1000,
+  },
+  {
+    id: 5,
+    title: 'YouTube - Music Video',
+    url: 'https://youtube.com/watch?v=abc123',
+    color: '#FF0000',
+    audio: 'on',
+    lastAccessed: now - 10 * 60 * 1000,
+  },
+  {
+    id: 6,
+    title: 'MDN Web Docs',
+    url: 'https://developer.mozilla.org/en-US/',
+    color: '#000000',
+    lastAccessed: now - 24 * 60 * 60 * 1000,
+  },
+]
+
 const InteractiveListComponent = () => {
+  const [now] = useState(() => Date.now())
+  const [tabs, setTabs] = useState<InteractiveListTab[]>(() =>
+    INTERACTIVE_LIST_TABS(now),
+  )
+  const [nextId, setNextId] = useState(7)
   const [selectedId, setSelectedId] = useState<number | null>(2)
   const [activeId] = useState<number>(2)
-  const [now] = useState(() => Date.now())
 
-  // Calculate timestamps once using useMemo to avoid calling Date.now() during render
-  const tabs = useMemo(() => {
-    return [
-      {
-        id: 1,
-        title: 'GitHub - microsoft/vscode',
-        url: 'https://github.com/microsoft/vscode',
-        color: '#24292e',
-        lastAccessed: now - 5 * 60 * 1000, // 5 minutes ago
-      },
-      {
-        id: 2,
-        title: 'Gmail - Inbox',
-        url: 'https://mail.google.com/mail/u/0/#inbox',
-        color: '#EA4335',
-        lastAccessed: now - 2 * 60 * 1000, // 2 minutes ago
-      },
-      {
-        id: 3,
-        title: 'Google Docs - Project Plan',
-        url: 'https://docs.google.com/document/d/abc123',
-        color: '#4285F4',
-        lastAccessed: now - 30 * 60 * 1000, // 30 minutes ago
-      },
-      {
-        id: 4,
-        title: 'Stack Overflow - React Hooks',
-        url: 'https://stackoverflow.com/questions/53945763',
-        color: '#F48024',
-        duplicate: true,
-        lastAccessed: now - 2 * 60 * 60 * 1000, // 2 hours ago
-      },
-      {
-        id: 5,
-        title: 'YouTube - Music Video',
-        url: 'https://youtube.com/watch?v=abc123',
-        color: '#FF0000',
-        audio: 'on' as const,
-        lastAccessed: now - 10 * 60 * 1000, // 10 minutes ago
-      },
-      {
-        id: 6,
-        title: 'MDN Web Docs',
-        url: 'https://developer.mozilla.org/en-US/',
-        color: '#000000',
-        lastAccessed: now - 24 * 60 * 60 * 1000, // 1 day ago
-      },
-    ]
-  }, [now])
+  const handleClose = (tabId: number) => {
+    setTabs((prev) => prev.filter((t) => t.id !== tabId))
+    if (selectedId === tabId) setSelectedId(null)
+  }
+
+  const addTab = () => {
+    const insertIndex = 2
+    const newTab: InteractiveListTab = {
+      id: nextId,
+      title: `New Tab ${nextId}`,
+      url: `https://example.com/tab-${nextId}`,
+      color: '#10b981',
+      lastAccessed: Date.now(),
+    }
+    const next = [...tabs]
+    next.splice(insertIndex, 0, newTab)
+    setTabs(next)
+    setNextId((n) => n + 1)
+  }
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-muted mb-3 text-xs">
-        Click any tab to select it. Tab #2 (YouTube) is the active browser tab.
-      </p>
-      {tabs.map((tab) => (
-        <BrowserTabItem
-          key={tab.id}
-          tabId={tab.id}
-          title={tab.title}
-          url={tab.url}
-          favicon={<ColoredIcon color={tab.color} />}
-          selected={selectedId === tab.id}
-          active={activeId === tab.id}
-          audio={tab.audio}
-          duplicate={tab.duplicate}
-          lastAccessed={tab.lastAccessed}
-          onClick={() => setSelectedId(tab.id)}
-        />
-      ))}
+      <div className="text-muted mb-3 flex flex-wrap items-center gap-2 text-xs">
+        <span>
+          Click any tab to select it. Hover or focus and press Delete to close.
+          Tab #2 is the active browser tab.
+        </span>
+        <button
+          type="button"
+          onClick={addTab}
+          className={`
+            bg-accent/10 rounded px-3 py-1
+            hover:bg-accent/20
+          `}
+        >
+          Add tab (at position 2)
+        </button>
+      </div>
+      <AnimatePresence mode="popLayout" initial={false}>
+        {tabs.map((tab) => (
+          <BrowserTabItem
+            key={tab.id}
+            tabId={tab.id}
+            title={tab.title}
+            url={tab.url}
+            favicon={<ColoredIcon color={tab.color} />}
+            selected={selectedId === tab.id}
+            active={activeId === tab.id}
+            audio={tab.audio}
+            duplicate={tab.duplicate}
+            lastAccessed={tab.lastAccessed}
+            onClick={() => setSelectedId(tab.id)}
+            onClose={() => handleClose(tab.id)}
+          />
+        ))}
+      </AnimatePresence>
       <div className="text-muted mt-2 text-xs">
         Selected: {selectedId ? `Tab #${selectedId}` : 'None'}
       </div>
@@ -676,7 +766,7 @@ export const InteractiveList = {
     docs: {
       description: {
         story:
-          'Realistic multi-tab scenario. Notice how the active tab (Gmail) has a bold left border, while selected tabs have a subtle border.',
+          'Realistic multi-tab scenario. Click to select, Add tab to insert at position 2, close via X or Delete. Active tab (Gmail) has a bold border.',
       },
     },
   },
@@ -1459,6 +1549,7 @@ const WorkflowDemo = ({
                 audio={audioState}
                 duplicate={isDuplicate}
                 lastAccessed={lastAccessed}
+                onClose={() => {}}
                 data-hover={isHovered || undefined}
                 data-focus={isFocused || undefined}
                 data-tab-id={tabId}
@@ -1508,20 +1599,20 @@ export const KeyboardWorkflow = {
 }
 
 /**
- * Side-by-side comparison of normal vs reduced motion. Loading runs 5s initially,
- * then toggles every 2s so both spinner and time-ago differences stay visible.
+ * Side-by-side comparison: left uses your system preference (prefers-reduced-motion),
+ * right always has reduced motion forced.
  */
 const ReducedMotionComparisonComponent = () => {
   const [now] = useState(() => Date.now())
   return (
     <div className="grid grid-cols-2 gap-8">
       {/* Normal Motion */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-force-reduced-motion="false">
         <h2 className="text-foreground mb-2 text-sm font-semibold">
           Normal Motion
         </h2>
         <p className="text-muted text-xs">
-          Updates time every second. Uses complex loading spinner.
+          Spring animations. Updates every second.
         </p>
         <BrowserTabItem
           tabId={1}
@@ -1534,13 +1625,13 @@ const ReducedMotionComparisonComponent = () => {
         />
       </div>
 
-      {/* Reduced Motion */}
+      {/* Reduced motion (always) */}
       <div className="flex flex-col gap-4" data-force-reduced-motion="true">
         <h2 className="text-foreground mb-2 text-sm font-semibold">
-          Reduced Motion
+          Reduced motion
         </h2>
         <p className="text-muted text-xs">
-          Updates time every minute. Uses simple loading spinner.
+          Linear animations. Updates every minute.
         </p>
         <BrowserTabItem
           tabId={2}
@@ -1561,132 +1652,10 @@ export const ReducedMotionComparison = {
     controls: { disable: true },
     docs: {
       description: {
-        story:
-          'Compare normal vs reduced motion. Left: updates time every second, complex spinner. Right: updates time every minute, simple spinner. Loading 5s then toggles every 2s.',
+        story: 'Compare normal vs reduced motion.',
       },
     },
   },
   decorators: [twoColumnDecorator],
   render: () => <ReducedMotionComparisonComponent />,
-}
-
-type AnimatedListTab = {
-  id: number
-  title: string
-  url: string
-  color: string
-  lastAccessed: number
-}
-
-/**
- * Animated list with add/remove demonstrating layout animations
- */
-const AnimatedListComponent = () => {
-  const [tabs, setTabs] = useState<AnimatedListTab[]>(() => {
-    const now = Date.now()
-    return [
-      {
-        id: 1,
-        title: 'GitHub - microsoft/vscode',
-        url: 'https://github.com/microsoft/vscode',
-        color: '#24292e',
-        lastAccessed: now,
-      },
-      {
-        id: 2,
-        title: 'Gmail - Inbox',
-        url: 'https://mail.google.com/mail/u/0/#inbox',
-        color: '#EA4335',
-        lastAccessed: now,
-      },
-      {
-        id: 3,
-        title: 'Google Docs - Project Plan',
-        url: 'https://docs.google.com/document/d/abc123',
-        color: '#4285F4',
-        lastAccessed: now,
-      },
-    ]
-  })
-  const [nextId, setNextId] = useState(4)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-
-  const addTab = () => {
-    const insertIndex = 2 // Add in middle to show layout shift
-    const newTab: AnimatedListTab = {
-      id: nextId,
-      title: `New Tab ${nextId}`,
-      url: `https://example.com/tab-${nextId}`,
-      color: '#10b981',
-      lastAccessed: Date.now(),
-    }
-    const newTabs = [...tabs]
-    newTabs.splice(insertIndex, 0, newTab)
-    setTabs(newTabs)
-    setNextId(nextId + 1)
-  }
-
-  const removeTab = (id: number) => {
-    setTabs(tabs.filter((tab) => tab.id !== id))
-    if (selectedId === id) setSelectedId(null)
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={addTab}
-          className={`
-            bg-accent/10 rounded px-3 py-1 text-xs
-            hover:bg-accent/20
-          `}
-          type="button"
-        >
-          Add Tab (at position 2)
-        </button>
-        <p className="text-muted text-xs">
-          Watch items smoothly shift to make room
-        </p>
-      </div>
-
-      <AnimatePresence mode="popLayout">
-        {tabs.map((tab) => (
-          <BrowserTabItem
-            key={tab.id}
-            tabId={tab.id}
-            title={tab.title}
-            url={tab.url}
-            favicon={<ColoredIcon color={tab.color} />}
-            lastAccessed={tab.lastAccessed}
-            selected={selectedId === tab.id}
-            onClick={() => {
-              if (selectedId === tab.id) {
-                removeTab(tab.id)
-              } else {
-                setSelectedId(tab.id)
-              }
-            }}
-          />
-        ))}
-      </AnimatePresence>
-
-      <p className="text-muted text-xs">
-        Click a tab to select it. Click selected tab to remove it.
-      </p>
-    </div>
-  )
-}
-
-export const AnimatedList = {
-  parameters: {
-    controls: { disable: true },
-    docs: {
-      description: {
-        story:
-          'Demonstrates smooth list animations when adding/removing tabs. Items shift gracefully to make room for new tabs using Framer Motion layout animations.',
-      },
-    },
-  },
-  decorators: [singleColumnDecorator],
-  render: () => <AnimatedListComponent />,
 }

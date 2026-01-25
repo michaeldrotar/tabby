@@ -124,7 +124,7 @@ export const TabContextMenu = ({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-56">
         {/* Navigation */}
         <ContextMenuItem onSelect={onDuplicate}>

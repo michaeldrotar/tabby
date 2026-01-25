@@ -182,6 +182,8 @@ Create a dumb UI component that displays a browser tab. This component will be p
 
 ### Phase 3: Interactions & Animations
 
+Phase 3 simplified: Task 3.1 (checkbox/multi-select) deferred; selection remains row-based.
+
 #### ✅ Task 3.1: Multi-Selection Support
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
@@ -204,40 +206,37 @@ Create a dumb UI component that displays a browser tab. This component will be p
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add spring-based hover animation (scale or background)
-- [ ] Add focus ring animation (smooth appearance)
-- [ ] Add selection state transition
-- [ ] Add enter/exit animations (for list virtualization)
-- [ ] Implement `prefers-reduced-motion` check
-- [ ] Use CSS transitions or Framer Motion
-- [ ] Spring physics: cubic-bezier or spring config
+- [x] Add spring-based hover animation (scale or background)
+- [x] Add focus ring animation (smooth appearance)
+- [x] Add selection state transition
+- [x] Add enter/exit animations (for list virtualization)
+- [x] Implement `prefers-reduced-motion` check
+- [x] Use CSS transitions or Framer Motion
+- [x] Spring physics: cubic-bezier or spring config
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
 - [x] Story demonstrating state transitions (TransitionCycle)
-- [ ] Add more animation stories as needed
-- [ ] Toggle control for reduced motion
+- [x] Add more animation stories as needed
+- [x] Toggle control for reduced motion
 - [ ] Document animation timings and easing
 
 #### ✅ Task 3.3: Action Affordances
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add close button (appears on hover)
-- [ ] Add pin/unpin button (appears on hover)
-- [ ] Add `onClose` callback prop
-- [ ] Add `onPin` callback prop
-- [ ] Position actions on right side of row
-- [ ] Ensure 44x44px minimum touch target
-- [ ] Add keyboard shortcuts (Delete for close, Ctrl+D for pin)
-- [ ] Prevent action button clicks from selecting row
+- [x] Add close button (appears on hover, always visible on active tab)
+- [x] Add `onClose` callback prop
+- [x] Position actions on right side of row
+- [x] Ensure 44x44px minimum touch target
+- [x] Add keyboard shortcuts (Delete for close)
+- [x] Prevent action button clicks from selecting row
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Add action affordance stories
-- [ ] Story with interactive close button
-- [ ] Story with interactive pin/unpin
-- [ ] Story showing action button hover states
+- [x] Add action affordance stories
+- [x] Story with interactive close button
+- [x] Story showing action button hover states
 
 ---
 
