@@ -1,5 +1,6 @@
-import { motion, useReducedMotion } from 'framer-motion'
-import { memo } from 'react'
+import { motion } from 'framer-motion'
+import { memo, useRef } from 'react'
+import { useShouldReduceMotion } from './useShouldReduceMotion'
 import type { SVGAttributes } from 'react'
 
 export type RadialLoadingSpinnerProps = Omit<
@@ -30,12 +31,8 @@ export type RadialLoadingSpinnerProps = Omit<
  */
 export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
   ({ size = 20, variant = 'foreground', ...props }) => {
-    const prefersReducedMotion = useReducedMotion()
-    // Extract data-force-reduced-motion from props (for testing in Storybook)
-    const forceReducedMotion =
-      'data-force-reduced-motion' in props &&
-      props['data-force-reduced-motion'] === 'true'
-    const shouldReduceMotion = forceReducedMotion || prefersReducedMotion
+    const svgRef = useRef<SVGSVGElement>(null)
+    const shouldReduceMotion = useShouldReduceMotion(svgRef) ?? false
 
     // Constants
     const duration = 1.5
@@ -61,6 +58,7 @@ export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
 
     return (
       <svg
+        ref={svgRef}
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}

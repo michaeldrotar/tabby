@@ -1,5 +1,6 @@
 import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
+import { useBrowserTabs } from '@extension/chrome/tab/useBrowserTabs'
 import { useBrowserTabGroupsByWindowId } from '@extension/chrome/tabGroup/useBrowserTabGroupsByWindowId'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { useTabListItems } from '@extension/chrome/useTabListItems'
@@ -297,6 +298,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   const groups = useBrowserTabGroupsByWindowId(browserWindowId)
   const currentWindow = useCurrentBrowserWindow()
   const currentWindowId = currentWindow?.id
+  const allTabs = useBrowserTabs()
 
   // Selection state - subscribe to Sets directly for proper re-renders
   const selectedTabIds = useSelectionStore((s) => s.tabIds)
@@ -306,6 +308,21 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
 
   // Selection interaction handlers
   const selectionInteraction = useSelectionInteraction()
+
+  // Compute duplicate status for all tabs (memoized)
+  const duplicateTabs = useMemo(() => {
+    const urlCounts = new Map<string, number>()
+    allTabs.forEach((tab) => {
+      if (tab.url) {
+        urlCounts.set(tab.url, (urlCounts.get(tab.url) || 0) + 1)
+      }
+    })
+    return new Set(
+      allTabs
+        .filter((tab) => tab.url && (urlCounts.get(tab.url) || 0) > 1)
+        .map((tab) => tab.id),
+    )
+  }, [allTabs])
 
   const handleSelectTab = useCallback(
     (tabId: number, event: React.MouseEvent) => {
@@ -403,6 +420,15 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
                         }
                         pinned={item.tab.pinned}
                         discarded={item.tab.discarded}
+                        audio={
+                          item.tab.mutedInfo?.muted
+                            ? 'muted'
+                            : item.tab.audible
+                              ? 'on'
+                              : undefined
+                        }
+                        lastAccessed={item.tab.lastAccessed}
+                        duplicate={duplicateTabs.has(item.tab.id)}
                       />
                     </TabListItem>
                   )

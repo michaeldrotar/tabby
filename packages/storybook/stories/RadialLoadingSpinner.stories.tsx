@@ -138,7 +138,7 @@ export const ReducedMotionComparison: Story = {
       </div>
 
       {/* Reduced Motion */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-force-reduced-motion="true">
         <h2 className="text-foreground mb-2 text-sm font-semibold">
           Reduced Motion
         </h2>
@@ -146,21 +146,9 @@ export const ReducedMotionComparison: Story = {
           Static spinners (no animation)
         </p>
         <div className="flex items-center gap-4">
-          <RadialLoadingSpinner
-            size={20}
-            variant="foreground"
-            data-force-reduced-motion="true"
-          />
-          <RadialLoadingSpinner
-            size={24}
-            variant="accent"
-            data-force-reduced-motion="true"
-          />
-          <RadialLoadingSpinner
-            size={32}
-            variant="muted"
-            data-force-reduced-motion="true"
-          />
+          <RadialLoadingSpinner size={20} variant="foreground" />
+          <RadialLoadingSpinner size={24} variant="accent" />
+          <RadialLoadingSpinner size={32} variant="muted" />
         </div>
       </div>
     </div>

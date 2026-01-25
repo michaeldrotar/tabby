@@ -78,6 +78,20 @@ const meta = {
       description: 'Whether the tab is discarded/unloaded (grayed out)',
       control: 'boolean',
     },
+    audio: {
+      description:
+        "Audio state: 'muted' shows muted icon, 'on' shows playing icon, 'off' shows nothing",
+      control: 'select',
+      options: ['muted', 'on', 'off'],
+    },
+    lastAccessed: {
+      description: 'Timestamp in milliseconds when the tab was last accessed',
+      control: 'number',
+    },
+    duplicate: {
+      description: 'Whether this tab is a duplicate (same URL as another tab)',
+      control: 'boolean',
+    },
     onClick: {
       action: 'clicked',
       description: 'Called when the tab item is clicked',
@@ -104,6 +118,9 @@ export const Default: Story = {
     blurred: false,
     pinned: false,
     discarded: false,
+    audio: 'off',
+    lastAccessed: 1769288689393,
+    duplicate: false,
   },
   decorators: [singleColumnDecorator],
 }
@@ -111,18 +128,10 @@ export const Default: Story = {
 /**
  * All states displayed side by side for visual comparison.
  */
-export const AllStates = {
-  parameters: {
-    controls: { disable: true },
-    docs: {
-      description: {
-        story:
-          'Static comparison of all component states. Left column shows single states, right column shows important state combinations.',
-      },
-    },
-  },
-  decorators: [twoColumnDecorator],
-  render: () => (
+const AllStatesComponent = () => {
+  const [now] = useState(() => Date.now())
+
+  return (
     <div className="grid grid-cols-2 gap-8">
       {/* Left Column: Simple States */}
       <div className="flex flex-col gap-4">
@@ -140,6 +149,7 @@ export const AllStates = {
             title="Default Tab"
             url="https://example.com/default"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
           />
         </div>
 
@@ -153,6 +163,7 @@ export const AllStates = {
             title="Hover Tab"
             url="https://example.com/hover"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             data-hover
           />
         </div>
@@ -167,6 +178,7 @@ export const AllStates = {
             title="Focused Tab"
             url="https://example.com/focus"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             data-focus
           />
         </div>
@@ -181,6 +193,7 @@ export const AllStates = {
             title="Selected Tab"
             url="https://example.com/selected"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             selected
           />
         </div>
@@ -195,6 +208,7 @@ export const AllStates = {
             title="Active Tab"
             url="https://example.com/active"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             active
           />
         </div>
@@ -209,6 +223,7 @@ export const AllStates = {
             title="GitHub - microsoft/vscode"
             url="https://github.com/microsoft/vscode"
             favicon={<ColoredIcon color="#24292e" />}
+            lastAccessed={now}
             loading={true}
           />
         </div>
@@ -223,6 +238,7 @@ export const AllStates = {
             title="New Tab"
             url="https://example.com/new"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             loading={true}
             blurred={true}
           />
@@ -238,6 +254,7 @@ export const AllStates = {
             title="Gmail"
             url="https://mail.google.com"
             favicon={<ColoredIcon color="#EA4335" />}
+            lastAccessed={now}
             pinned={true}
           />
         </div>
@@ -252,7 +269,81 @@ export const AllStates = {
             title="Unloaded Tab"
             url="https://example.com/unloaded"
             favicon={<ColoredIcon color="#888888" />}
+            lastAccessed={now}
             discarded={true}
+          />
+        </div>
+
+        {/* Audio Playing */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Audio Playing
+          </h3>
+          <BrowserTabItem
+            tabId={17}
+            title="YouTube - Music Video"
+            url="https://youtube.com/watch?v=abc123"
+            favicon={<ColoredIcon color="#FF0000" />}
+            lastAccessed={now}
+            audio="on"
+          />
+        </div>
+
+        {/* Audio Muted */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Audio Muted
+          </h3>
+          <BrowserTabItem
+            tabId={18}
+            title="YouTube - Music Video"
+            url="https://youtube.com/watch?v=abc123"
+            favicon={<ColoredIcon color="#FF0000" />}
+            lastAccessed={now}
+            audio="muted"
+          />
+        </div>
+
+        {/* Duplicate */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Duplicate
+          </h3>
+          <BrowserTabItem
+            tabId={20}
+            title="GitHub - microsoft/vscode"
+            url="https://github.com/microsoft/vscode"
+            favicon={<ColoredIcon color="#24292e" />}
+            lastAccessed={now}
+            duplicate={true}
+          />
+        </div>
+
+        {/* Attention Title: (3) Gmail */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Attention: (3) Gmail
+          </h3>
+          <BrowserTabItem
+            tabId={21}
+            title="(3) Gmail"
+            url="https://mail.google.com"
+            favicon={<ColoredIcon color="#EA4335" />}
+            lastAccessed={now}
+          />
+        </div>
+
+        {/* Attention Title: • Slack */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Attention: • Slack
+          </h3>
+          <BrowserTabItem
+            tabId={22}
+            title="• Slack"
+            url="https://slack.com"
+            favicon={<ColoredIcon color="#4A154B" />}
+            lastAccessed={now}
           />
         </div>
       </div>
@@ -273,6 +364,7 @@ export const AllStates = {
             title="Active Selected Tab"
             url="https://example.com/active-selected"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             active
             selected
           />
@@ -291,6 +383,7 @@ export const AllStates = {
             title="Focused Active Selected Tab"
             url="https://example.com/focus-active-selected"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             active
             selected
             data-focus
@@ -307,6 +400,7 @@ export const AllStates = {
             title="Focused Selected Tab"
             url="https://example.com/focus-selected"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             selected
             data-focus
           />
@@ -322,6 +416,7 @@ export const AllStates = {
             title="Focused Active Tab"
             url="https://example.com/focus-active"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             active
             data-focus
           />
@@ -337,6 +432,7 @@ export const AllStates = {
             title="Hovered Selected Tab"
             url="https://example.com/hover-selected"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             selected
             data-hover
           />
@@ -352,6 +448,7 @@ export const AllStates = {
             title="GitHub"
             url="https://github.com/notifications"
             favicon={<ColoredIcon color="#24292e" />}
+            lastAccessed={now}
             pinned={true}
             selected={true}
           />
@@ -367,6 +464,7 @@ export const AllStates = {
             title="Calendar"
             url="https://calendar.google.com"
             favicon={<ColoredIcon color="#4285F4" />}
+            lastAccessed={now}
             pinned={true}
             active={true}
           />
@@ -382,6 +480,7 @@ export const AllStates = {
             title="Background Tab"
             url="https://example.com/background"
             favicon={<ColoredIcon color="#9ca3af" />}
+            lastAccessed={now}
             discarded={true}
             pinned={true}
           />
@@ -397,15 +496,93 @@ export const AllStates = {
             title="Loading Tab"
             url="https://example.com/loading"
             favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now}
             loading={true}
             blurred={true}
             active={true}
             selected={true}
           />
         </div>
+
+        {/* Audio Playing + Pinned */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Audio Playing + Pinned
+          </h3>
+          <BrowserTabItem
+            tabId={23}
+            title="Spotify - Playlist"
+            url="https://open.spotify.com"
+            favicon={<ColoredIcon color="#1DB954" />}
+            lastAccessed={now}
+            audio="on"
+            pinned={true}
+          />
+        </div>
+
+        {/* Duplicate + Active */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Duplicate + Active
+          </h3>
+          <BrowserTabItem
+            tabId={24}
+            title="GitHub - microsoft/vscode"
+            url="https://github.com/microsoft/vscode"
+            favicon={<ColoredIcon color="#24292e" />}
+            lastAccessed={now}
+            duplicate={true}
+            active={true}
+          />
+        </div>
+
+        {/* Attention + Audible */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Attention + Audible
+          </h3>
+          <BrowserTabItem
+            tabId={25}
+            title="(5) Discord"
+            url="https://discord.com"
+            favicon={<ColoredIcon color="#5865F2" />}
+            lastAccessed={now}
+            audio="on"
+          />
+        </div>
+
+        {/* Duplicate + Selected */}
+        <div>
+          <h3 className="text-muted mb-2 text-xs font-semibold uppercase">
+            Duplicate + Selected
+          </h3>
+          <BrowserTabItem
+            tabId={27}
+            title="Stack Overflow - React Hooks"
+            url="https://stackoverflow.com/questions/53945763"
+            favicon={<ColoredIcon color="#F48024" />}
+            lastAccessed={now}
+            duplicate={true}
+            selected={true}
+          />
+        </div>
       </div>
     </div>
-  ),
+  )
+}
+
+export const AllStates = {
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Static comparison of all component states. Left column shows single states, right column shows important state combinations.',
+      },
+    },
+  },
+  decorators: [twoColumnDecorator],
+  render: () => <AllStatesComponent />,
 }
 
 /**
@@ -415,44 +592,62 @@ export const AllStates = {
 const InteractiveListComponent = () => {
   const [selectedId, setSelectedId] = useState<number | null>(2)
   const [activeId] = useState<number>(2)
+  const [now] = useState(() => Date.now())
 
-  const tabs = [
-    {
-      id: 1,
-      title: 'GitHub - microsoft/vscode',
-      url: 'https://github.com/microsoft/vscode',
-      color: '#24292e',
-    },
-    {
-      id: 2,
-      title: 'Gmail - Inbox',
-      url: 'https://mail.google.com/mail/u/0/#inbox',
-      color: '#EA4335',
-    },
-    {
-      id: 3,
-      title: 'Google Docs - Project Plan',
-      url: 'https://docs.google.com/document/d/abc123',
-      color: '#4285F4',
-    },
-    {
-      id: 4,
-      title: 'Stack Overflow - React Hooks',
-      url: 'https://stackoverflow.com/questions/53945763',
-      color: '#F48024',
-    },
-    {
-      id: 5,
-      title: 'MDN Web Docs',
-      url: 'https://developer.mozilla.org/en-US/',
-      color: '#000000',
-    },
-  ]
+  // Calculate timestamps once using useMemo to avoid calling Date.now() during render
+  const tabs = useMemo(() => {
+    return [
+      {
+        id: 1,
+        title: 'GitHub - microsoft/vscode',
+        url: 'https://github.com/microsoft/vscode',
+        color: '#24292e',
+        lastAccessed: now - 5 * 60 * 1000, // 5 minutes ago
+      },
+      {
+        id: 2,
+        title: 'Gmail - Inbox',
+        url: 'https://mail.google.com/mail/u/0/#inbox',
+        color: '#EA4335',
+        lastAccessed: now - 2 * 60 * 1000, // 2 minutes ago
+      },
+      {
+        id: 3,
+        title: 'Google Docs - Project Plan',
+        url: 'https://docs.google.com/document/d/abc123',
+        color: '#4285F4',
+        lastAccessed: now - 30 * 60 * 1000, // 30 minutes ago
+      },
+      {
+        id: 4,
+        title: 'Stack Overflow - React Hooks',
+        url: 'https://stackoverflow.com/questions/53945763',
+        color: '#F48024',
+        duplicate: true,
+        lastAccessed: now - 2 * 60 * 60 * 1000, // 2 hours ago
+      },
+      {
+        id: 5,
+        title: 'YouTube - Music Video',
+        url: 'https://youtube.com/watch?v=abc123',
+        color: '#FF0000',
+        audio: 'on' as const,
+        lastAccessed: now - 10 * 60 * 1000, // 10 minutes ago
+      },
+      {
+        id: 6,
+        title: 'MDN Web Docs',
+        url: 'https://developer.mozilla.org/en-US/',
+        color: '#000000',
+        lastAccessed: now - 24 * 60 * 60 * 1000, // 1 day ago
+      },
+    ]
+  }, [now])
 
   return (
     <div className="flex flex-col gap-1">
       <p className="text-muted mb-3 text-xs">
-        Click any tab to select it. Tab #2 (Gmail) is the active browser tab.
+        Click any tab to select it. Tab #2 (YouTube) is the active browser tab.
       </p>
       {tabs.map((tab) => (
         <BrowserTabItem
@@ -463,6 +658,9 @@ const InteractiveListComponent = () => {
           favicon={<ColoredIcon color={tab.color} />}
           selected={selectedId === tab.id}
           active={activeId === tab.id}
+          audio={tab.audio}
+          duplicate={tab.duplicate}
+          lastAccessed={tab.lastAccessed}
           onClick={() => setSelectedId(tab.id)}
         />
       ))}
@@ -488,39 +686,134 @@ export const InteractiveList = {
 
 /**
  * Edge cases and content variations.
+ * Tests how the component handles unusual content lengths, missing data, and truncation.
  */
 export const ContentVariations = {
   parameters: {
     controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'Demonstrates how the component handles edge cases: extremely long titles/URLs, missing data, and content truncation. All items are shown in a single vertical list as they would appear in the tab manager.',
+      },
+    },
   },
-  decorators: [singleColumnDecorator],
-  render: () => (
-    <div className="flex flex-col gap-2">
-      <BrowserTabItem
-        tabId={1}
-        title="This is an extremely long tab title that should be truncated with an ellipsis when it exceeds the available width of the component"
-        url="https://example.com/very/long/path/to/resource"
-        favicon={<ColoredIcon color="#10b981" />}
-      />
-      <BrowserTabItem
-        tabId={2}
-        title="Short Title"
-        url="https://this-is-a-very-long-subdomain.example-domain-name.co.uk/path"
-        favicon={<ColoredIcon color="#6366f1" />}
-      />
-      <BrowserTabItem
-        tabId={3}
-        title=""
-        url="http://localhost:3000"
-        favicon={<ColoredIcon color="#6b7280" />}
-      />
-      <BrowserTabItem
-        tabId={4}
-        title="No Favicon Example"
-        url="https://example.com"
-      />
-    </div>
-  ),
+  decorators: [twoColumnDecorator],
+  render: () => {
+    const now = Date.now()
+    const MIN = 60 * 1000
+    const HOUR = 60 * MIN
+    const DAY = 24 * HOUR
+    const scenarios = [
+      {
+        description: 'long title',
+        component: (
+          <BrowserTabItem
+            tabId={1}
+            title="This is an extremely long tab title that should be truncated with an ellipsis when it exceeds the available width of the component"
+            url="https://example.com/very/long/path/to/resource"
+            favicon={<ColoredIcon color="#10b981" />}
+            lastAccessed={now - 5 * MIN}
+          />
+        ),
+      },
+      {
+        description: 'long url',
+        component: (
+          <BrowserTabItem
+            tabId={2}
+            title="Short Title"
+            url="https://this-is-a-very-long-subdomain.example-domain-name.co.uk/path"
+            favicon={<ColoredIcon color="#6366f1" />}
+            lastAccessed={now - 2 * HOUR}
+          />
+        ),
+      },
+      {
+        description: 'empty title',
+        component: (
+          <BrowserTabItem
+            tabId={3}
+            title=""
+            url="http://localhost:3000"
+            favicon={<ColoredIcon color="#6b7280" />}
+            lastAccessed={now - 1 * DAY}
+          />
+        ),
+      },
+      {
+        description: 'missing favicon',
+        component: (
+          <BrowserTabItem
+            tabId={4}
+            title="No Favicon Example"
+            url="https://example.com"
+            lastAccessed={now - 60 * DAY}
+          />
+        ),
+      },
+      {
+        description: 'short title',
+        component: (
+          <BrowserTabItem
+            tabId={5}
+            title="Hi"
+            url="https://example.com"
+            favicon={<ColoredIcon color="#8B5CF6" />}
+            lastAccessed={now - 365 * DAY}
+          />
+        ),
+      },
+      {
+        description: 'unicode & emoji',
+        component: (
+          <BrowserTabItem
+            tabId={6}
+            title="🎉 Party Time! 🎊 (Unicode & Emoji)"
+            url="https://example.com/party"
+            favicon={<ColoredIcon color="#F59E0B" />}
+            lastAccessed={now - 2 * 365 * DAY}
+          />
+        ),
+      },
+      {
+        description: 'long url path',
+        component: (
+          <BrowserTabItem
+            tabId={7}
+            title="Deep Navigation"
+            url="https://example.com/level1/level2/level3/level4/level5/level6/level7/level8/level9/level10/page"
+            favicon={<ColoredIcon color="#EC4899" />}
+            lastAccessed={now - 6 * 30 * DAY}
+          />
+        ),
+      },
+      {
+        description: 'missing url',
+        component: (
+          <BrowserTabItem
+            tabId={8}
+            title="New Tab (no URL yet)"
+            favicon={<ColoredIcon color="#6B7280" />}
+            lastAccessed={now - 30 * MIN}
+          />
+        ),
+      },
+    ]
+
+    return (
+      <div className="grid grid-cols-[320px_auto] items-center gap-x-8 gap-y-1">
+        {scenarios.map((scenario, index) => (
+          <div key={index} className="contents">
+            <div className="w-[320px]">{scenario.component}</div>
+            <p className="text-muted whitespace-nowrap text-xs">
+              {scenario.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    )
+  },
 }
 
 // New compact API types
@@ -528,6 +821,9 @@ type Tab = {
   title: string
   url: string
   color: string
+  lastAccessed?: number
+  /** Ms before scenario start when tab was last accessed (negative). Used for initial lastAccessed. */
+  lastAccessedOffsetMs?: number
 }
 
 type InitialState = {
@@ -541,6 +837,8 @@ type InitialState = {
   loading?: number[]
   blurred?: number[]
   visible?: number[]
+  audio?: Record<number, 'muted' | 'on' | 'off'>
+  duplicate?: number[]
 }
 
 type Action = {
@@ -555,6 +853,8 @@ type Action = {
   loading?: number[]
   blurred?: number[]
   visible?: number[]
+  audio?: Record<number, 'muted' | 'on' | 'off'>
+  duplicate?: number[]
 }
 
 type Step = Action[]
@@ -578,6 +878,10 @@ type CompiledAction = {
     pinned?: number[]
     discarded?: number[]
     visible?: number[]
+    audio?: Record<number, 'muted' | 'on' | 'off'>
+    duplicate?: number[]
+    /** tab id -> scenario timestamp (ms) when that tab was last accessed */
+    lastAccessed?: Record<number, number>
   }
 }
 
@@ -611,10 +915,24 @@ const compileScenario = (
     pinned: initial.pinned,
     discarded: initial.discarded,
     visible: initial.visible,
+    audio: initial.audio,
+    duplicate: initial.duplicate,
   }
 
   const compiledSteps: CompiledStep[] = []
   let cumulativeTime = 0
+
+  // Bootstrap lastAccessed: all tabs get initial offset from config; overwrite with 0 for initially selected
+  const lastAccessedMap: Record<number, number> = {}
+  initial.tabs.forEach((tab, idx) => {
+    const id = idx + 1
+    const offset = tab.lastAccessedOffsetMs ?? 0
+    lastAccessedMap[id] = offset
+  })
+  initial.selected.forEach((id) => {
+    lastAccessedMap[id] = 0
+  })
+  let prevSelected = initial.selected
 
   // Compile each step
   steps.forEach((step, stepIndex) => {
@@ -642,11 +960,41 @@ const compileScenario = (
           discarded: action.discarded,
         }),
         ...(action.visible !== undefined && { visible: action.visible }),
+        ...(action.audio !== undefined && { audio: action.audio }),
+        ...(action.duplicate !== undefined && { duplicate: action.duplicate }),
+      }
+
+      // Compute "accessed" tab when selection changes; update lastAccessed map
+      if (action.selected !== undefined) {
+        const curr = currentState.selected
+        const added = curr.filter((id) => !prevSelected.includes(id))
+        const removed = prevSelected.filter((id) => !curr.includes(id))
+
+        let accessed: number | null = null
+        if (curr.length === 1 && removed.length > 0) {
+          accessed = curr[0]!
+        } else if (added.length === 1) {
+          accessed = added[0]!
+        } else if (added.length > 1) {
+          const target = currentState.hover ?? currentState.focus ?? null
+          accessed = target && added.includes(target) ? target : added[0]!
+        } else if (
+          prevSelected.length === 1 &&
+          curr.length === 1 &&
+          prevSelected[0] !== curr[0]
+        ) {
+          accessed = curr[0]!
+        }
+
+        if (accessed !== null) {
+          lastAccessedMap[accessed] = cumulativeTime
+        }
+        prevSelected = curr
       }
 
       compiledActions.push({
         timestamp: cumulativeTime,
-        state: { ...currentState },
+        state: { ...currentState, lastAccessed: { ...lastAccessedMap } },
       })
 
       // Display this state for the specified duration
@@ -673,32 +1021,52 @@ const compileScenario = (
   }
 }
 
+const MIN = 60 * 1000
+const HOUR = 60 * MIN
+const DAY = 24 * HOUR
+
 const SHARED_TABS: Tab[] = [
   {
-    title: 'GitHub - microsoft/vscode',
-    url: 'https://github.com/microsoft/vscode',
-    color: '#24292e',
-  },
-  {
-    title: 'Gmail - Inbox',
+    title: '(3) Gmail - Inbox',
     url: 'https://mail.google.com/mail/u/0/#inbox',
     color: '#EA4335',
+    lastAccessedOffsetMs: -5 * MIN,
+  },
+  {
+    title: 'YouTube - Music Video',
+    url: 'https://youtube.com/watch?v=abc123',
+    color: '#FF0000',
+    lastAccessedOffsetMs: -2 * HOUR,
   },
   {
     title: 'Google Docs - Project Plan',
     url: 'https://docs.google.com/document/d/abc123',
     color: '#4285F4',
+    lastAccessedOffsetMs: -1 * DAY,
   },
   {
     title: 'Stack Overflow - React Hooks',
     url: 'https://stackoverflow.com/questions/53945763',
     color: '#F48024',
+    lastAccessedOffsetMs: -60 * DAY,
   },
-  { title: 'New Tab', url: 'chrome://newtab', color: '#8B5CF6' },
+  {
+    title: 'New Tab',
+    url: 'chrome://newtab',
+    color: '#8B5CF6',
+    lastAccessedOffsetMs: -365 * DAY,
+  },
   {
     title: 'MDN Web Docs',
     url: 'https://developer.mozilla.org/en-US/',
     color: '#000000',
+    lastAccessedOffsetMs: -2 * 365 * DAY,
+  },
+  {
+    title: 'Google Docs - Project Plan',
+    url: 'https://docs.google.com/document/d/abc123',
+    color: '#4285F4',
+    lastAccessedOffsetMs: -60 * DAY,
   },
 ]
 
@@ -709,13 +1077,20 @@ const MOUSE_SCENARIO: CompactScenarioConfig = {
     selected: [2],
     active: 2,
     discarded: [3],
-    visible: [1, 2, 3, 4, 6],
+    visible: [1, 2, 3, 4, 6, 7],
+    audio: { 2: 'on' },
+    duplicate: [3, 7],
   },
   steps: [
     [
       { ms: 1500, label: 'Pin tab 1', hover: 1 },
       { ms: 400, active: 1, selected: [1] },
       { ms: 600, pinned: [1] },
+    ],
+    [
+      { ms: 600, label: 'Mute audio on tab 2', hover: 2 },
+      { ms: 400, active: 2, selected: [2] },
+      { ms: 600, audio: { 2: 'muted' } },
     ],
     [
       { ms: 500, label: 'Click tab 4 to activate', hover: 2 },
@@ -737,13 +1112,13 @@ const MOUSE_SCENARIO: CompactScenarioConfig = {
         selected: [5],
         loading: [5],
         blurred: [5],
-        visible: [1, 2, 3, 4, 5, 6],
+        visible: [1, 2, 3, 4, 5, 6, 7],
       },
       { ms: 700, loading: [], blurred: [] },
     ],
     [
       { ms: 800, label: 'Close new tab', hover: 1 },
-      { ms: 800, active: 1, selected: [1], visible: [1, 2, 3, 4, 6] },
+      { ms: 800, active: 1, selected: [1], visible: [1, 2, 3, 4, 6, 7] },
     ],
     [
       { ms: 750, label: 'Unpin tab 1' },
@@ -752,6 +1127,7 @@ const MOUSE_SCENARIO: CompactScenarioConfig = {
     [
       { ms: 750, label: 'Return to tab 2', hover: 2 },
       { ms: 750, active: 2, selected: [2] },
+      { ms: 600, label: 'Unmute audio', audio: { 2: 'on' } },
     ],
   ],
 }
@@ -763,13 +1139,20 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
     selected: [2],
     active: 2,
     discarded: [3],
-    visible: [1, 2, 3, 4, 6],
+    visible: [1, 2, 3, 4, 6, 7],
+    audio: { 2: 'on' },
+    duplicate: [3, 7],
   },
   steps: [
     [
       { ms: 1500, label: 'Press ↑ to tab 1, pin it' },
       { ms: 400, active: 1, selected: [1], focus: 1 },
       { ms: 600, pinned: [1] },
+    ],
+    [
+      { ms: 600, label: 'Mute audio on tab 2', focus: 2 },
+      { ms: 400, active: 2, selected: [2] },
+      { ms: 600, audio: { 2: 'muted' } },
     ],
     [
       { ms: 500, label: 'Press ↓ three times to reach tab 4' },
@@ -792,7 +1175,7 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
         focus: 5,
         loading: [5],
         blurred: [5],
-        visible: [1, 2, 3, 4, 5, 6],
+        visible: [1, 2, 3, 4, 5, 6, 7],
       },
       { ms: 700, loading: [], blurred: [] },
     ],
@@ -803,7 +1186,7 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
         active: 1,
         selected: [1],
         focus: 1,
-        visible: [1, 2, 3, 4, 6],
+        visible: [1, 2, 3, 4, 6, 7],
       },
     ],
     [
@@ -813,6 +1196,7 @@ const KEYBOARD_SCENARIO: CompactScenarioConfig = {
     [
       { ms: 750, label: 'Press ↓ to return to tab 2' },
       { ms: 750, active: 2, selected: [2], focus: 2 },
+      { ms: 600, label: 'Unmute audio', audio: { 2: 'on' } },
     ],
   ],
 }
@@ -828,6 +1212,7 @@ const WorkflowDemo = ({
   const [currentTime, setCurrentTime] = useState(0)
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
   const tabListRef = useRef<HTMLDivElement>(null)
+  const [now] = useState(() => Date.now())
 
   // Compile the compact scenario into runtime format
   const compiled = useMemo(() => compileScenario(scenario), [scenario])
@@ -1049,6 +1434,14 @@ const WorkflowDemo = ({
               currentAction?.state.pinned?.includes(tabId) || false
             const isDiscarded =
               currentAction?.state.discarded?.includes(tabId) || false
+            const audioState = currentAction?.state.audio?.[tabId]
+            const isDuplicate =
+              currentAction?.state.duplicate?.includes(tabId) || false
+            const accessTs = currentAction?.state.lastAccessed?.[tabId]
+            const lastAccessed =
+              accessTs !== undefined
+                ? now - (currentTime - accessTs)
+                : undefined
 
             return (
               <BrowserTabItem
@@ -1063,6 +1456,9 @@ const WorkflowDemo = ({
                 blurred={isBlurred}
                 pinned={isPinned}
                 discarded={isDiscarded}
+                audio={audioState}
+                duplicate={isDuplicate}
+                lastAccessed={lastAccessed}
                 data-hover={isHovered || undefined}
                 data-focus={isFocused || undefined}
                 data-tab-id={tabId}
@@ -1112,30 +1508,11 @@ export const KeyboardWorkflow = {
 }
 
 /**
- * Side-by-side comparison of normal animations vs reduced motion
+ * Side-by-side comparison of normal vs reduced motion. Loading runs 5s initially,
+ * then toggles every 2s so both spinner and time-ago differences stay visible.
  */
 const ReducedMotionComparisonComponent = () => {
-  const [loading, setLoading] = useState(true)
-  const [blurred, setBlurred] = useState(true)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLoading((prev) => {
-        if (!prev) {
-          setBlurred(true)
-          return true
-        }
-        if (blurred) {
-          setBlurred(false)
-          return true
-        }
-        return false
-      })
-    }, 1500)
-
-    return () => clearInterval(interval)
-  }, [blurred])
-
+  const [now] = useState(() => Date.now())
   return (
     <div className="grid grid-cols-2 gap-8">
       {/* Normal Motion */}
@@ -1144,36 +1521,36 @@ const ReducedMotionComparisonComponent = () => {
           Normal Motion
         </h2>
         <p className="text-muted text-xs">
-          Full animations with spring physics
+          Updates time every second. Uses complex loading spinner.
         </p>
         <BrowserTabItem
           tabId={1}
           title="GitHub - microsoft/vscode"
           url="https://github.com/microsoft/vscode"
           favicon={<ColoredIcon color="#24292e" />}
-          loading={loading}
+          lastAccessed={now}
+          loading={true}
           active
         />
       </div>
 
       {/* Reduced Motion */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-force-reduced-motion="true">
         <h2 className="text-foreground mb-2 text-sm font-semibold">
           Reduced Motion
         </h2>
         <p className="text-muted text-xs">
-          Simplified animations (simulated with CSS class)
+          Updates time every minute. Uses simple loading spinner.
         </p>
-        <div className="motion-reduce">
-          <BrowserTabItem
-            tabId={2}
-            title="GitHub - microsoft/vscode"
-            url="https://github.com/microsoft/vscode"
-            favicon={<ColoredIcon color="#24292e" />}
-            loading={loading}
-            active
-          />
-        </div>
+        <BrowserTabItem
+          tabId={2}
+          title="GitHub - microsoft/vscode"
+          url="https://github.com/microsoft/vscode"
+          favicon={<ColoredIcon color="#24292e" />}
+          lastAccessed={now}
+          loading={true}
+          active
+        />
       </div>
     </div>
   )
@@ -1185,7 +1562,7 @@ export const ReducedMotionComparison = {
     docs: {
       description: {
         story:
-          'Compare normal animations with reduced motion. Left shows full spring-based animations, right shows simplified version for users with motion sensitivity.',
+          'Compare normal vs reduced motion. Left: updates time every second, complex spinner. Right: updates time every minute, simple spinner. Loading 5s then toggles every 2s.',
       },
     },
   },
@@ -1193,40 +1570,55 @@ export const ReducedMotionComparison = {
   render: () => <ReducedMotionComparisonComponent />,
 }
 
+type AnimatedListTab = {
+  id: number
+  title: string
+  url: string
+  color: string
+  lastAccessed: number
+}
+
 /**
  * Animated list with add/remove demonstrating layout animations
  */
 const AnimatedListComponent = () => {
-  const [tabs, setTabs] = useState([
-    {
-      id: 1,
-      title: 'GitHub - microsoft/vscode',
-      url: 'https://github.com/microsoft/vscode',
-      color: '#24292e',
-    },
-    {
-      id: 2,
-      title: 'Gmail - Inbox',
-      url: 'https://mail.google.com/mail/u/0/#inbox',
-      color: '#EA4335',
-    },
-    {
-      id: 3,
-      title: 'Google Docs - Project Plan',
-      url: 'https://docs.google.com/document/d/abc123',
-      color: '#4285F4',
-    },
-  ])
+  const [tabs, setTabs] = useState<AnimatedListTab[]>(() => {
+    const now = Date.now()
+    return [
+      {
+        id: 1,
+        title: 'GitHub - microsoft/vscode',
+        url: 'https://github.com/microsoft/vscode',
+        color: '#24292e',
+        lastAccessed: now,
+      },
+      {
+        id: 2,
+        title: 'Gmail - Inbox',
+        url: 'https://mail.google.com/mail/u/0/#inbox',
+        color: '#EA4335',
+        lastAccessed: now,
+      },
+      {
+        id: 3,
+        title: 'Google Docs - Project Plan',
+        url: 'https://docs.google.com/document/d/abc123',
+        color: '#4285F4',
+        lastAccessed: now,
+      },
+    ]
+  })
   const [nextId, setNextId] = useState(4)
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
   const addTab = () => {
     const insertIndex = 2 // Add in middle to show layout shift
-    const newTab = {
+    const newTab: AnimatedListTab = {
       id: nextId,
       title: `New Tab ${nextId}`,
       url: `https://example.com/tab-${nextId}`,
       color: '#10b981',
+      lastAccessed: Date.now(),
     }
     const newTabs = [...tabs]
     newTabs.splice(insertIndex, 0, newTab)
@@ -1265,6 +1657,7 @@ const AnimatedListComponent = () => {
             title={tab.title}
             url={tab.url}
             favicon={<ColoredIcon color={tab.color} />}
+            lastAccessed={tab.lastAccessed}
             selected={selectedId === tab.id}
             onClick={() => {
               if (selectedId === tab.id) {

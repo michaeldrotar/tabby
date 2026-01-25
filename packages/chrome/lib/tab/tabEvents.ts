@@ -21,7 +21,13 @@ const onChromeTabActivated = (
 
   const activatedBrowserTab = state.tabById[tabId]
   if (activatedBrowserTab && !activatedBrowserTab.active) {
-    state.updateTabById(activatedBrowserTab.id, { active: true })
+    // Update lastAccessed when tab becomes active
+    // Chrome API updates this internally but doesn't expose it via changeInfo,
+    // so we track it ourselves for accurate relative timestamp display
+    state.updateTabById(activatedBrowserTab.id, {
+      active: true,
+      lastAccessed: Date.now(),
+    })
   }
 }
 

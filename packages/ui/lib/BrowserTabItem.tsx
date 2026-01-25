@@ -1,9 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Pin } from 'lucide-react'
-import { forwardRef, memo } from 'react'
+import { Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
+import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
+import { useShouldReduceMotion } from './useShouldReduceMotion'
 import { cn } from './utils/cn'
+import { formatTimeAgo } from './utils/formatTimeAgo'
 import type { HTMLAttributes, ReactNode } from 'react'
+
+/** When true, floor age to minute before formatting: 0–59s → "just now", 60–119s → "1m". */
+const timestampForFormatting = (ts: number, reduceMotion: boolean): number => {
+  if (!reduceMotion) return ts
+  const ageSeconds = (Date.now() - ts) / 1000
+  const flooredSeconds = Math.floor(ageSeconds / 60) * 60
+  return Date.now() - flooredSeconds * 1000
+}
 
 /**
  * Props for the BrowserTabItem component.
@@ -41,6 +51,14 @@ export type BrowserTabItemProps = Omit<
   pinned?: boolean
   /** Whether the tab is discarded/unloaded (grayed out) */
   discarded?: boolean
+
+  // Status indicator props
+  /** Audio state: 'muted' shows muted icon, 'on' shows playing icon, 'off' shows nothing */
+  audio?: 'muted' | 'on' | 'off'
+  /** Timestamp in milliseconds when the tab was last accessed */
+  lastAccessed?: number
+  /** Whether this tab is a duplicate (same URL as another tab) */
+  duplicate?: boolean
 }
 
 /**
@@ -83,10 +101,24 @@ export const BrowserTabItem = memo(
         blurred = false,
         pinned = false,
         discarded = false,
+        audio,
+        lastAccessed,
+        duplicate = false,
         ...props
       },
-      ref,
+      forwardedRef,
     ) => {
+      const rootRef = useRef<HTMLDivElement>(null)
+      const setRef = (el: HTMLDivElement | null) => {
+        ;(rootRef as { current: HTMLDivElement | null }).current = el
+        if (typeof forwardedRef === 'function') {
+          forwardedRef(el)
+        } else if (forwardedRef) {
+          ;(forwardedRef as { current: HTMLDivElement | null }).current = el
+        }
+      }
+      const shouldReduceMotion = useShouldReduceMotion(rootRef) ?? false
+
       // Extract domain from URL for display
       const getDomain = (url?: string): string => {
         if (!url) return ''
@@ -100,6 +132,61 @@ export const BrowserTabItem = memo(
 
       const domain = getDomain(url)
 
+      // Auto-update timestamp display as time passes. Store formatted string in state;
+      // interval runs every 1s and updates only when the string changes, avoiding
+      // unnecessary re-renders (e.g. "5h" tabs re-render at most hourly).
+      // When reduced motion: floor age to minute (0–59s → "just now", 60–119s → "1m").
+      const [timeAgoText, setTimeAgoText] = useState<string>(() =>
+        lastAccessed
+          ? formatTimeAgo(
+              timestampForFormatting(lastAccessed, shouldReduceMotion),
+            )
+          : '',
+      )
+      useEffect(() => {
+        if (!lastAccessed) return
+
+        const format = () =>
+          formatTimeAgo(
+            timestampForFormatting(lastAccessed, shouldReduceMotion),
+          )
+        queueMicrotask(() => setTimeAgoText(format()))
+
+        const interval = setInterval(() => {
+          const next = format()
+          setTimeAgoText((prev) => (next !== prev ? next : prev))
+        }, 1000)
+
+        return () => clearInterval(interval)
+      }, [lastAccessed, shouldReduceMotion])
+
+      // Format title with attention highlighting
+      const formatTitle = (titleText?: string): ReactNode => {
+        if (!titleText) return null
+
+        // Check for "(N) Title" pattern
+        const numberMatch = titleText.match(/^(\(\d+\))\s(.+)$/)
+        if (numberMatch) {
+          const [, numberPart, rest] = numberMatch
+          return (
+            <>
+              <span className="text-accent">{numberPart}</span> {rest}
+            </>
+          )
+        }
+
+        // Check for "• Title" pattern
+        if (titleText.startsWith('• ')) {
+          return (
+            <>
+              <span className="text-accent">•</span> {titleText.slice(2)}
+            </>
+          )
+        }
+
+        return titleText
+      }
+
       const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -109,7 +196,7 @@ export const BrowserTabItem = memo(
 
       return (
         <motion.div
-          ref={ref}
+          ref={setRef}
           role="option"
           tabIndex={0}
           layout
@@ -172,7 +259,9 @@ export const BrowserTabItem = memo(
           data-blurred={blurred || undefined}
           data-pinned={pinned || undefined}
           data-discarded={discarded || undefined}
-          aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}`}
+          data-audio={audio || undefined}
+          data-duplicate={duplicate || undefined}
+          aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
           aria-selected={selected}
           aria-current={active ? 'page' : undefined}
           aria-busy={loading}
@@ -245,14 +334,14 @@ export const BrowserTabItem = memo(
                   damping: 25,
                 }}
               >
-                {title}
+                {formatTitle(title)}
               </motion.div>
             )}
 
             {/* Domain */}
             {domain && (
               <motion.div
-                className="text-muted truncate text-xs"
+                className="text-muted flex min-w-0 items-center gap-1 text-xs"
                 animate={{
                   filter: blurred ? 'blur(4px)' : 'blur(0px)',
                 }}
@@ -263,21 +352,62 @@ export const BrowserTabItem = memo(
                   delay: 0.05,
                 }}
               >
-                {status} {domain}
+                {timeAgoText ? (
+                  <>
+                    <span className="min-w-0 truncate">{domain}</span>
+                    <span className="flex-shrink-0"> • {timeAgoText}</span>
+                  </>
+                ) : (
+                  <span className="min-w-0 truncate">{domain}</span>
+                )}
               </motion.div>
             )}
           </div>
 
-          {/* Pinned indicator */}
-          {pinned && !loading && (
-            <div
-              className="text-muted flex-shrink-0"
-              aria-label="Pinned"
-              title="Pinned tab"
-            >
-              <Pin className="h-3.5 w-3.5" />
-            </div>
-          )}
+          {/* Status indicators */}
+          <div className="flex flex-shrink-0 items-center gap-1.5">
+            {/* Audio indicator */}
+            {audio === 'muted' && (
+              <div
+                className="text-muted flex-shrink-0"
+                aria-label="Muted"
+                title="Muted"
+              >
+                <VolumeOff className="h-3.5 w-3.5" />
+              </div>
+            )}
+            {audio === 'on' && (
+              <div
+                className="text-accent flex-shrink-0"
+                aria-label="Playing audio"
+                title="Playing audio"
+              >
+                <Volume2 className="h-3.5 w-3.5 animate-pulse" />
+              </div>
+            )}
+
+            {/* Duplicate indicator */}
+            {duplicate && (
+              <div
+                className="text-muted flex-shrink-0"
+                aria-label="Duplicate tab"
+                title="Duplicate tab"
+              >
+                <Layers className="h-3.5 w-3.5" />
+              </div>
+            )}
+
+            {/* Pinned indicator */}
+            {pinned && !loading && (
+              <div
+                className="text-muted flex-shrink-0"
+                aria-label="Pinned"
+                title="Pinned tab"
+              >
+                <Pin className="h-3.5 w-3.5" />
+              </div>
+            )}
+          </div>
         </motion.div>
       )
     },

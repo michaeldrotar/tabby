@@ -131,53 +131,52 @@ Create a dumb UI component that displays a browser tab. This component will be p
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add audio playing indicator (speaker icon, positioned right)
-- [ ] Add muted indicator (muted icon)
-- [ ] Add `isAudible` prop
-- [ ] Add `isMuted` prop
-- [ ] Import/use appropriate icons (Lucide or custom)
-- [ ] Style for subtle but visible presence
+- [x] Add audio playing indicator (speaker icon, positioned right)
+- [x] Add muted indicator (muted icon)
+- [x] Add `audio` prop (`'muted' | 'on' | 'off'`)
+- [x] Import/use appropriate icons (Lucide: Volume2, VolumeOff)
+- [x] Style for subtle but visible presence
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Add audio state stories
-- [ ] Story with toggle for audio playing
-- [ ] Story with toggle for muted
-- [ ] Story showing both states combined
+- [x] Add audio state stories
+- [x] Story with toggle for audio playing
+- [x] Story with toggle for muted
+- [x] Story showing both states combined
 
 #### ✅ Task 2.2: Tab Metadata Display
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add domain display (extract from URL, show as secondary text)
-- [ ] Add relative timestamp display ("2m ago", "3h ago")
-- [ ] Add `lastAccessed` prop (timestamp)
-- [ ] Implement time-ago formatting utility
-- [ ] Style metadata as subtle, secondary information
+- [x] Add domain display (extract from URL, show as secondary text)
+- [x] Add relative timestamp display ("2m ago", "3h ago")
+- [x] Add `lastAccessed` prop (timestamp)
+- [x] Implement time-ago formatting utility (uses existing `formatTimeAgo`)
+- [x] Style metadata as subtle, secondary information
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Add metadata display stories
-- [ ] Story with various timestamp ranges (seconds, minutes, hours, days)
-- [ ] Story with different domain lengths
-- [ ] Story with/without metadata
+- [x] Add metadata display stories
+- [x] Story with various timestamp ranges (seconds, minutes, hours, days)
+- [x] Story with different domain lengths
+- [x] Story with/without metadata
 
 #### ✅ Task 2.3: Duplicate & Special States
 
 **File:** `packages/ui/lib/BrowserTabItem.tsx`
 
-- [ ] Add duplicate indicator (badge or subtle visual cue)
-- [ ] Add attention-seeking title detection (regex for "(N)" patterns)
-- [ ] Add `isDuplicate` prop
-- [ ] Add `hasAttentionTitle` prop (or detect from title)
-- [ ] Style indicators to avoid clutter
+- [x] Add duplicate indicator (Layers icon, positioned with other status indicators)
+- [x] Add attention-seeking title detection (regex for "(N)" patterns and "•" prefix)
+- [x] Add `duplicate` prop
+- [x] Auto-detect attention titles from title prop
+- [x] Style indicators to avoid clutter
 
 **Storybook:** `packages/storybook/stories/BrowserTabItem.stories.tsx`
 
-- [ ] Add special indicator stories
-- [ ] Story showing duplicate tabs
-- [ ] Story showing attention titles: "(3) Gmail", "• Slack"
-- [ ] Story combining multiple indicators
+- [x] Add special indicator stories
+- [x] Story showing duplicate tabs
+- [x] Story showing attention titles: "(3) Gmail", "• Slack"
+- [x] Story combining multiple indicators
 
 ---
 
