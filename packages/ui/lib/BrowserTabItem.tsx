@@ -292,7 +292,35 @@ export const BrowserTabItem = memo(
           {...(props as Record<string, unknown>)}
         >
           <div
-            className={`flex min-h-[48px] w-full items-center gap-3 rounded-lg`}
+            className={cn(
+              `
+                flex min-h-[48px] w-full items-center gap-0 rounded-lg border
+                border-transparent
+                transition-[background-color,filter,transform,box-shadow,border-color]
+                duration-200 ease-out
+              `,
+              !selected &&
+                `
+                  hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                `,
+              selected &&
+                `
+                  bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
+                  hover:brightness-95
+                  data-[hover]:brightness-95
+                `,
+              active &&
+                `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
+              active &&
+                selected &&
+                `
+                  bg-accent/[calc(var(--accent-strength)*1.2%)]
+                  border-accent/[calc(var(--accent-strength)*1%)]
+                  shadow-accent/25 shadow-md
+                `,
+              discarded && 'opacity-50 grayscale',
+            )}
           >
             <div
               role="option"
@@ -302,41 +330,12 @@ export const BrowserTabItem = memo(
               className={cn(
                 `
                   flex min-h-[48px] min-w-0 flex-1 cursor-pointer select-none
-                  items-center gap-3 rounded-lg border border-transparent px-4
-                  py-2 text-left
+                  items-center gap-3 rounded-lg py-2 pl-4 pr-2 text-left
                   transition-[background-color,filter,transform,box-shadow]
                   duration-200 ease-out
                   focus:outline-none
                   focus-visible:outline-none
                 `,
-                !selected &&
-                  `
-                    hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                    data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  `,
-
-                selected &&
-                  `
-                    bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
-                    hover:brightness-95
-                    data-[hover]:brightness-95
-                  `,
-
-                active &&
-                  `
-                    bg-background border-border/40 translate-y-[-0.5px]
-                    shadow-md
-                  `,
-
-                active &&
-                  selected &&
-                  `
-                    bg-accent/[calc(var(--accent-strength)*1.2%)]
-                    border-accent/[calc(var(--accent-strength)*1%)]
-                    shadow-accent/25 shadow-md
-                  `,
-
-                discarded && 'opacity-50 grayscale',
               )}
               onClick={onClick}
               onMouseDown={handleMouseDown}
