@@ -15,6 +15,40 @@ const timestampForFormatting = (ts: number, reduceMotion: boolean): number => {
   return Date.now() - flooredSeconds * 1000
 }
 
+/** Pattern for "(N) Title" in formatTitle. */
+const TITLE_NUMBER_PATTERN = /^(\(\d+\))\s(.+)$/
+
+/**
+ * Renders " • {timeAgo}" and updates every second when the string changes.
+ * Isolated so interval-driven state updates only re-render this component.
+ */
+const TimeAgoText = memo(function TimeAgoText({
+  lastAccessed,
+  shouldReduceMotion,
+}: {
+  lastAccessed?: number
+  shouldReduceMotion: boolean
+}) {
+  const [timeAgoText, setTimeAgoText] = useState<string>(() =>
+    lastAccessed
+      ? formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
+      : '',
+  )
+  useEffect(() => {
+    if (!lastAccessed) return
+    const format = () =>
+      formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
+    queueMicrotask(() => setTimeAgoText(format()))
+    const interval = setInterval(() => {
+      const next = format()
+      setTimeAgoText((prev) => (next !== prev ? next : prev))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [lastAccessed, shouldReduceMotion])
+  if (!timeAgoText) return null
+  return <span className="flex-shrink-0"> • {timeAgoText}</span>
+})
+
 /**
  * Props for the BrowserTabItem component.
  * Represents the data needed to display a browser tab.
@@ -142,40 +176,12 @@ export const BrowserTabItem = memo(
 
       const domain = getDomain(url)
 
-      // Auto-update timestamp display as time passes. Store formatted string in state;
-      // interval runs every 1s and updates only when the string changes, avoiding
-      // unnecessary re-renders (e.g. "5h" tabs re-render at most hourly).
-      // When reduced motion: floor age to minute (0–59s → "just now", 60–119s → "1m").
-      const [timeAgoText, setTimeAgoText] = useState<string>(() =>
-        lastAccessed
-          ? formatTimeAgo(
-              timestampForFormatting(lastAccessed, shouldReduceMotion),
-            )
-          : '',
-      )
-      useEffect(() => {
-        if (!lastAccessed) return
-
-        const format = () =>
-          formatTimeAgo(
-            timestampForFormatting(lastAccessed, shouldReduceMotion),
-          )
-        queueMicrotask(() => setTimeAgoText(format()))
-
-        const interval = setInterval(() => {
-          const next = format()
-          setTimeAgoText((prev) => (next !== prev ? next : prev))
-        }, 1000)
-
-        return () => clearInterval(interval)
-      }, [lastAccessed, shouldReduceMotion])
-
       // Format title with attention highlighting
       const formatTitle = (titleText?: string): ReactNode => {
         if (!titleText) return null
 
         // Check for "(N) Title" pattern
-        const numberMatch = titleText.match(/^(\(\d+\))\s(.+)$/)
+        const numberMatch = titleText.match(TITLE_NUMBER_PATTERN)
         if (numberMatch) {
           const [, numberPart, rest] = numberMatch
           return (
@@ -216,7 +222,7 @@ export const BrowserTabItem = memo(
         onClose?.()
       }
 
-      const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+      const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         // Prevent text selection when using shift+click for multi-select
         if (e.shiftKey || e.metaKey || e.ctrlKey) {
           e.preventDefault()
@@ -239,29 +245,37 @@ export const BrowserTabItem = memo(
             `group relative overflow-hidden rounded-lg`,
             // Transition for smooth mode changes
             'transition-shadow duration-150',
-            // Focus ring styling via CSS based on mode
+            // Focus ring styling: option (tab row) or button (close) can be focused
             isMultiSelectMode
-              ? // Multi-select mode: prominent focus ring with offset
-                `
-                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-background
-                  has-[button:focus-visible]:ring-2
-                  has-[button:focus-visible]:ring-offset-2
-                `
-              : // Default mode: subtle fused state ring when selected
-                selected
+              ? `
+                has-[[data-tab-option]:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                has-[[data-tab-option]:focus-visible]:ring-offset-background
+                has-[[data-tab-option]:focus-visible]:ring-2
+                has-[[data-tab-option]:focus-visible]:ring-offset-2
+                has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                has-[button:focus-visible]:ring-offset-background
+                has-[button:focus-visible]:ring-2
+                has-[button:focus-visible]:ring-offset-2
+              `
+              : selected
                 ? `
+                  has-[[data-tab-option]:focus-visible]:ring-foreground/20
+                  has-[[data-tab-option]:focus-visible]:ring-1
+                  has-[[data-tab-option]:focus-visible]:ring-inset
                   has-[button:focus-visible]:ring-foreground/20
                   has-[button:focus-visible]:ring-1
                   has-[button:focus-visible]:ring-inset
                 `
-                : // Not selected in default mode: show standard ring
-                  `
-                    has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                    has-[button:focus-visible]:ring-offset-background
-                    has-[button:focus-visible]:ring-2
-                    has-[button:focus-visible]:ring-offset-2
-                  `,
+                : `
+                  has-[[data-tab-option]:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                  has-[[data-tab-option]:focus-visible]:ring-offset-background
+                  has-[[data-tab-option]:focus-visible]:ring-2
+                  has-[[data-tab-option]:focus-visible]:ring-offset-2
+                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
+                  has-[button:focus-visible]:ring-offset-background
+                  has-[button:focus-visible]:ring-2
+                  has-[button:focus-visible]:ring-offset-2
+                `,
             className,
           )}
           data-nav-type="tab"
@@ -277,233 +291,243 @@ export const BrowserTabItem = memo(
           data-duplicate={duplicate || undefined}
           {...(props as Record<string, unknown>)}
         >
-          <button
-            type="button"
-            role="option"
-            tabIndex={0}
-            className={cn(
-              `
-                flex min-h-[48px] w-full cursor-pointer select-none items-center
-                gap-3 rounded-lg border border-transparent px-4 py-2 text-left
-                transition-all duration-200 ease-out
-                focus:outline-none
-                focus-visible:outline-none
-              `,
-              !selected &&
-                `
-                  hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                `,
-
-              selected &&
-                `
-                  bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
-                  hover:brightness-95
-                  data-[hover]:brightness-95
-                `,
-
-              active &&
-                `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
-
-              active &&
-                selected &&
-                `
-                  bg-accent/[calc(var(--accent-strength)*1.2%)]
-                  border-accent/[calc(var(--accent-strength)*1%)]
-                  shadow-accent/25 shadow-md
-                `,
-
-              discarded && 'opacity-50 grayscale',
-            )}
-            onClick={
-              onClick as React.MouseEventHandler<HTMLButtonElement> | undefined
-            }
-            onMouseDown={handleMouseDown}
-            onKeyDown={handleKeyDown}
-            aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
-            aria-selected={selected}
-            aria-current={active ? 'page' : undefined}
-            aria-busy={loading}
+          <div
+            className={`flex min-h-[48px] w-full items-center gap-3 rounded-lg`}
           >
-            {/* Favicon */}
-            <div className="relative flex-shrink-0">
-              {/* Favicon with scale animation during loading (skip scale when reduced: decorative) */}
-              <motion.div
-                animate={{
-                  scale: shouldReduceMotion ? 1 : loading ? 0.75 : 1,
-                }}
-                transition={transition}
-                className="flex items-center justify-center"
-              >
-                {favicon ?? (
-                  <div
-                    className={`
-                      flex h-5 w-5 items-center justify-center rounded
-                    `}
-                  >
-                    {
-                      // Generic fallback icon when no favicon
-                      <div className="bg-muted/40 h-4 w-4 rounded-sm" />
-                    }
-                  </div>
-                )}
-              </motion.div>
+            <div
+              role="option"
+              aria-selected={selected}
+              tabIndex={0}
+              data-tab-option
+              className={cn(
+                `
+                  flex min-h-[48px] min-w-0 flex-1 cursor-pointer select-none
+                  items-center gap-3 rounded-lg border border-transparent px-4
+                  py-2 text-left
+                  transition-[background-color,filter,transform,box-shadow]
+                  duration-200 ease-out
+                  focus:outline-none
+                  focus-visible:outline-none
+                `,
+                !selected &&
+                  `
+                    hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                    data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  `,
 
-              {/* Radial loading spinner overlay */}
-              <AnimatePresence>
-                {loading && (
+                selected &&
+                  `
+                    bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
+                    hover:brightness-95
+                    data-[hover]:brightness-95
+                  `,
+
+                active &&
+                  `
+                    bg-background border-border/40 translate-y-[-0.5px]
+                    shadow-md
+                  `,
+
+                active &&
+                  selected &&
+                  `
+                    bg-accent/[calc(var(--accent-strength)*1.2%)]
+                    border-accent/[calc(var(--accent-strength)*1%)]
+                    shadow-accent/25 shadow-md
+                  `,
+
+                discarded && 'opacity-50 grayscale',
+              )}
+              onClick={onClick}
+              onMouseDown={handleMouseDown}
+              onKeyDown={handleKeyDown}
+              aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
+              aria-current={active ? 'page' : undefined}
+              aria-busy={loading}
+            >
+              {/* Favicon */}
+              <div className="relative flex-shrink-0">
+                {/* Favicon with scale animation during loading (skip scale when reduced: decorative) */}
+                <motion.div
+                  animate={{
+                    scale: shouldReduceMotion ? 1 : loading ? 0.75 : 1,
+                  }}
+                  transition={transition}
+                  className="flex items-center justify-center"
+                >
+                  {favicon ?? (
+                    <div
+                      className={`
+                        flex h-5 w-5 items-center justify-center rounded
+                      `}
+                    >
+                      {
+                        // Generic fallback icon when no favicon
+                        <div className="bg-muted/40 h-4 w-4 rounded-sm" />
+                      }
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* Radial loading spinner overlay */}
+                <AnimatePresence>
+                  {loading && (
+                    <motion.div
+                      initial={
+                        shouldReduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, scale: 0.8 }
+                      }
+                      animate={
+                        shouldReduceMotion
+                          ? { opacity: 1 }
+                          : { opacity: 1, scale: 1.15 }
+                      }
+                      exit={
+                        shouldReduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, scale: 0.8 }
+                      }
+                      transition={transition}
+                      className={`
+                        pointer-events-none absolute inset-0 flex items-center
+                        justify-center
+                      `}
+                    >
+                      <RadialLoadingSpinner
+                        size={22}
+                        variant={active ? 'accent' : 'muted'}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Tab info */}
+              <div className="min-w-0 flex-1">
+                {/* Title */}
+                {title && (
                   <motion.div
-                    initial={
-                      shouldReduceMotion
-                        ? { opacity: 0 }
-                        : { opacity: 0, scale: 0.8 }
-                    }
-                    animate={
-                      shouldReduceMotion
-                        ? { opacity: 1 }
-                        : { opacity: 1, scale: 1.15 }
-                    }
-                    exit={
-                      shouldReduceMotion
-                        ? { opacity: 0 }
-                        : { opacity: 0, scale: 0.8 }
-                    }
+                    className="text-foreground truncate text-sm font-medium"
+                    animate={{
+                      filter: blurred ? 'blur(4px)' : 'blur(0px)',
+                    }}
                     transition={transition}
-                    className={`
-                      pointer-events-none absolute inset-0 flex items-center
-                      justify-center
-                    `}
                   >
-                    <RadialLoadingSpinner
-                      size={22}
-                      variant={active ? 'accent' : 'muted'}
+                    {formatTitle(title)}
+                  </motion.div>
+                )}
+
+                {/* Domain */}
+                {domain && (
+                  <motion.div
+                    className={`
+                      text-muted flex min-w-0 items-center gap-1 text-xs
+                    `}
+                    animate={{
+                      filter: blurred ? 'blur(4px)' : 'blur(0px)',
+                    }}
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0.15, ease: 'linear' as const }
+                        : {
+                            type: 'spring' as const,
+                            stiffness: 300,
+                            damping: 25,
+                            delay: 0.05,
+                          }
+                    }
+                  >
+                    <span className="min-w-0 truncate">{domain}</span>
+                    <TimeAgoText
+                      lastAccessed={lastAccessed}
+                      shouldReduceMotion={shouldReduceMotion}
                     />
                   </motion.div>
                 )}
-              </AnimatePresence>
+              </div>
+
+              {/* Status indicators */}
+              <div className="flex flex-shrink-0 items-center gap-1.5">
+                {/* Audio indicator */}
+                {audio === 'muted' && (
+                  <div
+                    className="text-muted flex-shrink-0"
+                    aria-label="Muted"
+                    title="Muted"
+                  >
+                    <VolumeOff className="h-3.5 w-3.5" aria-hidden />
+                  </div>
+                )}
+                {audio === 'on' && (
+                  <div
+                    className="text-accent flex-shrink-0"
+                    aria-label="Playing audio"
+                    title="Playing audio"
+                  >
+                    <Volume2
+                      className="h-3.5 w-3.5 animate-pulse"
+                      aria-hidden
+                    />
+                  </div>
+                )}
+
+                {/* Duplicate indicator */}
+                {duplicate && (
+                  <div
+                    className="text-muted flex-shrink-0"
+                    aria-label="Duplicate tab"
+                    title="Duplicate tab"
+                  >
+                    <Layers className="h-3.5 w-3.5" aria-hidden />
+                  </div>
+                )}
+
+                {/* Pinned indicator */}
+                {pinned && !loading && (
+                  <div
+                    className="text-muted flex-shrink-0"
+                    aria-label="Pinned"
+                    title="Pinned tab"
+                  >
+                    <Pin className="h-3.5 w-3.5" aria-hidden />
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Tab info */}
-            <div className="min-w-0 flex-1">
-              {/* Title */}
-              {title && (
-                <motion.div
-                  className="text-foreground truncate text-sm font-medium"
-                  animate={{
-                    filter: blurred ? 'blur(4px)' : 'blur(0px)',
-                  }}
-                  transition={transition}
-                >
-                  {formatTitle(title)}
-                </motion.div>
-              )}
-
-              {/* Domain */}
-              {domain && (
-                <motion.div
-                  className="text-muted flex min-w-0 items-center gap-1 text-xs"
-                  animate={{
-                    filter: blurred ? 'blur(4px)' : 'blur(0px)',
-                  }}
-                  transition={
-                    shouldReduceMotion
-                      ? { duration: 0.15, ease: 'linear' as const }
-                      : {
-                          type: 'spring' as const,
-                          stiffness: 300,
-                          damping: 25,
-                          delay: 0.05,
-                        }
-                  }
-                >
-                  {timeAgoText ? (
-                    <>
-                      <span className="min-w-0 truncate">{domain}</span>
-                      <span className="flex-shrink-0"> • {timeAgoText}</span>
-                    </>
-                  ) : (
-                    <span className="min-w-0 truncate">{domain}</span>
-                  )}
-                </motion.div>
-              )}
-            </div>
-
-            {/* Status indicators */}
-            <div className="flex flex-shrink-0 items-center gap-1.5">
-              {/* Audio indicator */}
-              {audio === 'muted' && (
-                <div
-                  className="text-muted flex-shrink-0"
-                  aria-label="Muted"
-                  title="Muted"
-                >
-                  <VolumeOff className="h-3.5 w-3.5" />
-                </div>
-              )}
-              {audio === 'on' && (
-                <div
-                  className="text-accent flex-shrink-0"
-                  aria-label="Playing audio"
-                  title="Playing audio"
-                >
-                  <Volume2 className="h-3.5 w-3.5 animate-pulse" />
-                </div>
-              )}
-
-              {/* Duplicate indicator */}
-              {duplicate && (
-                <div
-                  className="text-muted flex-shrink-0"
-                  aria-label="Duplicate tab"
-                  title="Duplicate tab"
-                >
-                  <Layers className="h-3.5 w-3.5" />
-                </div>
-              )}
-
-              {/* Pinned indicator */}
-              {pinned && !loading && (
-                <div
-                  className="text-muted flex-shrink-0"
-                  aria-label="Pinned"
-                  title="Pinned tab"
-                >
-                  <Pin className="h-3.5 w-3.5" />
-                </div>
-              )}
-
-              {/* Close button: visible when active, row hover, or data-hover (e.g. workflow), 44×44 min touch target */}
-              {onClose && (
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={handleCloseClick}
-                  className={cn(
-                    `
-                      text-muted flex h-11 min-h-[44px] w-11 min-w-[44px]
-                      flex-shrink-0 items-center justify-center rounded
-                      transition-opacity
-                      hover:text-foreground
-                      focus:outline-none focus:ring-0
-                      focus-visible:outline-none
-                    `,
-                    active
-                      ? 'opacity-100'
-                      : cn(
-                          'opacity-0',
-                          'group-hover:opacity-100',
-                          'group-data-[hover=true]:opacity-100',
-                          'group-has-[button:focus-visible]:opacity-100',
-                        ),
-                  )}
-                  aria-label="Close tab"
-                  title="Close tab"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </button>
+            {onClose && (
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={handleCloseClick}
+                className={cn(
+                  `
+                    text-muted flex h-11 min-h-[44px] w-11 min-w-[44px]
+                    flex-shrink-0 items-center justify-center rounded
+                    transition-opacity
+                    hover:text-foreground
+                    focus:outline-none focus:ring-0
+                    focus-visible:outline-none
+                  `,
+                  active
+                    ? 'opacity-100'
+                    : cn(
+                        'opacity-0',
+                        'group-hover:opacity-100',
+                        'group-data-[hover=true]:opacity-100',
+                        `
+                          group-has-[[data-tab-option]:focus-visible]:opacity-100
+                        `,
+                        'group-has-[button:focus-visible]:opacity-100',
+                      ),
+                )}
+                aria-label="Close tab"
+                title="Close tab"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </motion.div>
       )
     },

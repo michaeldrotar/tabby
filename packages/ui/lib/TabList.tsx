@@ -4,7 +4,7 @@ import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTab
 
 /**
  * A container for a list of tabs.
- * Renders an ordered list (`<ol>`) with standard spacing.
+ * Renders an ordered list (`<ol>`) with listbox role for selectable tab items.
  */
 export const TabList = ({
   children,
@@ -12,7 +12,15 @@ export const TabList = ({
 }: {
   children: React.ReactNode
   className?: string
-}) => <ol className={cn('flex flex-col gap-1', className)}>{children}</ol>
+}) => (
+  <ol
+    className={cn('flex flex-col gap-1', className)}
+    role="listbox"
+    aria-multiselectable="true"
+  >
+    {children}
+  </ol>
+)
 
 /**
  * A list item for a tab or a group of tabs.
