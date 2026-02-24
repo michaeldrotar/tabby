@@ -1,3 +1,4 @@
+import { updateTabGroup } from './updateTabGroup.js'
 import type { BrowserTabGroupID } from '../../tabGroup/BrowserTabGroupID.js'
 
 /**
@@ -7,5 +8,5 @@ export const toggleTabGroupCollapsed = async (
   groupId: BrowserTabGroupID,
   currentCollapsed: boolean,
 ): Promise<void> => {
-  await chrome.tabGroups.update(groupId, { collapsed: !currentCollapsed })
+  await updateTabGroup(groupId, { collapsed: !currentCollapsed })
 }

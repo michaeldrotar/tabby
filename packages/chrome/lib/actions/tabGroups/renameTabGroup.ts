@@ -1,3 +1,4 @@
+import { updateTabGroup } from './updateTabGroup.js'
 import type { BrowserTabGroupID } from '../../tabGroup/BrowserTabGroupID.js'
 
 /**
@@ -7,5 +8,5 @@ export const renameTabGroup = async (
   groupId: BrowserTabGroupID,
   title: string,
 ): Promise<void> => {
-  await chrome.tabGroups.update(groupId, { title })
+  await updateTabGroup(groupId, { title })
 }
