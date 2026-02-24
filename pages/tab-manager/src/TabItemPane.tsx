@@ -228,12 +228,29 @@ const TabGroupWithContextMenu = memo(
       setIsRenaming(true)
     }, [])
 
+    const handleRenameFromContextMenu = useCallback(() => {
+      // Let the context menu finish closing before mounting/focusing the input.
+      requestAnimationFrame(() => {
+        setIsRenaming(true)
+      })
+    }, [])
+
     const handleRenameComplete = useCallback(
-      (newTitle: string) => {
-        actions.rename(newTitle)
+      async (newTitle: string) => {
+        const nextTitle = newTitle.trim()
+        console.log(`title: ${group.title}`)
+        console.log(`nextTitle: ${nextTitle}`)
+        console.log(
+          `nextTitle === group.title: ${nextTitle === (group.title ?? '').trim()}`,
+        )
+        if (nextTitle === (group.title ?? '').trim()) {
+          setIsRenaming(false)
+          return
+        }
+        await actions.rename(nextTitle)
         setIsRenaming(false)
       },
-      [actions],
+      [actions, group.title],
     )
 
     const handleRenameCancel = useCallback(() => {
@@ -270,7 +287,7 @@ const TabGroupWithContextMenu = memo(
         isCollapsed={group.collapsed}
         labels={tabGroupContextMenuLabels}
         onToggleCollapse={handleToggleCollapse}
-        onRename={handleRename}
+        onRename={handleRenameFromContextMenu}
         onChangeColor={handleChangeColor}
         onUngroup={actions.ungroup}
         onCopyUrls={actions.copyUrls}
@@ -286,6 +303,7 @@ const TabGroupWithContextMenu = memo(
           onSelect={onSelectGroup}
           onRenameComplete={handleRenameComplete}
           onRenameCancel={handleRenameCancel}
+          onRenameStart={handleRename}
           onToggleCollapse={handleToggleCollapse}
           onClose={actions.close}
         >
