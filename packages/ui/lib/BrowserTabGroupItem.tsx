@@ -312,8 +312,7 @@ export const BrowserTabGroupItem = memo(
                 className={cn(
                   `
                     border-border bg-background flex-1 rounded border px-1.5
-                    py-0.5 text-xs font-bold uppercase tracking-wider
-                    outline-none
+                    py-0.5 text-sm font-semibold outline-none
                     focus:border-accent focus:ring-accent focus:ring-1
                   `,
                   colorClasses.text,
@@ -322,7 +321,7 @@ export const BrowserTabGroupItem = memo(
             ) : (
               <h4
                 className={cn(
-                  'text-xs font-bold uppercase tracking-wider opacity-80',
+                  'text-sm font-semibold opacity-85',
                   colorClasses.text,
                 )}
               >
