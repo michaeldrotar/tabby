@@ -9,11 +9,10 @@ import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrow
 import { t } from '@extension/i18n/i18n'
 import { Profiler } from '@extension/shared/Profiler'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
+import { BrowserTabList } from '@extension/ui/BrowserTabList'
 import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
 import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
 import { Favicon } from '@extension/ui/Favicon'
-import { TabList, TabListItem } from '@extension/ui/TabList'
-import { AnimatePresence } from 'framer-motion'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTabActions } from './hooks/useTabActions'
 import { useTabGroupActions } from './hooks/useTabGroupActions'
@@ -198,25 +197,17 @@ const TabGroupWithContextMenu = memo(
   ({
     group,
     tabs,
-    currentWindowId,
-    groups,
     selected,
-    selectedTabIds,
     isMultiSelectMode,
     onSelectGroup,
-    onTabClick,
-    duplicateTabs,
+    children,
   }: {
     group: BrowserTabGroup
     tabs: BrowserTab[]
-    currentWindowId?: number
-    groups: BrowserTabGroup[]
     selected?: boolean
-    selectedTabIds: Set<number>
     isMultiSelectMode?: boolean
     onSelectGroup?: (event: React.MouseEvent) => void
-    onTabClick?: (tab: BrowserTab, event: React.MouseEvent) => void
-    duplicateTabs: Set<number>
+    children?: React.ReactNode
   }) => {
     // Memoize tabIds array to maintain stable reference
     const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
@@ -307,23 +298,7 @@ const TabGroupWithContextMenu = memo(
           onToggleCollapse={handleToggleCollapse}
           onClose={actions.close}
         >
-          {!group.collapsed && (
-            <TabList className="gap-0.5 pl-2">
-              {tabs.map((tab) => (
-                <TabListItem key={tab.id}>
-                  <TabItemWithContextMenu
-                    tab={tab}
-                    groups={groups}
-                    currentWindowId={currentWindowId}
-                    selected={selectedTabIds.has(tab.id)}
-                    duplicate={duplicateTabs.has(tab.id)}
-                    isMultiSelectMode={isMultiSelectMode}
-                    onClick={(e) => onTabClick?.(tab, e)}
-                  />
-                </TabListItem>
-              ))}
-            </TabList>
-          )}
+          {children}
         </TabGroupHeader>
       </TabGroupContextMenu>
     )
@@ -411,44 +386,52 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
   return (
     <div key={`window-tabs-${browserWindowId}`} className="pb-4" data-tab-pane>
       <div className="space-y-4 p-2">
-        <TabList>
-          <AnimatePresence mode="popLayout" initial={false}>
-            {items.map((item) => {
-              if (item.type === 'tab') {
-                return (
-                  <TabListItem key={item.tab.id}>
-                    <TabItemWithContextMenu
-                      tab={item.tab}
-                      groups={groups}
-                      currentWindowId={currentWindowId}
-                      selected={selectedTabIds.has(item.tab.id)}
-                      duplicate={duplicateTabs.has(item.tab.id)}
-                      isMultiSelectMode={isMultiSelectMode}
-                      onClick={(e) => handleTabClick(item.tab, e)}
-                    />
-                  </TabListItem>
-                )
-              }
-
-              return (
-                <TabListItem key={item.group.id}>
-                  <TabGroupWithContextMenu
-                    group={item.group}
-                    tabs={item.tabs}
-                    currentWindowId={currentWindowId}
-                    groups={groups}
-                    selected={selectedGroupIds.has(item.group.id)}
-                    selectedTabIds={selectedTabIds}
-                    isMultiSelectMode={isMultiSelectMode}
-                    onSelectGroup={(e) => handleSelectGroup(item.group.id, e)}
-                    onTabClick={handleTabClick}
-                    duplicateTabs={duplicateTabs}
-                  />
-                </TabListItem>
-              )
-            })}
-          </AnimatePresence>
-        </TabList>
+        <BrowserTabList
+          items={items}
+          selectedTabIds={selectedTabIds}
+          selectedGroupIds={selectedGroupIds}
+          duplicateTabIds={duplicateTabs}
+          isMultiSelectMode={isMultiSelectMode}
+          onTabClick={(tab, event) => handleTabClick(tab as BrowserTab, event)}
+          renderTabItem={({
+            tab,
+            selected,
+            duplicate,
+            isMultiSelectMode,
+            onClick,
+          }) => (
+            <TabItemWithContextMenu
+              tab={tab as BrowserTab}
+              groups={groups}
+              currentWindowId={currentWindowId}
+              selected={selected}
+              duplicate={duplicate}
+              isMultiSelectMode={isMultiSelectMode}
+              onClick={onClick}
+            />
+          )}
+          renderGroupItem={({
+            group,
+            tabs,
+            selected,
+            isMultiSelectMode,
+            onSelect,
+            children,
+          }) => (
+            <TabGroupWithContextMenu
+              group={group as BrowserTabGroup}
+              tabs={tabs as BrowserTab[]}
+              selected={selected}
+              isMultiSelectMode={isMultiSelectMode}
+              onSelectGroup={onSelect}
+            >
+              {children}
+            </TabGroupWithContextMenu>
+          )}
+          onGroupSelect={(group, event) =>
+            handleSelectGroup(group.id as number, event)
+          }
+        />
       </div>
     </div>
   )
