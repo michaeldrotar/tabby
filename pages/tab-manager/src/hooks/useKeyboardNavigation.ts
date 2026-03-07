@@ -400,9 +400,9 @@ const focusNavigableItem = (element: HTMLElement, type: 'tab' | 'group') => {
       element.focus()
     }
   } else {
-    const btn = element.querySelector('button') as HTMLElement
-    if (btn) {
-      btn.focus()
+    const option = element.querySelector('[data-tab-option]') as HTMLElement
+    if (option) {
+      option.focus()
     } else {
       element.focus()
     }
