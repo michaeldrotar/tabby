@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { getGroupColorClasses } from './tab-group/tabGroupColors'
 import { cn } from './utils/cn'
 import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
@@ -26,13 +27,17 @@ export const TabList = ({
  * A list item for a tab or a group of tabs.
  * Renders a list item (`<li>`) with full width and flex column layout.
  */
-export const TabListItem = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) => <li className={cn('flex w-full flex-col', className)}>{children}</li>
+export const TabListItem = forwardRef<
+  HTMLLIElement,
+  {
+    children: React.ReactNode
+    className?: string
+  }
+>(({ children, className }, ref) => (
+  <li ref={ref} className={cn('flex w-full flex-col', className)}>
+    {children}
+  </li>
+))
 
 export type TabListGroupProps = {
   /** The title of the group. Defaults to 'Group'. */
