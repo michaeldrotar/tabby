@@ -27,6 +27,32 @@ export const WiredOmnibar = ({
   const generators = useOmnibarGenerators()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
+  const [openTabManagerShortcut, setOpenTabManagerShortcut] = useState<
+    string | undefined
+  >(undefined)
+
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || !chrome.commands) return
+
+    let cancelled = false
+    void chrome.commands
+      .getAll()
+      .then((commands) => {
+        if (cancelled) return
+
+        const shortcut = commands.find(
+          (command) => command.name === 'open-tab-manager',
+        )?.shortcut
+        setOpenTabManagerShortcut(shortcut || undefined)
+      })
+      .catch((error) => {
+        console.debug('Could not load Tabby keyboard shortcuts', { error })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const requestedWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -80,6 +106,7 @@ export const WiredOmnibar = ({
       onDismiss={onDismiss}
       hideTabManagerAction={hideTabManagerAction}
       onOpenTabManager={onOpenTabManager}
+      openTabManagerShortcut={openTabManagerShortcut}
       originalWindowId={originalWindowId}
       isMac={isMac}
     />

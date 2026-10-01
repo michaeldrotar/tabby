@@ -14,6 +14,21 @@ import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
 export type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
+const formatShortcutForDisplay = (
+  shortcut: string | undefined,
+  isMac: boolean,
+): string | undefined => {
+  if (!shortcut || !isMac) return shortcut
+
+  return shortcut
+    .replace(/Command|Cmd/gi, '⌘')
+    .replace(/MacCtrl/gi, '⌃')
+    .replace(/Control|Ctrl/gi, '⌃')
+    .replace(/Option|Alt/gi, '⌥')
+    .replace(/Shift/gi, '⇧')
+    .replace(/\+/g, '')
+}
+
 export type OmnibarProps = {
   className?: string
   onDismiss: () => void
@@ -27,6 +42,8 @@ export type OmnibarProps = {
   hideTabManagerAction?: boolean
   /** Callback to open the side panel tab manager */
   onOpenTabManager?: () => void | Promise<void>
+  /** The active Chrome command shortcut for opening the side panel */
+  openTabManagerShortcut?: string
   /** The window ID that originally opened the omnibar (for routing results back) */
   originalWindowId?: number
   /** Whether running on macOS (for keyboard shortcuts) */
@@ -41,6 +58,7 @@ export const Omnibar = ({
   generators,
   hideTabManagerAction,
   onOpenTabManager,
+  openTabManagerShortcut,
   originalWindowId,
   isMac = false,
 }: OmnibarProps) => {
@@ -72,7 +90,7 @@ export const Omnibar = ({
         id: 'open-tab-manager',
         icon: <LayoutGridIcon className="h-4 w-4" />,
         label: 'Open Tab Manager',
-        shortcut: isMac ? '⌘⇧E' : 'Alt+Shift+E',
+        shortcut: formatShortcutForDisplay(openTabManagerShortcut, isMac),
         onClick: openTabManager,
       })
     }
@@ -88,7 +106,14 @@ export const Omnibar = ({
     })
 
     return actions
-  }, [hideTabManagerAction, isMac, onDismiss, onOpenTabManager, openTabManager])
+  }, [
+    hideTabManagerAction,
+    isMac,
+    onDismiss,
+    onOpenTabManager,
+    openTabManager,
+    openTabManagerShortcut,
+  ])
 
   const handleSelect = async (
     item: OmnibarSearchResult,
