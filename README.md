@@ -6,7 +6,7 @@ Tabby is a Chrome extension built with React, Vite, Tailwind CSS, and Copilot.
 
 ### Omnibar
 
-More than just search, it's your browser's command line. Click the Tabby toolbar icon or press `Cmd+E` (Mac) / `Alt+E` (Windows) to open the standard extension popup and instantly access:
+More than just search, it's your browser's command line. Click the Tabby toolbar icon or use the default search shortcut—`Cmd+E` on macOS or `Alt+E` on Windows/Linux—to open Tabby and instantly access:
 
 - **Universal Search**: Query across open tabs, bookmarks, and browsing history simultaneously.
 - **Web Search**: Type a query to search Google directly.
@@ -15,9 +15,12 @@ More than just search, it's your browser's command line. Click the Tabby toolbar
 
 Most commands support `Cmd/Ctrl` to open in a new tab and `Shift` to open in a new window.
 
+You can change Tabby's shortcuts in Chrome's extension shortcut settings. The
+shortcuts shown above are the defaults.
+
 ### Tab Manager
 
-Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `Alt+Shift+E` (Windows), or choose **Open Tab Manager** inside the search popup, to open the side panel.
+Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open Tab Manager** inside the search popup to open the side panel.
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
@@ -34,14 +37,6 @@ Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `
 ## Privacy & Security
 
 Privacy is a core value of Tabby. All processing happens locally on your device, and no data is ever sent to external servers.
-
-### Secure Architecture
-
-Tabby keeps its interfaces in Chrome extension surfaces: the standard action popup for search and the native side panel for tab management. It does not inject an interface into the pages you visit.
-
-- **No page injection**: Search opens as an extension popup, so it works consistently on regular and restricted browser pages without asking for access to the page.
-- **Local processing**: Search data stays inside the extension and is processed locally on your device.
-- **Native tab management**: The Tab Manager uses Chrome's side panel and can display tabs from every browser window.
 
 ### Permissions
 

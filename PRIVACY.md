@@ -18,7 +18,7 @@ Tabby is designed with privacy as a core value.
 
 ## Permissions
 
-To provide its functionality, Tabby requires certain permissions. The search popup and Tab Manager run in extension-owned surfaces; Tabby does not inject UI into web pages or request access to the page you are viewing.
+To provide its functionality, Tabby requires certain permissions.
 
 | Permission  | Reason                                                                                       |
 | :---------- | :------------------------------------------------------------------------------------------- |
@@ -30,11 +30,6 @@ To provide its functionality, Tabby requires certain permissions. The search pop
 | `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                |
 | `history`   | Allows searching and navigating your browsing history locally.                               |
 | `sessions`  | Allows searching and restoring your recently closed tabs and windows.                        |
-
-## Security
-
-- **Extension-owned UI:** Search opens in Chrome's standard extension popup and tab management opens in the native side panel. Neither surface is part of a website you visit.
-- **Restricted Pages:** Because Tabby does not inject scripts into web pages, its search popup works independently of page restrictions such as `chrome://` URLs.
 
 ## Changes to This Policy
 
