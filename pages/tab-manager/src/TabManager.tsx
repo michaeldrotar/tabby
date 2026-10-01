@@ -8,9 +8,8 @@ import { Profiler } from '@extension/shared/Profiler'
 import { Skeleton } from '@extension/ui/components/Skeleton'
 import { TabListSkeleton } from '@extension/ui/components/TabListSkeleton'
 import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
-import { SearchPopup } from './SearchPopup'
 import { useSelectionStore, useSelectionSync } from './selection'
 import { ModeTransitionEffect } from './selection/ModeTransitionEffect'
 import { TabItemPane } from './TabItemPane'
@@ -33,7 +32,6 @@ const TabManager = () => {
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const selectionMode = useSelectionStore((s) => s.mode)
 
   // Sync selection state with browser store (removes closed tabs/windows from selection)
@@ -139,31 +137,6 @@ const TabManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBrowserWindow?.id, activeTab?.id]) // Only run when these change (e.g. mount or window switch)
 
-  // TODO: Re-enable ESC to close tab manager after selection system is complete
-  // Currently disabled to allow testing selection with ESC key
-  // useEffect(() => {
-  //   const handleKeyUp = (e: KeyboardEvent) => {
-  //     if (e.key === 'Escape') {
-  //       // Check after keyup - if context menu was open, Radix already closed it
-  //       const contextMenu = document.querySelector('[data-radix-menu-content]')
-  //       if (contextMenu) {
-  //         return
-  //       }
-  //
-  //       if (isSearchOpen) {
-  //         setIsSearchOpen(false)
-  //       } else {
-  //         window.close()
-  //       }
-  //     }
-  //   }
-  //   window.addEventListener('keyup', handleKeyUp)
-  //
-  //   return () => {
-  //     window.removeEventListener('keyup', handleKeyUp)
-  //   }
-  // }, [isSearchOpen])
-
   const onSelectWindowCallback = useCallback(
     (window: BrowserWindow) => {
       setSelectedWindowId(window.id)
@@ -172,12 +145,16 @@ const TabManager = () => {
   )
 
   const openSearch = useCallback(() => {
-    setIsSearchOpen(true)
-  }, [])
+    const windowId = currentBrowserWindow?.id
+    const openPopup =
+      windowId === undefined
+        ? chrome.action.openPopup()
+        : chrome.action.openPopup({ windowId })
 
-  const closeSearch = useCallback(() => {
-    setIsSearchOpen(false)
-  }, [])
+    void openPopup.catch((error) => {
+      console.warn('Could not open the Tabby search popup', error)
+    })
+  }, [currentBrowserWindow?.id])
 
   const openSettings = useCallback(() => {
     chrome.runtime.openOptionsPage()
@@ -220,7 +197,6 @@ const TabManager = () => {
 
   return (
     <Profiler id="TabManager">
-      <SearchPopup isOpen={isSearchOpen} onClose={closeSearch} />
       <TabManagerShell
         selectionMode={selectionMode}
         overlay={

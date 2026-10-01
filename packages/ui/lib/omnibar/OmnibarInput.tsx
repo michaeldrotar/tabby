@@ -26,6 +26,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
             placeholder:text-muted
           `}
           placeholder="Search tabs, bookmarks, history..."
+          autoFocus
           value={query}
           onChange={onChange}
           onKeyDown={onKeyDown}

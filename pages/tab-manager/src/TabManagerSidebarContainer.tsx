@@ -217,7 +217,7 @@ export const TabManagerSidebarContainer = ({
       />
       <SidebarAction
         icon={<SearchIcon className="size-5" />}
-        label="Search"
+        label="Search everything"
         onClick={onOpenSearch}
         isExpanded={isExpanded}
       />

@@ -33,7 +33,7 @@ const OmnibarPopupContent = () => {
     }
   }, [])
 
-  return <WiredOmnibar onDismiss={onDismiss} className="h-screen w-screen" />
+  return <WiredOmnibar onDismiss={onDismiss} className="h-full w-full" />
 }
 
 export const OmnibarPopup = () => {
