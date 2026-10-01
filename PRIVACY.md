@@ -1,6 +1,6 @@
 # Privacy Policy for Tabby
 
-Last updated: November 24, 2025
+Last updated: October 1, 2026
 
 ## Introduction
 
@@ -18,25 +18,23 @@ Tabby is designed with privacy as a core value.
 
 ## Permissions
 
-To provide its functionality, Tabby requires certain permissions. We operate on a strict "need-to-know" basis. Here is a detailed explanation of why each permission is requested:
+To provide its functionality, Tabby requires certain permissions. The search popup and Tab Manager run in extension-owned surfaces; Tabby does not inject UI into web pages or request access to the page you are viewing.
 
-| Permission  | Reason                                                                                                                                                         |
-| :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `activeTab` | Grants temporary access to the current page only when you explicitly invoke the extension. This ensures Tabby does not run in the background on all your tabs. |
-| `favicon`   | Required to display icons for your tabs, bookmarks, and history items in the search results.                                                                   |
-| `storage`   | Used to save your local preferences and settings on your device.                                                                                               |
-| `scripting` | Allows the extension to inject the secure Omnibar overlay into the page you are viewing.                                                                       |
-| `tabs`      | Core functionality for listing, switching, and managing your open tabs.                                                                                        |
-| `tabGroups` | Enables viewing and organizing your tab groups.                                                                                                                |
-| `sidePanel` | Required to display the Tab Manager in the browser's side panel.                                                                                               |
-| `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                                                                                  |
-| `history`   | Allows searching and navigating your browsing history locally.                                                                                                 |
-| `sessions`  | Allows searching and restoring your recently closed tabs and windows.                                                                                          |
+| Permission  | Reason                                                                                       |
+| :---------- | :------------------------------------------------------------------------------------------- |
+| `favicon`   | Required to display icons for your tabs, bookmarks, and history items in the search results. |
+| `storage`   | Used to save your local preferences and settings on your device.                             |
+| `tabs`      | Core functionality for listing, switching, and managing your open tabs.                      |
+| `tabGroups` | Enables viewing and organizing your tab groups.                                              |
+| `sidePanel` | Required to display the Tab Manager in the browser's side panel.                             |
+| `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                |
+| `history`   | Allows searching and navigating your browsing history locally.                               |
+| `sessions`  | Allows searching and restoring your recently closed tabs and windows.                        |
 
 ## Security
 
-- **Sandboxed UI:** Tabby injects its interface into a secure, isolated `iframe`. This ensures that the websites you visit cannot detect or read your search results, keeping your bookmarks and history private from malicious scripts on the web.
-- **Restricted Pages:** Tabby respects browser security restrictions and does not inject scripts into sensitive `chrome://` pages.
+- **Extension-owned UI:** Search opens in Chrome's standard extension popup and tab management opens in the native side panel. Neither surface is part of a website you visit.
+- **Restricted Pages:** Because Tabby does not inject scripts into web pages, its search popup works independently of page restrictions such as `chrome://` URLs.
 
 ## Changes to This Policy
 

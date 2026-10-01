@@ -36,6 +36,11 @@ import type {
 
 const queryClient = new QueryClient()
 
+type OptionsErrorFallbackProps = {
+  error: Error
+  resetErrorBoundary: () => void
+}
+
 const OptionsContent = () => {
   const {
     theme,
@@ -638,28 +643,11 @@ const OptionsContent = () => {
                     </KbdGroup>
                   )}
                   <span className="text-muted">
-                    <strong className="text-foreground">Open Omnibar</strong> —
-                    Quick access to search tabs, bookmarks, and history
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />K
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+K</Kbd>
-                    </KbdGroup>
-                  )}
-                  <span className="text-muted">
                     <strong className="text-foreground">
-                      Open Omnibar Popup
+                      Open Tabby Search
                     </strong>{' '}
-                    — Opens in a popup window instead of in-page overlay
+                    — Opens the standard extension popup for tabs, bookmarks,
+                    and history
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -686,8 +674,8 @@ const OptionsContent = () => {
               </ul>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
-                  Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
-                  so Alt-based shortcuts are used instead.
+                  Note: Chrome reserves Ctrl+E for the address bar, so the
+                  Windows/Linux shortcut uses Alt+E.
                 </p>
               )}
             </div>
@@ -819,7 +807,7 @@ const Options = () => {
 
 export default withErrorBoundary(
   withSuspense(Options, <LoadingSpinner />),
-  (props) => (
+  (props: OptionsErrorFallbackProps) => (
     <ErrorDisplay
       {...props}
       title={t('displayErrorInfo')}
