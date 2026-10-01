@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 import type { ManifestType } from '@extension/shared/utils/types'
 
 // Read version from root package.json (the single source of truth)
@@ -63,14 +64,14 @@ const manifest = {
     default_path: 'tab-manager/index.html',
   },
   commands: {
-    'open-omnibar': {
+    [TABBY_COMMANDS.openOmnibar]: {
       suggested_key: {
         default: 'Alt+E',
         mac: 'Command+E',
       },
       description: 'Open Tabby Search',
     },
-    'open-tab-manager': {
+    [TABBY_COMMANDS.openTabManager]: {
       suggested_key: {
         default: 'Alt+Shift+E',
         mac: 'Command+Shift+E',

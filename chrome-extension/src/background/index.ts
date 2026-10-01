@@ -1,4 +1,5 @@
 import 'webextension-polyfill'
+import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 
 let focusedWindowId: number | undefined = undefined
 const loadFocusedWindowId = async () => {
@@ -45,9 +46,9 @@ const openOmnibar = async () => {
 
 chrome.commands.onCommand.addListener(async (command) => {
   try {
-    if (command === 'open-omnibar') {
+    if (command === TABBY_COMMANDS.openOmnibar) {
       await openOmnibar()
-    } else if (command === 'open-tab-manager') {
+    } else if (command === TABBY_COMMANDS.openTabManager) {
       const windowId = await getFocusedWindowId()
       if (windowId === undefined) return
 

@@ -1,4 +1,5 @@
 import '@src/Options.css'
+import { TABBY_COMMANDS, useCommandShortcuts } from '@extension/chrome/commands'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { t } from '@extension/i18n/i18n'
 import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
@@ -8,11 +9,12 @@ import {
   useResolvedTheme,
   useThemeApplicator,
 } from '@extension/shared/hooks/preference'
+import { formatShortcut } from '@extension/shared/utils/platform'
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { ErrorDisplay } from '@extension/ui/components/error-display/ErrorDisplay'
 import { LoadingSpinner } from '@extension/ui/components/LoadingSpinner'
 import { Toaster } from '@extension/ui/components/Toaster'
-import { CmdIcon, ExternalLinkIcon, ShiftIcon } from '@extension/ui/icons'
+import { ExternalLinkIcon } from '@extension/ui/icons'
 import { Kbd, KbdGroup } from '@extension/ui/Kbd'
 import {
   Select,
@@ -56,6 +58,14 @@ const OptionsContent = () => {
     tabManagerCompactLayout,
   } = usePreferenceStorage()
   const { data: { os } = {} } = usePlatformInfo()
+  const { data: commandShortcuts, isPending: commandShortcutsPending } =
+    useCommandShortcuts()
+  const isMac = os === 'mac'
+
+  const getShortcutLabel = (shortcut: string | undefined) => {
+    if (commandShortcutsPending) return 'Loading…'
+    return formatShortcut(shortcut, isMac) ?? 'Not assigned'
+  }
 
   const activeThemeMode: 'light' | 'dark' = (() => {
     if (theme === 'light' || theme === 'dark') return theme
@@ -626,22 +636,20 @@ const OptionsContent = () => {
             </div>
             <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
               <h4 className="text-foreground mb-3 text-sm font-medium">
-                Recommended Shortcuts
+                Current Shortcuts
               </h4>
+              <p className="text-muted mb-3 text-xs">
+                These reflect the shortcuts currently assigned in Chrome.
+              </p>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />E
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+E</Kbd>
-                    </KbdGroup>
-                  )}
+                  <KbdGroup>
+                    <Kbd>
+                      {getShortcutLabel(
+                        commandShortcuts?.[TABBY_COMMANDS.openOmnibar],
+                      )}
+                    </Kbd>
+                  </KbdGroup>
                   <span className="text-muted">
                     <strong className="text-foreground">
                       Open Tabby Search
@@ -651,19 +659,13 @@ const OptionsContent = () => {
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />
-                        <ShiftIcon />E
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+Shift+E</Kbd>
-                    </KbdGroup>
-                  )}
+                  <KbdGroup>
+                    <Kbd>
+                      {getShortcutLabel(
+                        commandShortcuts?.[TABBY_COMMANDS.openTabManager],
+                      )}
+                    </Kbd>
+                  </KbdGroup>
                   <span className="text-muted">
                     <strong className="text-foreground">
                       Open Tab Manager
@@ -674,8 +676,8 @@ const OptionsContent = () => {
               </ul>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
-                  Note: Chrome reserves Ctrl+E for the address bar, so the
-                  Windows/Linux shortcut uses Alt+E.
+                  Note: Chrome reserves Ctrl+E for the address bar, so Tabby's
+                  default Windows/Linux search shortcut is Alt+E.
                 </p>
               )}
             </div>

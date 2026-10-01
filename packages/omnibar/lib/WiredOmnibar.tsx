@@ -1,3 +1,4 @@
+import { TABBY_COMMANDS, useCommandShortcuts } from '@extension/chrome/commands'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -26,33 +27,10 @@ export const WiredOmnibar = ({
   const onSearch = useOmnibarExternalSearch()
   const generators = useOmnibarGenerators()
   const { data: platformInfo } = usePlatformInfo()
+  const { data: commandShortcuts } = useCommandShortcuts()
   const isMac = platformInfo?.os === 'mac'
-  const [openTabManagerShortcut, setOpenTabManagerShortcut] = useState<
-    string | undefined
-  >(undefined)
-
-  useEffect(() => {
-    if (typeof chrome === 'undefined' || !chrome.commands) return
-
-    let cancelled = false
-    void chrome.commands
-      .getAll()
-      .then((commands) => {
-        if (cancelled) return
-
-        const shortcut = commands.find(
-          (command) => command.name === 'open-tab-manager',
-        )?.shortcut
-        setOpenTabManagerShortcut(shortcut || undefined)
-      })
-      .catch((error) => {
-        console.debug('Could not load Tabby keyboard shortcuts', { error })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const openTabManagerShortcut =
+    commandShortcuts?.[TABBY_COMMANDS.openTabManager]
 
   const requestedWindowId = useMemo(() => {
     if (typeof window !== 'undefined') {

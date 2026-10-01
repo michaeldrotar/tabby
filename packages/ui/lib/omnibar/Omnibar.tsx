@@ -1,3 +1,4 @@
+import { formatShortcut } from '@extension/shared/utils/platform'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { LayoutGridIcon, SettingsIcon } from '../icons'
 import { ScrollArea } from '../ScrollArea'
@@ -13,21 +14,6 @@ import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
 export type { OmnibarResultGenerators } from './useOmnibarFiltering'
-
-const formatShortcutForDisplay = (
-  shortcut: string | undefined,
-  isMac: boolean,
-): string | undefined => {
-  if (!shortcut || !isMac) return shortcut
-
-  return shortcut
-    .replace(/Command|Cmd/gi, '⌘')
-    .replace(/MacCtrl/gi, '⌃')
-    .replace(/Control|Ctrl/gi, '⌃')
-    .replace(/Option|Alt/gi, '⌥')
-    .replace(/Shift/gi, '⇧')
-    .replace(/\+/g, '')
-}
 
 export type OmnibarProps = {
   className?: string
@@ -90,7 +76,7 @@ export const Omnibar = ({
         id: 'open-tab-manager',
         icon: <LayoutGridIcon className="h-4 w-4" />,
         label: 'Open Tab Manager',
-        shortcut: formatShortcutForDisplay(openTabManagerShortcut, isMac),
+        shortcut: formatShortcut(openTabManagerShortcut, isMac),
         onClick: openTabManager,
       })
     }
