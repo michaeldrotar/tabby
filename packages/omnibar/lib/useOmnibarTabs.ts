@@ -14,11 +14,36 @@ const toOmnibarSearchResult = (tab: BrowserTab): OmnibarSearchResult => ({
   windowId: tab.windowId,
   tabId: tab.id,
   lastVisitTime: tab.lastAccessed,
-  execute: async () => {
-    if (tab.windowId) {
+  execute: async (modifier, originalWindowId) => {
+    const focusExistingTab = async () => {
       await focusWindow(tab.windowId)
+      await activateTab(tab.id)
     }
-    await activateTab(tab.id)
+
+    if (modifier && tab.url) {
+      try {
+        if (modifier === 'new-window') {
+          await chrome.windows.create({ url: tab.url, focused: true })
+          return
+        }
+
+        // The popup passes its originating window ID. In contexts without one,
+        // keep the new tab alongside the matched tab.
+        const windowId = originalWindowId ?? tab.windowId
+        await chrome.tabs.create({
+          windowId,
+          url: tab.url,
+          active: true,
+        })
+        await focusWindow(windowId)
+        return
+      } catch {
+        // Restricted URLs and closed target windows cannot be opened fresh;
+        // fall back to the still-open matching tab.
+      }
+    }
+
+    await focusExistingTab()
   },
 })
 
