@@ -3,6 +3,7 @@ import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useMemo } from 'react'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'
+import { useOmnibarTabGroups } from './useOmnibarTabGroups'
 import { useOmnibarTabs } from './useOmnibarTabs'
 
 export type WiredOmnibarProps = {
@@ -23,6 +24,7 @@ export const WiredOmnibar = ({
   hideTabManagerAction,
 }: WiredOmnibarProps) => {
   const tabs = useOmnibarTabs()
+  const groups = useOmnibarTabGroups()
   const onSearch = useOmnibarExternalSearch()
   const generators = useOmnibarGenerators()
   const { data: platformInfo } = usePlatformInfo()
@@ -51,6 +53,7 @@ export const WiredOmnibar = ({
     <Omnibar
       className={className}
       tabs={tabs}
+      groups={groups}
       onSearch={onSearch}
       generators={generators}
       onDismiss={onDismiss}

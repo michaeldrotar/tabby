@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import {
   getGoogleSearchItem,
   getMatchingCommands,
+  getMatchingTabGroups,
   getMatchingTabs,
   getUrlNavigationItem,
 } from './omnibarResultGenerators.js'
@@ -24,6 +25,7 @@ export const useOmnibarGenerators = (): OmnibarResultGenerators => {
       getUrlNavigationItem,
       getMatchingCommands,
       getMatchingTabs,
+      getMatchingTabGroups,
     }),
     [],
   )

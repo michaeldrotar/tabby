@@ -25,7 +25,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
             text-foreground flex-1 bg-transparent text-lg outline-none
             placeholder:text-muted
           `}
-          placeholder="Search tabs, bookmarks, history..."
+          placeholder="Search tabs, groups, bookmarks, history..."
           value={query}
           onChange={onChange}
           onKeyDown={onKeyDown}

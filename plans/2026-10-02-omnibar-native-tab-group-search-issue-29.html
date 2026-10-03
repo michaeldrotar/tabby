@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Implementation plan for searching open native tab groups in Tabby's omnibar."
+    />
+    <title>Issue 29 · Native tab group search</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #18261f;
+        --muted: #68766c;
+        --paper: #f2f3ec;
+        --card: #fffefa;
+        --line: #dce2d6;
+        --forest: #1c382b;
+        --moss: #b9d3a4;
+        --signal: #d66543;
+        --shadow: 0 20px 60px rgb(28 56 43 / 9%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(
+            ellipse at 7% 7%,
+            rgb(185 211 164 / 24%),
+            transparent 32rem
+          ),
+          var(--paper);
+        color: var(--ink);
+        font:
+          15px/1.55 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .skip-link {
+        position: absolute;
+        top: 1rem;
+        left: -9999px;
+        z-index: 10;
+        padding: 0.6rem 0.8rem;
+        background: var(--card);
+        color: var(--ink);
+      }
+
+      .skip-link:focus {
+        left: 1rem;
+      }
+
+      .masthead {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 25px 0 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .masthead a {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--forest);
+        letter-spacing: 0.04em;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto 56px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(30px, 6vw, 66px);
+        border-radius: 18px 18px 5px 5px;
+        background: var(--forest);
+        color: #f6f6ed;
+        box-shadow: var(--shadow);
+      }
+
+      .hero::after {
+        position: absolute;
+        right: -42px;
+        bottom: -92px;
+        width: 330px;
+        height: 330px;
+        border: 1px solid rgb(185 211 164 / 22%);
+        border-radius: 50%;
+        box-shadow:
+          0 0 0 34px rgb(185 211 164 / 5%),
+          0 0 0 70px rgb(185 211 164 / 4%);
+        content: '';
+        pointer-events: none;
+      }
+
+      .eyebrow {
+        margin: 0 0 16px;
+        color: var(--moss);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        position: relative;
+        z-index: 1;
+        max-width: 760px;
+        margin-bottom: 18px;
+        font:
+          500 clamp(36px, 6vw, 66px)/1.02 Georgia,
+          'Times New Roman',
+          serif;
+        letter-spacing: -0.035em;
+      }
+
+      .lede {
+        position: relative;
+        z-index: 1;
+        max-width: 660px;
+        margin-bottom: 0;
+        color: #d9e4d8;
+        font-size: 17px;
+      }
+
+      .issue-stamp {
+        position: absolute;
+        top: 34px;
+        right: 38px;
+        z-index: 1;
+        display: grid;
+        width: 70px;
+        height: 70px;
+        place-items: center;
+        border: 1px solid rgb(246 246 237 / 38%);
+        border-radius: 50%;
+        color: #f6f6ed;
+        font:
+          13px Georgia,
+          'Times New Roman',
+          serif;
+      }
+
+      .checklist-panel {
+        position: relative;
+        z-index: 2;
+        margin: -18px 24px 24px;
+        padding: 22px 26px 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--card);
+        box-shadow: 0 12px 32px rgb(24 38 31 / 8%);
+      }
+
+      .section-heading {
+        display: flex;
+        gap: 20px;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font:
+          500 25px/1.2 Georgia,
+          'Times New Roman',
+          serif;
+      }
+
+      .progress {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 26px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        border-top: 1px solid var(--line);
+      }
+
+      .checklist label {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        min-height: 70px;
+        padding: 14px 0;
+        cursor: pointer;
+      }
+
+      input[type='checkbox'] {
+        width: 18px;
+        height: 18px;
+        margin: 2px 0 0;
+        accent-color: var(--forest);
+      }
+
+      input[type='checkbox']:focus-visible {
+        outline: 3px solid var(--signal);
+        outline-offset: 3px;
+      }
+
+      .task-title {
+        display: block;
+        font-size: 14px;
+        font-weight: 750;
+      }
+      .task-detail {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .checklist input:checked + span .task-title {
+        color: var(--muted);
+        text-decoration: line-through;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+        gap: 24px;
+      }
+
+      .card {
+        padding: 27px 30px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--card);
+      }
+
+      .card h2 {
+        margin-bottom: 17px;
+        font:
+          500 24px/1.2 Georgia,
+          'Times New Roman',
+          serif;
+      }
+
+      .decision-list {
+        display: grid;
+        gap: 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .decision-list li {
+        position: relative;
+        padding-left: 22px;
+        color: #39483d;
+      }
+
+      .decision-list li::before {
+        position: absolute;
+        top: 0.58em;
+        left: 1px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--signal);
+        content: '';
+      }
+
+      .api-card {
+        border-color: #cddbc7;
+        background: #e8efe2;
+      }
+
+      .api-card .eyebrow {
+        margin-bottom: 12px;
+        color: #496c4f;
+      }
+      .api-card p {
+        margin-bottom: 14px;
+        color: #3e5142;
+      }
+      .api-card a {
+        font-size: 13px;
+        font-weight: 750;
+        text-underline-offset: 3px;
+      }
+      .signal {
+        color: var(--signal);
+      }
+
+      .handoff {
+        margin-top: 24px;
+        border-left: 4px solid var(--signal);
+      }
+
+      .handoff p:last-child {
+        margin-bottom: 0;
+        color: #46554a;
+      }
+      .handoff code {
+        color: var(--forest);
+        font-size: 0.9em;
+      }
+
+      .sequence {
+        margin-top: 24px;
+        padding: 21px 26px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgb(255 254 250 / 70%);
+      }
+
+      .sequence summary {
+        color: var(--forest);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .sequence ol {
+        margin: 16px 0 0;
+        padding-left: 22px;
+        color: #46554a;
+      }
+      .sequence li + li {
+        margin-top: 7px;
+      }
+
+      footer {
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin: 20px 4px 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 760px) {
+        .masthead,
+        main {
+          width: min(100% - 24px, 620px);
+        }
+        .hero {
+          padding: 35px 25px 42px;
+        }
+        .issue-stamp {
+          top: 22px;
+          right: 22px;
+          width: 54px;
+          height: 54px;
+        }
+        h1 {
+          max-width: calc(100% - 42px);
+          font-size: clamp(34px, 10vw, 52px);
+        }
+        .checklist-panel {
+          margin: -12px 10px 18px;
+          padding: 20px 18px;
+        }
+        .checklist,
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+        .card {
+          padding: 23px 22px;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .hero,
+        .checklist-panel,
+        .card {
+          animation: arrive 420ms ease-out both;
+        }
+        .checklist-panel {
+          animation-delay: 70ms;
+        }
+        .card:nth-child(2) {
+          animation-delay: 120ms;
+        }
+        @keyframes arrive {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to plan</a>
+    <header class="masthead">
+      <span>Tabby · Product engineering</span>
+      <a href="https://github.com/michaeldrotar/tabby/issues/29"
+        >Issue 29 <span aria-hidden="true">↗</span></a
+      >
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="page-title">
+        <span class="issue-stamp" aria-hidden="true">#029</span>
+        <p class="eyebrow">Omnibar · Search scope</p>
+        <h1 id="page-title">Find the work by its group name.</h1>
+        <p class="lede"
+          >Bring open Chrome tab groups into omnibar search as first-class
+          results, with enough context to choose the right window and a direct
+          path back into the work.</p
+        >
+      </section>
+
+      <section class="checklist-panel" aria-labelledby="checklist-title">
+        <div class="section-heading">
+          <h2 id="checklist-title">Implementation checklist</h2>
+          <span class="progress" id="progress" aria-live="polite"
+            >0 of 8 complete</span
+          >
+        </div>
+        <ol class="checklist" id="checklist">
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title"
+                  >Use the reactive native group store</span
+                ><span class="task-detail"
+                  >Existing create, rename, move, and remove events stay the
+                  source of truth.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title">Match each group once by name</span
+                ><span class="task-detail"
+                  >Case-insensitive matching requires every query term to occur
+                  in the group title.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title"
+                  >Keep the existing result ranking useful</span
+                ><span class="task-detail"
+                  >A group is one result, independent of its member tabs; open
+                  tabs keep their stronger base score.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title"
+                  >Show native color and window context</span
+                ><span class="task-detail"
+                  >Display the group color, a readable parent-window label, and
+                  the current member-tab count.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title"
+                  >Make activation resilient to stale results</span
+                ><span class="task-detail"
+                  >Look up current group members, focus their window, expand if
+                  collapsed, then activate a useful member tab.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title">Keep group changes reactive</span
+                ><span class="task-detail"
+                  >Renames update the searchable title and removals remove the
+                  result through existing store events.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" checked /><span
+                ><span class="task-title">Add a callback-driven demo</span
+                ><span class="task-detail"
+                  >Use dummy groups in Storybook; the demo must not depend on
+                  live Chrome state.</span
+                ></span
+              ></label
+            ></li
+          >
+          <li
+            ><label
+              ><input type="checkbox" /><span
+                ><span class="task-title"
+                  >Record validation and open a review PR</span
+                ><span class="task-detail"
+                  >Document the existing type-check blocker, then publish this
+                  issue-linked change against next.</span
+                ></span
+              ></label
+            ></li
+          >
+        </ol>
+      </section>
+
+      <div class="content-grid">
+        <section class="card" aria-labelledby="behavior-title">
+          <p class="eyebrow signal">Behavior decisions</p>
+          <h2 id="behavior-title">One group. One result. Clear destination.</h2>
+          <ul class="decision-list">
+            <li
+              >Give groups a distinct result type, with the group title as the
+              searchable and highlighted text.</li
+            >
+            <li
+              >Label each result with its parent window and member count, so
+              same-named groups in different windows remain distinguishable.</li
+            >
+            <li
+              >When selected, prefer the group's current active tab; otherwise
+              activate its earliest member by tab order.</li
+            >
+            <li
+              >If the group is collapsed, expand it before activating the chosen
+              member so the destination is visible.</li
+            >
+          </ul>
+        </section>
+
+        <aside class="card api-card" aria-labelledby="scope-title">
+          <p class="eyebrow">Scope boundary</p>
+          <h2 id="scope-title">Open groups only</h2>
+          <p
+            >Search the native groups returned by Chrome's tabGroups API. Closed
+            or saved groups are outside this API-backed first version and should
+            not be implied as searchable.</p
+          >
+          <a
+            href="https://developer.chrome.com/docs/extensions/reference/api/tabGroups"
+            >Chrome tabGroups API reference <span aria-hidden="true">↗</span></a
+          >
+        </aside>
+      </div>
+
+      <section class="card handoff" aria-labelledby="handoff-title">
+        <p class="eyebrow signal">Review handoff</p>
+        <h2 id="handoff-title">Worktree: <code>t3code/plan-issue-29</code></h2>
+        <p
+          >The full repository type-check reaches the UI package, then stops in
+          the omnibar package on TS2307 for its existing
+          <code>@extension/ui/omnibar/Omnibar</code> imports. Those imports are
+          present on the base branch. No test suite was run.</p
+        >
+      </section>
+
+      <details class="sequence">
+        <summary>Implementation sequence</summary>
+        <ol>
+          <li
+            >Adapt the omnibar result model and filtering pipeline for group
+            results.</li
+          >
+          <li
+            >Map the reactive browser group, tab, and window stores into
+            searchable group results.</li
+          >
+          <li
+            >Render the group presentation with native color, count, window
+            label, and collapsed-state cue.</li
+          >
+          <li
+            >Implement live activation against Chrome APIs and demonstrate the
+            UI with dummy data and callbacks.</li
+          >
+          <li
+            >Run the repository type-check, review the diff, push the worktree
+            branch, and open a PR.</li
+          >
+        </ol>
+      </details>
+
+      <footer>
+        <span
+          >Plan for
+          <a href="https://github.com/michaeldrotar/tabby/issues/29"
+            >michaeldrotar/tabby#29</a
+          ></span
+        >
+        <span>Checklist state is saved in this browser.</span>
+      </footer>
+    </main>
+
+    <script>
+      const checklist = document.querySelector('#checklist')
+      const progress = document.querySelector('#progress')
+      const storageKey = 'tabby-plan-issue-29-checklist'
+      const boxes = [...checklist.querySelectorAll('input[type="checkbox"]')]
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || '[]')
+        boxes.forEach((box, index) => {
+          box.checked = saved[index] === true
+        })
+      } catch {
+        /* The checklist still works when local storage is unavailable. */
+      }
+
+      const updateProgress = () => {
+        const complete = boxes.filter((box) => box.checked).length
+        progress.textContent = `${complete} of ${boxes.length} complete`
+        try {
+          localStorage.setItem(
+            storageKey,
+            JSON.stringify(boxes.map((box) => box.checked)),
+          )
+        } catch {
+          /* Ignore storage restrictions. */
+        }
+      }
+
+      boxes.forEach((box) => box.addEventListener('change', updateProgress))
+      updateProgress()
+    </script>
+  </body>
+</html>

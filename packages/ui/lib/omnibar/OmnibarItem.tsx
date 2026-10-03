@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Favicon } from '../Favicon'
+import { LayersIcon } from '../icons'
+import { getGroupColorClasses } from '../tab-group/tabGroupColors'
 import { cn } from '../utils/cn'
 import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
@@ -61,6 +63,8 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
+  const groupColorClasses =
+    item.type === 'tab-group' ? getGroupColorClasses(item.groupColor) : null
 
   useEffect(() => {
     if (isSelected) {
@@ -99,7 +103,29 @@ export const OmnibarItem = ({
         }}
         onMouseMove={onMouseMove}
       >
-        {item.type === 'command' ? (
+        {item.type === 'tab-group' ? (
+          <div
+            className={cn(
+              'bg-input relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded ring-1 ring-black/5 dark:ring-white/10',
+              groupColorClasses?.bg,
+            )}
+          >
+            <LayersIcon
+              aria-hidden="true"
+              className={cn('h-4 w-4', groupColorClasses?.text)}
+            />
+            <span
+              aria-hidden="true"
+              className={cn(
+                'absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ring-2 ring-card',
+                groupColorClasses?.dot,
+              )}
+            />
+            <span className="sr-only">
+              {item.groupColor ?? 'grey'} group color
+            </span>
+          </div>
+        ) : item.type === 'command' ? (
           <div
             className={`
               bg-input text-muted flex h-8 w-8 items-center justify-center
@@ -164,6 +190,39 @@ export const OmnibarItem = ({
                 )}
               >
                 (+{item.tabCount - 1} others)
+              </span>
+            )}
+
+            {item.type === 'tab-group' && item.groupTabCount !== undefined && (
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                {item.groupTabCount} {item.groupTabCount === 1 ? 'tab' : 'tabs'}
+              </span>
+            )}
+
+            {item.type === 'tab-group' && item.groupWindowLabel && (
+              <span
+                className={cn(
+                  'truncate',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                {item.groupWindowLabel}
+              </span>
+            )}
+
+            {item.type === 'tab-group' && item.groupCollapsed && (
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                Collapsed
               </span>
             )}
 
