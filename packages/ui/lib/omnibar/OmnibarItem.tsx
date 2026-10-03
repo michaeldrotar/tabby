@@ -61,6 +61,11 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
+  const actionModifier = isShiftPressed
+    ? 'new-window'
+    : isCmdCtrlPressed
+      ? 'new-tab'
+      : undefined
 
   useEffect(() => {
     if (isSelected) {
@@ -191,18 +196,17 @@ export const OmnibarItem = ({
 
         {isSelected && (
           <span className="text-muted flex-shrink-0 text-xs">
-            {getOmnibarActionLabel(item)}
+            {getOmnibarActionLabel(item, actionModifier)}
             {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
               item.type,
-            ) && (
-              <>
-                {isShiftPressed ? (
-                  <span className="ml-1 opacity-50"> in New Window</span>
-                ) : isCmdCtrlPressed ? (
-                  <span className="ml-1 opacity-50"> in New Tab</span>
-                ) : null}
-              </>
-            )}
+            ) &&
+              actionModifier && (
+                <span className="ml-1 opacity-50">
+                  {actionModifier === 'new-window'
+                    ? ' in New Window'
+                    : ' in New Tab'}
+                </span>
+              )}
           </span>
         )}
       </button>
