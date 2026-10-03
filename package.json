@@ -39,8 +39,8 @@
     "test:e2e:ui": "turbo e2e:ui",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "storybook": "pnpm -F @extension/storybook storybook",
-    "build-storybook": "pnpm -F @extension/storybook build-storybook",
+    "storybook": "pnpm -F @extension/storybook dev",
+    "build-storybook": "pnpm -F @extension/storybook build",
     "prep": "node scripts/prep-release.mjs",
     "copy-env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
@@ -106,6 +106,6 @@
   },
   "packageManager": "pnpm@10.26.1+sha512.664074abc367d2c9324fdc18037097ce0a8f126034160f709928e9e9f95d98714347044e5c3164d65bd5da6c59c6be362b107546292a8eecb7999196e5ce58fa",
   "engines": {
-    "node": ">=22.15.1"
+    "node": ">=22.22.1"
   }
 }

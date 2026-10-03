@@ -9,6 +9,10 @@ import type { ManifestType } from '@extension/shared/utils/types'
 import type { PluginOption } from 'vite'
 
 const ENV = getEnv()
+// Page refresh HMR adds an all-page content script and therefore a device
+// access prompt. Keep it available for extension development, but never turn
+// it on implicitly for a normal dev build.
+const ENABLE_PAGE_HMR = process.env['CLI_CEB_PAGE_HMR'] === 'true'
 
 const manifestFile = resolve(import.meta.dirname, '..', '..', 'manifest.js')
 const refreshFilePath = resolve(
@@ -58,7 +62,7 @@ export default (config: { outDir: string }): PluginOption => {
 
     const manifestPath = resolve(to, 'manifest.json')
 
-    if (ENV['IS_DEV']) {
+    if (ENV['IS_DEV'] && ENABLE_PAGE_HMR) {
       addRefreshContentScript(manifest)
     }
 
@@ -67,9 +71,8 @@ export default (config: { outDir: string }): PluginOption => {
       ManifestParser.convertManifestToString(manifest, ENV['IS_FIREFOX']),
     )
 
-    const refreshFileString = readFileSync(refreshFilePath, 'utf-8')
-
-    if (ENV['IS_DEV']) {
+    if (ENV['IS_DEV'] && ENABLE_PAGE_HMR) {
+      const refreshFileString = readFileSync(refreshFilePath, 'utf-8')
       writeFileSync(resolve(to, 'refresh.js'), withHMRId(refreshFileString))
     }
 

@@ -1,1 +1,10 @@
 @import '@extension/ui/base.css';
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 640px;
+  height: 500px;
+  overflow: hidden;
+}
