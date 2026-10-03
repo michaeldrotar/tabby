@@ -9,6 +9,8 @@ export type SelectionMode = 'default' | 'multi-select'
 
 export type SelectionState = {
   windowIds: Set<number>
+  /** Windows whose complete tab sets were selected with a range/modifier action. */
+  expandedWindowIds: Set<number>
   groupIds: Set<number>
   tabIds: Set<number>
   mode: SelectionMode
@@ -60,6 +62,7 @@ export type SelectionStore = SelectionState & SelectionActions
 
 const initialState: SelectionState = {
   windowIds: new Set(),
+  expandedWindowIds: new Set(),
   groupIds: new Set(),
   tabIds: new Set(),
   mode: 'default',
@@ -72,6 +75,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setWindow: (id) =>
     set({
       windowIds: new Set([id]),
+      expandedWindowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set(),
     }),
@@ -79,6 +83,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setGroup: (id) =>
     set({
       windowIds: new Set(),
+      expandedWindowIds: new Set(),
       groupIds: new Set([id]),
       tabIds: new Set(),
     }),
@@ -86,6 +91,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setTab: (id) =>
     set({
       windowIds: new Set(),
+      expandedWindowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set([id]),
     }),
@@ -94,6 +100,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setWindows: (ids) =>
     set({
       windowIds: new Set(ids),
+      expandedWindowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set(),
     }),
@@ -101,6 +108,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setGroups: (ids) =>
     set({
       windowIds: new Set(),
+      expandedWindowIds: new Set(),
       groupIds: new Set(ids),
       tabIds: new Set(),
     }),
@@ -108,6 +116,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setTabs: (ids) =>
     set({
       windowIds: new Set(),
+      expandedWindowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set(ids),
     }),
@@ -116,6 +125,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   setAll: (windows, groups, tabs) =>
     set({
       windowIds: new Set(windows),
+      expandedWindowIds: new Set(),
       groupIds: new Set(groups),
       tabIds: new Set(tabs),
     }),
@@ -157,7 +167,9 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
     set((state) => {
       const newSet = new Set(state.windowIds)
       newSet.delete(id)
-      return { windowIds: newSet }
+      const newExpandedSet = new Set(state.expandedWindowIds)
+      newExpandedSet.delete(id)
+      return { windowIds: newSet, expandedWindowIds: newExpandedSet }
     }),
 
   removeGroup: (id) =>
@@ -178,8 +190,12 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   removeWindows: (ids) =>
     set((state) => {
       const newSet = new Set(state.windowIds)
-      ids.forEach((id) => newSet.delete(id))
-      return { windowIds: newSet }
+      const newExpandedSet = new Set(state.expandedWindowIds)
+      ids.forEach((id) => {
+        newSet.delete(id)
+        newExpandedSet.delete(id)
+      })
+      return { windowIds: newSet, expandedWindowIds: newExpandedSet }
     }),
 
   removeGroups: (ids) =>
@@ -200,6 +216,7 @@ export const useSelectionStore = create<SelectionStore>((set) => ({
   clear: () =>
     set({
       windowIds: new Set(),
+      expandedWindowIds: new Set(),
       groupIds: new Set(),
       tabIds: new Set(),
     }),

@@ -20,7 +20,12 @@ export const Root = () => {
     <>
       <EventLog />
       <QueryClientProvider client={queryClient}>
-        <Toaster theme={theme} />
+        <Toaster
+          theme={theme}
+          offset={{ bottom: 64, right: 8 }}
+          mobileOffset={{ bottom: 64, left: 8, right: 8 }}
+          style={{ zIndex: 40 }}
+        />
         <BrowserStoreProvider>
           <TabManager />
         </BrowserStoreProvider>

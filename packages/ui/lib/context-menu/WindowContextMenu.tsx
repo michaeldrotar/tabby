@@ -40,6 +40,7 @@ export type WindowContextMenuProps = {
   onReloadAll?: () => void
   onCopyAllUrls?: () => void
   onClose?: () => void
+  onOpenChange?: (open: boolean) => void
 }
 
 export const WindowContextMenu = ({
@@ -56,9 +57,10 @@ export const WindowContextMenu = ({
   onReloadAll,
   onCopyAllUrls,
   onClose,
+  onOpenChange,
 }: WindowContextMenuProps) => {
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-56">
         {!isCurrent && (
