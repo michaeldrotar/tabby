@@ -2,6 +2,7 @@ import { moveTabGroupBackward } from '@extension/chrome/actions/tabGroups/moveTa
 import { moveTabGroupForward } from '@extension/chrome/actions/tabGroups/moveTabGroupForward'
 import { moveTabBackward } from '@extension/chrome/actions/tabs/moveTabBackward'
 import { moveTabForward } from '@extension/chrome/actions/tabs/moveTabForward'
+import { getWindowSwitchSlotIndexFromKey } from '@extension/chrome/window/windowSwitchSlots'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useSelectionInteraction } from '../selection'
 import type { PaneContext, SelectionItemType } from '../selection'
@@ -51,6 +52,7 @@ const getPaneContextFromElement = (element: HTMLElement): PaneContext => {
 export const useKeyboardNavigation = (
   onSelectWindow?: (windowId: number) => void,
   onActivateWindow?: (windowId: number) => void,
+  onFocusWindowSlot?: (slotIndex: number) => boolean,
 ) => {
   const isContextMenuOpen = useRef(false)
   const pendingFocusRef = useRef<PendingFocus | null>(null)
@@ -96,9 +98,20 @@ export const useKeyboardNavigation = (
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
           activeElement.tagName === 'TEXTAREA' ||
-          activeElement.isContentEditable)
+          activeElement.tagName === 'SELECT' ||
+          activeElement.isContentEditable ||
+          activeElement.getAttribute('role') === 'textbox' ||
+          activeElement.getAttribute('role') === 'combobox')
       ) {
         return
+      }
+
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        const slotIndex = getWindowSwitchSlotIndexFromKey(e.key)
+        if (slotIndex !== undefined && onFocusWindowSlot?.(slotIndex)) {
+          e.preventDefault()
+          return
+        }
       }
 
       const navItem = activeElement?.closest('[data-nav-type]') as HTMLElement
@@ -332,7 +345,12 @@ export const useKeyboardNavigation = (
       window.removeEventListener('keydown', handleKeyDown)
       observer.disconnect()
     }
-  }, [onSelectWindow, onActivateWindow, selectionInteraction])
+  }, [
+    onSelectWindow,
+    onActivateWindow,
+    onFocusWindowSlot,
+    selectionInteraction,
+  ])
 }
 
 type NavigableItem = {

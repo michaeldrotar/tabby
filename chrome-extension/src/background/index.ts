@@ -1,4 +1,9 @@
 import 'webextension-polyfill'
+import { browserWindowTypes } from '@extension/chrome/window/browserWindowTypes'
+import {
+  getWindowSwitchSlotEntries,
+  getWindowSwitchSlotIndexFromCommand,
+} from '@extension/chrome/window/windowSwitchSlots'
 
 let focusedWindowId: number | undefined = undefined
 const loadFocusedWindowId = async () => {
@@ -14,6 +19,35 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.windows.onFocusChanged.addListener((id) => {
   focusedWindowId = id
 })
+
+const focusWindowSlot = async (
+  index: number,
+  sourceIncognito?: boolean,
+): Promise<void> => {
+  const windowsPromise = chrome.windows.getAll({
+    windowTypes: browserWindowTypes,
+  })
+  const focusedWindowPromise =
+    sourceIncognito === undefined
+      ? chrome.windows.getLastFocused({ windowTypes: browserWindowTypes })
+      : Promise.resolve(undefined)
+  const [windows, focusedWindow] = await Promise.all([
+    windowsPromise,
+    focusedWindowPromise,
+  ])
+  const incognito = sourceIncognito ?? focusedWindow?.incognito ?? false
+  const eligibleWindows = windows.filter(
+    (browserWindow): browserWindow is chrome.windows.Window & { id: number } =>
+      typeof browserWindow.id === 'number',
+  )
+  const targetWindow = getWindowSwitchSlotEntries(eligibleWindows, incognito)[
+    index
+  ]?.window
+
+  if (targetWindow) {
+    await chrome.windows.update(targetWindow.id, { focused: true })
+  }
+}
 
 const openOmnibarPopup = async (windowId?: number) => {
   const searchUrl = chrome.runtime.getURL(
@@ -56,7 +90,17 @@ const openOmnibarPopup = async (windowId?: number) => {
   })
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  const windowSlotIndex = getWindowSwitchSlotIndexFromCommand(command)
+  if (windowSlotIndex !== undefined) {
+    try {
+      await focusWindowSlot(windowSlotIndex, tab?.incognito)
+    } catch (e) {
+      console.warn('Failed to focus window shortcut target', e)
+    }
+    return
+  }
+
   if (command === 'open-omnibar-overlay') {
     const activeTab = (
       await chrome.tabs.query({

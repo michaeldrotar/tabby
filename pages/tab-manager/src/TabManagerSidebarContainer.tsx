@@ -1,5 +1,6 @@
 import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
 import { createBrowserWindow } from '@extension/chrome/window/createBrowserWindow'
+import { getWindowSwitchSlotEntries } from '@extension/chrome/window/windowSwitchSlots'
 import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { t } from '@extension/i18n/i18n'
@@ -19,6 +20,7 @@ import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSideba
 import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
 import { useCallback } from 'react'
 import { useWindowActions } from './hooks/useWindowActions'
+import { useWindowShortcutBindings } from './hooks/useWindowShortcutBindings'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 import type { WindowContextMenuLabels } from '@extension/ui/context-menu/WindowContextMenu'
@@ -50,6 +52,9 @@ const useDisplayTabUrl = (windowId: number) => {
 // Component for Window Item to use hook
 const WindowItemContainer = ({
   window,
+  shortcutSlot,
+  shortcutBinding,
+  unassignedShortcutLabel,
   isCurrent,
   isViewing,
   isExpanded,
@@ -58,6 +63,9 @@ const WindowItemContainer = ({
   onSelect,
 }: {
   window: BrowserWindow
+  shortcutSlot?: number
+  shortcutBinding?: string
+  unassignedShortcutLabel: string
   isCurrent: boolean
   isViewing: boolean
   isExpanded: boolean
@@ -104,6 +112,9 @@ const WindowItemContainer = ({
         isExpanded={isExpanded}
         selected={selected}
         isMultiSelectMode={isMultiSelectMode}
+        shortcutSlot={shortcutSlot}
+        shortcutBinding={shortcutBinding}
+        unassignedShortcutLabel={unassignedShortcutLabel}
         onClick={(e) => onSelect(window, e)}
         onClose={actions.close}
       />
@@ -131,6 +142,15 @@ export const TabManagerSidebarContainer = ({
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
   const { tabManagerCompactLayout } = usePreferenceStorage()
+  const shortcutBindings = useWindowShortcutBindings()
+  const unassignedShortcutLabel = t('windowShortcut_unassigned')
+  const windowSlots = getWindowSwitchSlotEntries(
+    browserWindows,
+    Boolean(currentBrowserWindow?.incognito),
+  )
+  const slotByWindowId = new Map(
+    windowSlots.map(({ window, number }) => [window.id, number]),
+  )
 
   // Selection state - subscribe to the Set directly for proper re-renders
   const selectedWindowIds = useSelectionStore((s) => s.windowIds)
@@ -190,6 +210,11 @@ export const TabManagerSidebarContainer = ({
         <WindowItemContainer
           key={window.id}
           window={window}
+          shortcutSlot={slotByWindowId.get(window.id)}
+          shortcutBinding={
+            shortcutBindings[slotByWindowId.get(window.id) ?? -1]
+          }
+          unassignedShortcutLabel={unassignedShortcutLabel}
           isCurrent={window.id === currentBrowserWindow?.id}
           isViewing={window.id === selectedWindowId}
           isExpanded={isExpanded}

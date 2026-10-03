@@ -75,7 +75,24 @@ export const useOmnibarFiltering = (
 
     scoredItems.sort(compareOmnibarScoredItems)
 
-    return [...pinnedItems, ...scoredItems.map((i) => i.item)]
+    const windowCommandItems =
+      queryTerms[0] === 'window'
+        ? scoredItems
+            .filter(({ item }) =>
+              String(item.id).startsWith('cmd-focus-window-'),
+            )
+            .map(({ item }) => item)
+        : []
+    const windowCommandIds = new Set(windowCommandItems.map((item) => item.id))
+    const otherScoredItems = scoredItems
+      .filter(({ item }) => !windowCommandIds.has(item.id))
+      .map(({ item }) => item)
+
+    if (windowCommandItems.length > 0) {
+      return [...windowCommandItems, ...pinnedItems, ...otherScoredItems]
+    }
+
+    return [...pinnedItems, ...otherScoredItems]
   }, [
     query,
     tabs,

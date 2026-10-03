@@ -6,6 +6,7 @@ import {
   getUrlNavigationItem,
 } from './omnibarResultGenerators.js'
 import type { OmnibarResultGenerators } from '@extension/ui/omnibar/Omnibar'
+import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
 
 /**
  * Provides the omnibar result generators.
@@ -17,14 +18,17 @@ import type { OmnibarResultGenerators } from '@extension/ui/omnibar/Omnibar'
  * const generators = useOmnibarGenerators()
  * return <Omnibar generators={generators} ... />
  */
-export const useOmnibarGenerators = (): OmnibarResultGenerators => {
+export const useOmnibarGenerators = (
+  windowCommands: OmnibarSearchResult[] = [],
+): OmnibarResultGenerators => {
   return useMemo(
     () => ({
       getGoogleSearchItem,
       getUrlNavigationItem,
-      getMatchingCommands,
+      getMatchingCommands: (queryTerms) =>
+        getMatchingCommands(queryTerms, windowCommands),
       getMatchingTabs,
     }),
-    [],
+    [windowCommands],
   )
 }
