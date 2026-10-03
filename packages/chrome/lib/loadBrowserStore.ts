@@ -4,6 +4,8 @@ import { registerChromeTabGroupEventHandlers } from './tabGroup/tabGroupEvents.j
 import { toBrowserTabGroup } from './tabGroup/toBrowserTabGroup.js'
 import { unloadBrowserStore } from './unloadBrowserStore.js'
 import { useBrowserStore } from './useBrowserStore.js'
+import { browserWindowTypes } from './window/browserWindowTypes.js'
+import { orderWindowsById } from './window/windowSwitchSlots.js'
 import { toBrowserWindow } from './window/toBrowserWindow.js'
 import { registerChromeWindowEventHandlers } from './window/windowEvents.js'
 import type { BrowserTab } from './tab/BrowserTab.js'
@@ -34,9 +36,15 @@ const deriveInitialLifecycle = (
  * Gets all browser windows.
  */
 const getAllBrowserWindows = async (): Promise<BrowserWindow[]> => {
-  const allChromeWindows = await chrome.windows.getAll()
+  const allChromeWindows = await chrome.windows.getAll({
+    windowTypes: browserWindowTypes,
+  })
   const allBrowserWindows = allChromeWindows.map(toBrowserWindow)
-  return allBrowserWindows.filter((window) => window !== undefined)
+  return orderWindowsById(
+    allBrowserWindows.filter(
+      (window): window is BrowserWindow => window !== undefined,
+    ),
+  )
 }
 
 /**

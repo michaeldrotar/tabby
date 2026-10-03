@@ -151,6 +151,9 @@ importers:
 
   chrome-extension:
     dependencies:
+      '@extension/chrome':
+        specifier: workspace:*
+        version: link:../packages/chrome
       '@extension/env':
         specifier: workspace:*
         version: link:../packages/env

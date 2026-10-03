@@ -1,9 +1,12 @@
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useMemo } from 'react'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'
 import { useOmnibarTabs } from './useOmnibarTabs'
+import { getWindowSwitchCommands } from './omnibarResultGenerators.js'
 
 export type WiredOmnibarProps = {
   className?: string
@@ -23,8 +26,9 @@ export const WiredOmnibar = ({
   hideTabManagerAction,
 }: WiredOmnibarProps) => {
   const tabs = useOmnibarTabs()
+  const browserWindows = useBrowserWindows()
+  const currentBrowserWindow = useCurrentBrowserWindow()
   const onSearch = useOmnibarExternalSearch()
-  const generators = useOmnibarGenerators()
   const { data: platformInfo } = usePlatformInfo()
   const isMac = platformInfo?.os === 'mac'
 
@@ -36,6 +40,17 @@ export const WiredOmnibar = ({
     }
     return undefined
   }, [])
+
+  const windowCommands = useMemo(
+    () =>
+      getWindowSwitchCommands(
+        browserWindows,
+        tabs,
+        Boolean(currentBrowserWindow?.incognito),
+      ),
+    [browserWindows, currentBrowserWindow?.incognito, tabs],
+  )
+  const generators = useOmnibarGenerators(windowCommands)
 
   const onOpenTabManager = useCallback(async () => {
     const windowId =

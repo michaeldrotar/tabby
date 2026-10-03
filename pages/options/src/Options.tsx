@@ -1,7 +1,10 @@
 import '@src/Options.css'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { t } from '@extension/i18n/i18n'
-import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
+import {
+  withErrorBoundary,
+  type FallbackProps,
+} from '@extension/shared/hoc/with-error-boundary'
 import { withSuspense } from '@extension/shared/hoc/with-suspense'
 import {
   usePreferenceStorage,
@@ -683,7 +686,24 @@ const OptionsContent = () => {
                     — Opens the side panel
                   </span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <KbdGroup>
+                    <Kbd>
+                      {os === 'mac' ? <CmdIcon /> : 'Ctrl'}
+                      <ShiftIcon />1
+                    </Kbd>
+                  </KbdGroup>
+                  <span className="text-muted">
+                    <strong className="text-foreground">Focus Window 1</strong>{' '}
+                    — Focus the first numbered window and keep its current tab
+                  </span>
+                </li>
               </ul>
+              <p className="text-muted mt-3 text-xs">
+                Window shortcuts follow the numbered order in the Tab Manager.
+                Assign shortcuts for windows 2–0 in Chrome’s shortcut settings.
+                You can also search “window 1” in the Omnibar.
+              </p>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
                   Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
@@ -819,7 +839,7 @@ const Options = () => {
 
 export default withErrorBoundary(
   withSuspense(Options, <LoadingSpinner />),
-  (props) => (
+  (props: FallbackProps) => (
     <ErrorDisplay
       {...props}
       title={t('displayErrorInfo')}

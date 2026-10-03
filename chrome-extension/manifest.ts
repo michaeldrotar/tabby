@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  getWindowSwitchCommandName,
+  WINDOW_SWITCH_SLOT_COUNT,
+} from '@extension/chrome/window/windowSwitchSlots'
 import type { ManifestType } from '@extension/shared/utils/types'
 
 // Read version from root package.json (the single source of truth)
@@ -96,6 +100,26 @@ const manifest = {
       },
       description: 'Open Tab Manager',
     },
+    ...Object.fromEntries(
+      Array.from({ length: WINDOW_SWITCH_SLOT_COUNT }, (_, index) => {
+        const commandName = getWindowSwitchCommandName(index)
+        const suggestedKey =
+          index === 0
+            ? {
+                default: 'Ctrl+Shift+1',
+                mac: 'Command+Shift+1',
+              }
+            : undefined
+
+        return [
+          commandName,
+          {
+            ...(suggestedKey ? { suggested_key: suggestedKey } : {}),
+            description: `Focus window ${index === 9 ? 0 : index + 1}`,
+          },
+        ]
+      }),
+    ),
   },
 } satisfies ManifestType
 
