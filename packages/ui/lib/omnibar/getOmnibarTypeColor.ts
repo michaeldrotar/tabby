@@ -4,6 +4,8 @@ export const getOmnibarTypeColor = (type: OmnibarSearchResult['type']) => {
   switch (type) {
     case 'tab':
       return 'text-blue-600 dark:text-blue-400'
+    case 'tab-group':
+      return 'text-green-700 dark:text-green-400'
     case 'bookmark':
       return 'text-yellow-600 dark:text-yellow-400'
     case 'history':
