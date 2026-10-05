@@ -1,4 +1,9 @@
 import 'webextension-polyfill'
+import { browserWindowTypes } from '@extension/chrome/window/browserWindowTypes'
+import {
+  getWindowSwitchSlotEntries,
+  getWindowSwitchSlotIndexFromCommand,
+} from '@extension/chrome/window/windowSwitchSlots'
 import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 
 let focusedWindowId: number | undefined = undefined
@@ -31,6 +36,35 @@ const getFocusedWindowId = async () => {
     : undefined
 }
 
+const focusWindowSlot = async (
+  index: number,
+  sourceIncognito?: boolean,
+): Promise<void> => {
+  const windowsPromise = chrome.windows.getAll({
+    windowTypes: browserWindowTypes,
+  })
+  const focusedWindowPromise =
+    sourceIncognito === undefined
+      ? chrome.windows.getLastFocused({ windowTypes: browserWindowTypes })
+      : Promise.resolve(undefined)
+  const [windows, focusedWindow] = await Promise.all([
+    windowsPromise,
+    focusedWindowPromise,
+  ])
+  const incognito = sourceIncognito ?? focusedWindow?.incognito ?? false
+  const eligibleWindows = windows.filter(
+    (browserWindow): browserWindow is chrome.windows.Window & { id: number } =>
+      typeof browserWindow.id === 'number',
+  )
+  const targetWindow = getWindowSwitchSlotEntries(eligibleWindows, incognito)[
+    index
+  ]?.window
+
+  if (targetWindow) {
+    await chrome.windows.update(targetWindow.id, { focused: true })
+  }
+}
+
 const openOmnibar = async () => {
   try {
     const windowId = await getFocusedWindowId()
@@ -44,9 +78,12 @@ const openOmnibar = async () => {
   }
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
+chrome.commands.onCommand.addListener(async (command, tab) => {
   try {
-    if (command === TABBY_COMMANDS.openOmnibar) {
+    const windowSlotIndex = getWindowSwitchSlotIndexFromCommand(command)
+    if (windowSlotIndex !== undefined) {
+      await focusWindowSlot(windowSlotIndex, tab?.incognito)
+    } else if (command === TABBY_COMMANDS.openOmnibar) {
       await openOmnibar()
     } else if (command === TABBY_COMMANDS.openTabManager) {
       const windowId = await getFocusedWindowId()

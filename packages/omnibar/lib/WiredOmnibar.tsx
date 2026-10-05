@@ -1,11 +1,14 @@
 import { TABBY_COMMANDS, useCommandShortcuts } from '@extension/chrome/commands'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
+import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'
 import { useOmnibarTabGroups } from './useOmnibarTabGroups'
 import { useOmnibarTabs } from './useOmnibarTabs'
+import { getWindowSwitchCommands } from './omnibarResultGenerators.js'
 
 export type WiredOmnibarProps = {
   className?: string
@@ -25,9 +28,20 @@ export const WiredOmnibar = ({
   hideTabManagerAction,
 }: WiredOmnibarProps) => {
   const tabs = useOmnibarTabs()
+  const browserWindows = useBrowserWindows()
+  const currentBrowserWindow = useCurrentBrowserWindow()
   const groups = useOmnibarTabGroups()
   const onSearch = useOmnibarExternalSearch()
-  const generators = useOmnibarGenerators()
+  const windowCommands = useMemo(
+    () =>
+      getWindowSwitchCommands(
+        browserWindows,
+        tabs,
+        Boolean(currentBrowserWindow?.incognito),
+      ),
+    [browserWindows, currentBrowserWindow?.incognito, tabs],
+  )
+  const generators = useOmnibarGenerators(windowCommands)
   const { data: platformInfo } = usePlatformInfo()
   const { data: commandShortcuts } = useCommandShortcuts()
   const isMac = platformInfo?.os === 'mac'

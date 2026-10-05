@@ -13,6 +13,7 @@ const toOmnibarSearchResult = (tab: BrowserTab): OmnibarSearchResult => ({
   favIconUrl: tab.favIconUrl,
   windowId: tab.windowId,
   tabId: tab.id,
+  active: tab.active,
   lastVisitTime: tab.lastAccessed,
   execute: async (modifier, originalWindowId) => {
     const focusExistingTab = async () => {

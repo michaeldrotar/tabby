@@ -1,5 +1,7 @@
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { useBrowserTabsByWindowId } from '@extension/chrome/tab/useBrowserTabsByWindowId'
+import { getWindowSwitchSlotEntries } from '@extension/chrome/window/windowSwitchSlots'
+import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useBrowserStoreState } from '@extension/chrome/useBrowserStoreState'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { useSelectedWindowId } from '@extension/chrome/window/useSelectedWindowId'
@@ -8,7 +10,7 @@ import { Profiler } from '@extension/shared/Profiler'
 import { Skeleton } from '@extension/ui/components/Skeleton'
 import { TabListSkeleton } from '@extension/ui/components/TabListSkeleton'
 import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActionBar } from './action-bar'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
 import {
@@ -35,6 +37,7 @@ const SidebarSkeleton = () => (
 const TabManager = () => {
   const storeState = useBrowserStoreState()
   const currentBrowserWindow = useCurrentBrowserWindow()
+  const browserWindows = useBrowserWindows()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
   const [renamingGroupId, setRenamingGroupId] = useState<number | undefined>()
@@ -42,6 +45,15 @@ const TabManager = () => {
   const selectionMode = useSelectionStore((s) => s.mode)
   const selectionInteraction = useSelectionInteraction()
   const initializedSelectionRef = useRef(false)
+
+  const windowSwitchSlots = useMemo(
+    () =>
+      getWindowSwitchSlotEntries(
+        browserWindows,
+        Boolean(currentBrowserWindow?.incognito),
+      ),
+    [browserWindows, currentBrowserWindow?.incognito],
+  )
 
   // Sync selection state with browser store (removes closed tabs/windows from selection)
   useSelectionSync()
@@ -78,7 +90,20 @@ const TabManager = () => {
     [setSelectedWindowId],
   )
 
-  useKeyboardNavigation(onSelectWindow, onActivateWindow)
+  const onFocusWindowSlot = useCallback(
+    (slotIndex: number) => {
+      const targetWindow = windowSwitchSlots[slotIndex]?.window
+      if (!targetWindow) return false
+
+      void focusWindow(targetWindow.id).catch((error) => {
+        console.warn('Could not focus numbered window', error)
+      })
+      return true
+    },
+    [windowSwitchSlots],
+  )
+
+  useKeyboardNavigation(onSelectWindow, onActivateWindow, onFocusWindowSlot)
 
   // For target action
   const tabs = useBrowserTabsByWindowId(currentBrowserWindow?.id)

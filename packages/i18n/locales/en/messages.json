@@ -216,6 +216,10 @@
   "windowContextMenu_closeWindow": {
     "message": "Close Window"
   },
+  "windowShortcut_unassigned": {
+    "message": "Unassigned",
+    "description": "Indicates a window switch shortcut slot has no keyboard shortcut assigned"
+  },
 
   "groupColor_grey": {
     "message": "Grey"

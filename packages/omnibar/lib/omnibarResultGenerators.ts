@@ -1,5 +1,8 @@
 import { executeOmnibarUrl } from './executeOmnibarUrl.js'
+import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
+import { getWindowSwitchSlotEntries } from '@extension/chrome/window/windowSwitchSlots'
 import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`
@@ -133,12 +136,35 @@ const COMMANDS: OmnibarSearchResult[] = [
 
 export const getMatchingCommands = (
   queryTerms: string[],
+  windowCommands: OmnibarSearchResult[] = [],
 ): OmnibarSearchResult[] => {
-  return COMMANDS.filter((c) => {
+  return [...COMMANDS, ...windowCommands].filter((c) => {
     const title = c.title.toLowerCase()
     return queryTerms.every((term) => title.includes(term))
   })
 }
+
+export const getWindowSwitchCommands = (
+  windows: BrowserWindow[],
+  tabs: OmnibarSearchResult[],
+  incognito: boolean,
+): OmnibarSearchResult[] =>
+  getWindowSwitchSlotEntries(windows, incognito).map(({ window, number }) => {
+    const activeTab = tabs.find(
+      (tab) => tab.windowId === window.id && tab.active,
+    )
+
+    return {
+      id: `cmd-focus-window-${number}`,
+      type: 'command',
+      title: `Tabby: Focus Window ${number}${activeTab?.title ? ` — ${activeTab.title}` : ''}`,
+      url: activeTab?.url,
+      windowId: window.id,
+      execute: async () => {
+        await focusWindow(window.id)
+      },
+    }
+  })
 
 export const getMatchingTabs = (
   tabs: OmnibarSearchResult[],

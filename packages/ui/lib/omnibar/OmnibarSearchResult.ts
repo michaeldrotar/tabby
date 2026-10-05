@@ -17,6 +17,7 @@ export type OmnibarSearchResult = {
   favIconUrl?: string
   windowId?: number
   tabId?: number
+  active?: boolean
   lastVisitTime?: number
   sessionId?: string
   tabCount?: number
