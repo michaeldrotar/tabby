@@ -23,6 +23,7 @@ export const activateTabGroup = async (
   if (group.collapsed) {
     await chrome.tabGroups.update(group.id, { collapsed: false })
   }
-  await chrome.windows.update(group.windowId, { focused: true })
+  // Focusing another window can close the omnibar popup before tab activation.
   await chrome.tabs.update(targetTab.id, { active: true })
+  await chrome.windows.update(group.windowId, { focused: true })
 }
