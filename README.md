@@ -6,7 +6,7 @@ Tabby is a Chrome extension built with React, Vite, Tailwind CSS, and Copilot.
 
 ### Omnibar
 
-More than just search, it's your browser's command line. Press `Cmd+E` (Mac) or `Alt+E` (Windows) to instantly access:
+More than just search, it's your browser's command line. Click the Tabby toolbar icon or use the default search shortcut—`Cmd+E` on macOS or `Alt+E` on Windows/Linux—to open Tabby and instantly access:
 
 - **Universal Search**: Query across open tabs, bookmarks, and browsing history simultaneously.
 - **Web Search**: Type a query to search Google directly.
@@ -15,9 +15,12 @@ More than just search, it's your browser's command line. Press `Cmd+E` (Mac) or 
 
 Most commands support `Cmd/Ctrl` to open in a new tab and `Shift` to open in a new window.
 
+You can change Tabby's shortcuts in Chrome's extension shortcut settings. The
+shortcuts shown above are the defaults.
+
 ### Tab Manager
 
-Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `Alt+Shift+E` (Windows) to open the side panel.
+Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open Tab Manager** inside the search popup to open the side panel.
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
@@ -35,30 +38,20 @@ Manage all your windows and tabs in a clear view. Press `Cmd+Shift+E` (Mac) or `
 
 Privacy is a core value of Tabby. All processing happens locally on your device, and no data is ever sent to external servers.
 
-### Secure Architecture
-
-Unlike many extensions that inject content scripts into every page you visit, potentially degrading performance and exposing private data, Tabby operates on a strict "need-to-know" basis.
-
-- **On-Demand Access**: Tabby utilizes the [`activeTab`](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab) permission. This grants the extension temporary access to the current tab _only_ when you explicitly invoke it. It does not run in the background on your open tabs.
-- **Sandboxed UI**: To protect your data, Tabby injects its interface into a secure, isolated `iframe`. This ensures that the websites you visit cannot detect or read your search results, keeping your bookmarks and history private from malicious scripts.
-- **Restricted Pages**: For security reasons, browsers block extensions from injecting scripts into `chrome://` pages (like Settings or Extensions). In these cases, Tabby seamlessly falls back to a popup window that behaves just like the overlay.
-
 ### Permissions
 
 We believe in transparency. Here is a breakdown of every permission Tabby requests and why:
 
-| Permission                                                                             | Reason                                                                          |
-| :------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------ |
-| [`activeTab`](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab) | Grants temporary access to the current page only when you invoke the extension. |
-| [`favicon`](https://developer.chrome.com/docs/extensions/reference/api/favicon)        | Required to display icons for your tabs, bookmarks, and history items.          |
-| [`storage`](https://developer.chrome.com/docs/extensions/reference/api/storage)        | Used to save local preferences, such as your last search query.                 |
-| [`scripting`](https://developer.chrome.com/docs/extensions/reference/api/scripting)    | Allows the extension to inject the secure Omnibar overlay into the page.        |
-| [`tabs`](https://developer.chrome.com/docs/extensions/reference/api/tabs)              | Core functionality for listing, switching, and managing your open tabs.         |
-| [`tabGroups`](https://developer.chrome.com/docs/extensions/reference/api/tabGroups)    | Enables viewing and organizing your tab groups.                                 |
-| [`sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)    | Required to display the Tab Manager in the browser's side panel.                |
-| [`bookmarks`](https://developer.chrome.com/docs/extensions/reference/api/bookmarks)    | Allows searching and navigating your saved bookmarks.                           |
-| [`history`](https://developer.chrome.com/docs/extensions/reference/api/history)        | Allows searching and navigating your browsing history.                          |
-| [`sessions`](https://developer.chrome.com/docs/extensions/reference/api/sessions)      | Allows searching and restoring your recently closed tabs and windows.           |
+| Permission                                                                          | Reason                                                                  |
+| :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------- |
+| [`favicon`](https://developer.chrome.com/docs/extensions/reference/api/favicon)     | Required to display icons for your tabs, bookmarks, and history items.  |
+| [`storage`](https://developer.chrome.com/docs/extensions/reference/api/storage)     | Used to save local preferences, such as your last search query.         |
+| [`tabs`](https://developer.chrome.com/docs/extensions/reference/api/tabs)           | Core functionality for listing, switching, and managing your open tabs. |
+| [`tabGroups`](https://developer.chrome.com/docs/extensions/reference/api/tabGroups) | Enables viewing and organizing your tab groups.                         |
+| [`sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel) | Required to display the Tab Manager in the browser's side panel.        |
+| [`bookmarks`](https://developer.chrome.com/docs/extensions/reference/api/bookmarks) | Allows searching and navigating your saved bookmarks.                   |
+| [`history`](https://developer.chrome.com/docs/extensions/reference/api/history)     | Allows searching and navigating your browsing history.                  |
+| [`sessions`](https://developer.chrome.com/docs/extensions/reference/api/sessions)   | Allows searching and restoring your recently closed tabs and windows.   |
 
 ## Credits & Inspiration
 
@@ -106,87 +99,6 @@ The version is stored in the root `package.json` only. All other packages use `0
 
 ### Release Process
 
-1.  **Prep the release on `next` branch:**
-
-    ```bash
-    git checkout next
-    git pull origin next
-    pnpm prep minor          # or: pnpm prep patch, pnpm prep major, pnpm prep 2.0.0
-    git add package.json
-    git commit -m "Bump version to v1.1.0"
-    git push origin next
-    ```
-
-2.  **Build new features:**
-
-    Develop your features on the `next` branch via feature branches and PRs.
-
-3.  **Update release notes:**
-
-    Update or create the relevant file in `product/releases/` (e.g., `v1.1.0-polishing-the-experience.md`).
-
-    ```bash
-    git add product/releases/
-    git commit -m "Add release notes for v1.1.0"
-    git push origin next
-    ```
-
-4.  **Merge to `main` and tag:**
-
-    Once ready to release, merge `next` into `main`:
-
-    ```bash
-    git checkout main
-    git pull origin main
-    git merge next
-    git push origin main
-    git tag v1.1.0
-    git push origin v1.1.0
-    ```
-
-5.  **Build and upload:**
-
-    ```bash
-    git checkout v1.1.0
-    pnpm zip
-    ```
-
-    This creates a zip file in `dist-zip/` ready for upload to the Chrome Web Store.
-
-### Hotfix Process
-
-If you need to fix a bug in a released version:
-
-1.  **Create hotfix branch from the release tag:**
-
-    ```bash
-    git checkout v1.0.0
-    git checkout -b hotfix/v1.0.1
-    ```
-
-2.  **Fix the bug and update version:**
-
-    ```bash
-    pnpm prep patch          # or: pnpm prep 1.0.1
-    git add package.json
-    git commit -m "Fix critical bug"
-    ```
-
-3.  **Merge to `main`, tag, and ship:**
-
-    ```bash
-    git checkout main
-    git merge hotfix/v1.0.1
-    git push origin main
-    git tag v1.0.1
-    git push origin v1.0.1
-    pnpm zip
-    ```
-
-4.  **Merge into `next`:**
-
-    ```bash
-    git checkout next
-    git merge main
-    git push origin next
-    ```
+See [`RELEASE.md`](./RELEASE.md) for the complete feature and hotfix workflow,
+including branch strategy, pull requests, release notes, versioning, builds,
+tags, and Chrome Web Store submission.

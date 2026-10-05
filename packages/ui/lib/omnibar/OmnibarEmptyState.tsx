@@ -6,6 +6,7 @@ type QuickAction = {
   id: string
   icon: React.ReactNode
   label: string
+  shortcut?: string
   onClick: () => void
 }
 
@@ -72,6 +73,9 @@ export const OmnibarEmptyState = ({
                   {action.icon}
                 </span>
                 <span className="font-medium">{action.label}</span>
+                {action.shortcut && (
+                  <Kbd className="ml-auto">{action.shortcut}</Kbd>
+                )}
               </button>
             ))}
           </div>

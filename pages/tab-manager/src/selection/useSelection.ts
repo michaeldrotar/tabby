@@ -14,6 +14,7 @@ import { useSelectionStore } from './SelectionStore'
  */
 export const useSelection = () => {
   const windowIds = useSelectionStore((s) => s.windowIds)
+  const expandedWindowIds = useSelectionStore((s) => s.expandedWindowIds)
   const groupIds = useSelectionStore((s) => s.groupIds)
   const tabIds = useSelectionStore((s) => s.tabIds)
   const mode = useSelectionStore((s) => s.mode)
@@ -21,12 +22,13 @@ export const useSelection = () => {
   return useMemo(
     () => ({
       windowIds,
+      expandedWindowIds,
       groupIds,
       tabIds,
       mode,
       isMultiSelectMode: mode === 'multi-select',
       totalCount: windowIds.size + groupIds.size + tabIds.size,
     }),
-    [windowIds, groupIds, tabIds, mode],
+    [windowIds, expandedWindowIds, groupIds, tabIds, mode],
   )
 }

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 import type { ManifestType } from '@extension/shared/utils/types'
 
 // Read version from root package.json (the single source of truth)
@@ -22,11 +23,10 @@ const packageJson = JSON.parse(
  * @prop permissions
  * Firefox doesn't support sidePanel (It will be deleted in manifest parser)
  *
- * @prop content_scripts
- * css: ['content.css'], // public folder
  */
 const manifest = {
   manifest_version: 3,
+  minimum_chrome_version: '127',
   default_locale: 'en',
   name: '__MSG_extensionName__',
   browser_specific_settings: {
@@ -38,10 +38,8 @@ const manifest = {
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   permissions: [
-    'activeTab',
     'favicon',
     'storage',
-    'scripting',
     'tabs',
     'tabGroups',
     'sidePanel',
@@ -56,40 +54,24 @@ const manifest = {
   },
   action: {
     default_icon: 'tabby-face.png',
-    default_title: 'Tabby',
+    default_title: 'Search with Tabby',
+    default_popup: 'omnibar-popup/index.html',
   },
   icons: {
     '128': 'tabby-face.png',
   },
-  web_accessible_resources: [
-    {
-      resources: [
-        'omnibar-overlay/index.html',
-        'omnibar-embed/*',
-        '_favicon/*',
-      ],
-      matches: ['*://*/*'],
-    },
-  ],
   side_panel: {
     default_path: 'tab-manager/index.html',
   },
   commands: {
-    'open-omnibar-overlay': {
+    [TABBY_COMMANDS.openOmnibar]: {
       suggested_key: {
         default: 'Alt+E',
         mac: 'Command+E',
       },
-      description: 'Open Omnibar Overlay',
+      description: 'Open Tabby Search',
     },
-    'open-omnibar-popup': {
-      suggested_key: {
-        default: 'Alt+K',
-        mac: 'Command+K',
-      },
-      description: 'Open Omnibar Popup',
-    },
-    'open-tab-manager': {
+    [TABBY_COMMANDS.openTabManager]: {
       suggested_key: {
         default: 'Alt+Shift+E',
         mac: 'Command+Shift+E',

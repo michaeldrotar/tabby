@@ -1,82 +1,20 @@
 import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { useBrowserTabs } from '@extension/chrome/tab/useBrowserTabs'
-import { useBrowserTabGroupsByWindowId } from '@extension/chrome/tabGroup/useBrowserTabGroupsByWindowId'
-import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { useTabListItems } from '@extension/chrome/useTabListItems'
-import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
-import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
-import { t } from '@extension/i18n/i18n'
 import { Profiler } from '@extension/shared/Profiler'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { BrowserTabList } from '@extension/ui/BrowserTabList'
-import { TabContextMenu } from '@extension/ui/context-menu/TabContextMenu'
-import { TabGroupContextMenu } from '@extension/ui/context-menu/TabGroupContextMenu'
+import { toast } from '@extension/ui/components/Toaster'
 import { Favicon } from '@extension/ui/Favicon'
-import { memo, useCallback, useMemo, useState } from 'react'
-import { useTabActions } from './hooks/useTabActions'
-import { useTabGroupActions } from './hooks/useTabGroupActions'
+import { memo, useCallback, useMemo } from 'react'
+import { useBatchTabActions } from './actions/useBatchTabActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import { TabGroupHeader } from './TabGroupHeader'
 import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
-import type {
-  BrowserTabGroup,
-  BrowserTabGroupColor,
-} from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
-import type { TabContextMenuLabels } from '@extension/ui/context-menu/TabContextMenu'
-import type { TabGroupContextMenuLabels } from '@extension/ui/context-menu/TabGroupContextMenu'
-
-// Build label objects for context menus
-const tabContextMenuLabels: TabContextMenuLabels = {
-  duplicateTab: t('tabContextMenu_duplicateTab'),
-  reload: t('tabContextMenu_reload'),
-  pinTab: t('tabContextMenu_pinTab'),
-  unpinTab: t('tabContextMenu_unpinTab'),
-  muteTab: t('tabContextMenu_muteTab'),
-  unmuteTab: t('tabContextMenu_unmuteTab'),
-  addToGroup: t('tabContextMenu_addToGroup'),
-  newGroup: t('tabContextMenu_newGroup'),
-  untitledGroup: t('tabContextMenu_untitledGroup'),
-  removeFromGroup: t('tabContextMenu_removeFromGroup'),
-  moveToWindow: t('tabContextMenu_moveToWindow'),
-  newWindow: t('tabContextMenu_newWindow'),
-  copy: t('tabContextMenu_copy'),
-  copyUrl: t('tabContextMenu_copyUrl'),
-  copyTitle: t('tabContextMenu_copyTitle'),
-  copyTitleAndUrl: t('tabContextMenu_copyTitleAndUrl'),
-  closeOtherTabs: t('tabContextMenu_closeOtherTabs'),
-  closeTabsBelow: t('tabContextMenu_closeTabsBelow'),
-  closeTab: t('tabContextMenu_closeTab'),
-  windowLabelPopup: t('windowLabel_popup'),
-  windowLabelDevtools: t('windowLabel_devtools'),
-  windowLabelPrivate: t('windowLabel_privateMac'),
-  windowLabelIncognito: t('windowLabel_incognito'),
-  windowLabelDefault: (id: string) => t('windowLabel_default', id),
-}
-
-const tabGroupContextMenuLabels: TabGroupContextMenuLabels = {
-  expandGroup: t('groupContextMenu_expandGroup'),
-  collapseGroup: t('groupContextMenu_collapseGroup'),
-  renameGroup: t('groupContextMenu_renameGroup'),
-  changeColor: t('groupContextMenu_changeColor'),
-  colorLabels: {
-    grey: t('groupColor_grey'),
-    blue: t('groupColor_blue'),
-    red: t('groupColor_red'),
-    yellow: t('groupColor_yellow'),
-    green: t('groupColor_green'),
-    pink: t('groupColor_pink'),
-    purple: t('groupColor_purple'),
-    cyan: t('groupColor_cyan'),
-    orange: t('groupColor_orange'),
-  },
-  ungroupTabs: t('groupContextMenu_ungroupTabs'),
-  moveToNewWindow: t('groupContextMenu_moveToNewWindow'),
-  copyAllUrls: t('groupContextMenu_copyAllUrls'),
-  closeGroup: t('groupContextMenu_closeGroup'),
-}
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
@@ -92,16 +30,19 @@ const TabItemBrowserTabItem = memo(
     selected,
     duplicate,
     isMultiSelectMode,
+    batchActions,
     onClick,
+    onContextMenu,
   }: {
     tab: BrowserTab
     selected: boolean
     duplicate: boolean
     isMultiSelectMode?: boolean
+    batchActions: ReturnType<typeof useBatchTabActions>
     onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
-  }) => {
-    const actions = useTabActions(tab)
-    return (
+    onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
+  }) => (
+    <Profiler id="TabItemPane.BrowserTabItem">
       <BrowserTabItem
         tabId={tab.id}
         title={tab.title || 'Untitled'}
@@ -124,82 +65,27 @@ const TabItemBrowserTabItem = memo(
         duplicate={duplicate}
         isMultiSelectMode={isMultiSelectMode}
         onClick={onClick}
-        onClose={actions.close}
+        onContextMenu={onContextMenu}
+        onClose={() =>
+          void batchActions.close({ type: 'tab', id: tab.id }, [tab.id])
+        }
       />
-    )
-  },
+    </Profiler>
+  ),
 )
 
-const TabItemWithContextMenu = memo(
-  ({
-    tab,
-    groups,
-    currentWindowId,
-    selected,
-    duplicate,
-    isMultiSelectMode,
-    onClick,
-  }: {
-    tab: BrowserTab
-    groups: BrowserTabGroup[]
-    currentWindowId?: number
-    selected?: boolean
-    duplicate?: boolean
-    isMultiSelectMode?: boolean
-    onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
-  }) => {
-    const actions = useTabActions(tab)
-    const windows = useBrowserWindows()
-    const { data: platformInfo } = usePlatformInfo()
-    const isMac = platformInfo?.os === 'mac'
-
-    return (
-      <Profiler id="TabItemPane.BrowserTabItem">
-        <TabContextMenu
-          tab={tab}
-          groups={groups}
-          windows={windows}
-          currentWindowId={currentWindowId}
-          labels={tabContextMenuLabels}
-          isMac={isMac}
-          onPin={actions.pin}
-          onUnpin={actions.unpin}
-          onMute={actions.mute}
-          onUnmute={actions.unmute}
-          onDuplicate={actions.duplicate}
-          onReload={actions.reload}
-          onClose={actions.close}
-          onCloseOther={actions.closeOther}
-          onCloseAfter={actions.closeAfter}
-          onCopyUrl={actions.copyUrl}
-          onCopyTitle={actions.copyTitle}
-          onCopyTitleAndUrl={actions.copyTitleAndUrl}
-          onAddToGroup={actions.addToGroup}
-          onAddToNewGroup={actions.addToNewGroup}
-          onRemoveFromGroup={actions.removeFromGroup}
-          onMoveToWindow={actions.moveToWindow}
-          onMoveToNewWindow={actions.moveToNewWindow}
-        >
-          <TabItemBrowserTabItem
-            tab={tab}
-            selected={selected ?? false}
-            duplicate={duplicate ?? false}
-            isMultiSelectMode={isMultiSelectMode}
-            onClick={onClick}
-          />
-        </TabContextMenu>
-      </Profiler>
-    )
-  },
-)
-
-const TabGroupWithContextMenu = memo(
+const TabGroupItem = memo(
   ({
     group,
     tabs,
     selected,
     isMultiSelectMode,
     onSelectGroup,
+    onContextMenu,
+    batchActions,
+    renamingGroupId,
+    onRenameGroupStart,
+    onRenameGroupEnd,
     children,
   }: {
     group: BrowserTabGroup
@@ -207,135 +93,137 @@ const TabGroupWithContextMenu = memo(
     selected?: boolean
     isMultiSelectMode?: boolean
     onSelectGroup?: (event: React.MouseEvent) => void
+    onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
+    batchActions: ReturnType<typeof useBatchTabActions>
+    renamingGroupId?: number
+    onRenameGroupStart?: (groupId: number) => void
+    onRenameGroupEnd?: () => void
     children?: React.ReactNode
   }) => {
-    // Memoize tabIds array to maintain stable reference
-    const tabIds = useMemo(() => tabs.map((t) => t.id), [tabs])
-    const actions = useTabGroupActions(group, tabIds)
-    const [isRenaming, setIsRenaming] = useState(false)
-    const selectionStore = useSelectionStore
-
-    const handleRename = useCallback(() => {
-      setIsRenaming(true)
-    }, [])
-
-    const handleRenameFromContextMenu = useCallback(() => {
-      // Let the context menu finish closing before mounting/focusing the input.
-      requestAnimationFrame(() => {
-        setIsRenaming(true)
-      })
-    }, [])
-
+    const tabIds = useMemo(() => tabs.map((tab) => tab.id), [tabs])
+    const isRenaming = renamingGroupId === group.id
+    const handleRenameStart = useCallback(() => {
+      onRenameGroupStart?.(group.id)
+    }, [group.id, onRenameGroupStart])
     const handleRenameComplete = useCallback(
       async (newTitle: string) => {
         const nextTitle = newTitle.trim()
-        console.log(`title: ${group.title}`)
-        console.log(`nextTitle: ${nextTitle}`)
-        console.log(
-          `nextTitle === group.title: ${nextTitle === (group.title ?? '').trim()}`,
-        )
         if (nextTitle === (group.title ?? '').trim()) {
-          setIsRenaming(false)
+          onRenameGroupEnd?.()
           return
         }
-        await actions.rename(nextTitle)
-        setIsRenaming(false)
-      },
-      [actions, group.title],
-    )
-
-    const handleRenameCancel = useCallback(() => {
-      setIsRenaming(false)
-    }, [])
-
-    const handleChangeColor = useCallback(
-      (color: BrowserTabGroupColor) => {
-        actions.changeColor(color)
-      },
-      [actions],
-    )
-
-    // Wrap toggleCollapse to also remove tabs from selection when collapsing
-    const handleToggleCollapse = useCallback(() => {
-      // If the group is currently expanded (will be collapsed), remove its tabs from selection
-      if (!group.collapsed) {
-        const state = selectionStore.getState()
-        // Remove each tab in this group from selection
-        for (const tabId of tabIds) {
-          if (state.tabIds.has(tabId)) {
-            state.removeTab(tabId)
-          }
+        const result = await batchActions.performGroupAction(
+          { type: 'rename', title: nextTitle },
+          [group.id],
+        )
+        if (result.failures.length > 0) {
+          toast.error(
+            result.failures[0]?.message ?? 'Could not rename this tab group.',
+          )
+          return
         }
-      }
-      actions.toggleCollapse()
-    }, [group.collapsed, tabIds, actions, selectionStore])
-
-    const isActive = tabs.some((t) => t.active)
+        onRenameGroupEnd?.()
+      },
+      [batchActions, group.id, group.title, onRenameGroupEnd],
+    )
+    const handleRenameCancel = useCallback(() => {
+      onRenameGroupEnd?.()
+    }, [onRenameGroupEnd])
+    const handleToggleCollapse = useCallback(() => {
+      void batchActions.performGroupAction(
+        { type: 'set-collapse', collapsed: !group.collapsed },
+        [group.id],
+      )
+    }, [batchActions, group.collapsed, group.id])
+    const isActive = tabs.some((tab) => tab.active)
 
     return (
-      <TabGroupContextMenu
+      <TabGroupHeader
         group={group}
-        isCollapsed={group.collapsed}
-        labels={tabGroupContextMenuLabels}
+        isActive={isActive}
+        isRenaming={isRenaming}
+        selected={selected}
+        isMultiSelectMode={isMultiSelectMode}
+        onSelect={onSelectGroup}
+        onContextMenu={onContextMenu}
+        onRenameComplete={handleRenameComplete}
+        onRenameCancel={handleRenameCancel}
+        onRenameStart={handleRenameStart}
         onToggleCollapse={handleToggleCollapse}
-        onRename={handleRenameFromContextMenu}
-        onChangeColor={handleChangeColor}
-        onUngroup={actions.ungroup}
-        onCopyUrls={actions.copyUrls}
-        onMoveToNewWindow={actions.moveToNewWindow}
-        onClose={actions.close}
+        onClose={() =>
+          void batchActions.close({ type: 'group', id: group.id }, tabIds)
+        }
       >
-        <TabGroupHeader
-          group={group}
-          isActive={isActive}
-          isRenaming={isRenaming}
-          selected={selected}
-          isMultiSelectMode={isMultiSelectMode}
-          onSelect={onSelectGroup}
-          onRenameComplete={handleRenameComplete}
-          onRenameCancel={handleRenameCancel}
-          onRenameStart={handleRename}
-          onToggleCollapse={handleToggleCollapse}
-          onClose={actions.close}
-        >
-          {children}
-        </TabGroupHeader>
-      </TabGroupContextMenu>
+        {children}
+      </TabGroupHeader>
     )
   },
 )
 
 export type TabItemPaneProps = {
   browserWindowId?: BrowserWindowID
+  renamingGroupId?: number
+  onRenameGroupStart?: (groupId: number) => void
+  onRenameGroupEnd?: () => void
+  onOpenActionMenu: () => void
 }
 
-export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
+export const TabItemPane = ({
+  browserWindowId,
+  renamingGroupId,
+  onRenameGroupStart,
+  onRenameGroupEnd,
+  onOpenActionMenu,
+}: TabItemPaneProps) => {
   const items = useTabListItems(browserWindowId)
-  const groups = useBrowserTabGroupsByWindowId(browserWindowId)
-  const currentWindow = useCurrentBrowserWindow()
-  const currentWindowId = currentWindow?.id
   const allTabs = useBrowserTabs()
-
-  // Selection state - subscribe to Sets directly for proper re-renders
-  const selectedTabIds = useSelectionStore((s) => s.tabIds)
-  const selectedGroupIds = useSelectionStore((s) => s.groupIds)
-  const selectionMode = useSelectionStore((s) => s.mode)
-  const isMultiSelectMode = selectionMode === 'multi-select'
-
-  // Selection interaction handlers
+  const explicitSelectedGroupIds = useSelectionStore((state) => state.groupIds)
+  const selectedWindowIds = useSelectionStore((state) => state.windowIds)
+  const selectionMode = useSelectionStore((state) => state.mode)
   const selectionInteraction = useSelectionInteraction()
+  const batchActions = useBatchTabActions()
 
-  // Compute duplicate status for all tabs (memoized)
+  const selectedGroupIds = useMemo(() => {
+    const ids = new Set(explicitSelectedGroupIds)
+    if (
+      browserWindowId !== undefined &&
+      selectedWindowIds.has(browserWindowId)
+    ) {
+      for (const item of items) {
+        if (item.type === 'group') ids.add(item.group.id)
+      }
+    }
+    return ids
+  }, [browserWindowId, explicitSelectedGroupIds, items, selectedWindowIds])
+
+  const selectedTabIds = useMemo(
+    () => new Set(batchActions.selectedTabIds),
+    [batchActions.selectedTabIds],
+  )
+  const orderedSelectionItems = useMemo(
+    () =>
+      items.flatMap((item) => {
+        if (item.type === 'tab') {
+          return [{ type: 'tab' as const, id: item.tab.id }]
+        }
+        return [
+          { type: 'group' as const, id: item.group.id },
+          ...(item.group.collapsed
+            ? []
+            : item.tabs.map((tab) => ({ type: 'tab' as const, id: tab.id }))),
+        ]
+      }),
+    [items],
+  )
+
   const duplicateTabs = useMemo(() => {
     const urlCounts = new Map<string, number>()
-    allTabs.forEach((tab) => {
-      if (tab.url) {
-        urlCounts.set(tab.url, (urlCounts.get(tab.url) || 0) + 1)
-      }
-    })
+    for (const tab of allTabs) {
+      if (tab.url) urlCounts.set(tab.url, (urlCounts.get(tab.url) ?? 0) + 1)
+    }
     return new Set(
       allTabs
-        .filter((tab) => tab.url && (urlCounts.get(tab.url) || 0) > 1)
+        .filter((tab) => tab.url && (urlCounts.get(tab.url) ?? 0) > 1)
         .map((tab) => tab.id),
     )
   }, [allTabs])
@@ -350,22 +238,44 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
           ctrlKey: event.ctrlKey,
         },
         'tab',
+        orderedSelectionItems,
       )
     },
-    [selectionInteraction],
+    [orderedSelectionItems, selectionInteraction],
   )
 
   const handleTabClick = useCallback(
-    (tab: BrowserTab, e: React.MouseEvent) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey) {
-        e.preventDefault()
-        handleSelectTab(tab.id, e)
-      } else {
-        handleSelectTab(tab.id, e)
+    (tab: BrowserTab, event: React.MouseEvent) => {
+      handleSelectTab(tab.id, event)
+      if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
         void onActivateTab(tab.windowId, tab.id)
+      } else {
+        event.preventDefault()
       }
     },
     [handleSelectTab],
+  )
+
+  const handleTabContextMenu = useCallback(
+    (tab: BrowserTab, event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!selectedTabIds.has(tab.id)) {
+        selectionInteraction.handleClick(
+          { type: 'tab', id: tab.id },
+          { shiftKey: false, metaKey: false, ctrlKey: false },
+          'tab',
+          orderedSelectionItems,
+        )
+      }
+      onOpenActionMenu()
+    },
+    [
+      onOpenActionMenu,
+      orderedSelectionItems,
+      selectedTabIds,
+      selectionInteraction,
+    ],
   )
 
   const handleSelectGroup = useCallback(
@@ -378,9 +288,32 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
           ctrlKey: event.ctrlKey,
         },
         'tab',
+        orderedSelectionItems,
       )
     },
-    [selectionInteraction],
+    [orderedSelectionItems, selectionInteraction],
+  )
+
+  const handleGroupContextMenu = useCallback(
+    (groupId: number, event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      if (!selectedGroupIds.has(groupId)) {
+        selectionInteraction.handleClick(
+          { type: 'group', id: groupId },
+          { shiftKey: false, metaKey: false, ctrlKey: false },
+          'tab',
+          orderedSelectionItems,
+        )
+      }
+      onOpenActionMenu()
+    },
+    [
+      onOpenActionMenu,
+      orderedSelectionItems,
+      selectedGroupIds,
+      selectionInteraction,
+    ],
   )
 
   return (
@@ -391,7 +324,7 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
           selectedTabIds={selectedTabIds}
           selectedGroupIds={selectedGroupIds}
           duplicateTabIds={duplicateTabs}
-          isMultiSelectMode={isMultiSelectMode}
+          isMultiSelectMode={selectionMode === 'multi-select'}
           onTabClick={(tab, event) => handleTabClick(tab as BrowserTab, event)}
           renderTabItem={({
             tab,
@@ -400,14 +333,16 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
             isMultiSelectMode,
             onClick,
           }) => (
-            <TabItemWithContextMenu
+            <TabItemBrowserTabItem
               tab={tab as BrowserTab}
-              groups={groups}
-              currentWindowId={currentWindowId}
               selected={selected}
               duplicate={duplicate}
               isMultiSelectMode={isMultiSelectMode}
+              batchActions={batchActions}
               onClick={onClick}
+              onContextMenu={(event) =>
+                handleTabContextMenu(tab as BrowserTab, event)
+              }
             />
           )}
           renderGroupItem={({
@@ -418,15 +353,22 @@ export const TabItemPane = ({ browserWindowId }: TabItemPaneProps) => {
             onSelect,
             children,
           }) => (
-            <TabGroupWithContextMenu
+            <TabGroupItem
               group={group as BrowserTabGroup}
               tabs={tabs as BrowserTab[]}
               selected={selected}
               isMultiSelectMode={isMultiSelectMode}
+              batchActions={batchActions}
+              renamingGroupId={renamingGroupId}
+              onRenameGroupStart={onRenameGroupStart}
+              onRenameGroupEnd={onRenameGroupEnd}
               onSelectGroup={onSelect}
+              onContextMenu={(event) =>
+                handleGroupContextMenu(group.id as number, event)
+              }
             >
               {children}
-            </TabGroupWithContextMenu>
+            </TabGroupItem>
           )}
           onGroupSelect={(group, event) =>
             handleSelectGroup(group.id as number, event)

@@ -9,6 +9,8 @@ export const getOmnibarActionLabel = (
       if (modifier === 'new-tab') return 'Open in New Tab'
       if (modifier === 'new-window') return 'Open in New Window'
       return 'Jump to'
+    case 'tab-group':
+      return 'Jump to group'
     case 'command':
       return 'Run'
     case 'url':
