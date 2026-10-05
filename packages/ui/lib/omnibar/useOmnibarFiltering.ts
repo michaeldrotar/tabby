@@ -41,6 +41,11 @@ const compareOmnibarScoredItems = (
   return String(a.item.id).localeCompare(String(b.item.id))
 }
 
+const getWindowCommandNumber = (item: OmnibarScoredItem) => {
+  const match = /^cmd-focus-window-(\d+)$/.exec(String(item.item.id))
+  return match?.[1] ? Number(match[1]) : Number.POSITIVE_INFINITY
+}
+
 export const useOmnibarFiltering = (
   query: string,
   tabs: OmnibarSearchResult[],
@@ -87,6 +92,9 @@ export const useOmnibarFiltering = (
         ? scoredItems
             .filter(({ item }) =>
               String(item.id).startsWith('cmd-focus-window-'),
+            )
+            .sort(
+              (a, b) => getWindowCommandNumber(a) - getWindowCommandNumber(b),
             )
             .map(({ item }) => item)
         : []

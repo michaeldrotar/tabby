@@ -88,7 +88,7 @@ const manifest = {
         return [
           commandName,
           {
-            description: `Focus window ${index === 9 ? 0 : index + 1}`,
+            description: `Focus window ${index + 1}`,
           },
         ]
       }),
