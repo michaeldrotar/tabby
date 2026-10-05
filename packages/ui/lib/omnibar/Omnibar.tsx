@@ -20,6 +20,8 @@ export type OmnibarProps = {
   onDismiss: () => void
   /** Tab data converted to search results */
   tabs: OmnibarSearchResult[]
+  /** Open native tab groups converted to search results */
+  groups?: OmnibarSearchResult[]
   /** Search handler for external results (history, bookmarks, closed tabs) */
   onSearch: (query: string) => Promise<OmnibarSearchResult[]>
   /** Generators for creating omnibar result items */
@@ -40,6 +42,7 @@ export const Omnibar = ({
   className,
   onDismiss,
   tabs,
+  groups = [],
   onSearch,
   generators,
   hideTabManagerAction,
@@ -55,7 +58,7 @@ export const Omnibar = ({
 
   const externalResults = useOmnibarSearch(query, onSearch)
   const { filteredItems, selectedIndex, setSelectedIndex } =
-    useOmnibarFiltering(query, tabs, externalResults, generators)
+    useOmnibarFiltering(query, tabs, externalResults, generators, groups)
 
   const openTabManager = useCallback(() => {
     if (!onOpenTabManager) return

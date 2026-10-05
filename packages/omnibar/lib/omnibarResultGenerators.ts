@@ -154,3 +154,15 @@ export const getMatchingTabs = (
     })
     .map((t) => ({ ...t, type: 'tab' as const }))
 }
+
+export const getMatchingTabGroups = (
+  groups: OmnibarSearchResult[],
+  queryTerms: string[],
+): OmnibarSearchResult[] => {
+  return groups
+    .filter((group) => {
+      const title = group.title.toLowerCase()
+      return queryTerms.every((term) => title.includes(term))
+    })
+    .map((group) => ({ ...group, type: 'tab-group' as const }))
+}
