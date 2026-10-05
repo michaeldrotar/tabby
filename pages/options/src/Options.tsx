@@ -1,6 +1,10 @@
 import '@src/Options.css'
 import { TABBY_COMMANDS, useCommandShortcuts } from '@extension/chrome/commands'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
+import {
+  getWindowSwitchSlotNumber,
+  WINDOW_SWITCH_SLOT_COUNT,
+} from '@extension/chrome/window/windowSwitchSlots'
 import { t } from '@extension/i18n/i18n'
 import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
 import { withSuspense } from '@extension/shared/hoc/with-suspense'
@@ -37,6 +41,10 @@ import type {
 } from '@extension/storage/base/types'
 
 const queryClient = new QueryClient()
+const windowSwitchSlotNumbers = Array.from(
+  { length: WINDOW_SWITCH_SLOT_COUNT },
+  (_, index) => getWindowSwitchSlotNumber(index),
+).filter((number): number is number => number !== undefined)
 
 type OptionsErrorFallbackProps = {
   error: Error
@@ -66,6 +74,28 @@ const OptionsContent = () => {
     if (commandShortcutsPending) return 'Loading…'
     return formatShortcut(shortcut, isMac) ?? 'Not assigned'
   }
+
+  const shortcutRows = [
+    {
+      id: 'open-omnibar',
+      name: 'Open Tabby Search',
+      description:
+        'Opens the standard extension popup for tabs, bookmarks, and history',
+      shortcut: commandShortcuts?.[TABBY_COMMANDS.openOmnibar],
+    },
+    {
+      id: 'open-tab-manager',
+      name: 'Open Tab Manager',
+      description: 'Opens the side panel',
+      shortcut: commandShortcuts?.[TABBY_COMMANDS.openTabManager],
+    },
+    ...windowSwitchSlotNumbers.map((number) => ({
+      id: `focus-window-${number}`,
+      name: `Focus Window ${number}`,
+      description: 'Focuses the numbered window and keeps its current tab',
+      shortcut: commandShortcuts?.windowSwitchSlots[number],
+    })),
+  ]
 
   const activeThemeMode: 'light' | 'dark' = (() => {
     if (theme === 'light' || theme === 'dark') return theme
@@ -642,53 +672,25 @@ const OptionsContent = () => {
                 These reflect the shortcuts currently assigned in Chrome.
               </p>
               <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-3">
-                  <KbdGroup>
-                    <Kbd>
-                      {getShortcutLabel(
-                        commandShortcuts?.[TABBY_COMMANDS.openOmnibar],
-                      )}
-                    </Kbd>
-                  </KbdGroup>
-                  <span className="text-muted">
-                    <strong className="text-foreground">
-                      Open Tabby Search
-                    </strong>{' '}
-                    — Opens the standard extension popup for tabs, bookmarks,
-                    and history
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <KbdGroup>
-                    <Kbd>
-                      {getShortcutLabel(
-                        commandShortcuts?.[TABBY_COMMANDS.openTabManager],
-                      )}
-                    </Kbd>
-                  </KbdGroup>
-                  <span className="text-muted">
-                    <strong className="text-foreground">
-                      Open Tab Manager
-                    </strong>{' '}
-                    — Opens the side panel
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <KbdGroup>
-                    <Kbd>
-                      {getShortcutLabel(commandShortcuts?.windowSwitchSlots[1])}
-                    </Kbd>
-                  </KbdGroup>
-                  <span className="text-muted">
-                    <strong className="text-foreground">Focus Window 1</strong>{' '}
-                    — Focus the first numbered window and keep its current tab
-                  </span>
-                </li>
+                {shortcutRows.map(({ id, name, description, shortcut }) => (
+                  <li
+                    key={id}
+                    className="flex items-start justify-between gap-6"
+                  >
+                    <div className="min-w-0">
+                      <strong className="text-foreground">{name}</strong>
+                      <p className="text-muted mt-0.5 text-xs">{description}</p>
+                    </div>
+                    <KbdGroup className="shrink-0 justify-end text-right">
+                      <Kbd>{getShortcutLabel(shortcut)}</Kbd>
+                    </KbdGroup>
+                  </li>
+                ))}
               </ul>
               <p className="text-muted mt-3 text-xs">
                 Window shortcuts follow the numbered order in the Tab Manager.
-                Assign shortcuts for windows 2–0 in Chrome’s shortcut settings.
-                You can also search “window 1” in the Omnibar.
+                Assign any window shortcut in Chrome’s shortcut settings, or
+                search “window 1” in the Omnibar.
               </p>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">

@@ -85,18 +85,9 @@ const manifest = {
     ...Object.fromEntries(
       Array.from({ length: WINDOW_SWITCH_SLOT_COUNT }, (_, index) => {
         const commandName = getWindowSwitchCommandName(index)
-        const suggestedKey =
-          index === 0
-            ? {
-                default: 'Ctrl+Shift+1',
-                mac: 'Command+Shift+1',
-              }
-            : undefined
-
         return [
           commandName,
           {
-            ...(suggestedKey ? { suggested_key: suggestedKey } : {}),
             description: `Focus window ${index === 9 ? 0 : index + 1}`,
           },
         ]
