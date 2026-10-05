@@ -4,8 +4,17 @@ import { moveTabBackward } from '@extension/chrome/actions/tabs/moveTabBackward'
 import { moveTabForward } from '@extension/chrome/actions/tabs/moveTabForward'
 import { getWindowSwitchSlotIndexFromKey } from '@extension/chrome/window/windowSwitchSlots'
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useSelectionInteraction } from '../selection'
-import type { PaneContext, SelectionItemType } from '../selection'
+import {
+  isSelectionItemRepresented,
+  resolveSelectionItemTabIds,
+} from '../actions/batchTabActions'
+import { useBatchTabActions } from '../actions/useBatchTabActions'
+import { useSelectionInteraction, useSelectionStore } from '../selection'
+import type {
+  PaneContext,
+  SelectionItemRef,
+  SelectionItemType,
+} from '../selection'
 
 type PendingFocus = {
   type: 'tab' | 'group'
@@ -54,9 +63,11 @@ export const useKeyboardNavigation = (
   onActivateWindow?: (windowId: number) => void,
   onFocusWindowSlot?: (slotIndex: number) => boolean,
 ) => {
-  const isContextMenuOpen = useRef(false)
   const pendingFocusRef = useRef<PendingFocus | null>(null)
   const selectionInteraction = useSelectionInteraction()
+  const batchActions = useBatchTabActions()
+  const closeBatchTabs = batchActions.close
+  const getCurrentSnapshot = batchActions.getCurrentSnapshot
 
   // Restore focus after move operations, before browser paint
   useLayoutEffect(() => {
@@ -75,24 +86,17 @@ export const useKeyboardNavigation = (
   })
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const contextMenuContent = document.querySelector(
-        '[data-radix-menu-content]',
-      )
-      isContextMenuOpen.current = !!contextMenuContent
-    })
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    })
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isContextMenuOpen.current) {
-        return
-      }
-
       const activeElement = document.activeElement as HTMLElement
+      const inActionBar = Boolean(
+        activeElement?.closest('[data-action-bar-root]'),
+      )
+      const actionPopupOpen = Boolean(
+        document.querySelector(
+          '[data-action-bar-menu], [data-action-bar-panel]',
+        ),
+      )
+      if ((inActionBar || actionPopupOpen) && e.key !== 'Escape') return
 
       if (
         activeElement &&
@@ -142,6 +146,27 @@ export const useKeyboardNavigation = (
         return
       }
 
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const item = getSelectionItemFromElement(navItem)
+        if (!item) return
+
+        e.preventDefault()
+        const state = useSelectionStore.getState()
+        const selection = {
+          windowIds: state.windowIds,
+          expandedWindowIds: state.expandedWindowIds,
+          groupIds: state.groupIds,
+          tabIds: state.tabIds,
+        }
+        const snapshot = getCurrentSnapshot()
+        if (isSelectionItemRepresented(item, selection, snapshot)) {
+          void closeBatchTabs()
+        } else {
+          void closeBatchTabs(item, resolveSelectionItemTabIds(item, snapshot))
+        }
+        return
+      }
+
       // Alt+Arrow keys for moving tabs/groups
       if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         if (navType === 'tab' || navType === 'group') {
@@ -183,7 +208,10 @@ export const useKeyboardNavigation = (
       if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
         e.preventDefault()
         const paneContext = getPaneContextFromElement(navItem)
-        selectionInteraction.selectAll(paneContext)
+        selectionInteraction.selectAll(
+          paneContext,
+          getSelectionItemsInOrder(paneContext),
+        )
         return
       }
 
@@ -223,6 +251,7 @@ export const useKeyboardNavigation = (
                   item,
                   'window',
                   focusedBeforeMove ?? undefined,
+                  getSelectionItemsInOrder('window'),
                 )
               } else {
                 // In default mode, arrow keys select the focused window
@@ -270,6 +299,7 @@ export const useKeyboardNavigation = (
                   item,
                   'tab',
                   focusedBeforeMove ?? undefined,
+                  getSelectionItemsInOrder('tab'),
                 )
               } else {
                 // In default mode, arrow keys select the focused item
@@ -283,11 +313,20 @@ export const useKeyboardNavigation = (
         (e.key === 'F10' && e.shiftKey) ||
         (e.key === 'Enter' && e.shiftKey)
       ) {
-        // Open context menu for the focused item
-        // Shift+F10 is the standard Windows shortcut, ContextMenu is the dedicated key
-        // Shift+Enter is an alternative that works well on Mac
+        // Open the shared action-bar overflow, which replaces row context menus.
         e.preventDefault()
-        openContextMenuForElement(navItem)
+        const overflowTrigger = document.querySelector(
+          '[data-action-bar-menu-trigger]',
+        ) as HTMLButtonElement | null
+        if (overflowTrigger) {
+          overflowTrigger.focus()
+          overflowTrigger.click()
+        } else {
+          const firstAction = document.querySelector(
+            '[data-action-bar-action-trigger]',
+          ) as HTMLButtonElement | null
+          firstAction?.focus()
+        }
       } else if (e.key === 'Enter') {
         if (navType === 'window' && onActivateWindow) {
           const windowId = navItem.getAttribute('data-nav-id')
@@ -343,13 +382,14 @@ export const useKeyboardNavigation = (
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      observer.disconnect()
     }
   }, [
     onSelectWindow,
     onActivateWindow,
     onFocusWindowSlot,
     selectionInteraction,
+    closeBatchTabs,
+    getCurrentSnapshot,
   ])
 }
 
@@ -409,6 +449,30 @@ const getNavigableTabItems = (): NavigableItem[] => {
   return items
 }
 
+/** DOM-to-data adapter for keyboard selection; the selection model itself only
+ * receives explicit item references and never queries the document. */
+const getSelectionItemsInOrder = (
+  paneContext: PaneContext,
+): SelectionItemRef[] => {
+  if (paneContext === 'window') {
+    return Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-nav-type="window"][data-nav-id]',
+      ),
+    ).flatMap((element) => {
+      const item = getSelectionItemFromElement(element)
+      return item ? [item] : []
+    })
+  }
+
+  return getNavigableTabItems()
+    .filter(({ element }) => (element as HTMLElement).offsetParent !== null)
+    .flatMap(({ element }) => {
+      const item = getSelectionItemFromElement(element)
+      return item ? [item] : []
+    })
+}
+
 const focusNavigableItem = (element: HTMLElement, type: 'tab' | 'group') => {
   if (type === 'group') {
     const btn = element.querySelector('button') as HTMLElement
@@ -426,22 +490,6 @@ const focusNavigableItem = (element: HTMLElement, type: 'tab' | 'group') => {
     }
   }
   element.scrollIntoView({ block: 'nearest' })
-}
-
-/**
- * Opens a context menu for the given element by dispatching a synthetic
- * contextmenu event. The event is positioned at the element's center.
- */
-const openContextMenuForElement = (element: HTMLElement) => {
-  const rect = element.getBoundingClientRect()
-  const contextMenuEvent = new MouseEvent('contextmenu', {
-    bubbles: true,
-    cancelable: true,
-    view: window,
-    clientX: rect.left + rect.width / 2,
-    clientY: rect.top + rect.height / 2,
-  })
-  element.dispatchEvent(contextMenuEvent)
 }
 
 /**

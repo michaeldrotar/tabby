@@ -1,21 +1,20 @@
 import '@src/Options.css'
+import { TABBY_COMMANDS, useCommandShortcuts } from '@extension/chrome/commands'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { t } from '@extension/i18n/i18n'
-import {
-  withErrorBoundary,
-  type FallbackProps,
-} from '@extension/shared/hoc/with-error-boundary'
+import { withErrorBoundary } from '@extension/shared/hoc/with-error-boundary'
 import { withSuspense } from '@extension/shared/hoc/with-suspense'
 import {
   usePreferenceStorage,
   useResolvedTheme,
   useThemeApplicator,
 } from '@extension/shared/hooks/preference'
+import { formatShortcut } from '@extension/shared/utils/platform'
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { ErrorDisplay } from '@extension/ui/components/error-display/ErrorDisplay'
 import { LoadingSpinner } from '@extension/ui/components/LoadingSpinner'
 import { Toaster } from '@extension/ui/components/Toaster'
-import { CmdIcon, ExternalLinkIcon, ShiftIcon } from '@extension/ui/icons'
+import { ExternalLinkIcon } from '@extension/ui/icons'
 import { Kbd, KbdGroup } from '@extension/ui/Kbd'
 import {
   Select,
@@ -39,6 +38,11 @@ import type {
 
 const queryClient = new QueryClient()
 
+type OptionsErrorFallbackProps = {
+  error: Error
+  resetErrorBoundary: () => void
+}
+
 const OptionsContent = () => {
   const {
     theme,
@@ -54,6 +58,14 @@ const OptionsContent = () => {
     tabManagerCompactLayout,
   } = usePreferenceStorage()
   const { data: { os } = {} } = usePlatformInfo()
+  const { data: commandShortcuts, isPending: commandShortcutsPending } =
+    useCommandShortcuts()
+  const isMac = os === 'mac'
+
+  const getShortcutLabel = (shortcut: string | undefined) => {
+    if (commandShortcutsPending) return 'Loading…'
+    return formatShortcut(shortcut, isMac) ?? 'Not assigned'
+  }
 
   const activeThemeMode: 'light' | 'dark' = (() => {
     if (theme === 'light' || theme === 'dark') return theme
@@ -624,61 +636,36 @@ const OptionsContent = () => {
             </div>
             <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
               <h4 className="text-foreground mb-3 text-sm font-medium">
-                Recommended Shortcuts
+                Current Shortcuts
               </h4>
+              <p className="text-muted mb-3 text-xs">
+                These reflect the shortcuts currently assigned in Chrome.
+              </p>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />E
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+E</Kbd>
-                    </KbdGroup>
-                  )}
-                  <span className="text-muted">
-                    <strong className="text-foreground">Open Omnibar</strong> —
-                    Quick access to search tabs, bookmarks, and history
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />K
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+K</Kbd>
-                    </KbdGroup>
-                  )}
+                  <KbdGroup>
+                    <Kbd>
+                      {getShortcutLabel(
+                        commandShortcuts?.[TABBY_COMMANDS.openOmnibar],
+                      )}
+                    </Kbd>
+                  </KbdGroup>
                   <span className="text-muted">
                     <strong className="text-foreground">
-                      Open Omnibar Popup
+                      Open Tabby Search
                     </strong>{' '}
-                    — Opens in a popup window instead of in-page overlay
+                    — Opens the standard extension popup for tabs, bookmarks,
+                    and history
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  {os === 'mac' && (
-                    <KbdGroup>
-                      <Kbd>
-                        <CmdIcon />
-                        <ShiftIcon />E
-                      </Kbd>
-                    </KbdGroup>
-                  )}
-                  {os !== 'mac' && (
-                    <KbdGroup>
-                      <Kbd>Alt+Shift+E</Kbd>
-                    </KbdGroup>
-                  )}
+                  <KbdGroup>
+                    <Kbd>
+                      {getShortcutLabel(
+                        commandShortcuts?.[TABBY_COMMANDS.openTabManager],
+                      )}
+                    </Kbd>
+                  </KbdGroup>
                   <span className="text-muted">
                     <strong className="text-foreground">
                       Open Tab Manager
@@ -689,8 +676,7 @@ const OptionsContent = () => {
                 <li className="flex items-start gap-3">
                   <KbdGroup>
                     <Kbd>
-                      {os === 'mac' ? <CmdIcon /> : 'Ctrl'}
-                      <ShiftIcon />1
+                      {getShortcutLabel(commandShortcuts?.windowSwitchSlots[1])}
                     </Kbd>
                   </KbdGroup>
                   <span className="text-muted">
@@ -706,8 +692,8 @@ const OptionsContent = () => {
               </p>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
-                  Note: Chrome reserves Ctrl+E and Ctrl+K for the address bar,
-                  so Alt-based shortcuts are used instead.
+                  Note: Chrome reserves Ctrl+E for the address bar, so Tabby's
+                  default Windows/Linux search shortcut is Alt+E.
                 </p>
               )}
             </div>
@@ -839,7 +825,7 @@ const Options = () => {
 
 export default withErrorBoundary(
   withSuspense(Options, <LoadingSpinner />),
-  (props: FallbackProps) => (
+  (props: OptionsErrorFallbackProps) => (
     <ErrorDisplay
       {...props}
       title={t('displayErrorInfo')}

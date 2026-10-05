@@ -11,6 +11,7 @@ export {
   ExternalLink as ExternalLinkIcon,
   Info as InfoIcon,
   LayoutGrid as LayoutGridIcon,
+  Layers as LayersIcon,
   Loader2 as LoaderIcon,
   Moon as MoonIcon,
   Option as OptionIcon,

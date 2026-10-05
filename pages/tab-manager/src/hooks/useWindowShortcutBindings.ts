@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  getWindowSwitchSlotIndexFromCommand,
-  getWindowSwitchSlotNumber,
-} from '@extension/chrome/window/windowSwitchSlots'
+import { getCommandShortcuts } from '@extension/chrome/commands'
 
 export const useWindowShortcutBindings = (): Record<number, string> => {
   const [bindings, setBindings] = useState<Record<number, string>>({})
@@ -12,22 +9,16 @@ export const useWindowShortcutBindings = (): Record<number, string> => {
 
     const refreshBindings = async () => {
       try {
-        const commands = await chrome.commands.getAll()
+        const shortcuts = await getCommandShortcuts()
         if (!isMounted) return
-
-        const nextBindings: Record<number, string> = {}
-        for (const command of commands) {
-          const slotIndex = getWindowSwitchSlotIndexFromCommand(
-            command.name ?? '',
-          )
-          if (slotIndex === undefined) continue
-
-          const slotNumber = getWindowSwitchSlotNumber(slotIndex)
-          if (slotNumber !== undefined) {
-            nextBindings[slotNumber] = command.shortcut || ''
-          }
-        }
-        setBindings(nextBindings)
+        setBindings(
+          Object.fromEntries(
+            Object.entries(shortcuts.windowSwitchSlots).map(([slot, value]) => [
+              Number(slot),
+              value ?? '',
+            ]),
+          ),
+        )
       } catch (error) {
         console.warn('Could not read window shortcut bindings', error)
       }

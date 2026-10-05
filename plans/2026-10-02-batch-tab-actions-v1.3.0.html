@@ -1,0 +1,1616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Implementation plan for selection-aware batch tab actions in Tabby 1.3.0."
+    />
+    <title>Batch tab actions · Tabby 1.3.0</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f3eee3;
+        --paper-light: #fbf8f1;
+        --ink: #192d32;
+        --muted: #617173;
+        --line: #cfc8b9;
+        --hot: #ed593c;
+        --teal: #176d68;
+        --gold: #d29b39;
+        --shadow: 0 18px 50px #192d3212;
+        font-family: 'Avenir Next', 'Trebuchet MS', sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(ellipse at 93% 5%, #ed593c12 0, transparent 31rem),
+          linear-gradient(
+            115deg,
+            transparent 0 78%,
+            #176d6808 78% 79%,
+            transparent 79%
+          ),
+          var(--paper);
+      }
+
+      a {
+        color: var(--teal);
+        text-underline-offset: 3px;
+      }
+      a:hover {
+        color: var(--hot);
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible + span {
+        outline: 3px solid var(--hot);
+        outline-offset: 3px;
+      }
+
+      .masthead {
+        border-bottom: 1px solid var(--line);
+        padding: 16px clamp(20px, 5vw, 76px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .brand {
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-mark {
+        width: 25px;
+        height: 25px;
+        border: 2px solid var(--hot);
+        border-radius: 50% 50% 45% 45%;
+        display: inline-grid;
+        place-items: center;
+        color: var(--hot);
+        font-size: 13px;
+        letter-spacing: 0;
+      }
+      .release-chip {
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        padding: 7px 11px;
+        white-space: nowrap;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+      .hero {
+        padding: clamp(34px, 6vw, 78px) 0 42px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 32px;
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--hot);
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-weight: 800;
+        font-size: 11px;
+        margin: 0 0 16px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        max-width: 760px;
+        margin-bottom: 18px;
+        font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+        font-weight: 500;
+        font-size: clamp(42px, 7.5vw, 86px);
+        letter-spacing: -0.055em;
+        line-height: 0.95;
+      }
+      h1 em {
+        color: var(--hot);
+        font-style: normal;
+      }
+      .dek {
+        max-width: 660px;
+        color: var(--muted);
+        font-size: clamp(15px, 1.8vw, 19px);
+        line-height: 1.65;
+        margin-bottom: 0;
+      }
+      .hero-stamp {
+        justify-self: end;
+        transform: rotate(3deg);
+        width: 188px;
+        height: 188px;
+        border: 1px solid var(--hot);
+        border-radius: 50%;
+        color: var(--hot);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font-family: Georgia, serif;
+        font-size: 17px;
+        line-height: 1.35;
+        box-shadow:
+          inset 0 0 0 7px var(--paper),
+          inset 0 0 0 8px #ed593c66;
+      }
+      .hero-stamp b {
+        font-family: 'Avenir Next', 'Trebuchet MS', sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .checklist {
+        position: relative;
+        padding: 25px clamp(20px, 4vw, 40px) 30px;
+        background: var(--ink);
+        color: var(--paper-light);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .checklist::after {
+        content: '';
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        border: 1px solid #ffffff12;
+        border-radius: 50%;
+        right: -90px;
+        top: -130px;
+        box-shadow:
+          0 0 0 20px #ffffff08,
+          0 0 0 40px #ffffff05;
+        pointer-events: none;
+      }
+      .checklist-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #ffffff2b;
+        position: relative;
+        z-index: 1;
+      }
+      .checklist h2 {
+        font-family: Georgia, serif;
+        font-size: 26px;
+        font-weight: 500;
+        margin: 0;
+      }
+      .progress-copy {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        color: #c4d1cc;
+        font-size: 12px;
+      }
+      .progress-copy strong {
+        color: #ff9c78;
+        font-size: 20px;
+        font-family: Georgia, serif;
+        font-weight: 400;
+      }
+      .progress-track {
+        height: 3px;
+        background: #ffffff20;
+        margin-top: 20px;
+        position: relative;
+        z-index: 1;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0;
+        background: var(--hot);
+        transition: width 0.35s ease;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 34px;
+        margin: 10px 0 0;
+        padding: 0;
+        list-style: none;
+        position: relative;
+        z-index: 1;
+      }
+      .steps li {
+        border-bottom: 1px solid #ffffff1a;
+      }
+      .step-label {
+        display: grid;
+        grid-template-columns: 25px 1fr;
+        align-items: start;
+        gap: 12px;
+        padding: 14px 0;
+        cursor: pointer;
+        color: #f5f1e9;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .step-label input {
+        appearance: none;
+        width: 21px;
+        height: 21px;
+        border: 1px solid #b4c0ba;
+        border-radius: 4px;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+      .step-label input::after {
+        content: '✓';
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--ink);
+        transform: scale(0);
+        transition: transform 0.15s ease;
+      }
+      .step-label input:checked {
+        background: #ff9873;
+        border-color: #ff9873;
+      }
+      .step-label input:checked::after {
+        transform: scale(1);
+      }
+      .step-label input:checked + span {
+        color: #aebdb6;
+        text-decoration: line-through;
+        text-decoration-color: #ff987377;
+      }
+      .step-number {
+        color: #ff9873;
+        font-family: Georgia, serif;
+        display: inline-block;
+        min-width: 20px;
+      }
+      .checklist-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-top: 19px;
+        color: #b7c4bd;
+        font-size: 12px;
+        position: relative;
+        z-index: 1;
+      }
+      .reset-button {
+        background: transparent;
+        color: #f4aa8e;
+        border: 0;
+        border-bottom: 1px solid #f4aa8e66;
+        padding: 4px 0;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        gap: clamp(28px, 6vw, 70px);
+        padding: 65px 0 100px;
+      }
+      .toc {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        border-top: 2px solid var(--ink);
+        padding-top: 13px;
+      }
+      .toc-title {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 800;
+        margin-bottom: 13px;
+      }
+      .toc a {
+        display: block;
+        padding: 7px 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-family: Georgia, serif;
+        font-size: 15px;
+      }
+      .toc a:hover {
+        color: var(--hot);
+      }
+      article {
+        min-width: 0;
+      }
+      .section {
+        padding: 0 0 42px;
+        margin-bottom: 42px;
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 24px;
+      }
+      .section:last-child {
+        border-bottom: 0;
+      }
+      .section-kicker {
+        font-size: 10px;
+        color: var(--teal);
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 11px;
+      }
+      h2 {
+        font-family: Georgia, serif;
+        font-size: clamp(27px, 4vw, 39px);
+        font-weight: 500;
+        letter-spacing: -0.025em;
+        margin-bottom: 17px;
+      }
+      h3 {
+        font-family: Georgia, serif;
+        font-size: 21px;
+        font-weight: 500;
+        margin-bottom: 9px;
+      }
+      p,
+      li {
+        line-height: 1.68;
+      }
+      .lead {
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 720px;
+      }
+      .callout {
+        border-left: 3px solid var(--gold);
+        padding: 14px 18px;
+        background: #d29b3910;
+        margin: 22px 0;
+      }
+      .callout strong {
+        color: #765212;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 22px 0;
+      }
+      .card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        background: #fbf8f18c;
+        border-radius: 6px;
+      }
+      .card .index {
+        color: var(--hot);
+        font-family: Georgia, serif;
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+      .card h3 {
+        margin-bottom: 8px;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+        margin: 19px 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        background: var(--paper-light);
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 14px;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        background: #e9e3d6;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td:first-child {
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      code {
+        color: #a13d2a;
+        font-size: 0.92em;
+        background: #ed593c12;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .pill {
+        display: inline-block;
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        padding: 3px 8px;
+        margin: 2px 4px 2px 0;
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .matrix {
+        columns: 2;
+        column-gap: 35px;
+      }
+      .matrix li {
+        break-inside: avoid;
+        padding-left: 3px;
+        margin: 0 0 7px;
+      }
+      .status {
+        padding: 16px 18px;
+        border: 1px dashed var(--hot);
+        background: #ed593c09;
+        border-radius: 6px;
+      }
+      .status-label {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 10px;
+        font-weight: 900;
+        color: var(--hot);
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        padding: 21px 0 35px;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+      }
+
+      @media (max-width: 760px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+        .hero-stamp {
+          display: none;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+          padding-top: 40px;
+        }
+        .toc {
+          position: static;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px 16px;
+          align-items: baseline;
+        }
+        .toc-title {
+          flex-basis: 100%;
+        }
+        .toc a {
+          font-family: 'Avenir Next', 'Trebuchet MS', sans-serif;
+          font-size: 12px;
+        }
+        .matrix {
+          columns: 1;
+        }
+      }
+      @media (max-width: 560px) {
+        .masthead {
+          padding-inline: 18px;
+        }
+        .steps,
+        .cards {
+          grid-template-columns: 1fr;
+        }
+        .checklist-head,
+        .checklist-foot {
+          align-items: start;
+          flex-direction: column;
+        }
+        main {
+          width: min(100% - 28px, 1120px);
+        }
+        td:first-child {
+          white-space: normal;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="brand"
+        ><span class="brand-mark" aria-hidden="true">t</span> Tabby · Product
+        engineering</div
+      >
+      <div class="release-chip">Release 1.3.0 / implementation review</div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Issue #24 · 1.3.0 · interaction plan</p>
+          <h1 id="page-title">One selection.<br /><em>One action bar.</em></h1>
+          <p class="dek"
+            >Complete batch actions in the narrow sidebar, remove row context
+            menus, make selection meaning explicit, and keep the selection and
+            action seams replayable without Chrome or physical input.</p
+          >
+        </div>
+        <div
+          class="hero-stamp"
+          aria-label="Status: implementation complete, ready for review"
+          ><span
+            ><b>Status</b><br />Implementation<br />complete<br /><b
+              >v1.3.0</b
+            ></span
+          ></div
+        >
+      </section>
+
+      <section class="checklist" aria-labelledby="checklist-title">
+        <div class="checklist-head">
+          <h2 id="checklist-title">Steps to ship</h2>
+          <div class="progress-copy" aria-live="polite"
+            ><strong id="progress-count">23 / 23</strong
+            ><span>steps complete</span></div
+          >
+        </div>
+        <div class="progress-track" aria-hidden="true"
+          ><div
+            class="progress-fill"
+            id="progress-fill"
+            style="width: 100%"
+          ></div
+        ></div>
+        <ol class="steps">
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="sync-next"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">01</b> Fast-forward <code>next</code> to
+                the merged PR #23 head and restore the in-progress batch
+                work.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="pure-seams"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">02</b> Keep selection intents and action
+                execution behind plain data and injected ports for replayable
+                demos.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="batch-core"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">03</b> Resolve unique affected tabs and
+                implement close, move, and native-group operations with partial
+                results.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="initial-selection"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">04</b> On first sidebar open, select the
+                current window and its active tab.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="window-selection"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">05</b> Plain window click selects only
+                that window and active tab; Shift/Cmd/Ctrl window selection
+                expands selected windows to all tabs.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="context-actions"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">06</b> Remove tab, group, and window
+                context menus; move their supported actions into selection-aware
+                action-bar commands.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="action-families"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">07</b> Add batch pin, mute, reload,
+                duplicate, copy, group, window, and single-item-only actions
+                with valid disabled states.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="selection-notch"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">08</b> Keep controls fixed and show
+                selected windows, groups, and tabs as icon-only counts in a
+                fixed-width notch, capped at 100+.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="overflow-menu"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">09</b> Keep a stable ellipsis in the
+                action bar; place every contextual action in its menu above the
+                trigger.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="submenus"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">10</b> Anchor action-bar submenus above
+                the bar; in overflow, swap panels and keep a fixed Back button
+                below a bounded scroll area.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="rigorous-qa"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">11</b> Cover mixed windows/groups,
+                modifiers, keyboard selection, menu geometry, partial failures,
+                and demo replay with automated checks.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="release-and-qa"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">12</b> Update 1.3.0 notes; verify narrow
+                action-bar overflow, focus return, and the replay demo in light
+                and dark themes.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="window-group-selection"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">13</b> Treat tab groups in selected
+                windows as selected groups while preserving plain-click
+                active-tab behavior.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="counts-in-bar"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">14</b> Put icon-only counts in windows,
+                groups, tabs order inside the action bar; remove the duplicate
+                menu header and selected-item preview.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="ellipsis-only"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">15</b> Put every action in the ellipsis
+                menu and anchor it directly above that button.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="unified-window-actions"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">16</b> Remove the separate
+                window-actions submenu; deduplicate operations over selected
+                windows and tabs.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="action-target-counts"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">17</b> Show counts for the actual
+                targets of each action, including tabs currently in
+                groups.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="right-click-menu"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">18</b> Route right-clicks through the
+                shared menu: preserve a represented selection or select the
+                clicked item before opening.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="notifications-and-layering"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">19</b> Place notifications above the
+                action bar, layer the menu above notifications, and suppress
+                routine collapse/expand success toasts.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="color-swatches-and-qa"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">20</b> Make group colors visibly
+                scannable and add regression coverage for the new selection,
+                menu, count, and notification behavior.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="count-alignment"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">21</b> Right-align the fixed selection
+                counts immediately beside the ellipsis trigger.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="window-context-targets"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">22</b> Keep plain window clicks on the
+                active tab, while right-clicking a window expands its full tab
+                set for counts and actions.</span
+              ></label
+            ></li
+          >
+          <li
+            ><label class="step-label"
+              ><input
+                type="checkbox"
+                data-step="disabled-reason-tooltips"
+                data-complete="true"
+                checked
+              /><span
+                ><b class="step-number">23</b> Remove truncated inline disabled
+                reasons while preserving their hover tooltips.</span
+              ></label
+            ></li
+          >
+        </ol>
+        <div class="checklist-foot"
+          ><span>Progress saves in this browser on this file.</span
+          ><button class="reset-button" id="reset-checklist" type="button"
+            >Reset checklist</button
+          ></div
+        >
+      </section>
+
+      <div class="layout">
+        <nav class="toc" aria-label="Plan sections">
+          <div class="toc-title">Plan contents</div>
+          <a href="#brief">Brief & boundaries</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#behavior">Behavior contract</a>
+          <a href="#sequence">Implementation order</a>
+          <a href="#verification">Verification</a>
+          <a href="#release">Release notes</a>
+          <a href="#references">References</a>
+        </nav>
+
+        <article>
+          <section class="section" id="brief">
+            <p class="section-kicker">01 / QA feedback & brief</p>
+            <h2>Make the bar the single home for actions.</h2>
+            <p class="lead"
+              >Issue #24 asks for one selection-aware route for batch actions.
+              The initial close/move/group slice is in place; review feedback
+              expands the work to cover existing row-menu actions and make
+              window selection and action-bar overflow predictable.</p
+            >
+            <div class="status"
+              ><div class="status-label">QA feedback · incorporated</div
+              ><p style="margin: 8px 0 0"
+                >Keep the tab count from shifting controls; show selected
+                windows, groups, and tabs as icon counts in that order, without
+                “tabs” text. Put all actions behind the ellipsis, keep counts in
+                the action bar, and remove the duplicate count and
+                selected-title headers from its menu. A plain window click
+                selects its active tab; selecting a window also selects its tab
+                groups, while modified window selection includes all tabs. Use
+                target-specific action counts, deduplicate window and tab
+                operations, open the shared menu on right-click with normal
+                selection-preserving behavior, keep notifications above the bar
+                and menus above notifications, suppress collapse/expand success
+                toasts, and show visible color swatches.</p
+              ></div
+            >
+            <div class="status"
+              ><div class="status-label">Final QA feedback · incorporated</div
+              ><p style="margin: 8px 0 0"
+                >Right-align counts next to ellipsis. A right-clicked window is
+                an action target for all tabs in that window even when its
+                selection originated as a plain active-tab click; keep plain
+                left-click behavior unchanged. Remove inline disabled-reason
+                text but retain the native hover tooltip.</p
+              ></div
+            >
+            <div class="cards">
+              <div class="card"
+                ><div class="index">IN SCOPE</div><h3>One action surface</h3
+                ><p
+                  >Tab, group, and window actions live in the ellipsis menu. The
+                  bar keeps the selected windows, groups, and tabs counts fixed;
+                  right-clicking a row opens that same menu. Submenus replace
+                  its contents and keep Back fixed while actions scroll.</p
+                ></div
+              >
+              <div class="card"
+                ><div class="index">IN SCOPE</div
+                ><h3>Complete existing action families</h3
+                ><p
+                  >Close, move, group, pin, mute, reload, duplicate, copy,
+                  rename, color, collapse/expand, ungroup, and applicable window
+                  actions follow selected entities and valid targets.</p
+                ></div
+              >
+              <div class="card"
+                ><div class="index">IN SCOPE</div
+                ><h3>Input-independent replay</h3
+                ><p
+                  >Selection transitions accept normalized intents and item
+                  order. Batch action runners accept IDs and injected ports so
+                  Storybook and autoplay demos use the same behavior without
+                  physical events or Chrome.</p
+                ></div
+              >
+              <div class="card"
+                ><div class="index">SEPARATE</div
+                ><h3>Tree view and new command palette</h3
+                ><p
+                  >These remain outside Issue #24. Bookmarks are also a
+                  follow-up because no current Tabby context menu exposes a
+                  bookmark action.</p
+                ></div
+              >
+            </div>
+            <div class="callout"
+              ><strong>Scope guard:</strong> no enabled placeholder action. An
+              action is visible only for a relevant selection and disabled with
+              a clear reason when the selected batch cannot use it. Cross-window
+              tab grouping stays disabled; no selected tabs move implicitly to
+              make grouping work.</div
+            >
+          </section>
+
+          <section class="section" id="architecture">
+            <p class="section-kicker">02 / The architecture</p>
+            <h2>Keep the product adapters at the edges.</h2>
+            <p
+              >Selection now flows through a pure reducer that accepts
+              normalized click and keyboard intents plus visible item order.
+              React events and Zustand stay in the UI adapter; action runners
+              accept IDs and injected ports, with the Chrome helpers behind one
+              adapter. Replay stories use the reducer and fake action ports
+              without synthesizing browser input or calling Chrome.</p
+            >
+            <div class="table-wrap"
+              ><table>
+                <thead
+                  ><tr
+                    ><th>Layer</th><th>Owns</th><th>Must not depend on</th></tr
+                  ></thead
+                >
+                <tbody>
+                  <tr
+                    ><td>Selection model</td
+                    ><td
+                      >Normalized intents, selection sets, anchors, mode, range
+                      calculations, focus recovery choice.</td
+                    ><td
+                      >React events, DOM queries, timers,
+                      <code>chrome.*</code>.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Selection adapters</td
+                    ><td
+                      >Translate pointer modifiers and key presses to intents;
+                      supply ordered visible items from the current view.</td
+                    ><td>Business rules about how selection changes.</td></tr
+                  >
+                  <tr
+                    ><td>Target resolver</td
+                    ><td
+                      >Expand selected groups to their tabs; resolve a plain
+                      selected window to its active tab and a modified selected
+                      window to all its tabs; remove duplicates and retain
+                      stable order.</td
+                    ><td>DOM nodes or Chrome API calls.</td></tr
+                  >
+                  <tr
+                    ><td>Batch action runner</td
+                    ><td
+                      >Run one operation against a resolved tab list and return
+                      requested / succeeded / failed IDs.</td
+                    ><td>Toasts, React, live Chrome globals.</td></tr
+                  >
+                  <tr
+                    ><td>Chrome adapter</td
+                    ><td
+                      >Implement tab and window operations with MV3 helpers;
+                      normalize API failures and report per-item results.</td
+                    ><td>Selection sets or UI entry-point details.</td></tr
+                  >
+                  <tr
+                    ><td>UI / demo adapters</td
+                    ><td
+                      >Show actions and counts; send intents; report results.
+                      Storybook supplies fixture data and fake ports.</td
+                    ><td
+                      >Private access to interaction state or direct API side
+                      effects.</td
+                    ></tr
+                  >
+                </tbody>
+              </table></div
+            >
+            <p
+              >Preferred implementation shape: pure reducer / controller
+              functions accept a selection snapshot, a normalized intent, and an
+              explicit ordered-item list; port-driven runners accept resolved
+              IDs and targets. App hooks adapt these inputs to Zustand and
+              Chrome, while stories replay the same input sequence with
+              deterministic fixtures and fake ports.</p
+            >
+          </section>
+
+          <section class="section" id="behavior">
+            <p class="section-kicker">03 / The behavior contract</p>
+            <h2>Resolve once. Execute what the user can see.</h2>
+            <div class="table-wrap"
+              ><table>
+                <thead
+                  ><tr><th>Situation</th><th>Expected behavior</th></tr></thead
+                >
+                <tbody>
+                  <tr
+                    ><td>First sidebar open</td
+                    ><td
+                      >Select the current window and its active tab once after
+                      browser data is loaded. Later focus changes do not
+                      overwrite an intentional batch selection.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Plain window click</td
+                    ><td
+                      >Select the window and its active tab only. Its tab groups
+                      are selected as entities. A Shift/Cmd/Ctrl window click
+                      also selects all tabs in the selected windows.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Direct tabs + groups + windows selected</td
+                    ><td
+                      >Resolve selected tabs, selected groups, normal-click
+                      window active tabs, and modified windows' full tab sets;
+                      dedupe and show unique affected tab counts.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Context menu request</td
+                    ><td
+                      >Right-clicking a represented selection preserves it;
+                      right-clicking an unselected item selects only that item
+                      first. A right-clicked window expands its tab targets to
+                      the full window while plain window clicks still target the
+                      active tab. Both open the shared action menu from the
+                      ellipsis. The keyboard Context Menu key opens the same
+                      menu.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Selection summary</td
+                    ><td
+                      >Counts stay right-aligned next to the ellipsis in
+                      windows, groups, tabs order with icon-only labels; the tab
+                      count reflects resolved action targets. Each count
+                      occupies fixed space and displays <code>100+</code> above
+                      99.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Action menu</td
+                    ><td
+                      >Every action lives in the ellipsis menu, which opens
+                      above its fixed bottom-right trigger. The menu does not
+                      repeat counts or selected titles.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Action submenu</td
+                    ><td
+                      >From the ellipsis menu, replace the menu with the submenu
+                      and keep a fixed Back action below a bounded, scrollable
+                      list.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Delete / Backspace</td
+                    ><td
+                      >Close the current selection if the focused item belongs
+                      to it; otherwise preserve the existing focused-row close
+                      behavior. Ignore text inputs and menu/dialog focus.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Move several tabs</td
+                    ><td
+                      >Order IDs from the current browser snapshot, then move in
+                      that order. Preserve each source window's tab order.
+                      Respect pinned placement, source/target window types, and
+                      incognito boundaries. New window uses one created window
+                      for the batch.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Existing / new tab group</td
+                    ><td
+                      >Enable only when the resolved batch belongs to one
+                      window; disable grouping when it spans windows. Group-only
+                      actions such as rename require exactly one selected group,
+                      with no tabs or windows selected.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Contextual actions</td
+                    ><td
+                      >Build actions from selected types, states, and
+                      cardinality. Exactly one group exposes rename; multiple
+                      selected groups show rename disabled; a tab or window
+                      selection has no group rename option. Window focus and
+                      close actions appear directly in the shared menu.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Multi-window operations</td
+                    ><td
+                      >Resolve selected tabs once across selected windows. One
+                      reload action and one copy action use the total selected
+                      tab count; no separate window-actions submenu repeats
+                      them.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Action counts</td
+                    ><td
+                      >Each count is based on operation targets. For example,
+                      “Remove 2 from group” reflects the two grouped tabs in a
+                      larger 18-tab selection.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Notifications and layering</td
+                    ><td
+                      >Major-action notifications appear above the action bar.
+                      The action menu and its submenus layer above
+                      notifications. Successful collapse/expand operations do
+                      not show a toast.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Group color</td
+                    ><td
+                      >Show a visible swatch for each available color in the
+                      change-color submenu.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Disabled actions</td
+                    ><td
+                      >Keep a hover tooltip with the disabled reason, without
+                      truncating reason text inline inside the menu.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Partial API failure</td
+                    ><td
+                      >Return successful and failed IDs; show “N of M tabs …”
+                      and preserve failed tabs in selection when they still
+                      exist.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Tabs disappear or move externally</td
+                    ><td
+                      >Prune stale selected entities, update counts, and move
+                      keyboard focus to a surviving nearby item without
+                      selecting unrelated tabs.</td
+                    ></tr
+                  >
+                  <tr
+                    ><td>Empty / stale selection</td
+                    ><td
+                      >No action is enabled. Empty batches make no API calls and
+                      do not report a success.</td
+                    ></tr
+                  >
+                </tbody>
+              </table></div
+            >
+            <div class="status"
+              ><div class="status-label">Product choice · resolved</div
+              ><p style="margin: 8px 0 0"
+                >Batch grouping is disabled across windows; tabs stay in their
+                current windows. Contextual actions derive from the selected
+                batch and operation: selection-wide tab operations use resolved
+                IDs; group rename requires exactly one selected group; selecting
+                two groups disables rename; a single selected tab has no group
+                rename option.</p
+              ></div
+            >
+          </section>
+
+          <section class="section" id="sequence">
+            <p class="section-kicker">04 / Implementation order</p>
+            <h2>Build the stable seams before wiring buttons.</h2>
+            <ol>
+              <li
+                ><b>Sync and preserve work.</b> Fast-forward
+                <code>next</code> to merged PR #23 before resolving the saved
+                batch implementation.</li
+              >
+              <li
+                ><b>Model window intent precisely.</b> Keep mouse and keyboard
+                modifiers normalized. Represent plain-window active-tab
+                selection separately from modified full-window selection; select
+                the current window and active tab once on first load.</li
+              >
+              <li
+                ><b>Resolve once.</b> Expand groups and explicitly expanded
+                windows, resolve plain windows to active tabs, dedupe overlaps,
+                and sort by window order and tab index.</li
+              >
+              <li
+                ><b>Run every batch operation through ports.</b> Keep close,
+                move, group, pin, mute, reload, duplicate, and copy away from
+                direct Chrome calls; return per-tab outcomes and handle
+                aggregate clipboard actions once.</li
+              >
+              <li
+                ><b>Make the bar the only action surface.</b> Remove row
+                context-menu wrappers and bring applicable tab, group, and
+                window commands into the contextual action set. Keep group and
+                window cardinality constraints explicit.</li
+              >
+              <li
+                ><b>Finish the action bar geometry.</b> Reserve the
+                selection-count notch without moving controls; cap counts at
+                100+; always put ellipsis at the final visible slot; anchor
+                overflow above its bottom-right trigger.</li
+              >
+              <li
+                ><b>Build submenu navigation.</b> Place bar submenus above
+                center; overflow submenus replace overflow contents, with a
+                bounded scrolling body and a fixed Back control.</li
+              >
+              <li
+                ><b>Recover and prove.</b> Reconcile stale IDs and focus; test
+                selection model, action runner, action visibility, partial
+                failures, geometry, and fake-port demos; update release notes
+                and record manual QA.</li
+              >
+            </ol>
+          </section>
+
+          <section class="section" id="verification">
+            <p class="section-kicker">05 / Verification</p>
+            <h2>Test the rule, the wiring, and the browser edges.</h2>
+            <h3>Pure model and action tests</h3>
+            <ul>
+              <li
+                >Click, Shift+click, Cmd/Ctrl+click, Space-to-enter then
+                Space-toggle, Shift+Arrow, Escape, and select-all as plain
+                intent sequences.</li
+              >
+              <li
+                >Plain click on a window resolves only its active tab;
+                Shift/Cmd/Ctrl window interactions resolve every tab in the
+                selected windows.</li
+              >
+              <li
+                >Initial selection is current window + active tab exactly once;
+                focus changes do not replace a user-edited batch.</li
+              >
+              <li
+                >Reverse / extending ranges, repeated toggles, collapsed-group
+                visible order, pane changes, empty lists, and deleted anchor
+                items.</li
+              >
+              <li
+                >Mixed selected windows / groups / direct tabs resolve to unique
+                tab IDs; overlaps do not double count.</li
+              >
+              <li
+                >All old tab/group/window menu actions appear only in valid
+                action-bar contexts; rename is disabled for multiple groups and
+                absent for tab-only selection.</li
+              >
+              <li
+                >Mixed pinned, muted, audible, grouped, and unavailable tabs
+                yield valid batch pin/mute/reload/duplicate/copy behavior.</li
+              >
+              <li
+                >Source-window and tab-index ordering; pinned/unpinned
+                placement; normal vs. popup/devtools; incognito mismatch; stale
+                ID handling.</li
+              >
+              <li
+                >Each port can fail independently; counts and failures remain
+                correct for zero, complete, and partial success. Fake ports
+                prove that core code has no Chrome dependency.</li
+              >
+            </ul>
+            <h3>Integration and browser scenarios</h3>
+            <ul class="matrix">
+              <li
+                >Action menu and Delete / Backspace close the same selected
+                tabs; right-click from tabs, groups, and windows opens the
+                shared menu without the old row menus.</li
+              >
+              <li
+                >Plain and modified clicks on a window produce the expected
+                selected-item counts and tab targets.</li
+              >
+              <li
+                >Move across two normal windows and verify order in the
+                destination.</li
+              >
+              <li
+                >Move selected tabs to one new window; verify the original
+                order.</li
+              >
+              <li>Move a mixed pinned, grouped, and ungrouped selection.</li>
+              <li
+                >Group from a collapsed group and verify unique affected
+                tabs.</li
+              >
+              <li
+                >Partial close / move / group failure reports actual affected
+                IDs.</li
+              >
+              <li
+                >Close the active tab plus neighbors; verify selection and focus
+                recovery.</li
+              >
+              <li
+                >External Chrome close/move updates counts and clears stale
+                focus.</li
+              >
+              <li
+                >Keyboard action does not run while typing in an input; Context
+                Menu key focuses action-bar overflow.</li
+              >
+              <li
+                >Count notch width stays fixed at 0, 1, 99, 100, and larger
+                entity counts; windows, groups, tabs order and controls stay
+                fixed as selection changes.</li
+              >
+              <li
+                >Ellipsis menu opens directly above its trigger; its submenus
+                scroll while Back remains fixed. Notifications do not block the
+                bar or menu.</li
+              >
+              <li
+                >Action labels use operation-specific target counts; grouped-tab
+                removal counts only grouped tabs.</li
+              >
+              <li
+                >Right-click preserves a selection containing the clicked row
+                and selects an unselected row before opening the shared menu; a
+                window's tab targets expand to all of its tabs.</li
+              >
+              <li
+                >Disabled actions have no inline reason text and retain a hover
+                tooltip.</li
+              >
+              <li
+                >Group color submenu visibly shows every swatch; routine
+                expand/collapse actions remain silent.</li
+              >
+              <li
+                >Replay equivalent mouse and keyboard intent scripts against
+                fake data.</li
+              >
+              <li
+                >Check responsive action-bar overflow and light/dark
+                appearances.</li
+              >
+            </ul>
+            <div class="status"
+              ><div class="status-label">Verification run · 03 Oct 2026</div
+              ><p style="margin: 8px 0 0"
+                ><b>Passed:</b> <code>pnpm type-check</code> (15 tasks),
+                <code>pnpm e2e</code> (30 browser tests, including clean
+                extension and Storybook builds), and focused
+                batch/selection/layout unit tests (37 tests). Manually replayed
+                mouse and keyboard selection in Storybook's light and dark
+                themes; the story uses fake action ports and does not call
+                Chrome. Browser coverage verifies initial and modified window
+                selection, selected-window groups, right-clicking a window with
+                two groups and seven tabs (seven-tab count and close action),
+                count alignment, tooltip-only disabled reasons,
+                operation-specific counts, color swatches, silent
+                collapse/expand, toast and menu layering, submenu scrolling, and
+                focus return.</p
+              ><p style="margin: 8px 0 0"
+                ><b>Known unrelated test:</b> the unfiltered Vitest run passed
+                87 of 88 tests and failed
+                <code>packages/ui/lib/omnibar/Omnibar.spec.tsx</code> (“should
+                select item on mouse move”). The focused batch, selection, and
+                layout files all pass. Repository-wide lint remains unverified;
+                the previous invocation ran without output for more than three
+                minutes.</p
+              ></div
+            >
+          </section>
+
+          <section class="section" id="release">
+            <p class="section-kicker">06 / Release notes</p>
+            <h2>Document the action surface users get.</h2>
+            <p
+              >Release notes reflect the shipped selection patterns and action
+              families, including fixed selected-item counts, shared
+              ellipsis/right-click menu, per-operation target counts, and the
+              rule that grouping is disabled when selected tabs span windows.
+              Keep bookmarks, tree view, and a second command palette out of
+              this release description.</p
+            >
+          </section>
+
+          <section class="section" id="references">
+            <p class="section-kicker">07 / Source material</p>
+            <h2>Evidence used for this plan.</h2>
+            <ul>
+              <li
+                ><a href="https://github.com/michaeldrotar/tabby/issues/24"
+                  >Issue #24 — Complete batch tab actions through the shared
+                  action bar</a
+                ></li
+              >
+              <li
+                ><a href="https://github.com/michaeldrotar/tabby/pull/23"
+                  >PR #23</a
+                >, merged into <code>next</code> at
+                <a href="https://github.com/michaeldrotar/tabby/commit/bcf0d9d"
+                  >bcf0d9d</a
+                >.</li
+              >
+              <li
+                ><a
+                  href="https://developer.chrome.com/docs/extensions/reference/api/tabs"
+                  >Chrome tabs API reference</a
+                >
+                and Chromium’s
+                <a
+                  href="https://chromium.googlesource.com/chromium/src/+/7c625a41780a3ad3d0b5f1a3199d63ebabbca557/chrome/browser/extensions/api/tabs/tabs_api_unittest.cc"
+                  >cross-window group API test</a
+                >.</li
+              >
+              <li
+                >Repository selection code in
+                <code>pages/tab-manager/src/selection/</code>, tab / group
+                action hooks, <code>packages/ui/lib/BrowserTabItem.tsx</code>,
+                and the existing Storybook workflow stories.</li
+              >
+            </ul>
+          </section>
+        </article>
+      </div>
+
+      <footer
+        ><span>Tabby / Batch tab actions / 1.3.0</span
+        ><span>Plan revised 03 Oct 2026 · Issue #24 + QA feedback</span></footer
+      >
+    </main>
+
+    <script>
+      ;(() => {
+        const key = 'tabby-batch-tab-actions-v1.3.0-checklist-v7'
+        const inputs = [...document.querySelectorAll('[data-step]')]
+        const progress = document.getElementById('progress-count')
+        const fill = document.getElementById('progress-fill')
+
+        const save = () => {
+          const values = Object.fromEntries(
+            inputs.map((input) => [input.dataset.step, input.checked]),
+          )
+          localStorage.setItem(key, JSON.stringify(values))
+          const complete = inputs.filter((input) => input.checked).length
+          progress.textContent = `${complete} / ${inputs.length}`
+          fill.style.width = `${(complete / inputs.length) * 100}%`
+        }
+
+        try {
+          const savedValue = localStorage.getItem(key)
+          const saved = savedValue ? JSON.parse(savedValue) : null
+          for (const input of inputs) {
+            input.checked = saved
+              ? saved[input.dataset.step] === true
+              : input.dataset.complete === 'true'
+          }
+        } catch {
+          /* A malformed local preference should not break the checklist. */
+        }
+
+        for (const input of inputs) input.addEventListener('change', save)
+        document
+          .getElementById('reset-checklist')
+          .addEventListener('click', () => {
+            for (const input of inputs) input.checked = false
+            save()
+          })
+        save()
+      })()
+    </script>
+  </body>
+</html>

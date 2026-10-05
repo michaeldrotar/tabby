@@ -93,6 +93,63 @@
   "tabContextMenu_closeTab": {
     "message": "Close Tab"
   },
+  "batch_closeTabs": {
+    "message": "Close $1"
+  },
+  "batch_moveTabs": {
+    "message": "Move $1 to window"
+  },
+  "batch_groupTabs": {
+    "message": "Group $1"
+  },
+  "batch_duplicateTabs": {
+    "message": "Duplicate $1"
+  },
+  "batch_reloadTabs": {
+    "message": "Reload $1"
+  },
+  "batch_pinTabs": {
+    "message": "Pin $1"
+  },
+  "batch_unpinTabs": {
+    "message": "Unpin $1"
+  },
+  "batch_muteTabs": {
+    "message": "Mute $1"
+  },
+  "batch_unmuteTabs": {
+    "message": "Unmute $1"
+  },
+  "batch_removeFromGroup": {
+    "message": "Remove $1 from group"
+  },
+  "batch_ungroupTabs": {
+    "message": "Ungroup $1"
+  },
+  "batch_copyTabs": {
+    "message": "Copy $1"
+  },
+  "batch_copyUrls": {
+    "message": "Copy URLs"
+  },
+  "batch_copyTitles": {
+    "message": "Copy titles"
+  },
+  "batch_copyTitlesAndUrls": {
+    "message": "Copy titles and URLs"
+  },
+  "batch_tabActions": {
+    "message": "Tab actions"
+  },
+  "batch_groupActions": {
+    "message": "Group actions"
+  },
+  "batch_windowActions": {
+    "message": "Window actions"
+  },
+  "batch_closeWindows": {
+    "message": "Close $1 windows"
+  },
 
   "windowLabel_popup": {
     "message": "Popup Window"
@@ -213,6 +270,30 @@
   "toast_nUrlsCopied_one": {
     "message": "1 URL copied"
   },
+  "toast_nTitlesCopied": {
+    "message": "$COUNT$ titles copied",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "toast_nTitlesCopied_one": {
+    "message": "1 title copied"
+  },
+  "toast_nTabDetailsCopied": {
+    "message": "$COUNT$ tab details copied",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "toast_nTabDetailsCopied_one": {
+    "message": "1 tab's details copied"
+  },
   "toast_nTabsClosed": {
     "message": "$COUNT$ tabs closed",
     "placeholders": {
@@ -224,6 +305,58 @@
   },
   "toast_nTabsClosed_one": {
     "message": "1 tab closed"
+  },
+  "toast_nTabsMoved": {
+    "message": "$COUNT$ tabs moved",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsMoved_one": {
+    "message": "1 tab moved"
+  },
+  "toast_nTabsGrouped": {
+    "message": "$COUNT$ tabs grouped",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsGrouped_one": {
+    "message": "1 tab grouped"
+  },
+  "toast_nTabsActionPartial": {
+    "message": "$0 of $1 selected tabs $2 successfully"
+  },
+  "toast_batchTabsActionComplete": {
+    "message": "$0 $1 successfully"
+  },
+  "toast_batchEntityActionComplete": {
+    "message": "$1",
+    "placeholders": {
+      "result": {
+        "content": "$1",
+        "example": "2 windows closed successfully"
+      }
+    }
+  },
+  "toast_batchEntityActionPartial": {
+    "message": "$1; $2 failed",
+    "placeholders": {
+      "result": {
+        "content": "$1",
+        "example": "1 of 2 windows closed"
+      },
+      "failures": {
+        "content": "$2",
+        "example": "1 window"
+      }
+    }
   },
 
   "common_untitled": {

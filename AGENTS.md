@@ -70,5 +70,5 @@ When writing tests, mocking, configuring coverage, or working with test filterin
 
 - Functional React components; TypeScript strict; Tailwind for styling.
 - Import from `@extension/*` packages (e.g. `@extension/ui`, `@extension/chrome`, `@extension/storage`). Use `workspace:*` in package.json.
-- Chrome extension: manifest from `chrome-extension/manifest.ts`; background in `chrome-extension/src/background/index.ts`; use `activeTab`, not persistent content scripts; use `@extension/storage` instead of raw `chrome.storage`.
+- Chrome extension: manifest from `chrome-extension/manifest.ts`; background in `chrome-extension/src/background/index.ts`; keep user interfaces in extension-owned surfaces instead of injecting into pages; use `@extension/storage` instead of raw `chrome.storage`.
 - Before editing code, read applicable skills and guidance from the listing above; then follow those guidelines.

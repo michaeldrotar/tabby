@@ -10,10 +10,7 @@
   ],
   "exports": {
     "./*": {
-      "types": [
-        "./lib/*.ts",
-        "./lib/*.tsx"
-      ],
+      "types": "./lib/*.ts",
       "default": "./dist/lib/*.js"
     }
   },

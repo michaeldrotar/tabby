@@ -182,6 +182,9 @@ importers:
 
   packages/chrome:
     dependencies:
+      '@extension/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tanstack/react-query':
         specifier: 5.90.7
         version: 5.90.7(react@19.2.3)
@@ -311,6 +314,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@extension/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@radix-ui/react-context-menu':
         specifier: ^2.2.16
         version: 2.2.16(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

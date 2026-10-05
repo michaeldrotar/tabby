@@ -19,6 +19,10 @@ export type OmnibarResultGenerators = {
     tabs: OmnibarSearchResult[],
     queryTerms: string[],
   ) => OmnibarSearchResult[]
+  getMatchingTabGroups?: (
+    groups: OmnibarSearchResult[],
+    queryTerms: string[],
+  ) => OmnibarSearchResult[]
 }
 
 const compareOmnibarScoredItems = (
@@ -42,6 +46,7 @@ export const useOmnibarFiltering = (
   tabs: OmnibarSearchResult[],
   externalResults: OmnibarSearchResult[],
   generators: OmnibarResultGenerators,
+  groups: OmnibarSearchResult[] = [],
 ) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -50,6 +55,7 @@ export const useOmnibarFiltering = (
     getUrlNavigationItem,
     getMatchingCommands,
     getMatchingTabs,
+    getMatchingTabGroups,
   } = generators
 
   const filteredItems = useMemo(() => {
@@ -65,6 +71,7 @@ export const useOmnibarFiltering = (
     const rankedItems = [
       ...getMatchingCommands(queryTerms),
       ...getMatchingTabs(tabs, queryTerms),
+      ...(getMatchingTabGroups?.(groups, queryTerms) ?? []),
       ...externalResults,
     ]
 
@@ -101,6 +108,8 @@ export const useOmnibarFiltering = (
     getUrlNavigationItem,
     getMatchingCommands,
     getMatchingTabs,
+    getMatchingTabGroups,
+    groups,
   ])
 
   return { filteredItems, selectedIndex, setSelectedIndex }

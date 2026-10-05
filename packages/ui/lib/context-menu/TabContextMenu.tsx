@@ -69,6 +69,11 @@ export type TabContextMenuProps = {
   currentWindowId?: number
   labels: TabContextMenuLabels
   isMac?: boolean
+  onOpenChange?: (open: boolean) => void
+  groupActionsDisabled?: boolean
+  groupActionsDisabledReason?: string
+  moveNewWindowDisabledReason?: string
+  getMoveDisabledReason?: (windowId: number) => string | undefined
   onPin?: () => void
   onUnpin?: () => void
   onMute?: () => void
@@ -96,6 +101,11 @@ export const TabContextMenu = ({
   currentWindowId,
   labels,
   isMac = false,
+  onOpenChange,
+  groupActionsDisabled = false,
+  groupActionsDisabledReason,
+  moveNewWindowDisabledReason,
+  getMoveDisabledReason,
   onPin,
   onUnpin,
   onMute,
@@ -123,7 +133,7 @@ export const TabContextMenu = ({
   const availableGroups = groups.filter((g) => g.id !== tab.groupId)
 
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-56">
         {/* Navigation */}
@@ -169,12 +179,16 @@ export const TabContextMenu = ({
 
         {/* Grouping */}
         <ContextMenuSub>
-          <ContextMenuSubTrigger>
+          <ContextMenuSubTrigger disabled={groupActionsDisabled}>
             <FolderPlus className="size-4" aria-hidden="true" />
             <span>{labels.addToGroup}</span>
           </ContextMenuSubTrigger>
           <ContextMenuSubContent>
-            <ContextMenuItem onSelect={onAddToNewGroup}>
+            <ContextMenuItem
+              disabled={groupActionsDisabled}
+              title={groupActionsDisabledReason}
+              onSelect={onAddToNewGroup}
+            >
               <FolderPlus className="size-4" aria-hidden="true" />
               <span>{labels.newGroup}</span>
             </ContextMenuItem>
@@ -184,6 +198,15 @@ export const TabContextMenu = ({
                 {availableGroups.map((group) => (
                   <ContextMenuItem
                     key={group.id}
+                    disabled={
+                      groupActionsDisabled || group.windowId !== tab.windowId
+                    }
+                    title={
+                      groupActionsDisabledReason ||
+                      (group.windowId !== tab.windowId
+                        ? 'Selected tabs must be in the target group’s window.'
+                        : undefined)
+                    }
                     onSelect={() => onAddToGroup?.(group.id)}
                   >
                     <div
@@ -214,12 +237,18 @@ export const TabContextMenu = ({
         {(otherWindows.length > 0 || onMoveToNewWindow) && (
           <>
             <ContextMenuSub>
-              <ContextMenuSubTrigger>
+              <ContextMenuSubTrigger
+                disabled={Boolean(moveNewWindowDisabledReason)}
+              >
                 <MonitorUp className="size-4" aria-hidden="true" />
                 <span>{labels.moveToWindow}</span>
               </ContextMenuSubTrigger>
               <ContextMenuSubContent>
-                <ContextMenuItem onSelect={onMoveToNewWindow}>
+                <ContextMenuItem
+                  disabled={Boolean(moveNewWindowDisabledReason)}
+                  title={moveNewWindowDisabledReason}
+                  onSelect={onMoveToNewWindow}
+                >
                   <ExternalLink className="size-4" aria-hidden="true" />
                   <span>{labels.newWindow}</span>
                 </ContextMenuItem>
@@ -229,6 +258,8 @@ export const TabContextMenu = ({
                     {otherWindows.map((window) => (
                       <ContextMenuItem
                         key={window.id}
+                        disabled={Boolean(getMoveDisabledReason?.(window.id))}
+                        title={getMoveDisabledReason?.(window.id)}
                         onSelect={() => onMoveToWindow?.(window.id)}
                       >
                         <MonitorUp className="size-4" aria-hidden="true" />

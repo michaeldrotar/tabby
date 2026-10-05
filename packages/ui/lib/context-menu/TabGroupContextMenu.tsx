@@ -55,6 +55,9 @@ export type TabGroupContextMenuProps = {
   onCopyUrls?: () => void
   onMoveToNewWindow?: () => void
   onClose?: () => void
+  onOpenChange?: (open: boolean) => void
+  renameDisabled?: boolean
+  renameDisabledReason?: string
 }
 
 export const TabGroupContextMenu = ({
@@ -69,9 +72,12 @@ export const TabGroupContextMenu = ({
   onCopyUrls,
   onMoveToNewWindow,
   onClose,
+  onOpenChange,
+  renameDisabled = false,
+  renameDisabledReason,
 }: TabGroupContextMenuProps) => {
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={onOpenChange}>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-56">
         <ContextMenuItem onSelect={onToggleCollapse}>
@@ -90,7 +96,11 @@ export const TabGroupContextMenu = ({
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem onSelect={onRename}>
+        <ContextMenuItem
+          disabled={renameDisabled}
+          title={renameDisabledReason}
+          onSelect={onRename}
+        >
           <Pencil className="size-4" aria-hidden="true" />
           <span>{labels.renameGroup}</span>
         </ContextMenuItem>
