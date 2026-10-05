@@ -25,17 +25,18 @@ export const getWindowSwitchCommandName = (index: number): string => {
   if (number === undefined)
     throw new Error(`Invalid window switch slot: ${index}`)
 
-  // Keep the existing command name for slot 10 so assigned Chrome shortcuts persist.
-  const commandNumber = number === WINDOW_SWITCH_SLOT_COUNT ? 0 : number
-  return `focus-window-${commandNumber}`
+  return `focus-window-${String(number).padStart(2, '0')}`
 }
 
 export const getWindowSwitchSlotIndexFromCommand = (
   command: string,
 ): number | undefined => {
-  const match = /^focus-window-([0-9])$/.exec(command)
+  const match = /^focus-window-(\d{2})$/.exec(command)
   if (!match?.[1]) return undefined
-  return getWindowSwitchSlotIndexFromKey(match[1])
+
+  const number = Number(match[1])
+  if (number < 1 || number > WINDOW_SWITCH_SLOT_COUNT) return undefined
+  return number - 1
 }
 
 export const orderWindowsById = <T extends { id: number }>(windows: T[]): T[] =>
