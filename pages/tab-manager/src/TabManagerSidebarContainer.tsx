@@ -6,7 +6,6 @@ import { t } from '@extension/i18n/i18n'
 import { tt } from '@extension/i18n/plurals'
 import { usePreferenceStorage } from '@extension/shared/hooks/preference'
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
-import { WindowContextMenu } from '@extension/ui/context-menu/WindowContextMenu'
 import { Favicon } from '@extension/ui/Favicon'
 import {
   PlusIcon,
@@ -17,22 +16,10 @@ import {
 import { SidebarAction } from '@extension/ui/tab-manager/ui/SidebarAction'
 import { TabManagerSidebar } from '@extension/ui/tab-manager/ui/TabManagerSidebar'
 import { WindowRailItem } from '@extension/ui/tab-manager/ui/WindowRailItem'
-import { useCallback } from 'react'
-import { useWindowActions } from './hooks/useWindowActions'
+import { useCallback, useMemo } from 'react'
+import { useBatchTabActions } from './actions/useBatchTabActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
-import type { WindowContextMenuLabels } from '@extension/ui/context-menu/WindowContextMenu'
-
-// Build label object for window context menu
-const windowContextMenuLabels: WindowContextMenuLabels = {
-  focusWindow: t('windowContextMenu_focusWindow'),
-  muteAllTabs: t('windowContextMenu_muteAllTabs'),
-  unmuteAllTabs: t('windowContextMenu_unmuteAllTabs'),
-  reloadAllTabs: t('windowContextMenu_reloadAllTabs'),
-  copyAllUrls: t('windowContextMenu_copyAllUrls'),
-  closeWindow: t('windowContextMenu_closeWindow'),
-  nTabs: (count: number) => tt('nTabs', count),
-}
 
 // Helper to get active tab url
 const useDisplayTabUrl = (windowId: number) => {
@@ -56,6 +43,8 @@ const WindowItemContainer = ({
   selected,
   isMultiSelectMode,
   onSelect,
+  onContextMenu,
+  onClose,
 }: {
   window: BrowserWindow
   isCurrent: boolean
@@ -64,50 +53,36 @@ const WindowItemContainer = ({
   selected: boolean
   isMultiSelectMode: boolean
   onSelect: (window: BrowserWindow, event: React.MouseEvent) => void
+  onContextMenu: (
+    window: BrowserWindow,
+    event: React.MouseEvent<HTMLDivElement>,
+  ) => void
+  onClose: () => void
 }) => {
   const displayTabUrl = useDisplayTabUrl(window.id)
   const tabs = useBrowserTabsByWindowId(window.id)
   const activeTab = tabs.find((tab) => tab.active)
   const title = activeTab?.title || `Window ${window.id}`
 
-  const hasAudibleTabs = tabs.some((t) => t.audible)
-  const hasMutedTabs = tabs.some((t) => t.mutedInfo?.muted)
-
-  const actions = useWindowActions(window, tabs)
-
   return (
-    <WindowContextMenu
-      window={window}
-      tabCount={tabs.length}
-      hasAudibleTabs={hasAudibleTabs}
-      hasMutedTabs={hasMutedTabs}
-      isCurrent={isCurrent}
-      labels={windowContextMenuLabels}
-      onFocus={actions.focus}
-      onMuteAll={actions.muteAll}
-      onUnmuteAll={actions.unmuteAll}
-      onReloadAll={actions.reloadAll}
-      onCopyAllUrls={actions.copyAllUrls}
-      onClose={actions.close}
-    >
-      <WindowRailItem
-        id={window.id}
-        title={title}
-        icon={
-          displayTabUrl ? (
-            <Favicon pageUrl={displayTabUrl} size={24} />
-          ) : undefined
-        }
-        subtitle={tt('nTabs', tabs.length)}
-        isActive={isCurrent}
-        isViewing={isViewing}
-        isExpanded={isExpanded}
-        selected={selected}
-        isMultiSelectMode={isMultiSelectMode}
-        onClick={(e) => onSelect(window, e)}
-        onClose={actions.close}
-      />
-    </WindowContextMenu>
+    <WindowRailItem
+      id={window.id}
+      title={title}
+      icon={
+        displayTabUrl ? (
+          <Favicon pageUrl={displayTabUrl} size={24} />
+        ) : undefined
+      }
+      subtitle={tt('nTabs', tabs.length)}
+      isActive={isCurrent}
+      isViewing={isViewing}
+      isExpanded={isExpanded}
+      selected={selected}
+      isMultiSelectMode={isMultiSelectMode}
+      onClick={(event) => onSelect(window, event)}
+      onContextMenu={(event) => onContextMenu(window, event)}
+      onClose={onClose}
+    />
   )
 }
 
@@ -117,6 +92,7 @@ export const TabManagerSidebarContainer = ({
   onOpenSearch,
   onOpenSettings,
   onOpenTarget,
+  onOpenActionMenu,
 }: {
   /**
    * The selected window ID, whose content is shown in the tab pane.
@@ -127,6 +103,7 @@ export const TabManagerSidebarContainer = ({
   onOpenSearch: () => void
   onOpenSettings: () => void
   onOpenTarget: () => void
+  onOpenActionMenu: () => void
 }) => {
   const browserWindows = useBrowserWindows()
   const currentBrowserWindow = useCurrentBrowserWindow()
@@ -139,6 +116,15 @@ export const TabManagerSidebarContainer = ({
 
   // Selection interaction handler
   const selectionInteraction = useSelectionInteraction()
+  const batchActions = useBatchTabActions()
+  const orderedWindowItems = useMemo(
+    () =>
+      browserWindows.map((window) => ({
+        type: 'window' as const,
+        id: window.id,
+      })),
+    [browserWindows],
+  )
 
   const handleSelectWindow = useCallback(
     (window: BrowserWindow, event: React.MouseEvent) => {
@@ -151,12 +137,25 @@ export const TabManagerSidebarContainer = ({
           ctrlKey: event.ctrlKey,
         },
         'window',
+        orderedWindowItems,
       )
       // Also update the viewing window (for now, always show clicked window)
       // TODO: In the future, derive viewing window from selection store
       onSelectWindow(window)
     },
-    [selectionInteraction, onSelectWindow],
+    [orderedWindowItems, selectionInteraction, onSelectWindow],
+  )
+
+  const handleWindowContextMenu = useCallback(
+    (window: BrowserWindow, event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      const wasSelected = selectedWindowIds.has(window.id)
+      selectionInteraction.handleWindowContextMenu(window.id)
+      if (!wasSelected) onSelectWindow(window)
+      onOpenActionMenu()
+    },
+    [onOpenActionMenu, onSelectWindow, selectedWindowIds, selectionInteraction],
   )
 
   const isExpanded = tabManagerCompactLayout === 'list'
@@ -196,6 +195,10 @@ export const TabManagerSidebarContainer = ({
           selected={selectedWindowIds.has(window.id)}
           isMultiSelectMode={isMultiSelectMode}
           onSelect={handleSelectWindow}
+          onContextMenu={handleWindowContextMenu}
+          onClose={() =>
+            void batchActions.performWindowAction('close', [window.id])
+          }
         />
       ))}
     </>
@@ -217,7 +220,7 @@ export const TabManagerSidebarContainer = ({
       />
       <SidebarAction
         icon={<SearchIcon className="size-5" />}
-        label="Search"
+        label="Search everything"
         onClick={onOpenSearch}
         isExpanded={isExpanded}
       />

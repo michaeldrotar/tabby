@@ -1,44 +1,61 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const useOmnibarQuery = (
   inputRef: React.RefObject<HTMLInputElement | null>,
 ) => {
   const [query, setQuery] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
+  const hasFocusedInitialInput = useRef(false)
 
   useEffect(() => {
-    // Load last query
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.get('lastQuery').then((res) => {
-        if (res.lastQuery) {
-          setQuery(res.lastQuery as string)
-        }
-        setIsLoaded(true)
+    let cancelled = false
 
-        // Focus and select
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus()
-            if (res.lastQuery) {
-              inputRef.current.select()
-            }
+    const loadLastQuery = async () => {
+      let lastQuery = ''
+
+      if (
+        typeof chrome !== 'undefined' &&
+        chrome.storage &&
+        chrome.storage.local
+      ) {
+        try {
+          const result = await chrome.storage.local.get('lastQuery')
+          if (typeof result.lastQuery === 'string') {
+            lastQuery = result.lastQuery
           }
-        }, 50)
-      })
-    } else {
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 50)
+        } catch (error) {
+          console.debug('Could not load the last search query', { error })
+        }
+      }
+
+      if (cancelled) return
+      setQuery(lastQuery)
+      setIsLoaded(true)
+    }
+
+    void loadLastQuery()
+
+    return () => {
+      cancelled = true
     }
   }, [inputRef])
 
   useEffect(() => {
-    if (isLoaded) {
-      chrome.storage.local.set({ lastQuery: query })
+    if (!isLoaded || hasFocusedInitialInput.current) return
+
+    hasFocusedInitialInput.current = true
+    inputRef.current?.focus()
+    if (query) inputRef.current?.select()
+  }, [inputRef, isLoaded, query])
+
+  useEffect(() => {
+    if (
+      isLoaded &&
+      typeof chrome !== 'undefined' &&
+      chrome.storage &&
+      chrome.storage.local
+    ) {
+      void chrome.storage.local.set({ lastQuery: query })
     }
   }, [query, isLoaded])
 

@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { formatShortcut } from '@extension/shared/utils/platform'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { LayoutGridIcon, SettingsIcon } from '../icons'
 import { ScrollArea } from '../ScrollArea'
 import { cn } from '../utils/cn'
@@ -28,7 +29,9 @@ export type OmnibarProps = {
   /** If true, hides the "Open Tab Manager" quick action (useful when already in Tab Manager) */
   hideTabManagerAction?: boolean
   /** Callback to open the side panel tab manager */
-  onOpenTabManager?: () => void
+  onOpenTabManager?: () => void | Promise<void>
+  /** The active Chrome command shortcut for opening the side panel */
+  openTabManagerShortcut?: string
   /** The window ID that originally opened the omnibar (for routing results back) */
   originalWindowId?: number
   /** Whether running on macOS (for keyboard shortcuts) */
@@ -44,6 +47,7 @@ export const Omnibar = ({
   generators,
   hideTabManagerAction,
   onOpenTabManager,
+  openTabManagerShortcut,
   originalWindowId,
   isMac = false,
 }: OmnibarProps) => {
@@ -56,6 +60,16 @@ export const Omnibar = ({
   const { filteredItems, selectedIndex, setSelectedIndex } =
     useOmnibarFiltering(query, tabs, externalResults, generators, groups)
 
+  const openTabManager = useCallback(() => {
+    if (!onOpenTabManager) return
+
+    void Promise.resolve(onOpenTabManager())
+      .then(onDismiss)
+      .catch((error) => {
+        console.warn('Could not open the Tab Manager side panel', error)
+      })
+  }, [onDismiss, onOpenTabManager])
+
   // Quick actions for empty state
   const quickActions = useMemo(() => {
     const actions = []
@@ -65,10 +79,8 @@ export const Omnibar = ({
         id: 'open-tab-manager',
         icon: <LayoutGridIcon className="h-4 w-4" />,
         label: 'Open Tab Manager',
-        onClick: () => {
-          onOpenTabManager()
-          onDismiss()
-        },
+        shortcut: formatShortcut(openTabManagerShortcut, isMac),
+        onClick: openTabManager,
       })
     }
 
@@ -83,7 +95,14 @@ export const Omnibar = ({
     })
 
     return actions
-  }, [hideTabManagerAction, onOpenTabManager, onDismiss])
+  }, [
+    hideTabManagerAction,
+    isMac,
+    onDismiss,
+    onOpenTabManager,
+    openTabManager,
+    openTabManagerShortcut,
+  ])
 
   const handleSelect = async (
     item: OmnibarSearchResult,

@@ -8,10 +8,14 @@ import { Profiler } from '@extension/shared/Profiler'
 import { Skeleton } from '@extension/ui/components/Skeleton'
 import { TabListSkeleton } from '@extension/ui/components/TabListSkeleton'
 import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ActionBar } from './action-bar'
 import { useKeyboardNavigation } from './hooks/useKeyboardNavigation'
-import { SearchPopup } from './SearchPopup'
-import { useSelectionStore, useSelectionSync } from './selection'
+import {
+  useSelectionInteraction,
+  useSelectionStore,
+  useSelectionSync,
+} from './selection'
 import { ModeTransitionEffect } from './selection/ModeTransitionEffect'
 import { TabItemPane } from './TabItemPane'
 import { TabManagerDebugLogger } from './TabManagerDebugLogger'
@@ -33,8 +37,11 @@ const TabManager = () => {
   const currentBrowserWindow = useCurrentBrowserWindow()
   const selectedWindowId = useSelectedWindowId()
   const setSelectedWindowId = useSetSelectedWindowId()
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [renamingGroupId, setRenamingGroupId] = useState<number | undefined>()
+  const [openMenuRequest, setOpenMenuRequest] = useState(0)
   const selectionMode = useSelectionStore((s) => s.mode)
+  const selectionInteraction = useSelectionInteraction()
+  const initializedSelectionRef = useRef(false)
 
   // Sync selection state with browser store (removes closed tabs/windows from selection)
   useSelectionSync()
@@ -45,6 +52,10 @@ const TabManager = () => {
     },
     [setSelectedWindowId],
   )
+
+  const requestActionMenuOpen = useCallback(() => {
+    setOpenMenuRequest((request) => request + 1)
+  }, [])
 
   const onActivateWindow = useCallback(
     async (windowId: number) => {
@@ -72,6 +83,41 @@ const TabManager = () => {
   // For target action
   const tabs = useBrowserTabsByWindowId(currentBrowserWindow?.id)
   const activeTab = tabs.find((t) => t.active)
+
+  // Seed the selection once on the first loaded view. A selected window resolves
+  // to its active tab, so it stays harmless for batch actions until explicitly
+  // expanded with a range or modifier gesture.
+  useEffect(() => {
+    if (
+      storeState !== 'loaded' ||
+      currentBrowserWindow?.id === undefined ||
+      !activeTab?.id ||
+      initializedSelectionRef.current
+    ) {
+      return
+    }
+
+    initializedSelectionRef.current = true
+    const state = useSelectionStore.getState()
+    const hasSelection =
+      state.windowIds.size > 0 ||
+      state.groupIds.size > 0 ||
+      state.tabIds.size > 0
+    if (!hasSelection) {
+      selectionInteraction.handleArrowNavigation(
+        { type: 'window', id: currentBrowserWindow.id },
+        'window',
+        { forceSingleSelect: true },
+      )
+      setSelectedWindowId(currentBrowserWindow.id)
+    }
+  }, [
+    activeTab?.id,
+    currentBrowserWindow?.id,
+    selectionInteraction,
+    setSelectedWindowId,
+    storeState,
+  ])
 
   // Listen for window activation messages from other windows
   useEffect(() => {
@@ -139,31 +185,6 @@ const TabManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBrowserWindow?.id, activeTab?.id]) // Only run when these change (e.g. mount or window switch)
 
-  // TODO: Re-enable ESC to close tab manager after selection system is complete
-  // Currently disabled to allow testing selection with ESC key
-  // useEffect(() => {
-  //   const handleKeyUp = (e: KeyboardEvent) => {
-  //     if (e.key === 'Escape') {
-  //       // Check after keyup - if context menu was open, Radix already closed it
-  //       const contextMenu = document.querySelector('[data-radix-menu-content]')
-  //       if (contextMenu) {
-  //         return
-  //       }
-  //
-  //       if (isSearchOpen) {
-  //         setIsSearchOpen(false)
-  //       } else {
-  //         window.close()
-  //       }
-  //     }
-  //   }
-  //   window.addEventListener('keyup', handleKeyUp)
-  //
-  //   return () => {
-  //     window.removeEventListener('keyup', handleKeyUp)
-  //   }
-  // }, [isSearchOpen])
-
   const onSelectWindowCallback = useCallback(
     (window: BrowserWindow) => {
       setSelectedWindowId(window.id)
@@ -172,11 +193,23 @@ const TabManager = () => {
   )
 
   const openSearch = useCallback(() => {
-    setIsSearchOpen(true)
+    const windowId = currentBrowserWindow?.id
+    const openPopup =
+      windowId === undefined
+        ? chrome.action.openPopup()
+        : chrome.action.openPopup({ windowId })
+
+    void openPopup.catch((error) => {
+      console.warn('Could not open the Tabby search popup', error)
+    })
+  }, [currentBrowserWindow?.id])
+
+  const startGroupRename = useCallback((groupId: number) => {
+    setRenamingGroupId(groupId)
   }, [])
 
-  const closeSearch = useCallback(() => {
-    setIsSearchOpen(false)
+  const endGroupRename = useCallback(() => {
+    setRenamingGroupId(undefined)
   }, [])
 
   const openSettings = useCallback(() => {
@@ -220,12 +253,18 @@ const TabManager = () => {
 
   return (
     <Profiler id="TabManager">
-      <SearchPopup isOpen={isSearchOpen} onClose={closeSearch} />
       <TabManagerShell
         selectionMode={selectionMode}
         overlay={
           <ModeTransitionEffect
             isMultiSelectMode={selectionMode === 'multi-select'}
+          />
+        }
+        actionBar={
+          <ActionBar
+            selectedWindowId={selectedWindowId}
+            onRenameGroup={startGroupRename}
+            openMenuRequest={openMenuRequest}
           />
         }
         sidebar={
@@ -236,13 +275,20 @@ const TabManager = () => {
               onOpenSearch={openSearch}
               onOpenSettings={openSettings}
               onOpenTarget={openTarget}
+              onOpenActionMenu={requestActionMenuOpen}
             />
           </Profiler>
         }
       >
         {selectedWindowId && (
           <Profiler id="TabManager.TabItemPane">
-            <TabItemPane browserWindowId={selectedWindowId} />
+            <TabItemPane
+              browserWindowId={selectedWindowId}
+              renamingGroupId={renamingGroupId}
+              onRenameGroupStart={startGroupRename}
+              onRenameGroupEnd={endGroupRename}
+              onOpenActionMenu={requestActionMenuOpen}
+            />
           </Profiler>
         )}
       </TabManagerShell>
