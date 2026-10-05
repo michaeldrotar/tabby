@@ -63,6 +63,11 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
+  const actionModifier = isShiftPressed
+    ? 'new-window'
+    : isCmdCtrlPressed
+      ? 'new-tab'
+      : undefined
   const groupColorClasses =
     item.type === 'tab-group' ? getGroupColorClasses(item.groupColor) : null
 
@@ -106,7 +111,11 @@ export const OmnibarItem = ({
         {item.type === 'tab-group' ? (
           <div
             className={cn(
-              'bg-input relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded ring-1 ring-black/5 dark:ring-white/10',
+              `
+                bg-input relative flex h-8 w-8 flex-shrink-0 items-center
+                justify-center rounded ring-1 ring-black/5
+                dark:ring-white/10
+              `,
               groupColorClasses?.bg,
             )}
           >
@@ -117,7 +126,10 @@ export const OmnibarItem = ({
             <span
               aria-hidden="true"
               className={cn(
-                'absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ring-2 ring-card',
+                `
+                  ring-card absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full
+                  ring-2
+                `,
                 groupColorClasses?.dot,
               )}
             />
@@ -250,18 +262,21 @@ export const OmnibarItem = ({
 
         {isSelected && (
           <span className="text-muted flex-shrink-0 text-xs">
-            {getOmnibarActionLabel(item)}
-            {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
-              item.type,
-            ) && (
-              <>
-                {isShiftPressed ? (
-                  <span className="ml-1 opacity-50"> in New Window</span>
-                ) : isCmdCtrlPressed ? (
-                  <span className="ml-1 opacity-50"> in New Tab</span>
-                ) : null}
-              </>
-            )}
+            {getOmnibarActionLabel(item, actionModifier)}
+            {[
+              'bookmark',
+              'history',
+              'url',
+              'search',
+              'recently-closed',
+            ].includes(item.type) &&
+              actionModifier && (
+                <span className="ml-1 opacity-50">
+                  {actionModifier === 'new-window'
+                    ? ' in New Window'
+                    : ' in New Tab'}
+                </span>
+              )}
           </span>
         )}
       </button>
