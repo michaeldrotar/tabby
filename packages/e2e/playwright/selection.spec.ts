@@ -516,7 +516,10 @@ test.describe('Tab Manager Selection', () => {
   })
 
   test.describe('Keyboard Navigation', () => {
-    test('Backspace closes the focused window', async ({ page, extensionId }) => {
+    test('Backspace closes the focused window', async ({
+      page,
+      extensionId,
+    }) => {
       await openTabManager(page, extensionId)
 
       const windowId = await page.evaluate(async () => {
