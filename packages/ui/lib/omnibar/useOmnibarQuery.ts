@@ -3,9 +3,15 @@ import { useEffect, useRef, useState } from 'react'
 export const useOmnibarQuery = (
   inputRef: React.RefObject<HTMLInputElement | null>,
 ) => {
-  const [query, setQuery] = useState('')
+  const [query, setQueryState] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
   const hasFocusedInitialInput = useRef(false)
+  const hasUserEditedQuery = useRef(false)
+
+  const setQuery = (nextQuery: string) => {
+    hasUserEditedQuery.current = true
+    setQueryState(nextQuery)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -29,7 +35,7 @@ export const useOmnibarQuery = (
       }
 
       if (cancelled) return
-      setQuery(lastQuery)
+      if (!hasUserEditedQuery.current) setQueryState(lastQuery)
       setIsLoaded(true)
     }
 
@@ -45,7 +51,7 @@ export const useOmnibarQuery = (
 
     hasFocusedInitialInput.current = true
     inputRef.current?.focus()
-    if (query) inputRef.current?.select()
+    if (query && !hasUserEditedQuery.current) inputRef.current?.select()
   }, [inputRef, isLoaded, query])
 
   useEffect(() => {
