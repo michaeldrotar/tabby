@@ -151,6 +151,7 @@ export const useKeyboardNavigation = (
         if (!item) return
 
         e.preventDefault()
+        e.stopPropagation()
         const state = useSelectionStore.getState()
         const selection = {
           windowIds: state.windowIds,
@@ -379,9 +380,10 @@ export const useKeyboardNavigation = (
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
+    // Handle delete keys before row-level handlers to close a selection once.
+    window.addEventListener('keydown', handleKeyDown, true)
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', handleKeyDown, true)
     }
   }, [
     onSelectWindow,

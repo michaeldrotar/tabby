@@ -543,7 +543,14 @@ test.describe('Tab Manager Selection', () => {
       expect(await countSelected(page, 'tab')).toBe(2)
       await page.keyboard.press('Backspace')
 
-      await expect(page.getByText('2 tabs closed')).toBeVisible()
+      const closeToast = page.getByText('2 tabs closed')
+      await expect(closeToast).toHaveCount(1)
+      await expect(closeToast).toBeVisible()
+      await expect(
+        page
+          .locator('[data-sonner-toast]')
+          .filter({ hasText: /selected tabs.*successfully/i }),
+      ).toHaveCount(0)
       await expect(firstTab).toHaveCount(0)
       await expect(secondTab).toHaveCount(0)
     })
