@@ -4,11 +4,11 @@ import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrowserWindow'
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { getWindowSwitchCommands } from './omnibarResultGenerators.js'
 import { useOmnibarExternalSearch } from './useOmnibarExternalSearch'
 import { useOmnibarGenerators } from './useOmnibarGenerators'
 import { useOmnibarTabGroups } from './useOmnibarTabGroups'
 import { useOmnibarTabs } from './useOmnibarTabs'
-import { getWindowSwitchCommands } from './omnibarResultGenerators.js'
 
 export type WiredOmnibarProps = {
   className?: string

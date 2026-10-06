@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { getCommandShortcuts } from '@extension/chrome/commands'
+import { useEffect, useState } from 'react'
 
 export const useWindowShortcutBindings = (): Record<number, string> => {
   const [bindings, setBindings] = useState<Record<number, string>>({})

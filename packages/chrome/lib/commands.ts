@@ -1,10 +1,10 @@
 import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
+import { useQuery } from '@tanstack/react-query'
 import {
   getWindowSwitchCommandName,
   getWindowSwitchSlotNumber,
   WINDOW_SWITCH_SLOT_COUNT,
 } from './window/windowSwitchSlots.js'
-import { useQuery } from '@tanstack/react-query'
 import type { TabbyCommand } from '@extension/shared/utils/commands'
 
 export { TABBY_COMMANDS } from '@extension/shared/utils/commands'

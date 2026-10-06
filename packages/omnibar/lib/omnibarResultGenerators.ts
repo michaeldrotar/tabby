@@ -1,8 +1,8 @@
-import { executeOmnibarUrl } from './executeOmnibarUrl.js'
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { getWindowSwitchSlotEntries } from '@extension/chrome/window/windowSwitchSlots'
-import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
+import { executeOmnibarUrl } from './executeOmnibarUrl.js'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
+import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
 
 export const getGoogleSearchItem = (query: string): OmnibarSearchResult => {
   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`

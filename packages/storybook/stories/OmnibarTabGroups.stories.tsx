@@ -1,8 +1,8 @@
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
 import { fn } from 'storybook/test'
-import type { Meta, StoryObj } from '@storybook/react'
 import type { OmnibarSearchResult } from '@extension/ui/omnibar/OmnibarSearchResult'
 import type { OmnibarResultGenerators } from '@extension/ui/omnibar/useOmnibarFiltering'
+import type { Meta, StoryObj } from '@storybook/react'
 
 const onOpenGroup = fn()
 
