@@ -147,6 +147,9 @@ export const useKeyboardNavigation = (
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Window rows own this shortcut so it closes the window itself.
+        if (navType === 'window') return
+
         const item = getSelectionItemFromElement(navItem)
         if (!item) return
 

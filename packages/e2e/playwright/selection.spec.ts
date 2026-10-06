@@ -516,6 +516,31 @@ test.describe('Tab Manager Selection', () => {
   })
 
   test.describe('Keyboard Navigation', () => {
+    test('Backspace closes the focused window', async ({ page, extensionId }) => {
+      await openTabManager(page, extensionId)
+
+      const windowId = await page.evaluate(async () => {
+        const createdWindow = await chrome.windows.create({ focused: false })
+        if (createdWindow.id === undefined) {
+          throw new Error('The test window was not created.')
+        }
+        await chrome.tabs.create({
+          windowId: createdWindow.id,
+          url: 'data:text/html,<title>Window close test</title>',
+        })
+        return createdWindow.id
+      })
+      const windowRow = page.locator(
+        `[data-nav-type="window"][data-nav-id="${windowId}"]`,
+      )
+
+      await expect(windowRow).toBeVisible()
+      await windowRow.click()
+      await page.keyboard.press('Backspace')
+
+      await expect(windowRow).toHaveCount(0)
+    })
+
     test('Backspace closes the selected tab batch', async ({
       page,
       extensionId,
