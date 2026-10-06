@@ -1,6 +1,6 @@
 # Agent Workflow
 
-This is the intended workflow after the branch cutover. These instructions are staged on `next` for review; until the owner completes the cutover, follow the branch named in the task and do not retarget, rename, delete, or merge long-lived branches.
+This is the approved workflow for the repository. `main` is the integration branch for accepted work. Apply the branch and release rules below.
 
 ## Issues
 
@@ -10,7 +10,7 @@ This is the intended workflow after the branch cutover. These instructions are s
 
 ## Feature Work
 
-- After the branch cutover, start feature branches from `main` and open pull requests to `main`.
+- Start feature branches from `main` and open pull requests to `main`.
 - Keep `main` buildable and green. CI checks lint, formatting, type checking, unit tests, Chrome-extension E2E tests, and the production build. Commits have no lint or formatting hooks.
 - Update the active versioned release-notes file directly in the pull request. Add one concise line under the right heading. If a change has no user-facing impact, say so in the pull request instead of adding a note.
 - Add or update tests and, when relevant, documentation, Storybook examples, and marketing-site content. Do not add a duplicate minor-release note for a fix already documented in its patch release.
