@@ -524,10 +524,16 @@ test.describe('Tab Manager Selection', () => {
         if (createdWindow.id === undefined) {
           throw new Error('The test window was not created.')
         }
-        await chrome.tabs.create({
-          windowId: createdWindow.id,
-          url: 'data:text/html,<title>Window close test</title>',
-        })
+        await Promise.all([
+          chrome.tabs.create({
+            windowId: createdWindow.id,
+            url: 'data:text/html,<title>Window close test one</title>',
+          }),
+          chrome.tabs.create({
+            windowId: createdWindow.id,
+            url: 'data:text/html,<title>Window close test two</title>',
+          }),
+        ])
         return createdWindow.id
       })
       const windowRow = page.locator(
