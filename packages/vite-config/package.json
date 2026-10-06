@@ -4,10 +4,13 @@
   "description": "chrome extension - vite base configuration",
   "type": "module",
   "private": true,
-  "sideEffects": true,
-  "types": "index.mts",
-  "main": "dist/index.mjs",
-  "module": "dist/index.mjs",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
+    }
+  },
   "scripts": {
     "clean:node_modules": "pnpx rimraf node_modules",
     "clean:bundle": "pnpx rimraf dist",
@@ -20,6 +23,6 @@
   "devDependencies": {
     "@extension/hmr": "workspace:*",
     "@extension/tsconfig": "workspace:*",
-    "@vitejs/plugin-react-swc": "^3.11.0"
+    "@vitejs/plugin-react-swc": "^4.2.2"
   }
 }

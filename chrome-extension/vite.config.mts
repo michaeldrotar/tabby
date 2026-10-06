@@ -1,16 +1,21 @@
 import { resolve } from 'node:path'
-import { defineConfig, type PluginOption } from 'vite'
+import { env } from '@extension/env/config'
+import { getEnv } from '@extension/env/getEnv'
+import { watchPublicPlugin } from '@extension/hmr/plugins/watch-public-plugin'
+import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
+import { watchOption } from '@extension/vite-config/with-page-config'
 import libAssetsPlugin from '@laynezh/vite-plugin-lib-assets'
+import { defineConfig } from 'vite'
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin.js'
-import { watchPublicPlugin, watchRebuildPlugin } from '@extension/hmr'
-import { watchOption } from '@extension/vite-config'
-import env, { IS_DEV, IS_PROD } from '@extension/env'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import type { PluginOption } from 'vite'
+
+const ENV = getEnv()
 
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
 
-const outDir = resolve(rootDir, '..', 'dist')
+const outDir = resolve(rootDir, '..', ENV['BUILD_OUT_DIR'])
+
 export default defineConfig({
   define: {
     'process.env': env,
@@ -28,8 +33,8 @@ export default defineConfig({
     }) as PluginOption,
     watchPublicPlugin(),
     makeManifestPlugin({ outDir }),
-    IS_DEV && watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }),
-    nodePolyfills(),
+    ENV['IS_DEV'] &&
+      watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }),
   ],
   publicDir: resolve(rootDir, 'public'),
   build: {
@@ -41,9 +46,9 @@ export default defineConfig({
     },
     outDir,
     emptyOutDir: false,
-    sourcemap: IS_DEV,
-    minify: IS_PROD,
-    reportCompressedSize: IS_PROD,
+    sourcemap: ENV['IS_DEV'],
+    minify: ENV['IS_PROD'],
+    reportCompressedSize: ENV['IS_PROD'],
     watch: watchOption,
     rollupOptions: {
       external: ['chrome'],

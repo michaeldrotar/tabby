@@ -1,41 +1,58 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const useOmnibarQuery = (
   inputRef: React.RefObject<HTMLInputElement | null>,
 ) => {
-  const [query, setQuery] = useState('')
+  const [query, setQueryState] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
+  const hasFocusedInitialInput = useRef(false)
+  const hasUserEditedQuery = useRef(false)
+
+  const setQuery = (nextQuery: string) => {
+    hasUserEditedQuery.current = true
+    setQueryState(nextQuery)
+  }
 
   useEffect(() => {
-    // Load last query
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.get('lastQuery').then((res) => {
-        if (res.lastQuery) {
-          setQuery(res.lastQuery)
-        }
-        setIsLoaded(true)
+    let cancelled = false
 
-        // Focus and select
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus()
-            if (res.lastQuery) {
-              inputRef.current.select()
-            }
+    const loadLastQuery = async () => {
+      let lastQuery = ''
+
+      if (
+        typeof chrome !== 'undefined' &&
+        chrome.storage &&
+        chrome.storage.local
+      ) {
+        try {
+          const result = await chrome.storage.local.get('lastQuery')
+          if (typeof result.lastQuery === 'string') {
+            lastQuery = result.lastQuery
           }
-        }, 50)
-      })
-    } else {
+        } catch (error) {
+          console.debug('Could not load the last search query', { error })
+        }
+      }
+
+      if (cancelled) return
+      if (!hasUserEditedQuery.current) setQueryState(lastQuery)
       setIsLoaded(true)
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 50)
+    }
+
+    void loadLastQuery()
+
+    return () => {
+      cancelled = true
     }
   }, [inputRef])
+
+  useEffect(() => {
+    if (!isLoaded || hasFocusedInitialInput.current) return
+
+    hasFocusedInitialInput.current = true
+    inputRef.current?.focus()
+    if (query && !hasUserEditedQuery.current) inputRef.current?.select()
+  }, [inputRef, isLoaded, query])
 
   useEffect(() => {
     if (
@@ -44,7 +61,7 @@ export const useOmnibarQuery = (
       chrome.storage &&
       chrome.storage.local
     ) {
-      chrome.storage.local.set({ lastQuery: query })
+      void chrome.storage.local.set({ lastQuery: query })
     }
   }, [query, isLoaded])
 

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from '../../icons'
 import { ScrollArea } from '../../ScrollArea'
 import { cn } from '../../utils/cn'
@@ -9,43 +10,65 @@ export type TabManagerSidebarProps = {
   actions: React.ReactNode
   windowCount?: number
   className?: string
+  collapseSidebarLabel: string
+  expandSidebarLabel: string
 }
 
-export const TabManagerSidebar = ({
+export const TabManagerSidebar = memo(function TabManagerSidebar({
   isExpanded,
   onToggleExpand,
   windowList,
   actions,
   windowCount,
   className,
-}: TabManagerSidebarProps) => {
+  collapseSidebarLabel,
+  expandSidebarLabel,
+}: TabManagerSidebarProps) {
   return (
     <div
       className={cn(
-        'bg-input/30 flex h-full flex-col overflow-x-clip transition-[width] duration-300 ease-in-out',
+        `
+          bg-input/30 flex h-full flex-col overflow-x-clip transition-[width]
+          duration-300 ease-in-out
+        `,
         isExpanded ? 'w-64' : 'w-16',
         className,
       )}
     >
       {/* Top Sticky: Toggle Mode */}
       {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
-      <div className="flex h-14 w-64 flex-shrink-0 items-center justify-between px-3">
+      <div
+        className={`
+          flex h-14 w-64 flex-shrink-0 items-center justify-between px-3
+        `}
+      >
         <button
           onClick={onToggleExpand}
-          className="text-muted hover:bg-highlighted/50 hover:text-foreground focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          title={isExpanded ? 'Collapse' : 'Expand'}
-          aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          className={`
+            text-muted flex h-10 w-10 flex-shrink-0 items-center justify-center
+            rounded-md transition-colors
+            hover:bg-highlighted/50 hover:text-foreground
+            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+            focus-visible:ring-offset-background focus-visible:outline-none
+            focus-visible:ring-2 focus-visible:ring-offset-2
+            focus:outline-none
+          `}
+          title={isExpanded ? collapseSidebarLabel : expandSidebarLabel}
+          aria-label={isExpanded ? collapseSidebarLabel : expandSidebarLabel}
         >
           {isExpanded ? (
-            <PanelLeftCloseIcon size={20} />
+            <PanelLeftCloseIcon size={20} aria-hidden="true" />
           ) : (
-            <PanelLeftOpenIcon size={20} />
+            <PanelLeftOpenIcon size={20} aria-hidden="true" />
           )}
         </button>
         {windowCount && (
           <span
             className={cn(
-              'text-muted whitespace-nowrap text-xs font-medium transition-[visibility] duration-300',
+              `
+                text-muted whitespace-nowrap text-xs font-medium
+                transition-[visibility] duration-300
+              `,
               isExpanded ? 'visible' : 'invisible',
             )}
           >
@@ -62,9 +85,13 @@ export const TabManagerSidebar = ({
       </ScrollArea>
 
       {/* Bottom Sticky: Actions */}
-      <div className="border-border flex flex-shrink-0 flex-col gap-1 border-t p-2">
+      <div
+        className={`
+          border-border flex flex-shrink-0 flex-col gap-1 border-t p-2
+        `}
+      >
         {actions}
       </div>
     </div>
   )
-}
+})

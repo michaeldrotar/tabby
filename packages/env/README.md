@@ -8,7 +8,7 @@ To use the code in the package, you need to follow those steps:
    - Add it as argument like: `pnpm set-global-env CLI_CEB_NEXT_VALUE=new_data ...` (NEED TO CONTAIN `CLI_CEB_` PREFIX)
 
    > [!IMPORTANT]
-   > `CLI_CEB_DEV` and `CLI_CEB_FIREFOX` are `false` by default \
+   > `CLI_CEB_DEV` is `false` by default \
    > All CLI values are overwriting in each call, that's mean you'll have access to values from current script run only.
    - If you want dynamic variables go to `lib/index.ts` and edit `dynamicEnvValues` object.
 

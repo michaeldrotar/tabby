@@ -4,9 +4,9 @@
   "extends": "./packages/tsconfig/base.json",
   "compilerOptions": {
     "noImplicitAny": false,
-    "noEmit": false,
     "target": "ESNext",
     "types": ["vitest", "@testing-library/jest-dom"]
   },
-  "include": ["eslint.config.ts", "vitest.config.ts", "tests/**/*"]
+  "include": ["eslint.config.ts", "vitest.config.ts", "tests/**/*"],
+  "exclude": ["eslint-rules"]
 }

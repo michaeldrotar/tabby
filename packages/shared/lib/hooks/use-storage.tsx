@@ -1,5 +1,5 @@
 import { useRef, useSyncExternalStore } from 'react'
-import type { BaseStorageType } from '@extension/storage'
+import type { BaseStorageType } from '@extension/storage/base/types'
 
 type WrappedPromise = ReturnType<typeof wrapPromise>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,8 +50,10 @@ export const useStorage = <
     storageMap.set(storage, wrapPromise(storage.get()))
   }
 
+  // eslint-disable-next-line react-hooks/refs
   if (_data || initializedRef.current) {
     storageMap.set(storage, { read: () => _data })
+    // eslint-disable-next-line react-hooks/refs
     initializedRef.current = true
   }
 

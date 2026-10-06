@@ -1,8 +1,9 @@
-import { createStorage, StorageEnum } from '../base/index.js'
+import { createStorage } from '../base/base.js'
+import { StorageEnum } from '../base/enums.js'
 import type {
   PreferenceStateType,
   PreferenceStorageType,
-} from '../base/index.js'
+} from '../base/types.js'
 
 const storage = createStorage<PreferenceStateType>(
   'preference-storage-key',

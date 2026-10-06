@@ -1,15 +1,24 @@
-import { t } from '@extension/i18n'
-
-export const ErrorStackTraceList = ({ error }: { error?: Error }) => (
+export const ErrorStackTraceList = ({
+  error,
+  detailsLabel,
+  unknownErrorLabel,
+}: {
+  error?: Error
+  detailsLabel: string
+  unknownErrorLabel: string
+}) => (
   <div className="overflow-hidden rounded-lg bg-white shadow">
-    <div className="px-4 py-5 sm:p-6">
+    <div
+      className={`
+        px-4 py-5
+        sm:p-6
+      `}
+    >
       <div className="text-sm text-gray-500">
-        <p className="mb-2 font-medium text-gray-700">
-          {t('displayErrorDetailsInfo')}
-        </p>
+        <p className="mb-2 font-medium text-gray-700">{detailsLabel}</p>
         <div className="overflow-auto rounded-md bg-red-50 p-4">
           <p className="break-all font-mono text-red-700">
-            {error?.message || t('displayErrorUnknownErrorInfo')}
+            {error?.message || unknownErrorLabel}
           </p>
           {error?.stack && (
             <details className="mt-3">

@@ -1,125 +1,101 @@
 import 'webextension-polyfill'
+import { browserWindowTypes } from '@extension/chrome/window/browserWindowTypes'
+import {
+  getWindowSwitchSlotEntries,
+  getWindowSwitchSlotIndexFromCommand,
+} from '@extension/chrome/window/windowSwitchSlots'
+import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 
 let focusedWindowId: number | undefined = undefined
 const loadFocusedWindowId = async () => {
   const focusedWindow = await chrome.windows.getLastFocused()
   focusedWindowId = focusedWindow.id
 }
-loadFocusedWindowId()
+void loadFocusedWindowId().catch((error) => {
+  console.debug('Could not determine the focused browser window', { error })
+})
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  // The action icon belongs to the search popup. The Tab Manager remains
+  // available from the popup and its own shortcut.
+  void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
 })
 
 chrome.windows.onFocusChanged.addListener((id) => {
   focusedWindowId = id
 })
 
-const openOmnibarPopup = async (windowId?: number) => {
-  const searchUrl = chrome.runtime.getURL(
-    `omnibar-popup/index.html${windowId ? `?originalWindowId=${windowId}` : ''}`,
-  )
-  const existingTabs = await chrome.tabs.query({ url: searchUrl })
-
-  if (existingTabs.length > 0 && existingTabs[0].windowId) {
-    await chrome.windows.update(existingTabs[0].windowId, { focused: true })
-    return
+const getFocusedWindowId = async () => {
+  if (focusedWindowId !== undefined && focusedWindowId >= 0) {
+    return focusedWindowId
   }
 
-  const width = 600
-  const height = 400
-  let left = 0
-  let top = 0
-
-  if (windowId) {
-    try {
-      const currentWindow = await chrome.windows.get(windowId)
-      left = Math.round(
-        (currentWindow.left ?? 0) + ((currentWindow.width ?? 0) - width) / 2,
-      )
-      top = Math.round(
-        (currentWindow.top ?? 0) + ((currentWindow.height ?? 0) - height) / 2,
-      )
-    } catch (e) {
-      console.warn('Could not get window info', e)
-    }
-  }
-
-  await chrome.windows.create({
-    url: searchUrl,
-    type: 'popup',
-    width,
-    height,
-    left,
-    top,
-    focused: true,
-  })
+  const focusedWindow = await chrome.windows.getLastFocused()
+  return focusedWindow.id !== undefined && focusedWindow.id >= 0
+    ? focusedWindow.id
+    : undefined
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'open-omnibar-overlay') {
-    const activeTab = (
-      await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      })
-    )[0]
-    if (activeTab && activeTab.id) {
-      const tabId = activeTab.id
+const focusWindowSlot = async (
+  index: number,
+  sourceIncognito?: boolean,
+): Promise<void> => {
+  const windowsPromise = chrome.windows.getAll({
+    windowTypes: browserWindowTypes,
+  })
+  const focusedWindowPromise =
+    sourceIncognito === undefined
+      ? chrome.windows.getLastFocused({ windowTypes: browserWindowTypes })
+      : Promise.resolve(undefined)
+  const [windows, focusedWindow] = await Promise.all([
+    windowsPromise,
+    focusedWindowPromise,
+  ])
+  const incognito = sourceIncognito ?? focusedWindow?.incognito ?? false
+  const eligibleWindows = windows.filter(
+    (browserWindow): browserWindow is chrome.windows.Window & { id: number } =>
+      typeof browserWindow.id === 'number',
+  )
+  const targetWindow = getWindowSwitchSlotEntries(eligibleWindows, incognito)[
+    index
+  ]?.window
 
-      // Ensure window is focused (fixes issue where focus is lost after closing side panel)
-      if (activeTab.windowId) {
-        try {
-          await chrome.windows.update(activeTab.windowId, { focused: true })
-          const otherTab = await chrome.tabs.create({
-            windowId: activeTab.windowId,
-            active: true,
-          })
-          await chrome.tabs.update(activeTab.id, { active: true })
-          if (otherTab && otherTab.id) {
-            await chrome.tabs.remove(otherTab.id)
-          }
-        } catch (e) {
-          console.warn('Failed to focus window', e)
-        }
-      }
+  if (targetWindow) {
+    await chrome.windows.update(targetWindow.id, { focused: true })
+  }
+}
 
-      try {
-        await chrome.tabs.sendMessage(tabId, {
-          type: 'TOGGLE_OMNIBAR',
-        })
-      } catch (e) {
-        console.warn(
-          'Could not send message to content script, attempting to re-inject script...',
-          { error: e },
-        )
-        // Try to inject the content script if it's missing
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId },
-            files: ['omnibar-embed/all.iife.js'],
-          })
-          // Retry sending the message
-          await chrome.tabs.sendMessage(tabId, {
-            type: 'TOGGLE_OMNIBAR',
-          })
-        } catch (retryError) {
-          console.warn(
-            'Failed to inject or send message after retry, opening search popup window...',
-            { error: retryError },
-          )
-          // Fallback to popup if we can't inject (e.g. chrome:// pages)
-          await openOmnibarPopup(activeTab.windowId)
-        }
-      }
+const openOmnibar = async () => {
+  try {
+    const windowId = await getFocusedWindowId()
+    if (windowId !== undefined) {
+      await chrome.action.openPopup({ windowId })
+    } else {
+      await chrome.action.openPopup()
     }
-  } else if (command === 'open-omnibar-popup' && focusedWindowId) {
-    await openOmnibarPopup(focusedWindowId)
-  } else if (command === 'open-tab-manager' && focusedWindowId) {
-    // We can't easily check if it's open, but calling open will open it.
-    // To toggle, we might need to rely on the user closing it manually or use a hack.
-    // Chrome API doesn't have a simple 'toggle' or 'isOpen' check for sidePanel yet.
-    // For now, let's just ensure it opens.
-    await chrome.sidePanel.open({ windowId: focusedWindowId })
+  } catch (error) {
+    console.warn('Could not open the Tabby search popup', error)
+  }
+}
+
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  try {
+    const windowSlotIndex = getWindowSwitchSlotIndexFromCommand(command)
+    if (windowSlotIndex !== undefined) {
+      await focusWindowSlot(windowSlotIndex, tab?.incognito)
+    } else if (command === TABBY_COMMANDS.openOmnibar) {
+      await openOmnibar()
+    } else if (command === TABBY_COMMANDS.openTabManager) {
+      const windowId = await getFocusedWindowId()
+      if (windowId === undefined) return
+
+      // We can't easily check if it's open, but calling open will open it.
+      // To toggle, we might need to rely on the user closing it manually or use a hack.
+      // Chrome API doesn't have a simple 'toggle' or 'isOpen' check for sidePanel yet.
+      // For now, let's just ensure it opens.
+      await chrome.sidePanel.open({ windowId })
+    }
+  } catch (error) {
+    console.warn(`Could not handle Tabby command "${command}"`, error)
   }
 })

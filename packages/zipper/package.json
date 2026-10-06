@@ -8,8 +8,12 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",
@@ -21,7 +25,6 @@
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "@extension/dev-utils": "workspace:*",
     "@extension/env": "workspace:*"
   }
 }

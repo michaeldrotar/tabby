@@ -1,5 +1,10 @@
-import { useThemeApplicator } from '@extension/shared'
-import { Omnibar } from '@extension/ui'
+import { BrowserStoreProvider } from '@extension/chrome/BrowserStoreProvider'
+import { WiredOmnibar } from '@extension/omnibar/WiredOmnibar'
+import {
+  useResolvedTheme,
+  useThemeApplicator,
+} from '@extension/shared/hooks/preference'
+import { Toaster } from '@extension/ui/components/Toaster'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
@@ -9,9 +14,7 @@ const onDismiss = () => {
   window.close()
 }
 
-export const OmnibarPopup = () => {
-  useThemeApplicator()
-
+const OmnibarPopupContent = () => {
   // Close window on blur
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -30,9 +33,19 @@ export const OmnibarPopup = () => {
     }
   }, [])
 
+  return <WiredOmnibar onDismiss={onDismiss} className="h-full w-full" />
+}
+
+export const OmnibarPopup = () => {
+  useThemeApplicator()
+  const theme = useResolvedTheme()
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Omnibar onDismiss={onDismiss} className="h-screen w-screen" />
+      <Toaster theme={theme} />
+      <BrowserStoreProvider>
+        <OmnibarPopupContent />
+      </BrowserStoreProvider>
     </QueryClientProvider>
   )
 }

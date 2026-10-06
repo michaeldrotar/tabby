@@ -3,6 +3,7 @@ import type { OmnibarSearchResult } from './OmnibarSearchResult'
 const BASE_WEIGHTS: Record<string, number> = {
   command: 100,
   tab: 80,
+  'tab-group': 75,
   bookmark: 70,
   'recently-closed': 35,
   history: 34,

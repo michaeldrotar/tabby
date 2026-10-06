@@ -1,7 +1,9 @@
-import { IS_FIREFOX } from '@extension/env'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, resolve, sep } from 'node:path'
+import { getEnv } from '@extension/env/getEnv'
 import type { PluginOption } from 'vite'
+
+const ENV = getEnv()
 
 /**
  * Extract content directory from output directory for Firefox
@@ -62,7 +64,7 @@ export const makeEntryPointPlugin = (): PluginOption => ({
           safeWriteFileSync(resolve(outputDir, newFileName), module.code)
           const newFileNameBase = basename(newFileName)
 
-          if (IS_FIREFOX) {
+          if (ENV['IS_FIREFOX']) {
             const contentDirectory = extractContentDir(outputDir)
             module.code = `import(browser.runtime.getURL("${contentDirectory}/${newFileNameBase}"));`
           } else {

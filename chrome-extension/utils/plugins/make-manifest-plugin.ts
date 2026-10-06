@@ -1,12 +1,18 @@
-import { ManifestParser } from '@extension/dev-utils'
-import { IS_DEV, IS_FIREFOX } from '@extension/env'
-import { colorfulLog } from '@extension/shared'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { platform } from 'node:process'
 import { pathToFileURL } from 'node:url'
-import type { ManifestType } from '@extension/shared'
+import { getEnv } from '@extension/env/getEnv'
+import { colorfulLog } from '@extension/shared/utils/colorful-logger'
+import { ManifestParserImpl as ManifestParser } from './manifest-parser/impl.js'
+import type { ManifestType } from '@extension/shared/utils/types'
 import type { PluginOption } from 'vite'
+
+const ENV = getEnv()
+// Page refresh HMR adds an all-page content script and therefore a device
+// access prompt. Keep it available for extension development, but never turn
+// it on implicitly for a normal dev build.
+const ENABLE_PAGE_HMR = process.env['CLI_CEB_PAGE_HMR'] === 'true'
 
 const manifestFile = resolve(import.meta.dirname, '..', '..', 'manifest.js')
 const refreshFilePath = resolve(
@@ -56,18 +62,17 @@ export default (config: { outDir: string }): PluginOption => {
 
     const manifestPath = resolve(to, 'manifest.json')
 
-    if (IS_DEV) {
+    if (ENV['IS_DEV'] && ENABLE_PAGE_HMR) {
       addRefreshContentScript(manifest)
     }
 
     writeFileSync(
       manifestPath,
-      ManifestParser.convertManifestToString(manifest, IS_FIREFOX),
+      ManifestParser.convertManifestToString(manifest, ENV['IS_FIREFOX']),
     )
 
-    const refreshFileString = readFileSync(refreshFilePath, 'utf-8')
-
-    if (IS_DEV) {
+    if (ENV['IS_DEV'] && ENABLE_PAGE_HMR) {
+      const refreshFileString = readFileSync(refreshFilePath, 'utf-8')
       writeFileSync(resolve(to, 'refresh.js'), withHMRId(refreshFileString))
     }
 

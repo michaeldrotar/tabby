@@ -24,32 +24,3 @@ export const Favicon = ({
     />
   )
 }
-
-/*
-<PowerList>
-  <PowerListItem>
-    <PowerListItemContent>
-      <PowerListItemIcon />
-      <PowerListItemTitle>
-        {tab.name}
-      </PowerListItemTitle>
-    </PowerListItemContent>
-    <PowerListItemActions>
-      <Tooltip>
-        <TooltipTrigger>
-          <PowerListItemAction shortcut="Delete" onActivate={() => chrome.tabs.remove(tab.id)}>
-            <CloseIcon />
-          </PowerListItemAction>
-        </TooltipTrigger>
-        <TooltipContent>
-          Close <Kbd>DEL</Kbd>
-        </TooltipContent>
-      </Tooltip>
-    </PowerListItemActions>
-  </PowerListItem>
-</PowerList>
-
-<TabList tabs={tabs} />
-
-<TabItem tab={tab} />
-*/

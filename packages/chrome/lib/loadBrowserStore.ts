@@ -4,22 +4,47 @@ import { registerChromeTabGroupEventHandlers } from './tabGroup/tabGroupEvents.j
 import { toBrowserTabGroup } from './tabGroup/toBrowserTabGroup.js'
 import { unloadBrowserStore } from './unloadBrowserStore.js'
 import { useBrowserStore } from './useBrowserStore.js'
+import { browserWindowTypes } from './window/browserWindowTypes.js'
 import { toBrowserWindow } from './window/toBrowserWindow.js'
 import { registerChromeWindowEventHandlers } from './window/windowEvents.js'
+import { orderWindowsById } from './window/windowSwitchSlots.js'
 import type { BrowserTab } from './tab/BrowserTab.js'
 import type { BrowserTabID } from './tab/BrowserTabID.js'
+import type { BrowserTabLifecycle } from './tab/BrowserTabLifecycle.js'
 import type { BrowserTabGroup } from './tabGroup/BrowserTabGroup.js'
 import type { BrowserTabGroupID } from './tabGroup/BrowserTabGroupID.js'
 import type { BrowserWindow } from './window/BrowserWindow.js'
 import type { BrowserWindowID } from './window/BrowserWindowID.js'
 
 /**
+ * Derives the initial lifecycle state for a tab during store initialization.
+ * This is used when loading existing tabs on startup.
+ */
+const deriveInitialLifecycle = (
+  chromeTab: chrome.tabs.Tab,
+): BrowserTabLifecycle => {
+  if (!chromeTab.url) {
+    return 'initializing'
+  }
+  if (chromeTab.status === 'loading') {
+    return 'loading'
+  }
+  return 'loaded'
+}
+
+/**
  * Gets all browser windows.
  */
 const getAllBrowserWindows = async (): Promise<BrowserWindow[]> => {
-  const allChromeWindows = await chrome.windows.getAll()
+  const allChromeWindows = await chrome.windows.getAll({
+    windowTypes: browserWindowTypes,
+  })
   const allBrowserWindows = allChromeWindows.map(toBrowserWindow)
-  return allBrowserWindows.filter((window) => window !== undefined)
+  return orderWindowsById(
+    allBrowserWindows.filter(
+      (window): window is BrowserWindow => window !== undefined,
+    ),
+  )
 }
 
 /**
@@ -41,8 +66,14 @@ const getCurrentBrowserWindow = async (): Promise<
  */
 const getAllBrowserTabs = async (): Promise<BrowserTab[]> => {
   const allChromeTabs = await chrome.tabs.query({})
-  const allBrowserTabs = allChromeTabs.map(toBrowserTab)
-  return allBrowserTabs.filter((tab) => tab !== undefined)
+  const allBrowserTabs = allChromeTabs
+    .map((chromeTab) => {
+      const lifecycle = deriveInitialLifecycle(chromeTab)
+      const browserTab = toBrowserTab(chromeTab, { lifecycle })
+      return browserTab
+    })
+    .filter((tab): tab is BrowserTab => tab !== undefined)
+  return allBrowserTabs
 }
 
 /**

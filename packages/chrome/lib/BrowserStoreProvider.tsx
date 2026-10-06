@@ -1,5 +1,5 @@
-import { loadBrowserStore } from './loadBrowserStore.js'
 import { memo, useEffect } from 'react'
+import { loadBrowserStore } from './loadBrowserStore.js'
 import type { PropsWithChildren } from 'react'
 
 export type BrowserStoreProviderProps = PropsWithChildren

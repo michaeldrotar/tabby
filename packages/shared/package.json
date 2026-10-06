@@ -8,8 +8,12 @@
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",
@@ -20,11 +24,12 @@
     "postinstall": "pnpm ready"
   },
   "dependencies": {
+    "@extension/env": "workspace:*",
     "react-error-boundary": "^6.0.0"
   },
   "devDependencies": {
     "@extension/storage": "workspace:*",
     "@extension/tsconfig": "workspace:*",
-    "type-fest": "^4.41.0"
+    "type-fest": "^5.3.0"
   }
 }

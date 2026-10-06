@@ -1,7 +1,7 @@
-import globalConfig from '@extension/tailwindcss-config'
+import { createTailwindConfig } from './lib/create-tailwind-config'
+import { uiTailwindConfig } from './lib/ui-tailwind-config'
 import type { Config } from 'tailwindcss'
 
-export default {
-  content: ['lib/**/*.tsx'],
-  presets: [globalConfig],
-} satisfies Config
+export default createTailwindConfig(uiTailwindConfig, {
+  content: ['./lib/**/*.{js,jsx,ts,tsx}'],
+} satisfies Config)

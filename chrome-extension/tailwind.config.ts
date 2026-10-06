@@ -1,5 +1,6 @@
-import { withUI } from '@extension/ui'
+import { createTailwindConfig } from '@extension/ui/create-tailwind-config'
+import { uiTailwindConfig } from '@extension/ui/ui-tailwind-config'
 
-export default withUI({
+export default createTailwindConfig(uiTailwindConfig, {
   content: ['src/**/*.{ts,tsx}'],
 })

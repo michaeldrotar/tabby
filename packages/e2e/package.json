@@ -1,0 +1,18 @@
+{
+  "name": "@extension/e2e",
+  "version": "0.0.0",
+  "description": "E2E tests using Playwright",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "clean:node_modules": "pnpx rimraf node_modules",
+    "clean:turbo": "pnpx rimraf .turbo",
+    "clean": "pnpm clean:turbo && pnpm clean:node_modules"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}

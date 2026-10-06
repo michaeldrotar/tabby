@@ -1,4 +1,5 @@
 import { config } from '@dotenvx/dotenvx'
+import type { EnvType } from './types.js'
 
 export const baseEnv =
   config({
@@ -8,3 +9,5 @@ export const baseEnv =
 export const dynamicEnvValues = {
   CEB_NODE_ENV: baseEnv.CEB_DEV === 'true' ? 'development' : 'production',
 } as const
+
+export const env = { ...baseEnv, ...dynamicEnvValues } as EnvType

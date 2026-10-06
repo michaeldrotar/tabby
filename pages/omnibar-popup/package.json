@@ -4,7 +4,7 @@
   "description": "chrome extension - omnibar popup",
   "type": "module",
   "private": true,
-  "sideEffects": true,
+  "sideEffects": false,
   "files": [
     "dist/**"
   ],
@@ -18,14 +18,13 @@
   },
   "dependencies": {
     "@extension/chrome": "workspace:*",
-    "@extension/i18n": "workspace:*",
+    "@extension/env": "workspace:*",
+    "@extension/omnibar": "workspace:*",
     "@extension/shared": "workspace:*",
-    "@extension/storage": "workspace:*",
     "@extension/ui": "workspace:*",
     "@tanstack/react-query": "5.90.7"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*"
   },

@@ -1,5 +1,5 @@
-import { useBrowserStore } from '../useBrowserStore.js'
 import { useShallow } from 'zustand/shallow'
+import { useBrowserStore } from '../useBrowserStore.js'
 import type { BrowserWindow } from './BrowserWindow.js'
 
 /**
@@ -16,6 +16,10 @@ import type { BrowserWindow } from './BrowserWindow.js'
  */
 export const useBrowserWindows = (): BrowserWindow[] => {
   return useBrowserStore(
-    useShallow((state) => state.windowIds.map((id) => state.windowById[id])),
+    useShallow((state) =>
+      state.windowIds
+        .map((id) => state.windowById[id])
+        .filter((w): w is BrowserWindow => w !== undefined),
+    ),
   )
 }

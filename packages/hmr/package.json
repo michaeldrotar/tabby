@@ -4,12 +4,19 @@
   "description": "chrome extension - hot module reload/refresh",
   "type": "module",
   "private": true,
-  "sideEffects": true,
+  "sideEffects": [
+    "lib/injections/refresh.ts",
+    "dist/lib/injections/refresh.js"
+  ],
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist && pnpx rimraf build",
     "clean:node_modules": "pnpx rimraf node_modules",
@@ -19,15 +26,15 @@
     "dev": "tsx lib/initializers/init-reload-server.ts",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "@extension/env": "workspace:*"
+  },
   "devDependencies": {
-    "@extension/env": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@rollup/plugin-sucrase": "^5.0.2",
     "@types/ws": "^8.18.1",
-    "esbuild": "^0.25.12",
     "esm": "^3.2.25",
     "rollup": "^4.53.3",
-    "ts-node": "^10.9.2",
     "ws": "^8.18.3"
   }
 }

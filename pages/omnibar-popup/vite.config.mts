@@ -1,5 +1,8 @@
 import { resolve } from 'node:path'
-import { withPageConfig } from '@extension/vite-config'
+import { getEnv } from '@extension/env/getEnv'
+import { withPageConfig } from '@extension/vite-config/with-page-config'
+
+const ENV = getEnv()
 
 const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
@@ -12,6 +15,6 @@ export default withPageConfig({
   },
   publicDir: resolve(rootDir, 'public'),
   build: {
-    outDir: resolve(rootDir, '..', '..', 'dist', 'omnibar-popup'),
+    outDir: resolve(rootDir, '..', '..', ENV['BUILD_OUT_DIR'], 'omnibar-popup'),
   },
 })

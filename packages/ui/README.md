@@ -1,6 +1,11 @@
 # UI Package
 
-This package provides components that make up the UI.
+This package provides the complete UI system for Tabby, including:
+
+- **Components** - Reusable React components
+- **Theme system** - CSS variables, color palettes, and theme configuration
+- **Tailwind configuration** - Base config and merge utilities
+- **Icons and utilities** - Shared UI helpers
 
 ## Installation
 
@@ -26,22 +31,37 @@ Then, run:
 pnpm install
 ```
 
+## Setup Tailwind
+
 Add the following to the `tailwind.config.ts` file.
 
 ```ts
-import baseConfig from '@extension/tailwindcss-config'
-import { withUI } from '@extension/ui'
+import { createTailwindConfig } from '@extension/ui/create-tailwind-config'
+import { uiTailwindConfig } from '@extension/ui/ui-tailwind-config'
 
-export default withUI({
-  ...baseConfig,
-  content: ['./index.html', './src/**/*.tsx'],
+export default createTailwindConfig(uiTailwindConfig, {
+  content: ['index.html', 'src/**/*.{ts,tsx}'],
 })
 ```
 
 Add the following to the first line of `index.css` file.
 
 ```css
-@import '@extension/ui/global.css';
+@import '@extension/ui/base.css';
+```
+
+## Theme Colors
+
+Import theme types and constants:
+
+```typescript
+import {
+  THEME_ACCENT_PALETTES,
+  THEME_NEUTRAL_PALETTES,
+  THEME_ACCENT_STRENGTH_OPTIONS,
+  type ThemeAccentPalette,
+  type ThemeNeutralPalette,
+} from '@extension/ui/theme-colors'
 ```
 
 ## Add Custom Component
@@ -85,11 +105,3 @@ export default withErrorBoundary(
 
 > [!TIP]
 > You are able to set other size of the loading spinner by passing the `size` prop to the `<LoadingSpinner />`.
-
-## Modifying the tailwind config of the UI library
-
-Modify the `tailwind.config.ts` file to make global style changes to the package.
-
-## Modifying the css variable of the UI library
-
-Modify the css variable in the `ui/lib/global.css` code to change the css variable of all pages(with UI).

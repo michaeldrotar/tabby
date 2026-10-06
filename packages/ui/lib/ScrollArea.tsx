@@ -1,5 +1,5 @@
-import { cn } from './utils/cn'
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
+import { cn } from './utils/cn'
 import type { ComponentProps } from 'react'
 
 type ScrollBarProps = ComponentProps<
@@ -15,8 +15,10 @@ const ScrollBar = ({
     <ScrollAreaPrimitive.Scrollbar
       orientation={orientation}
       className={cn(
-        'flex touch-none select-none p-px opacity-50',
-        'transition-opacity hover:opacity-100',
+        `
+          flex touch-none select-none p-px opacity-50 transition-opacity
+          hover:opacity-100
+        `,
         orientation === 'vertical' &&
           'h-full w-2.5 border-l border-l-transparent',
         orientation === 'horizontal' &&
@@ -25,7 +27,9 @@ const ScrollBar = ({
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.Thumb className="bg-muted/60 relative flex-1 rounded-full" />
+      <ScrollAreaPrimitive.Thumb
+        className={`bg-muted/60 relative flex-1 rounded-full`}
+      />
     </ScrollAreaPrimitive.Scrollbar>
   )
 }

@@ -75,7 +75,9 @@ export const createWindowSlice: StateCreator<WindowSlice> = (set, get) => ({
         ...state.windowById,
         [newBrowserWindow.id]: newBrowserWindow,
       },
-      windowIds: [...state.windowIds, newBrowserWindow.id],
+      windowIds: [...state.windowIds, newBrowserWindow.id].sort(
+        (a, b) => a - b,
+      ),
     }))
   },
 

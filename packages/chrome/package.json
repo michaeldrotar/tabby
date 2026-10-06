@@ -4,11 +4,16 @@
   "description": "React-friendly access to chrome APIs",
   "type": "module",
   "private": true,
+  "sideEffects": false,
   "files": [
     "dist/**"
   ],
-  "types": "index.mts",
-  "main": "dist/index.mjs",
+  "exports": {
+    "./*": {
+      "types": "./lib/*.ts",
+      "default": "./dist/lib/*.js"
+    }
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",
@@ -19,8 +24,9 @@
     "postinstall": "pnpm ready"
   },
   "dependencies": {
+    "@extension/shared": "workspace:*",
     "@tanstack/react-query": "5.90.7",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"

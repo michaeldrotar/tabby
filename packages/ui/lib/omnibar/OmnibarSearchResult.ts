@@ -1,7 +1,10 @@
+import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+
 export type OmnibarSearchResult = {
   id: string | number
   type:
     | 'tab'
+    | 'tab-group'
     | 'bookmark'
     | 'history'
     | 'command'
@@ -14,9 +17,14 @@ export type OmnibarSearchResult = {
   favIconUrl?: string
   windowId?: number
   tabId?: number
+  active?: boolean
   lastVisitTime?: number
   sessionId?: string
   tabCount?: number
+  groupColor?: BrowserTabGroupColor
+  groupTabCount?: number
+  groupWindowLabel?: string
+  groupCollapsed?: boolean
   execute: (
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,

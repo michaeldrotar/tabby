@@ -1,5 +1,5 @@
-import { compareOmnibarScoredItems } from './compareOmnibarScoredItems'
 import { describe, expect, it } from 'vitest'
+import { compareOmnibarScoredItems } from './compareOmnibarScoredItems'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const makeItem = (

@@ -110,7 +110,7 @@ export const createStorage = <D = string>(
       return fallback
     }
 
-    return deserialize(value[key]) ?? fallback
+    return deserialize(value[key] as string) ?? fallback
   }
 
   const set = async (valueOrUpdate: ValueOrUpdateType<D>) => {
@@ -151,7 +151,7 @@ export const createStorage = <D = string>(
     }
 
     const valueOrUpdate: ValueOrUpdateType<D> = deserialize(
-      changes[key].newValue,
+      changes[key].newValue as string,
     )
 
     if (cache === valueOrUpdate) return

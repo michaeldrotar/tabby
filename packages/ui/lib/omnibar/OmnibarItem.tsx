@@ -1,10 +1,12 @@
+import { useEffect, useRef } from 'react'
+import { Favicon } from '../Favicon'
+import { LayersIcon } from '../icons'
+import { getGroupColorClasses } from '../tab-group/tabGroupColors'
+import { cn } from '../utils/cn'
+import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
-import { Favicon } from '../Favicon'
-import { cn } from '../utils/cn'
-import { formatTimeAgo } from '../utils/formatTimeAgo'
-import { useEffect, useRef } from 'react'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
@@ -61,6 +63,13 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
+  const actionModifier = isShiftPressed
+    ? 'new-window'
+    : isCmdCtrlPressed
+      ? 'new-tab'
+      : undefined
+  const groupColorClasses =
+    item.type === 'tab-group' ? getGroupColorClasses(item.groupColor) : null
 
   useEffect(() => {
     if (isSelected) {
@@ -76,10 +85,20 @@ export const OmnibarItem = ({
         ref={itemRef}
         type="button"
         className={cn(
-          'focus-visible:ring-accent/[calc(var(--accent-strength)*1%)] focus-visible:ring-offset-background relative flex w-full items-center gap-3 rounded-md px-4 py-2 text-left text-sm focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          `
+            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+            focus-visible:ring-offset-background focus-visible:outline-none
+            focus-visible:ring-2 focus-visible:ring-offset-2
+            relative flex w-full items-center gap-3 rounded-md px-4 py-2
+            text-left text-sm
+            focus:outline-none
+          `,
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-            : 'text-foreground hover:bg-highlighted/50',
+            : `
+              text-foreground
+              hover:bg-highlighted/50
+            `,
         )}
         onClick={(e) => {
           let modifier: 'new-tab' | 'new-window' | undefined
@@ -89,12 +108,51 @@ export const OmnibarItem = ({
         }}
         onMouseMove={onMouseMove}
       >
-        {item.type === 'command' ? (
-          <div className="bg-input text-muted flex h-8 w-8 items-center justify-center rounded text-xs font-bold">
+        {item.type === 'tab-group' ? (
+          <div
+            className={cn(
+              `
+                bg-input relative flex h-8 w-8 flex-shrink-0 items-center
+                justify-center rounded ring-1 ring-black/5
+                dark:ring-white/10
+              `,
+              groupColorClasses?.bg,
+            )}
+          >
+            <LayersIcon
+              aria-hidden="true"
+              className={cn('h-4 w-4', groupColorClasses?.text)}
+            />
+            <span
+              aria-hidden="true"
+              className={cn(
+                `
+                  ring-card absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full
+                  ring-2
+                `,
+                groupColorClasses?.dot,
+              )}
+            />
+            <span className="sr-only">
+              {item.groupColor ?? 'grey'} group color
+            </span>
+          </div>
+        ) : item.type === 'command' ? (
+          <div
+            className={`
+              bg-input text-muted flex h-8 w-8 items-center justify-center
+              rounded text-xs font-bold
+            `}
+          >
             &gt;
           </div>
         ) : item.type === 'search' ? (
-          <div className="bg-card ring-border flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full p-0.5 shadow-sm ring-1">
+          <div
+            className={`
+              bg-card ring-border flex h-8 w-8 flex-shrink-0 items-center
+              justify-center rounded-full p-0.5 shadow-sm ring-1
+            `}
+          >
             <svg viewBox="0 0 24 24" className="h-full w-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -147,6 +205,39 @@ export const OmnibarItem = ({
               </span>
             )}
 
+            {item.type === 'tab-group' && item.groupTabCount !== undefined && (
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                {item.groupTabCount} {item.groupTabCount === 1 ? 'tab' : 'tabs'}
+              </span>
+            )}
+
+            {item.type === 'tab-group' && item.groupWindowLabel && (
+              <span
+                className={cn(
+                  'truncate',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                {item.groupWindowLabel}
+              </span>
+            )}
+
+            {item.type === 'tab-group' && item.groupCollapsed && (
+              <span
+                className={cn(
+                  'flex-shrink-0',
+                  isSelected ? 'text-foreground/70' : 'text-muted',
+                )}
+              >
+                Collapsed
+              </span>
+            )}
+
             {item.lastVisitTime && (
               <span
                 className={cn(
@@ -171,18 +262,21 @@ export const OmnibarItem = ({
 
         {isSelected && (
           <span className="text-muted flex-shrink-0 text-xs">
-            {getOmnibarActionLabel(item)}
-            {['bookmark', 'history', 'url', 'search', 'closed-tab'].includes(
-              item.type,
-            ) && (
-              <>
-                {isShiftPressed ? (
-                  <span className="ml-1 opacity-50"> in New Window</span>
-                ) : isCmdCtrlPressed ? (
-                  <span className="ml-1 opacity-50"> in New Tab</span>
-                ) : null}
-              </>
-            )}
+            {getOmnibarActionLabel(item, actionModifier)}
+            {[
+              'bookmark',
+              'history',
+              'url',
+              'search',
+              'recently-closed',
+            ].includes(item.type) &&
+              actionModifier && (
+                <span className="ml-1 opacity-50">
+                  {actionModifier === 'new-window'
+                    ? ' in New Window'
+                    : ' in New Tab'}
+                </span>
+              )}
           </span>
         )}
       </button>

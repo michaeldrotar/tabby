@@ -1,0 +1,35 @@
+{
+  "name": "@extension/omnibar",
+  "version": "0.0.0",
+  "description": "Omnibar shared business logic",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "files": [
+    "dist/**"
+  ],
+  "exports": {
+    "./*": {
+      "types": [
+        "./lib/*.ts",
+        "./lib/*.tsx"
+      ],
+      "default": "./dist/lib/*.js"
+    }
+  },
+  "scripts": {
+    "clean:bundle": "rimraf dist",
+    "clean:node_modules": "pnpx rimraf node_modules",
+    "clean:turbo": "rimraf .turbo",
+    "clean": "pnpm clean:bundle && pnpm clean:node_modules && pnpm clean:turbo",
+    "ready": "tsc -b",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/chrome": "workspace:*",
+    "@extension/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*"
+  }
+}

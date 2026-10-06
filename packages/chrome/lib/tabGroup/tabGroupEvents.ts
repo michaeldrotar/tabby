@@ -1,5 +1,5 @@
-import { toBrowserTabGroup } from './toBrowserTabGroup.js'
 import { useBrowserStore } from '../useBrowserStore.js'
+import { toBrowserTabGroup } from './toBrowserTabGroup.js'
 
 /**
  * Handles when a new chrome tab group is created.

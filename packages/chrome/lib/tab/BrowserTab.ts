@@ -1,4 +1,5 @@
 import type { BrowserTabID } from './BrowserTabID.js'
+import type { BrowserTabLifecycle } from './BrowserTabLifecycle.js'
 
 /**
  * Represents a browser tab.
@@ -18,4 +19,10 @@ export type BrowserTab = Omit<chrome.tabs.Tab, 'id'> & {
    * and the window will be ignored.
    */
   id: BrowserTabID
+
+  /**
+   * Enhanced lifecycle status that tracks whether a tab is initializing, loading for the first time,
+   * fully loaded, or reloading after being loaded.
+   */
+  lifecycle: BrowserTabLifecycle
 }

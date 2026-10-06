@@ -1,6 +1,6 @@
+import { useMemo } from 'react'
 import { useBrowserTabsByWindowId } from './tab/useBrowserTabsByWindowId.js'
 import { useBrowserTabGroupsByWindowId } from './tabGroup/useBrowserTabGroupsByWindowId.js'
-import { useMemo } from 'react'
 import type { BrowserTab } from './tab/BrowserTab.js'
 import type { BrowserTabGroup } from './tabGroup/BrowserTabGroup.js'
 import type { BrowserWindowID } from './window/BrowserWindowID.js'

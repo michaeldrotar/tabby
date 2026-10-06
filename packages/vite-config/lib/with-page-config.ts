@@ -1,12 +1,15 @@
-import env, { IS_DEV, IS_PROD } from '@extension/env'
-import { watchRebuildPlugin } from '@extension/hmr'
+import { env } from '@extension/env/config'
+import { getEnv } from '@extension/env/getEnv'
+import { watchI18nPlugin } from '@extension/hmr/plugins/watch-i18n-plugin'
+import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
 import react from '@vitejs/plugin-react-swc'
 import deepmerge from 'deepmerge'
 import { defineConfig } from 'vite'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import type { UserConfig } from 'vite'
 
-export const watchOption = IS_DEV
+const ENV = getEnv()
+
+export const watchOption = ENV['IS_DEV']
   ? {
       chokidar: {
         awaitWriteFinish: true,
@@ -14,8 +17,8 @@ export const watchOption = IS_DEV
     }
   : undefined
 
-export const withPageConfig = (config: UserConfig) =>
-  defineConfig(
+export const withPageConfig = (config: UserConfig) => {
+  return defineConfig(
     deepmerge(
       {
         define: {
@@ -24,14 +27,14 @@ export const withPageConfig = (config: UserConfig) =>
         base: '',
         plugins: [
           react(),
-          IS_DEV && watchRebuildPlugin({ refresh: true }),
-          nodePolyfills(),
+          ENV['IS_DEV'] && watchRebuildPlugin({ refresh: true }),
+          ENV['IS_DEV'] && watchI18nPlugin(),
         ],
         build: {
-          sourcemap: IS_DEV,
-          minify: IS_PROD,
-          reportCompressedSize: IS_PROD,
-          emptyOutDir: IS_PROD,
+          sourcemap: ENV['IS_DEV'] || ENV['ENABLE_SOURCEMAPS'],
+          minify: ENV['IS_PROD'] && !ENV['ENABLE_SOURCEMAPS'],
+          reportCompressedSize: ENV['IS_PROD'],
+          emptyOutDir: ENV['IS_PROD'],
           watch: watchOption,
           rollupOptions: {
             external: ['chrome'],
@@ -41,3 +44,4 @@ export const withPageConfig = (config: UserConfig) =>
       config,
     ),
   )
+}

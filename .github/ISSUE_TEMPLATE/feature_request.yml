@@ -25,6 +25,15 @@ body:
       required: true
 
   - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Describe what must be true for this request to be complete.
+      placeholder: List observable outcomes or scenarios.
+    validations:
+      required: true
+
+  - type: textarea
     id: alternatives
     attributes:
       label: Alternatives Considered

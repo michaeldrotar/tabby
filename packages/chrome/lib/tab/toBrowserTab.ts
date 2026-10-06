@@ -10,6 +10,7 @@ import type { BrowserTab } from './BrowserTab.js'
  */
 export const toBrowserTab = (
   chromeTab: chrome.tabs.Tab,
+  browserTabProps: Omit<BrowserTab, keyof chrome.tabs.Tab>,
 ): BrowserTab | undefined => {
   if (typeof chromeTab.id !== 'number' || chromeTab.id < 0) {
     console.warn(
@@ -20,5 +21,6 @@ export const toBrowserTab = (
   return {
     id: chromeTab.id,
     ...chromeTab,
+    ...browserTabProps,
   }
 }

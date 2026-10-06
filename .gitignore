@@ -8,6 +8,7 @@
 **/dist
 **/build
 **/dist-zip
+**/storybook-static
 chrome-extension/manifest.js
 chrome-extension/pre-build.tsconfig.tsbuildinfo
 tsconfig.tsbuildinfo

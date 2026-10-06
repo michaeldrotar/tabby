@@ -4,12 +4,24 @@
   "description": "chrome extension - ui components",
   "type": "module",
   "private": true,
-  "sideEffects": true,
-  "files": [
-    "dist/**"
+  "sideEffects": [
+    "*.css",
+    "base.css"
   ],
-  "types": "index.ts",
-  "main": "dist/index.js",
+  "files": [
+    "dist/**",
+    "base.css"
+  ],
+  "exports": {
+    "./*": {
+      "types": [
+        "./lib/*.ts",
+        "./lib/*.tsx"
+      ],
+      "default": "./dist/lib/*.js"
+    },
+    "./base.css": "./base.css"
+  },
   "scripts": {
     "clean:bundle": "rimraf dist",
     "clean:node_modules": "pnpx rimraf node_modules",
@@ -19,10 +31,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@extension/chrome": "workspace:*",
-    "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
-    "@extension/storage": "workspace:*",
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.6",
@@ -30,13 +39,14 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "5.90.7",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.555.0",
+    "lucide-react": "^0.556.0",
+    "react-spinners": "^0.17.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
-    "@extension/tailwindcss-config": "workspace:*",
+    "@extension/chrome": "workspace:*",
     "@extension/tsconfig": "workspace:*",
-    "react-spinners": "^0.17.0",
     "tsc-alias": "^1.8.16"
   }
 }
