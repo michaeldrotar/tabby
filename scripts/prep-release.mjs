@@ -53,6 +53,19 @@ function bumpVersion(currentVersion, type) {
   }
 }
 
+function compareVersions(leftVersion, rightVersion) {
+  const left = parseVersion(leftVersion)
+  const right = parseVersion(rightVersion)
+
+  for (const part of ['major', 'minor', 'patch']) {
+    if (left[part] !== right[part]) {
+      return left[part] - right[part]
+    }
+  }
+
+  return 0
+}
+
 function main() {
   const args = process.argv.slice(2)
 
@@ -87,20 +100,11 @@ function main() {
     process.exit(1)
   }
 
-  // Validate new version is greater than current (for semver bumps)
-  if (['patch', 'minor', 'major'].includes(input)) {
-    const current = parseVersion(currentVersion)
-    const next = parseVersion(newVersion)
-    const currentNum =
-      current.major * 10000 + current.minor * 100 + current.patch
-    const nextNum = next.major * 10000 + next.minor * 100 + next.patch
-
-    if (nextNum <= currentNum) {
-      console.error(
-        `New version ${newVersion} must be greater than current version ${currentVersion}`,
-      )
-      process.exit(1)
-    }
+  if (compareVersions(newVersion, currentVersion) <= 0) {
+    console.error(
+      `New version ${newVersion} must be greater than current version ${currentVersion}`,
+    )
+    process.exit(1)
   }
 
   // Update package.json
@@ -128,7 +132,13 @@ function main() {
     console.log(`✓ Release notes file already exists: ${existingFile}`)
   } else {
     // Create a new release notes template
-    const slug = input === 'patch' ? 'patch-release' : 'new-release'
+    const current = parseVersion(currentVersion)
+    const next = parseVersion(newVersion)
+    const isPatchRelease =
+      next.major === current.major &&
+      next.minor === current.minor &&
+      next.patch > current.patch
+    const slug = isPatchRelease ? 'patch-release' : 'new-release'
     const filename = `v${newVersion}-${slug}.md`
     const filepath = resolve(releasesDir, filename)
 
@@ -159,11 +169,13 @@ function main() {
 
   console.log('')
   console.log('Next steps:')
+  console.log(`  1. Update the versioned release notes for v${newVersion}`)
   console.log(
-    `  1. Commit: git add . && git commit -m "Bump version to v${newVersion}"`,
+    `  2. Commit the version and notes on the appropriate release branch`,
   )
-  console.log(`  2. Update release notes in product/releases/`)
-  console.log(`  3. When ready, merge to main and tag: git tag v${newVersion}`)
+  console.log(
+    `  3. When ready, build and tag the reviewed release commit: git tag v${newVersion}`,
+  )
 }
 
 main()

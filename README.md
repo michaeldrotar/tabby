@@ -99,6 +99,8 @@ The version is stored in the root `package.json` only. All other packages use `0
 
 ### Release Process
 
-See [`RELEASE.md`](./RELEASE.md) for the complete feature and hotfix workflow,
-including branch strategy, pull requests, release notes, versioning, builds,
-tags, and Chrome Web Store submission.
+`main` is the integration branch for the latest accepted code. Feature changes
+and patch fixes go through reviewed pull requests; publishing to the Chrome Web
+Store happens only when requested. See
+[`RELEASE.md`](./RELEASE.md) for the versioning, release-notes, patch, and
+publishing workflow.

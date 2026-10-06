@@ -20,20 +20,15 @@
     "type-check": "turbo type-check",
     "base-build": "pnpm clean:bundle && turbo build",
     "build": "pnpm set-global-env && pnpm base-build",
-    "build:firefox": "pnpm set-global-env CLI_CEB_FIREFOX=true && pnpm base-build",
     "base-dev": "pnpm clean:bundle && turbo ready && turbo watch dev",
     "dev": "pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
-    "dev:firefox": "pnpm set-global-env CLI_CEB_DEV=true CLI_CEB_FIREFOX=true && pnpm base-dev",
     "zip": "pnpm build && pnpm -F zipper zip",
-    "zip:firefox": "pnpm build:firefox && pnpm -F zipper zip",
     "e2e": "pnpm build && turbo e2e",
-    "e2e:firefox": "pnpm zip:firefox && turbo e2e",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "measure": "node --enable-source-maps scripts/measure-dist.mjs",
-    "prepare": "husky",
     "test": "vitest run",
     "test:e2e": "turbo e2e",
     "test:e2e:ui": "turbo e2e:ui",
@@ -80,10 +75,8 @@
     "fast-glob": "^3.3.3",
     "fflate": "^0.8.2",
     "globals": "^16.5.0",
-    "husky": "^9.1.7",
     "jiti": "^2.6.1",
     "jsdom": "^27.2.0",
-    "lint-staged": "^16.2.7",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "rimraf": "^6.1.2",
@@ -94,15 +87,6 @@
     "typescript-eslint": "^8.48.1",
     "vite": "^7.2.6",
     "vitest": "^4.0.16"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "*.{json,yml,yaml,md,html,css}": [
-      "prettier --write"
-    ]
   },
   "packageManager": "pnpm@10.26.1+sha512.664074abc367d2c9324fdc18037097ce0a8f126034160f709928e9e9f95d98714347044e5c3164d65bd5da6c59c6be362b107546292a8eecb7999196e5ce58fa",
   "engines": {

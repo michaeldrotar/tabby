@@ -42,25 +42,12 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: desktop-browser
+  - type: input
+    id: chrome-version
     attributes:
-      label: Browser
-      description: Select the browser where the issue occurs(Multiple choice).
-      multiple: true
-      options:
-        [
-          Chrome,
-          "Opera",
-          "Opera GX",
-          "Firefox",
-          "Safari",
-          "Microsoft Edge",
-          "Brave",
-        ]
-      default: 0
-    validations:
-      required: true
+      label: Chrome Version
+      description: Include the Chrome version if known.
+      placeholder: 127.0.0.0
 
   - type: input
     id: desktop-node-version
