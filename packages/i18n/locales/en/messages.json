@@ -42,6 +42,15 @@
   "tabContextMenu_reload": {
     "message": "Reload"
   },
+  "tabContextMenu_discardTab": {
+    "message": "Discard Tab"
+  },
+  "tabContextMenu_discardActiveTab": {
+    "message": "The active tab cannot be discarded."
+  },
+  "tabContextMenu_alreadyDiscarded": {
+    "message": "This tab is already discarded."
+  },
   "tabContextMenu_pinTab": {
     "message": "Pin Tab"
   },
@@ -252,6 +261,12 @@
   },
   "toast_titleAndUrlCopied": {
     "message": "Title and URL copied"
+  },
+  "toast_tabDiscarded": {
+    "message": "Tab discarded from memory"
+  },
+  "toast_tabDiscardFailed": {
+    "message": "Chrome could not discard this tab"
   },
   "toast_nUrlsCopied": {
     "message": "$COUNT$ URLs copied",
