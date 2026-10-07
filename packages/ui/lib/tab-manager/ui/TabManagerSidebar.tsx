@@ -31,6 +31,13 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
       typeof window !== 'undefined' &&
       window.matchMedia?.(NARROW_SIDEBAR_QUERY).matches === true,
   )
+  const [surfaceState, setSurfaceState] = useState({
+    isExpanded,
+    isRaised: isExpanded,
+  })
+  if (surfaceState.isExpanded !== isExpanded) {
+    setSurfaceState({ isExpanded, isRaised: true })
+  }
   const sidebarSurfaceRef = useRef<HTMLDivElement>(null)
   const isOverlayExpanded = isExpanded && isNarrowViewport
 
@@ -45,6 +52,33 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
+
+  useEffect(() => {
+    if (isExpanded) return
+
+    const widthTransition = sidebarSurfaceRef.current
+      ?.getAnimations?.()
+      .find(
+        (animation) =>
+          'transitionProperty' in animation &&
+          animation.transitionProperty === 'width',
+      )
+    let cancelled = false
+    const lowerSurface = () => {
+      if (!cancelled) {
+        setSurfaceState((state) =>
+          state.isRaised ? { ...state, isRaised: false } : state,
+        )
+      }
+    }
+    void (widthTransition?.finished ?? Promise.resolve()).then(
+      lowerSurface,
+      lowerSurface,
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [isExpanded, isNarrowViewport])
 
   useEffect(() => {
     if (!isOverlayExpanded) return
@@ -81,6 +115,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         `
           relative h-full flex-shrink-0 transition-[width] duration-300
           ease-in-out
+          motion-reduce:transition-none
         `,
         isNarrowViewport ? 'w-16' : isExpanded ? 'w-64' : 'w-16',
         className,
@@ -90,15 +125,20 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         ref={sidebarSurfaceRef}
         data-sidebar-surface
         className={cn(
-          `flex h-full flex-col transition-[width] duration-300 ease-in-out`,
-          isOverlayExpanded ? 'bg-input' : 'bg-input/30',
+          `
+            flex h-full flex-col overflow-x-clip
+            bg-[color-mix(in_srgb,var(--input)_30%,var(--background))]
+            transition-[width,box-shadow] duration-300 ease-in-out
+            motion-reduce:transition-none
+          `,
           isExpanded ? 'w-64' : 'w-16',
-          isOverlayExpanded
-            ? `
-              border-border absolute left-0 top-0 z-[60] overflow-visible
-              border-r shadow-lg
-            `
-            : 'relative overflow-x-clip',
+          isNarrowViewport
+            ? `border-border absolute left-0 top-0 border-r`
+            : 'relative',
+          // Keep the closing surface above content until its width transition ends.
+          isNarrowViewport &&
+            (isExpanded || surfaceState.isRaised ? 'z-[60]' : 'z-0'),
+          isOverlayExpanded && 'shadow-lg',
         )}
       >
         {/* Top Sticky: Toggle Mode */}
