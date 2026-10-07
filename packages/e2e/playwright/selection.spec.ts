@@ -53,6 +53,169 @@ const getAllItems = async (page: Page, navType: 'window' | 'tab' | 'group') => {
   return page.locator(`[data-nav-type="${navType}"]`)
 }
 
+test.describe('Creation Actions', () => {
+  test('creates focused tabs at the end of a window or inside a group', async ({
+    page,
+    extensionId,
+  }) => {
+    await openTabManager(page, extensionId)
+
+    const setup = await page.evaluate(async () => {
+      const currentWindow = await chrome.windows.getCurrent()
+      if (currentWindow.id === undefined) {
+        throw new Error('The current window was not available.')
+      }
+
+      const firstTab = await chrome.tabs.create({
+        windowId: currentWindow.id,
+        active: false,
+        url: 'data:text/html,%3Ctitle%3ECreation%20Group%20One%3C/title%3E',
+      })
+      const secondTab = await chrome.tabs.create({
+        windowId: currentWindow.id,
+        active: false,
+        url: 'data:text/html,%3Ctitle%3ECreation%20Group%20Two%3C/title%3E',
+      })
+      if (firstTab.id === undefined || secondTab.id === undefined) {
+        throw new Error('The group test tabs were not created.')
+      }
+
+      const groupId = await chrome.tabs.group({
+        tabIds: [firstTab.id, secondTab.id],
+      })
+      await chrome.tabGroups.update(groupId, { title: 'Creation Test Group' })
+
+      const tabs = await chrome.tabs.query({ windowId: currentWindow.id })
+      const groupTabs = tabs.filter((tab) => tab.groupId === groupId)
+      return {
+        windowId: currentWindow.id,
+        groupId,
+        existingTabIds: tabs.flatMap((tab) =>
+          tab.id === undefined ? [] : [tab.id],
+        ),
+        groupLastIndex: groupTabs.at(-1)?.index ?? -1,
+        tabCount: tabs.length,
+      }
+    })
+
+    const newTabButton = page.getByRole('button', {
+      name: 'New Tab',
+      exact: true,
+    })
+    await newTabButton.focus()
+    await page.keyboard.press('Space')
+
+    await expect
+      .poll(() =>
+        page.evaluate(
+          async (windowId) => (await chrome.tabs.query({ windowId })).length,
+          setup.windowId,
+        ),
+      )
+      .toBe(setup.tabCount + 1)
+
+    const standaloneTab = await page.evaluate(
+      async ({ windowId, existingTabIds }) => {
+        const tabs = await chrome.tabs.query({ windowId })
+        const tab = tabs.find(
+          (candidate) =>
+            candidate.id !== undefined &&
+            !existingTabIds.includes(candidate.id),
+        )
+        if (tab?.id === undefined) {
+          throw new Error('The new standalone tab was not found.')
+        }
+        return {
+          id: tab.id,
+          index: tab.index,
+          active: tab.active,
+          groupId: tab.groupId,
+          lastTabId: tabs.at(-1)?.id,
+          windowFocused: (await chrome.windows.get(windowId)).focused,
+        }
+      },
+      setup,
+    )
+    expect(standaloneTab.index).toBe(setup.tabCount)
+    expect(standaloneTab.lastTabId).toBe(standaloneTab.id)
+    expect(standaloneTab.active).toBe(true)
+    expect(standaloneTab.groupId).toBe(-1)
+    expect(standaloneTab.windowFocused).toBe(true)
+
+    await page.bringToFront()
+    await page
+      .getByRole('button', { name: 'New Tab in Creation Test Group' })
+      .click()
+
+    const groupedTab = await page.evaluate(async ({ windowId, groupId }) => {
+      const groupTabs = (await chrome.tabs.query({ windowId })).filter(
+        (tab) => tab.groupId === groupId,
+      )
+      const tab = groupTabs.at(-1)
+      if (tab?.id === undefined) {
+        throw new Error('The new group tab was not found.')
+      }
+      return {
+        id: tab.id,
+        index: tab.index,
+        active: tab.active,
+        groupId: tab.groupId,
+        groupTabCount: groupTabs.length,
+        windowFocused: (await chrome.windows.get(windowId)).focused,
+      }
+    }, setup)
+    expect(groupedTab.groupId).toBe(setup.groupId)
+    expect(groupedTab.groupTabCount).toBe(3)
+    expect(groupedTab.index).toBe(setup.groupLastIndex + 1)
+    expect(groupedTab.active).toBe(true)
+    expect(groupedTab.windowFocused).toBe(true)
+  })
+
+  test('creates and focuses a new window after the existing windows', async ({
+    page,
+    extensionId,
+  }) => {
+    await openTabManager(page, extensionId)
+
+    const existingWindowIds = await page.evaluate(async () =>
+      (await chrome.windows.getAll({ populate: false })).flatMap((window) =>
+        window.id === undefined ? [] : [window.id],
+      ),
+    )
+    const newWindowButton = page.getByRole('button', {
+      name: 'New Window',
+      exact: true,
+    })
+    await newWindowButton.focus()
+    await page.keyboard.press('Enter')
+
+    const windowRows = await getAllItems(page, 'window')
+    await expect(windowRows).toHaveCount(existingWindowIds.length + 1)
+
+    const newWindow = await page.evaluate(async (previousIds) => {
+      const windows = await chrome.windows.getAll({ populate: false })
+      const createdWindow = windows.find(
+        (window) => window.id !== undefined && !previousIds.includes(window.id),
+      )
+      if (createdWindow?.id === undefined) {
+        throw new Error('The new window was not found.')
+      }
+      const focusedWindow = await chrome.windows.getLastFocused()
+      return {
+        id: createdWindow.id,
+        focused: createdWindow.focused,
+        lastFocusedId: focusedWindow.id,
+      }
+    }, existingWindowIds)
+
+    expect(newWindow.focused).toBe(true)
+    expect(newWindow.lastFocusedId).toBe(newWindow.id)
+    expect(await windowRows.last().getAttribute('data-nav-id')).toBe(
+      String(newWindow.id),
+    )
+  })
+})
+
 test.describe('Tab Manager Selection', () => {
   test.describe('Basic Click Selection', () => {
     test('first sidebar open selects the current window and its active tab', async ({

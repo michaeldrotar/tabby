@@ -178,12 +178,12 @@ export const useKeyboardNavigation = (
 
       // Space key: Enter multi-select mode or toggle selection
       if (e.key === ' ') {
-        e.preventDefault()
         const item = getSelectionItemFromElement(navItem)
-        if (item) {
-          const paneContext = getPaneContextFromElement(navItem)
-          selectionInteraction.handleKeyboard(item, ' ', paneContext)
-        }
+        if (!item) return
+
+        e.preventDefault()
+        const paneContext = getPaneContextFromElement(navItem)
+        selectionInteraction.handleKeyboard(item, ' ', paneContext)
         return
       }
 

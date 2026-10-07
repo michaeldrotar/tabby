@@ -81,6 +81,12 @@
   "tabContextMenu_newWindow": {
     "message": "New Window"
   },
+  "tabManager_newTab": {
+    "message": "New Tab"
+  },
+  "tabManager_newTabInGroup": {
+    "message": "New Tab in $1"
+  },
   "tabContextMenu_copy": {
     "message": "Copy"
   },
