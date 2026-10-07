@@ -42,6 +42,7 @@ export default defineConfig([
       '**/dist/**',
       '**/dist-zip/**',
       '**/node_modules/**',
+      '**/storybook-static/**',
       'chrome-extension/manifest.js',
       'eslint-rules/**',
       'scripts/**',

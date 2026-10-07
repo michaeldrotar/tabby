@@ -87,6 +87,32 @@ Tabby is the result of standing on the shoulders of giants (and AI).
     - Click "Load unpacked"
     - Select the `dist` folder
 
+## Preview with Sample Data
+
+After installing dependencies, run:
+
+```bash
+pnpm preview
+```
+
+Open the URL printed by the command. It builds the current branch and runs the
+full Tab Manager with simulated Chrome APIs and sample data. Selection, sidebar
+transitions, themes, and notifications use the application code. Browser actions
+update the sample data and emit events to the real stores. Search and Settings
+buttons are inactive in this preview.
+
+The server chooses an available local port. To choose a port or a different
+fixture, use:
+
+```bash
+pnpm preview --port 5175 --fixture scripts/preview/browser-data.json
+```
+
+Edit [`browser-data.json`](./scripts/preview/browser-data.json) to set up windows,
+tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
+restart after application source changes. The preview data stays in memory;
+Chrome-extension E2E tests cover integration with the actual browser.
+
 ## Releasing
 
 This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
