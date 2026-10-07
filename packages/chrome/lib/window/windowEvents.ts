@@ -1,3 +1,8 @@
+import {
+  DEV_DIAGNOSTICS_ENABLED,
+  isDiagnosticsRecording,
+  recordDiagnosticEvent,
+} from '@extension/shared/devDiagnostics'
 import { useBrowserStore } from '../useBrowserStore.js'
 import { browserWindowTypes } from './browserWindowTypes.js'
 import { toBrowserWindow } from './toBrowserWindow.js'
@@ -12,6 +17,11 @@ import type { BrowserWindowID } from './BrowserWindowID.js'
 const onChromeWindowBoundsChanged = (
   updatedChromeWindow: chrome.windows.Window,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('windows.onBoundsChanged', {
+      windowId: updatedChromeWindow.id ?? null,
+    })
+  }
   const updatedBrowserWindow = toBrowserWindow(updatedChromeWindow)
   if (!updatedBrowserWindow) return
 
@@ -25,6 +35,11 @@ const onChromeWindowBoundsChanged = (
 const onChromeWindowCreated = (
   newChromeWindow: chrome.windows.Window,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('windows.onCreated', {
+      windowId: newChromeWindow.id ?? null,
+    })
+  }
   const newBrowserWindow = toBrowserWindow(newChromeWindow)
   if (!newBrowserWindow) return
   const state = useBrowserStore.getState()
@@ -35,6 +50,11 @@ const onChromeWindowCreated = (
  * Handles when focus changes to a different chrome window.
  */
 const onChromeWindowFocusChanged = (newFocusedId: BrowserWindowID): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('windows.onFocusChanged', {
+      windowId: newFocusedId,
+    })
+  }
   const state = useBrowserStore.getState()
   if (state.focusedWindowId === newFocusedId) return
 
@@ -52,6 +72,9 @@ const onChromeWindowFocusChanged = (newFocusedId: BrowserWindowID): void => {
  * Handles when a chrome window is closed.
  */
 const onChromeWindowRemoved = (removedId: BrowserWindowID): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('windows.onRemoved', { windowId: removedId })
+  }
   const state = useBrowserStore.getState()
   const setState = useBrowserStore.setState
 

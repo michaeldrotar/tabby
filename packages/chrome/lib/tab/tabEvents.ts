@@ -1,3 +1,8 @@
+import {
+  DEV_DIAGNOSTICS_ENABLED,
+  isDiagnosticsRecording,
+  recordDiagnosticEvent,
+} from '@extension/shared/devDiagnostics'
 import { useBrowserStore } from '../useBrowserStore.js'
 import { toBrowserTab } from './toBrowserTab.js'
 import type { BrowserTabLifecycle } from './BrowserTabLifecycle.js'
@@ -9,6 +14,9 @@ const onChromeTabActivated = (
   activeInfo: chrome.tabs.OnActivatedInfo,
 ): void => {
   const { tabId, windowId } = activeInfo
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onActivated', { tabId, windowId })
+  }
   const state = useBrowserStore.getState()
 
   const windowBrowserTabs = Object.values(state.tabById).filter(
@@ -43,6 +51,13 @@ const onChromeTabAttached = (
 ): void => {
   const state = useBrowserStore.getState()
   const { newWindowId, newPosition } = attachInfo
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onAttached', {
+      tabId,
+      windowId: newWindowId,
+      position: newPosition,
+    })
+  }
 
   // Shift indexes of existing tabs in the target window that are at or after the new position
   const tabsToShift = Object.values(state.tabById).filter(
@@ -67,6 +82,12 @@ const onChromeTabAttached = (
  * Handles when a new chrome tab is created.
  */
 const onChromeTabCreated = (newChromeTab: chrome.tabs.Tab): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onCreated', {
+      tabId: newChromeTab.id ?? null,
+      windowId: newChromeTab.windowId,
+    })
+  }
   const newBrowserTab = toBrowserTab(newChromeTab, {
     lifecycle: 'initializing',
   })
@@ -87,6 +108,13 @@ const onChromeTabDetached = (
 ): void => {
   const state = useBrowserStore.getState()
   const { oldWindowId, oldPosition } = detachInfo
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onDetached', {
+      tabId,
+      windowId: oldWindowId,
+      position: oldPosition,
+    })
+  }
 
   // Shift indexes of tabs in the old window that were after the detached position
   const tabsToShift = Object.values(state.tabById).filter(
@@ -115,6 +143,12 @@ const onChromeTabHighlighted = (
 ): void => {
   const state = useBrowserStore.getState()
   const { tabIds, windowId } = highlightInfo
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onHighlighted', {
+      windowId,
+      tabIds: tabIds.join(','),
+    })
+  }
   const windowTabs = Object.values(state.tabById).filter(
     (tab) => tab.windowId === windowId,
   )
@@ -137,6 +171,14 @@ const onChromeTabMoved = (
   moveInfo: chrome.tabs.OnMovedInfo,
 ): void => {
   const state = useBrowserStore.getState()
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onMoved', {
+      tabId,
+      windowId: moveInfo.windowId,
+      fromIndex: moveInfo.fromIndex,
+      toIndex: moveInfo.toIndex,
+    })
+  }
   state.moveTabById(tabId, { toIndex: moveInfo.toIndex })
 }
 
@@ -147,6 +189,12 @@ const onChromeTabRemoved = (
   removedTabId: number,
   removeInfo: chrome.tabs.OnRemovedInfo,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onRemoved', {
+      tabId: removedTabId,
+      windowClosing: removeInfo.isWindowClosing,
+    })
+  }
   const state = useBrowserStore.getState()
   state.removeTabById(removedTabId, removeInfo)
 }
@@ -158,6 +206,9 @@ const onChromeTabReplaced = (
   addedTabId: number,
   removedTabId: number,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onReplaced', { addedTabId, removedTabId })
+  }
   void chrome.tabs
     .get(addedTabId)
     .then((newChromeTab) => {
@@ -196,6 +247,12 @@ const onChromeTabUpdated = (
   changeInfo: chrome.tabs.OnUpdatedInfo,
   tab: chrome.tabs.Tab,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabs.onUpdated', {
+      tabId,
+      changedFields: Object.keys(changeInfo).join(','),
+    })
+  }
   const state = useBrowserStore.getState()
   const existingTab = state.tabById[tabId]
 

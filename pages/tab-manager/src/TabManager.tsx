@@ -20,7 +20,6 @@ import {
 } from './selection'
 import { ModeTransitionEffect } from './selection/ModeTransitionEffect'
 import { TabItemPane } from './TabItemPane'
-import { TabManagerDebugLogger } from './TabManagerDebugLogger'
 import { TabManagerSidebarContainer } from './TabManagerSidebarContainer'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
@@ -317,7 +316,6 @@ const TabManager = () => {
           </Profiler>
         )}
       </TabManagerShell>
-      <TabManagerDebugLogger />
     </Profiler>
   )
 }

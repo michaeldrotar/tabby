@@ -2,6 +2,11 @@ import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
 import { useBrowserTabs } from '@extension/chrome/tab/useBrowserTabs'
 import { useTabListItems } from '@extension/chrome/useTabListItems'
+import {
+  DEV_DIAGNOSTICS_ENABLED,
+  isDiagnosticsRecording,
+  recordDiagnosticEvent,
+} from '@extension/shared/devDiagnostics'
 import { Profiler } from '@extension/shared/Profiler'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { BrowserTabList } from '@extension/ui/BrowserTabList'
@@ -42,7 +47,7 @@ const TabItemBrowserTabItem = memo(
     onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
     onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void
   }) => (
-    <Profiler id="TabItemPane.BrowserTabItem">
+    <Profiler id={`TabItemPane.BrowserTabItem:${tab.id}`}>
       <BrowserTabItem
         tabId={tab.id}
         title={tab.title || 'Untitled'}
@@ -111,6 +116,11 @@ const TabGroupItem = memo(
         if (nextTitle === (group.title ?? '').trim()) {
           onRenameGroupEnd?.()
           return
+        }
+        if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+          recordDiagnosticEvent('tabGroups.renameRequested', {
+            groupId: group.id,
+          })
         }
         const result = await batchActions.performGroupAction(
           { type: 'rename', title: nextTitle },

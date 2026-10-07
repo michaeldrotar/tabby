@@ -1,3 +1,8 @@
+import {
+  DEV_DIAGNOSTICS_ENABLED,
+  isDiagnosticsRecording,
+  recordDiagnosticEvent,
+} from '@extension/shared/devDiagnostics'
 import { useBrowserStore } from '../useBrowserStore.js'
 import { toBrowserTabGroup } from './toBrowserTabGroup.js'
 
@@ -7,6 +12,12 @@ import { toBrowserTabGroup } from './toBrowserTabGroup.js'
 const onChromeTabGroupCreated = (
   newChromeTabGroup: chrome.tabGroups.TabGroup,
 ): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabGroups.onCreated', {
+      groupId: newChromeTabGroup.id,
+      windowId: newChromeTabGroup.windowId,
+    })
+  }
   const newBrowserTabGroup = toBrowserTabGroup(newChromeTabGroup)
   if (!newBrowserTabGroup) return
   const state = useBrowserStore.getState()
@@ -17,6 +28,12 @@ const onChromeTabGroupCreated = (
  * Handles when a chrome tab group is updated.
  */
 const onChromeTabGroupUpdated = (tabGroup: chrome.tabGroups.TabGroup): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabGroups.onUpdated', {
+      groupId: tabGroup.id,
+      windowId: tabGroup.windowId,
+    })
+  }
   const browserTabGroup = toBrowserTabGroup(tabGroup)
   if (!browserTabGroup) return
 
@@ -28,6 +45,12 @@ const onChromeTabGroupUpdated = (tabGroup: chrome.tabGroups.TabGroup): void => {
  * Handles when a chrome tab group is removed.
  */
 const onChromeTabGroupRemoved = (tabGroup: chrome.tabGroups.TabGroup): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabGroups.onRemoved', {
+      groupId: tabGroup.id,
+      windowId: tabGroup.windowId,
+    })
+  }
   const state = useBrowserStore.getState()
   state.removeTabGroupById(tabGroup.id)
 }
@@ -36,6 +59,12 @@ const onChromeTabGroupRemoved = (tabGroup: chrome.tabGroups.TabGroup): void => {
  * Handles when a chrome tab group is moved.
  */
 const onChromeTabGroupMoved = (tabGroup: chrome.tabGroups.TabGroup): void => {
+  if (DEV_DIAGNOSTICS_ENABLED && isDiagnosticsRecording()) {
+    recordDiagnosticEvent('tabGroups.onMoved', {
+      groupId: tabGroup.id,
+      windowId: tabGroup.windowId,
+    })
+  }
   const browserTabGroup = toBrowserTabGroup(tabGroup)
   if (!browserTabGroup) return
 
