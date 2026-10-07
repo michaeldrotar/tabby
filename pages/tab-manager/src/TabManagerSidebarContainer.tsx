@@ -166,10 +166,11 @@ export const TabManagerSidebarContainer = ({
 
   const openNewWindow = async () => {
     if (!currentBrowserWindow) {
-      await createBrowserWindow()
+      await createBrowserWindow({ focused: true })
       return
     }
     const newWindow = await createBrowserWindow({
+      focused: true,
       height: currentBrowserWindow.height,
       incognito: currentBrowserWindow.incognito,
       left: currentBrowserWindow.left,
@@ -200,17 +201,17 @@ export const TabManagerSidebarContainer = ({
           }
         />
       ))}
+      <SidebarAction
+        icon={<PlusIcon className="size-5" />}
+        label={t('tabContextMenu_newWindow')}
+        onClick={openNewWindow}
+        isExpanded={isExpanded}
+      />
     </>
   )
 
   const actions = (
     <>
-      <SidebarAction
-        icon={<PlusIcon className="size-5" />}
-        label="New Window"
-        onClick={openNewWindow}
-        isExpanded={isExpanded}
-      />
       <SidebarAction
         icon={<ScrollToActiveIcon className="size-5" />}
         label="Scroll to active"

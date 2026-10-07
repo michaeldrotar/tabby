@@ -1,12 +1,16 @@
 import { activateTab } from '@extension/chrome/actions/tabs/activateTab'
+import { addTabToGroup } from '@extension/chrome/actions/tabs/addTabToGroup'
 import { focusWindow } from '@extension/chrome/actions/windows/focusWindow'
+import { createBrowserTab } from '@extension/chrome/tab/createBrowserTab'
 import { useBrowserTabs } from '@extension/chrome/tab/useBrowserTabs'
 import { useTabListItems } from '@extension/chrome/useTabListItems'
+import { t } from '@extension/i18n/i18n'
 import { Profiler } from '@extension/shared/Profiler'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { BrowserTabList } from '@extension/ui/BrowserTabList'
 import { toast } from '@extension/ui/components/Toaster'
 import { Favicon } from '@extension/ui/Favicon'
+import { PlusIcon } from '@extension/ui/icons'
 import { memo, useCallback, useMemo } from 'react'
 import { useBatchTabActions } from './actions/useBatchTabActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
@@ -15,6 +19,34 @@ import type { BrowserTab } from '@extension/chrome/tab/BrowserTab'
 import type { BrowserTabID } from '@extension/chrome/tab/BrowserTabID'
 import type { BrowserTabGroup } from '@extension/chrome/tabGroup/BrowserTabGroup'
 import type { BrowserWindowID } from '@extension/chrome/window/BrowserWindowID'
+
+const CreateTabAction = ({
+  label,
+  ariaLabel = label,
+  onClick,
+}: {
+  label: string
+  ariaLabel?: string
+  onClick: () => void
+}) => (
+  <button
+    type="button"
+    data-nav-type="action"
+    aria-label={ariaLabel}
+    onClick={onClick}
+    className={`
+      text-muted flex min-h-10 w-full items-center gap-3 rounded-md px-3 py-2
+      text-sm transition-colors
+      hover:text-foreground hover:bg-highlighted/40
+      focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+      focus-visible:ring-offset-background focus-visible:outline-none
+      focus-visible:ring-2 focus-visible:ring-offset-2
+    `}
+  >
+    <PlusIcon className="size-5" aria-hidden="true" />
+    <span>{label}</span>
+  </button>
+)
 
 const onActivateTab = async (
   windowId: BrowserWindowID,
@@ -181,7 +213,41 @@ export const TabItemPane = ({
   const selectedWindowIds = useSelectionStore((state) => state.windowIds)
   const selectionMode = useSelectionStore((state) => state.mode)
   const selectionInteraction = useSelectionInteraction()
+  const { handleArrowNavigation } = selectionInteraction
   const batchActions = useBatchTabActions()
+
+  const openNewTab = useCallback(
+    async (group?: { id: number; lastTab?: BrowserTab }) => {
+      if (browserWindowId === undefined) return
+
+      const newTab = await createBrowserTab({
+        active: true,
+        windowId: browserWindowId,
+        ...(group?.lastTab
+          ? {
+              index: group.lastTab.index + 1,
+              openerTabId: group.lastTab.id,
+            }
+          : {}),
+      })
+
+      if (group) await addTabToGroup(newTab.id, group.id)
+
+      await focusWindow(browserWindowId)
+      handleArrowNavigation({ type: 'tab', id: newTab.id }, 'tab', {
+        forceSingleSelect: true,
+      })
+
+      requestAnimationFrame(() => {
+        const tabItem = document.querySelector(
+          `[data-tab-item="${newTab.id}"]`,
+        ) as HTMLElement | null
+        tabItem?.scrollIntoView({ block: 'nearest' })
+        tabItem?.querySelector<HTMLElement>('[data-tab-option]')?.focus()
+      })
+    },
+    [browserWindowId, handleArrowNavigation],
+  )
 
   const selectedGroupIds = useMemo(() => {
     const ids = new Set(explicitSelectedGroupIds)
@@ -368,11 +434,31 @@ export const TabItemPane = ({
               }
             >
               {children}
+              {!group.collapsed && (
+                <div className="pl-2">
+                  <CreateTabAction
+                    label={t('tabManager_newTab')}
+                    ariaLabel={t('tabManager_newTabInGroup', [
+                      group.title || t('tabContextMenu_untitledGroup'),
+                    ])}
+                    onClick={() =>
+                      void openNewTab({
+                        id: group.id as number,
+                        lastTab: tabs.at(-1) as BrowserTab | undefined,
+                      })
+                    }
+                  />
+                </div>
+              )}
             </TabGroupItem>
           )}
           onGroupSelect={(group, event) =>
             handleSelectGroup(group.id as number, event)
           }
+        />
+        <CreateTabAction
+          label={t('tabManager_newTab')}
+          onClick={() => void openNewTab()}
         />
       </div>
     </div>
