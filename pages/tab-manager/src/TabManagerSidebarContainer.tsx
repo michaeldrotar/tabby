@@ -5,6 +5,7 @@ import { useCurrentBrowserWindow } from '@extension/chrome/window/useCurrentBrow
 import { t } from '@extension/i18n/i18n'
 import { tt } from '@extension/i18n/plurals'
 import { usePreferenceStorage } from '@extension/shared/hooks/preference'
+import { getWindowIdentificationTab } from '@extension/shared/utils/window-identification'
 import { preferenceStorage } from '@extension/storage/impl/preference-storage'
 import { Favicon } from '@extension/ui/Favicon'
 import {
@@ -20,19 +21,6 @@ import { useCallback, useMemo } from 'react'
 import { useBatchTabActions } from './actions/useBatchTabActions'
 import { useSelectionInteraction, useSelectionStore } from './selection'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
-
-// Helper to get active tab url
-const useDisplayTabUrl = (windowId: number) => {
-  const { tabManagerCompactIconMode } = usePreferenceStorage()
-  const tabs = useBrowserTabsByWindowId(windowId)
-  const activeTab = tabs.find((tab) => tab.active)
-  const firstTab = tabs[0]
-
-  if (tabManagerCompactIconMode === 'active') {
-    return activeTab?.url
-  }
-  return firstTab?.url
-}
 
 // Component for Window Item to use hook
 const WindowItemContainer = ({
@@ -59,18 +47,19 @@ const WindowItemContainer = ({
   ) => void
   onClose: () => void
 }) => {
-  const displayTabUrl = useDisplayTabUrl(window.id)
+  const { tabManagerCompactIconMode: identificationMode } =
+    usePreferenceStorage()
   const tabs = useBrowserTabsByWindowId(window.id)
-  const activeTab = tabs.find((tab) => tab.active)
-  const title = activeTab?.title || `Window ${window.id}`
+  const identificationTab = getWindowIdentificationTab(tabs, identificationMode)
+  const title = identificationTab?.title || `Window ${window.id}`
 
   return (
     <WindowRailItem
       id={window.id}
       title={title}
       icon={
-        displayTabUrl ? (
-          <Favicon pageUrl={displayTabUrl} size={24} />
+        identificationTab?.url ? (
+          <Favicon pageUrl={identificationTab.url} size={24} />
         ) : undefined
       }
       subtitle={tt('nTabs', tabs.length)}

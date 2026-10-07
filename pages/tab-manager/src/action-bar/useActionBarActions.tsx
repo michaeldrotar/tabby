@@ -179,6 +179,7 @@ export const useActionBarActions = (
         panel: ({ onClose }) => (
           <MoveToWindowPanel
             windows={windows}
+            tabs={batch.snapshot.tabs}
             selectedTabIds={batch.selectedTabIds}
             isMac={isMac}
             newWindowDisabledReason={batch.moveNewWindowBlockReason}
