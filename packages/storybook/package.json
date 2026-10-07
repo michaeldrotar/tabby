@@ -13,7 +13,9 @@
     "clean": "pnpm clean:bundle && pnpm clean:node_modules && pnpm clean:turbo"
   },
   "dependencies": {
-    "@extension/ui": "workspace:*"
+    "@extension/chrome": "workspace:*",
+    "@extension/ui": "workspace:*",
+    "@tanstack/react-query": "5.90.7"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",

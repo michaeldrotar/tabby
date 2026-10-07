@@ -103,6 +103,7 @@ export const createChromeMock = () => ({
     duplicate: vi.fn().mockResolvedValue(createMockTab()),
     move: vi.fn().mockResolvedValue(createMockTab()),
     reload: vi.fn().mockResolvedValue(undefined),
+    discard: vi.fn().mockResolvedValue(createMockTab()),
     group: vi.fn().mockResolvedValue(1),
     ungroup: vi.fn().mockResolvedValue(undefined),
     onCreated: { addListener: vi.fn(), removeListener: vi.fn() },

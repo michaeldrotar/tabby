@@ -27,6 +27,7 @@ export type BatchTabRecord = {
   groupId?: number
   pinned?: boolean
   active?: boolean
+  discarded?: boolean
   audible?: boolean
   muted?: boolean
   title?: string

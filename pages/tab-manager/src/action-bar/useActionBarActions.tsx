@@ -1,8 +1,10 @@
+import { discardTab } from '@extension/chrome/actions/tabs/discardTab'
 import { useBrowserTabGroups } from '@extension/chrome/tabGroup/useBrowserTabGroups'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { t } from '@extension/i18n/i18n'
 import { tt } from '@extension/i18n/plurals'
+import { toast } from '@extension/ui/components/Toaster'
 import {
   getGroupColorClasses,
   TAB_GROUP_COLOR_IDS,
@@ -17,6 +19,7 @@ import {
   FolderPlus,
   Layers,
   Link2,
+  MemoryStick,
   MonitorUp,
   Palette,
   Pencil,
@@ -372,6 +375,28 @@ export const useActionBarActions = (
     }
 
     if (singleTargetTab) {
+      const discardDisabledReason = singleTargetTab.active
+        ? t('tabContextMenu_discardActiveTab')
+        : singleTargetTab.discarded
+          ? t('tabContextMenu_alreadyDiscarded')
+          : undefined
+      items.push({
+        id: 'discard-selected-tab',
+        icon: <MemoryStick size={17} />,
+        label: t('tabContextMenu_discardTab'),
+        kind: 'secondary',
+        disabled: Boolean(discardDisabledReason),
+        disabledReason: discardDisabledReason,
+        execute: () => {
+          void discardTab(singleTargetTab.id)
+            .then((tab) => {
+              if (tab?.discarded) toast.success(t('toast_tabDiscarded'))
+              else toast.error(t('toast_tabDiscardFailed'))
+            })
+            .catch(() => toast.error(t('toast_tabDiscardFailed')))
+        },
+      })
+
       const siblingTabs = batch.snapshot.tabs.filter(
         (tab) => tab.windowId === singleTargetTab.windowId && !tab.pinned,
       )
@@ -451,7 +476,6 @@ export const useActionBarActions = (
     selectedGroupTabIds,
     selectedGroups,
     selectedTabCount,
-    selectedTabs,
     selectedWindowIds,
     selectedWindowId,
     selection,

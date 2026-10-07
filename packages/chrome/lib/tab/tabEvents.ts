@@ -191,7 +191,7 @@ const onChromeTabReplaced = (
 /**
  * Handles when a chrome tab is updated.
  */
-const onChromeTabUpdated = (
+export const onChromeTabUpdated = (
   tabId: number,
   changeInfo: chrome.tabs.OnUpdatedInfo,
   tab: chrome.tabs.Tab,
@@ -235,6 +235,7 @@ const onChromeTabUpdated = (
 
   state.updateTabById(tabId, {
     ...changeInfo,
+    discarded: changeInfo.discarded ?? tab.discarded ?? existingTab?.discarded,
     lifecycle,
   })
 }
