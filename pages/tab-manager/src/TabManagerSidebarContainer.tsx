@@ -158,11 +158,12 @@ export const TabManagerSidebarContainer = ({
   )
 
   const isExpanded = tabManagerCompactLayout === 'list'
-  const toggleExpand = () =>
-    preferenceStorage.set((prev) => ({
+  const toggleExpand = useCallback(() => {
+    void preferenceStorage.set((prev) => ({
       ...prev,
       tabManagerCompactLayout: isExpanded ? 'icon' : 'list',
     }))
+  }, [isExpanded])
 
   const openNewWindow = async () => {
     if (!currentBrowserWindow) {
