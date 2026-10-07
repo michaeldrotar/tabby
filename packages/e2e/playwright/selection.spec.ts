@@ -28,6 +28,15 @@ const openTabManager = async (page: Page, extensionId: string) => {
 }
 
 const openActionMenu = async (page: Page) => {
+  const notifications = page.locator('[data-sonner-toast]')
+  const notification = page
+    .locator('[data-sonner-toast][data-front="true"]')
+    .getByRole('button', { name: 'Dismiss notification' })
+  while (await notification.isVisible()) {
+    const count = await notifications.count()
+    await notification.click()
+    await expect(notifications).toHaveCount(count - 1)
+  }
   await page.getByRole('button', { name: 'More actions' }).click()
   return page.locator('[data-action-bar-menu]')
 }
@@ -1073,9 +1082,9 @@ test.describe('Tab Manager Selection', () => {
       await expect(page.locator('[data-nav-type="group"]')).toHaveCount(1)
       await page.locator('[data-nav-type="group"] button').first().click()
 
+      const menu = await openActionMenu(page)
       const trigger = page.getByRole('button', { name: 'More actions' })
       await expect(trigger).toBeVisible()
-      const menu = await openActionMenu(page)
       await expect(menu.locator('[data-selection-summary]')).toHaveCount(0)
       await expect(menu.getByLabel('Selected items')).toHaveCount(0)
       const menuBox = await menu.boundingBox()
@@ -1147,6 +1156,15 @@ test.describe('Tab Manager Selection', () => {
         }),
       )
       await openTabManager(page, extensionId)
+      await page.setViewportSize({ width: 320, height: 600 })
+      const status = page.locator('[data-sonner-toast]')
+      await expect(status).toHaveCount(0)
+      const actionBar = page.locator('[data-action-bar-root]')
+      const emptyActionBarBox = await actionBar.boundingBox()
+      const ellipsisBox = await page
+        .getByRole('button', { name: 'More actions' })
+        .boundingBox()
+      const sidebarBox = await page.locator('aside').boundingBox()
 
       const tabByTitle = (title: string) =>
         page.locator('[data-nav-type="tab"]').filter({ hasText: title }).first()
@@ -1166,26 +1184,261 @@ test.describe('Tab Manager Selection', () => {
         .locator('[data-sonner-toast]')
         .filter({ hasText: '2 tabs closed' })
       await expect(toast).toBeVisible()
-      await page.waitForTimeout(350)
+      await page.waitForTimeout(450)
       const toastBox = await toast.boundingBox()
-      const actionBarBox = await page
-        .locator('[data-action-bar-root]')
-        .boundingBox()
+      const actionBarBox = await actionBar.boundingBox()
       expect(toastBox).not.toBeNull()
       expect(actionBarBox).not.toBeNull()
-      expect(toastBox!.y + toastBox!.height).toBeLessThan(actionBarBox!.y)
+      expect(actionBarBox).toEqual(emptyActionBarBox)
+      expect(toastBox).toEqual(actionBarBox)
+      expect(toastBox!.x).toBeGreaterThanOrEqual(
+        sidebarBox!.x + sidebarBox!.width,
+      )
+      expect(
+        await toast
+          .getByRole('button', { name: 'Dismiss notification' })
+          .boundingBox(),
+      ).toEqual(ellipsisBox)
       await expect(firstTab).toHaveCount(0)
       await expect(secondTab).toHaveCount(0)
 
-      await page.getByRole('button', { name: 'More actions' }).click()
+      await expect(
+        page.getByRole('button', { name: 'More actions' }),
+      ).toHaveCount(0)
+      const newTabButton = page.getByRole('button', {
+        name: 'New Tab',
+        exact: true,
+      })
+      const newTabBox = await newTabButton.boundingBox()
+      expect(newTabBox).not.toBeNull()
+      expect(newTabBox!.y + newTabBox!.height).toBeLessThan(toastBox!.y)
+      const tabCount = await page.locator('[data-nav-type="tab"]').count()
+      await newTabButton.click()
+      await page.bringToFront()
+      await expect(page.locator('[data-nav-type="tab"]')).toHaveCount(
+        tabCount + 1,
+      )
+      await toast.getByRole('button', { name: 'Dismiss notification' }).click()
+      await expect(status).toHaveCount(0)
+      expect(await actionBar.boundingBox()).toEqual(emptyActionBarBox)
+      const menuTrigger = page.getByRole('button', { name: 'More actions' })
+      await expect(menuTrigger).toBeFocused()
+      await menuTrigger.click()
       await expect(page.locator('[data-action-bar-menu]')).toBeVisible()
-      const menuZIndex = await page
-        .locator('[data-action-bar-menu]')
-        .evaluate((element) => getComputedStyle(element.parentElement!).zIndex)
-      const toasterZIndex = await page
-        .locator('[data-sonner-toaster]')
-        .evaluate((element) => getComputedStyle(element).zIndex)
-      expect(Number(menuZIndex)).toBeGreaterThan(Number(toasterZIndex))
+    })
+
+    test('two-line confirmations cover the action bar without changing the layout', async ({
+      page,
+      extensionId,
+      context,
+    }) => {
+      const titles = ['Notification One', 'Notification Two']
+      for (const title of titles) {
+        const tab = await context.newPage()
+        await tab.goto(
+          `data:text/html,%3Ctitle%3E${encodeURIComponent(title)}%3C/title%3E`,
+        )
+      }
+      await openTabManager(page, extensionId)
+      await page.bringToFront()
+      await page.setViewportSize({ width: 320, height: 600 })
+      const actionBar = page.locator('[data-action-bar-root]')
+      const actionBarBox = await actionBar.boundingBox()
+      await page.evaluate(() => {
+        let attempt = 0
+        chrome.tabs.discard = async (tabId) => {
+          if (attempt++ === 0) throw new Error('Discard failed')
+          return { ...(await chrome.tabs.get(tabId!)), discarded: true }
+        }
+      })
+
+      const firstTab = page
+        .locator('[data-nav-type="tab"]')
+        .filter({ hasText: titles[0] })
+      const secondTab = page
+        .locator('[data-nav-type="tab"]')
+        .filter({ hasText: titles[1] })
+      await firstTab.click({ button: 'right' })
+      await page.keyboard.press('Escape')
+      await secondTab.click({ modifiers: ['Meta'] })
+      const menu = await openActionMenu(page)
+      await menu.getByRole('button', { name: 'Discard 2 tabs' }).click()
+
+      const status = page.locator('[data-sonner-toast]')
+      const message = status.getByText(
+        '1 tab discarded from memory; 1 tab could not be discarded',
+      )
+      await expect(message).toBeVisible()
+      await page.waitForTimeout(450)
+      const lineCount = await message.evaluate((element) => {
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        return range.getClientRects().length
+      })
+      expect(lineCount).toBe(2)
+      const statusBox = await status.boundingBox()
+      expect(statusBox).not.toBeNull()
+      expect(actionBarBox).not.toBeNull()
+      expect(await actionBar.boundingBox()).toEqual(actionBarBox)
+      expect(statusBox).toEqual(actionBarBox)
+      expect(
+        await status.evaluate(
+          (element) =>
+            element.scrollWidth <= element.clientWidth &&
+            element.scrollHeight <= element.clientHeight,
+        ),
+      ).toBe(true)
+
+      const text = await message.innerText()
+      await message.click({ clickCount: 3 })
+      expect(
+        await page.evaluate(() => window.getSelection()?.toString().trim()),
+      ).toBe(text)
+      await expect(status).toHaveCount(1)
+      const modifier = process.platform === 'darwin' ? 'Meta' : 'Control'
+      await page.keyboard.press(`${modifier}+c`)
+      await page.evaluate(() => {
+        const input = document.createElement('textarea')
+        input.dataset.notificationCopy = ''
+        document.body.append(input)
+        input.focus()
+      })
+      await page.keyboard.press(`${modifier}+v`)
+      const pasted = page.locator('[data-notification-copy]')
+      await expect(pasted).toHaveValue(text)
+      await pasted.evaluate((element) => element.remove())
+      await status.getByRole('button', { name: 'Dismiss notification' }).focus()
+      await page.mouse.move(0, 0)
+      await expect(status).toHaveCount(0)
+      expect(await actionBar.boundingBox()).toEqual(actionBarBox)
+      await expect(
+        page.getByRole('button', { name: 'More actions' }),
+      ).toBeFocused()
+    })
+
+    test('stacked confirmations expand for reading and dismiss one at a time', async ({
+      page,
+      extensionId,
+      context,
+    }) => {
+      const titles = [
+        'Stack One',
+        'Stack Two',
+        'Stack Three',
+        'Stack Four',
+        'Stack Five',
+      ]
+      for (const title of titles) {
+        const tab = await context.newPage()
+        await tab.goto(
+          `data:text/html,%3Ctitle%3E${encodeURIComponent(title)}%3C/title%3E`,
+        )
+      }
+      await openTabManager(page, extensionId)
+      await page.bringToFront()
+      await page.setViewportSize({ width: 320, height: 600 })
+      const actionBar = page.locator('[data-action-bar-root]')
+      const actionBarBox = await actionBar.boundingBox()
+      const tabByTitle = (title: string) =>
+        page.locator('[data-nav-type="tab"]').filter({ hasText: title })
+      const notifications = page.locator('[data-sonner-toast]')
+
+      await tabByTitle(titles[0]!).click()
+      await tabByTitle(titles[1]!).click({ modifiers: ['Meta'] })
+      const menu = await openActionMenu(page)
+      await menu.getByRole('button', { name: 'Reload 2 tabs' }).click()
+      await expect(notifications).toHaveCount(1)
+      await tabByTitle(titles[0]!).click()
+      await tabByTitle(titles[1]!).click({ modifiers: ['Meta'] })
+      await page.keyboard.press('Backspace')
+      await expect(page.getByText('2 tabs closed')).toBeVisible()
+      await tabByTitle(titles[2]!).click()
+      await page.keyboard.press('Backspace')
+
+      await expect(notifications).toHaveCount(3)
+      await page.mouse.move(0, 0)
+      await page.waitForTimeout(450)
+      const frontBox = await notifications.first().boundingBox()
+      const backBox = await notifications.last().boundingBox()
+      expect(frontBox).not.toBeNull()
+      expect(backBox).not.toBeNull()
+      expect(actionBarBox).not.toBeNull()
+      expect(frontBox).toEqual(actionBarBox)
+      expect(backBox!.y).toBeLessThan(frontBox!.y)
+      expect(backBox!.width).toBeLessThan(frontBox!.width)
+      expect(backBox!.y).toBeLessThan(actionBarBox!.y)
+      expect(backBox!.y).toBeGreaterThanOrEqual(actionBarBox!.y - 12)
+      expect(backBox!.x).toBeGreaterThanOrEqual(actionBarBox!.x)
+      expect(backBox!.x + backBox!.width).toBeLessThanOrEqual(
+        actionBarBox!.x + actionBarBox!.width,
+      )
+      const newTabButton = page.getByRole('button', {
+        name: 'New Tab',
+        exact: true,
+      })
+      await newTabButton.scrollIntoViewIfNeeded()
+      const newTabBox = await newTabButton.boundingBox()
+      expect(newTabBox).not.toBeNull()
+      expect(newTabBox!.y + newTabBox!.height).toBeLessThan(backBox!.y)
+
+      await notifications.first().hover()
+      await page.waitForTimeout(450)
+      const expandedBackBox = await notifications.last().boundingBox()
+      const expandedMiddleBox = await notifications.nth(1).boundingBox()
+      expect(expandedBackBox).not.toBeNull()
+      expect(expandedMiddleBox).not.toBeNull()
+      expect(expandedBackBox!.width).toBe(actionBarBox!.width)
+      expect(expandedBackBox!.y + expandedBackBox!.height).toBeLessThan(
+        expandedMiddleBox!.y,
+      )
+      expect(expandedMiddleBox!.y + expandedMiddleBox!.height).toBeLessThan(
+        frontBox!.y,
+      )
+      await notifications.last().click()
+      await page.waitForTimeout(4500)
+      await expect(notifications).toHaveCount(3)
+      await page.keyboard.press('Alt+t')
+      await expect(page.locator('[data-sonner-toaster]')).toBeFocused()
+      await page.keyboard.press('Tab')
+      await expect(notifications.first()).toBeFocused()
+      await page.keyboard.press('Tab')
+      const frontX = () =>
+        notifications
+          .first()
+          .getByRole('button', { name: 'Dismiss notification' })
+      await expect(frontX()).toBeFocused()
+      await page.keyboard.press('Tab')
+      await expect(notifications.nth(1)).toBeFocused()
+      await page.keyboard.press('Shift+Tab')
+      await expect(frontX()).toBeFocused()
+      await frontX().hover()
+      await page.keyboard.press('Enter')
+      await expect(notifications).toHaveCount(2)
+      await expect(notifications.first()).toHaveText('2 tabs closed')
+      await expect(frontX()).toBeFocused()
+      await page.keyboard.press('Enter')
+      await expect(notifications).toHaveCount(1)
+      await expect(frontX()).toBeFocused()
+      await page.waitForTimeout(4500)
+      await expect(notifications).toHaveCount(1)
+      await page.keyboard.press('Enter')
+      await expect(notifications).toHaveCount(0)
+      await expect(
+        page.getByRole('button', { name: 'More actions' }),
+      ).toBeFocused()
+
+      for (const title of titles.slice(3)) {
+        await tabByTitle(title).click()
+        await page.keyboard.press('Backspace')
+      }
+      await expect(notifications).toHaveCount(2)
+      await notifications.first().hover()
+      await page.mouse.move(0, 0)
+      await expect(notifications).toHaveCount(0, { timeout: 5000 })
+      expect(await actionBar.boundingBox()).toEqual(actionBarBox)
+      await expect(
+        page.getByRole('button', { name: 'More actions' }),
+      ).toBeVisible()
     })
 
     test('the shared move action moves the selected batch to one new window', async ({

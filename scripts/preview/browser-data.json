@@ -1,0 +1,84 @@
+{
+  "currentWindowId": 1,
+  "windows": [
+    { "id": 1, "focused": true },
+    { "id": 2, "focused": false }
+  ],
+  "groups": [
+    {
+      "id": 10,
+      "windowId": 1,
+      "title": "Tabby",
+      "color": "blue",
+      "collapsed": false
+    }
+  ],
+  "tabs": [
+    {
+      "id": 1,
+      "windowId": 1,
+      "title": "Project notes",
+      "url": "https://docs.google.com/document/project",
+      "active": true
+    },
+    {
+      "id": 2,
+      "windowId": 1,
+      "groupId": 10,
+      "title": "Tabby · Pull requests",
+      "url": "https://github.com/michaeldrotar/tabby/pulls"
+    },
+    {
+      "id": 3,
+      "windowId": 1,
+      "groupId": 10,
+      "title": "Release checklist",
+      "url": "https://docs.google.com/document/checklist"
+    },
+    {
+      "id": 4,
+      "windowId": 1,
+      "groupId": 10,
+      "title": "Design references",
+      "url": "https://www.figma.com/design/reference"
+    },
+    {
+      "id": 5,
+      "windowId": 1,
+      "title": "MDN Web Docs",
+      "url": "https://developer.mozilla.org"
+    },
+    {
+      "id": 6,
+      "windowId": 1,
+      "title": "Inbox",
+      "url": "https://mail.google.com"
+    },
+    {
+      "id": 7,
+      "windowId": 2,
+      "title": "Weekend reading",
+      "url": "https://example.com/reading",
+      "active": true
+    },
+    {
+      "id": 8,
+      "windowId": 2,
+      "title": "Music",
+      "url": "https://example.com/music"
+    }
+  ],
+  "preferences": {
+    "theme": "dark",
+    "themeLightBackground": "stone",
+    "themeLightForeground": "neutral",
+    "themeLightAccent": "amber",
+    "themeLightAccentStrength": 15,
+    "themeDarkBackground": "neutral",
+    "themeDarkForeground": "zinc",
+    "themeDarkAccent": "blue",
+    "themeDarkAccentStrength": 15,
+    "tabManagerCompactIconMode": "active",
+    "tabManagerCompactLayout": "icon"
+  }
+}

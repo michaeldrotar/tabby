@@ -1,20 +1,21 @@
 # Privacy Policy for Tabby
 
-Last updated: October 1, 2026
+Last updated: October 7, 2026
 
 ## Introduction
 
-Your privacy is critically important to us. This Privacy Policy explains how Tabby ("we", "us", or "our") collects, uses, and protects your information when you use our Chrome extension.
+Your privacy is critically important to me. This Privacy Policy explains how I handle information when you use the Tabby Chrome extension.
 
-**The short version:** We do not collect, store, or transmit your personal data. All processing happens locally on your device.
+**The short version:** I do not receive your browsing data or preferences. Tabby stores your preferences, including your last search query, in your browser's local storage. Searches across tabs, bookmarks, and history happen locally. If you choose **Search Google**, Tabby opens Google with your query in the search URL, and Google receives it.
 
 ## Data Collection and Usage
 
 Tabby is designed with privacy as a core value.
 
-- **No Remote Servers:** Tabby does not have a backend server. It does not transmit your search queries, browsing history, bookmarks, or any other personal data to us or any third parties.
-- **Local Processing:** All search and management functionality (searching tabs, history, bookmarks) is performed locally within your browser.
-- **Local Storage:** We use your browser's local storage (`chrome.storage`) solely to save your user preferences (e.g., your last search query or UI settings). This data never leaves your device.
+- **No Backend Server:** Tabby does not have a backend server. I do not receive your browsing history, bookmarks, or saved preferences.
+- **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
+- **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
+- **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) solely to save your preferences (e.g., your last search query or UI settings). This information is stored in your browser, not on a Tabby server.
 
 ## Permissions
 
@@ -33,8 +34,8 @@ To provide its functionality, Tabby requires certain permissions.
 
 ## Changes to This Policy
 
-We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+I may update this Privacy Policy from time to time. I will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
 
-## Contact Us
+## Contact Me
 
-If you have any questions about this Privacy Policy, please contact us via our GitHub repository.
+If you have any questions about this Privacy Policy, please contact me via the GitHub repository.

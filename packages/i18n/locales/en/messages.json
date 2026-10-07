@@ -117,6 +117,9 @@
   "batch_discardTabs": {
     "message": "Discard $1"
   },
+  "batch_discardTabsNoCount": {
+    "message": "Discard tabs"
+  },
   "batch_discardNoEligibleTabs": {
     "message": "No selected tabs can be discarded."
   },
@@ -265,6 +268,9 @@
     "message": "Orange"
   },
 
+  "toast_dismiss": {
+    "message": "Dismiss notification"
+  },
   "toast_urlCopied": {
     "message": "URL copied"
   },

@@ -1,6 +1,6 @@
 # Tabby
 
-Tabby is a Chrome extension built with React, Vite, Tailwind CSS, and Copilot.
+Tabby is a Chrome extension I built with React, Vite, and Tailwind CSS, with help from AI agents.
 
 ## Features
 
@@ -36,11 +36,11 @@ Manage all your windows and tabs in a clear view. Use the default Tab Manager sh
 
 ## Privacy & Security
 
-Privacy is a core value of Tabby. All processing happens locally on your device, and no data is ever sent to external servers.
+Privacy is a core value of Tabby. Searches across your tabs, bookmarks, and history happen locally on your device. If you choose **Search Google**, Tabby opens Google with your query in the search URL.
 
 ### Permissions
 
-We believe in transparency. Here is a breakdown of every permission Tabby requests and why:
+I believe in transparency. Here is a breakdown of every permission Tabby requests and why:
 
 | Permission                                                                          | Reason                                                                  |
 | :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------- |
@@ -57,9 +57,9 @@ We believe in transparency. Here is a breakdown of every permission Tabby reques
 
 Tabby is the result of standing on the shoulders of giants (and AI).
 
-- **[Zen Browser](https://zen-browser.app/)**: The primary inspiration for Tabby's design and functionality. We wanted to bring that seamless, keyboard-centric experience to Chrome users.
+- **[Zen Browser](https://zen-browser.app/)**: The primary inspiration for Tabby's design and functionality. I wanted to bring that seamless, keyboard-centric experience to Chrome users.
 - **[Chrome Extension Boilerplate](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite)**: This amazing repository by Jonghakseo provided the robust foundation and monorepo structure that made development a breeze.
-- **GitHub Copilot**: This project is a testament to the power of AI-assisted development. It was built in close collaboration with GitHub Copilot, which helped provide guidance on security and performance, as well as help instrument large refactors and drive the entire look and feel.
+- **AI Agents**: I use AI agents for guidance on security and performance, large refactors, and shaping the look and feel.
 
 ## Installing Locally
 
@@ -86,6 +86,32 @@ Tabby is the result of standing on the shoulders of giants (and AI).
     - Enable "Developer mode"
     - Click "Load unpacked"
     - Select the `dist` folder
+
+## Preview with Sample Data
+
+After installing dependencies, run:
+
+```bash
+pnpm preview
+```
+
+Open the URL printed by the command. It builds the current branch and runs the
+full Tab Manager with simulated Chrome APIs and sample data. Selection, sidebar
+transitions, themes, and notifications use the application code. Browser actions
+update the sample data and emit events to the real stores. Search and Settings
+buttons are inactive in this preview.
+
+The server chooses an available local port. To choose a port or a different
+fixture, use:
+
+```bash
+pnpm preview --port 5175 --fixture scripts/preview/browser-data.json
+```
+
+Edit [`browser-data.json`](./scripts/preview/browser-data.json) to set up windows,
+tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
+restart after application source changes. The preview data stays in memory;
+Chrome-extension E2E tests cover integration with the actual browser.
 
 ## Releasing
 

@@ -16,6 +16,14 @@ This is the approved workflow for the repository. `main` is the integration bran
 - Add or update tests and, when relevant, documentation, Storybook examples, and marketing-site content. Do not add a duplicate minor-release note for a fix already documented in its patch release.
 - Do not build or upload release artifacts during ordinary feature work. Use `pnpm zip` for a requested release.
 
+## Local UI Previews
+
+- Install dependencies in the worktree with `pnpm install --frozen-lockfile`. Run `pnpm preview` inside the agent thread/harness and leave it running for the user. It builds the current branch, serves the full Tab Manager with sample Chrome data, and prints the preview URL. The default port is automatically chosen; use `pnpm preview --port 5175` for a specific port.
+- For Tab Manager visual work, open the printed `/tab-manager/index.html` URL in the harness's collaborative browser. Use its native preview tools when available, starting with `preview_status` and then `preview_open` if needed. Check a sidebar-sized viewport such as 480 × 640 and the narrow layout when relevant. Share the working URL and a screenshot or recording of the actual UI.
+- Sample windows, tabs, groups, and preferences live in [`scripts/preview/browser-data.json`](./scripts/preview/browser-data.json). Pass `--fixture path/to/browser-data.json` to use task-specific sample data. Refreshing resets the preview to the fixture; rebuild and restart after application source changes.
+- Keep simulations at the Chrome API boundary in [`scripts/preview/mock-chrome.js`](./scripts/preview/mock-chrome.js). Extend the shared fixture or mock when a task needs another interaction, and add focused coverage in [`scripts/preview/preview.spec.mjs`](./scripts/preview/preview.spec.mjs). Keep the application components, stores, styling, and animations real.
+- Search and Settings buttons are inactive in the preview. Use the preview for manual UI checks and visual review. Continue using the Chrome-extension E2E tests for actual browser API behavior.
+
 ## Review and Merge
 
 - The implementation agent must not review its own work. Ask a different agent, with fresh context, to review the issue criteria, diff, tests, release notes, and relevant docs.
