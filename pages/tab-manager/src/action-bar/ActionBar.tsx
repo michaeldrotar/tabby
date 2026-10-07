@@ -1,3 +1,5 @@
+import { t } from '@extension/i18n/i18n'
+import { ToastStatus } from '@extension/ui/components/ToastStatus'
 import { cn } from '@extension/ui/utils/cn'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -35,6 +37,9 @@ export const ActionBar = ({
   const [activePanel, setActivePanel] = useState<ActivePanel | null>(null)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const lastActionTriggerRef = useRef<HTMLElement | null>(null)
+  const restoreMenuTriggerFocus = useCallback(() => {
+    menuTriggerRef.current?.focus()
+  }, [])
   const hasUnseenMenuRequest = openMenuRequest > dismissedMenuRequest
   const isMenuOpen = isMenuManuallyOpen || hasUnseenMenuRequest
 
@@ -108,49 +113,54 @@ export const ActionBar = ({
   }, [activePanel, closePopups, isMenuOpen])
 
   return (
-    <div
-      data-action-bar-root
-      className="bg-background border-border relative z-50 border-t px-2 py-2"
-    >
-      <div className="flex h-9 items-center gap-2">
-        <SelectionSummary
-          tabCount={selectedTabCount}
-          windowCount={selectedWindowCount}
-          groupCount={selectedGroupCount}
-          className="ml-auto"
-        />
-        <button
-          ref={menuTriggerRef}
-          type="button"
-          data-action-bar-menu-trigger
-          onClick={() => {
-            lastActionTriggerRef.current = menuTriggerRef.current
-            setActivePanel(null)
-            if (isMenuOpen) {
-              setIsMenuManuallyOpen(false)
-              setDismissedMenuRequest(openMenuRequest)
-            } else {
-              setIsMenuManuallyOpen(true)
-            }
-          }}
-          aria-label="More actions"
-          aria-expanded={isMenuOpen || Boolean(activePanelAction)}
-          className={cn(
-            `
-              text-muted flex h-9 w-9 flex-shrink-0 items-center justify-center
-              rounded-md transition-colors
-              hover:bg-highlighted/50 hover:text-foreground
-              focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-              focus-visible:ring-offset-background focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-offset-2
-            `,
-            (isMenuOpen || Boolean(activePanelAction)) &&
-              'bg-highlighted/50 text-foreground',
-          )}
-        >
-          <Ellipsis size={18} />
-        </button>
-      </div>
+    <div data-action-bar-root className="bg-background relative z-50">
+      <ToastStatus
+        dismissLabel={t('toast_dismiss')}
+        onDismiss={restoreMenuTriggerFocus}
+      >
+        <div className="border-border border-t p-2">
+          <div className="flex h-9 items-center gap-2">
+            <SelectionSummary
+              tabCount={selectedTabCount}
+              windowCount={selectedWindowCount}
+              groupCount={selectedGroupCount}
+              className="ml-auto"
+            />
+            <button
+              ref={menuTriggerRef}
+              type="button"
+              data-action-bar-menu-trigger
+              onClick={() => {
+                lastActionTriggerRef.current = menuTriggerRef.current
+                setActivePanel(null)
+                if (isMenuOpen) {
+                  setIsMenuManuallyOpen(false)
+                  setDismissedMenuRequest(openMenuRequest)
+                } else {
+                  setIsMenuManuallyOpen(true)
+                }
+              }}
+              aria-label="More actions"
+              aria-expanded={isMenuOpen || Boolean(activePanelAction)}
+              className={cn(
+                `
+                  text-muted flex h-9 w-9 flex-shrink-0 items-center
+                  justify-center rounded-md transition-colors
+                  hover:bg-highlighted/50 hover:text-foreground
+                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                  focus-visible:ring-offset-background
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-offset-2
+                `,
+                (isMenuOpen || Boolean(activePanelAction)) &&
+                  'bg-highlighted/50 text-foreground',
+              )}
+            >
+              <Ellipsis size={18} />
+            </button>
+          </div>
+        </div>
+      </ToastStatus>
 
       <AnimatePresence>
         {isMenuOpen && (

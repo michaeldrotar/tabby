@@ -1,6 +1,6 @@
 import { useBrowserStore } from '@extension/chrome/useBrowserStore'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
-import { Toaster } from '@extension/ui/components/Toaster'
+import { TabManagerShell } from '@extension/ui/tab-manager/ui/TabManagerShell'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useSelectionStore } from '../../../pages/tab-manager/src/selection/SelectionStore'
@@ -130,6 +130,7 @@ const demoMessages: Record<string, string> = {
   batch_discardMixedIneligibleTabs:
     'Some selected tabs are active and others are already discarded.',
   batch_copyTabs: 'Copy tab',
+  toast_dismiss: 'Dismiss notification',
   toast_nTabsDiscarded: '$1 tabs discarded from memory',
   toast_nTabsDiscarded_one: '1 tab discarded from memory',
   toast_nTabsActiveDiscardSkipped: 'Tabs were active and were skipped',
@@ -290,7 +291,6 @@ const ManualTabDiscardDemo = ({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
       <div className="mx-auto w-[420px] max-w-full">
         <p className="text-muted mb-3 text-sm">
           {multiSelect
@@ -299,7 +299,16 @@ const ManualTabDiscardDemo = ({
               : 'One active tab and two already-discarded tabs are selected, so no tabs can be discarded.'
             : 'Right-click a tab to open its action menu. Select an active tab to see the disabled “Discard tabs” label. Discarding updates this demo locally.'}
         </p>
-        <div className="bg-background border-border rounded-lg border">
+        <TabManagerShell
+          sidebar={null}
+          className="border-border h-[420px] rounded-lg border"
+          actionBar={
+            <ActionBarComponent
+              selectedWindowId={demoWindowId}
+              openMenuRequest={openMenuRequest}
+            />
+          }
+        >
           {tabs.map((tab) => (
             <BrowserTabItem
               key={tab.id}
@@ -356,11 +365,7 @@ const ManualTabDiscardDemo = ({
               }}
             />
           ))}
-          <ActionBarComponent
-            selectedWindowId={demoWindowId}
-            openMenuRequest={openMenuRequest}
-          />
-        </div>
+        </TabManagerShell>
         <p className="text-muted mt-3 text-xs">
           Chrome reloads a discarded tab when you activate it.
         </p>
