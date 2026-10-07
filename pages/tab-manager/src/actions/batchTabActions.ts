@@ -11,6 +11,7 @@ export type BatchTabActionName =
   | 'unmute'
   | 'reload'
   | 'duplicate'
+  | 'discard'
   | 'ungroup'
 
 export type BatchWindowAction = 'focus' | 'close'
@@ -63,6 +64,10 @@ export type BatchTabActionResult = {
   createdTargetId?: number
 }
 
+export type BatchDiscardActionResult = BatchTabActionResult & {
+  skippedIds: number[]
+}
+
 export type BatchTabActionPorts = {
   closeTab: (tabId: number) => Promise<void>
   moveTab: (tabId: number, targetWindowId: number) => Promise<void>
@@ -80,6 +85,10 @@ export type BatchTabActionPorts = {
   ) => Promise<void>
   writeClipboardText: (text: string) => Promise<void>
 }
+
+export const isTabDiscardable = (
+  tab: Pick<BatchTabRecord, 'active' | 'discarded'> | undefined,
+): boolean => Boolean(tab && !tab.active && !tab.discarded)
 
 /** Resolve explicit tabs plus tabs represented by selected groups/windows. */
 export const resolveSelectedTabIds = (
@@ -123,6 +132,37 @@ export const runBatchTabAction = (
   ports: BatchTabActionPorts,
 ): Promise<BatchTabActionResult> =>
   runBatchIdsAction(tabIds, (tabId) => ports.performTabAction(action, tabId))
+
+export const runBatchDiscardAction = async (
+  tabIds: readonly number[],
+  snapshot: BatchTabSnapshot,
+  ports: BatchTabActionPorts,
+): Promise<BatchDiscardActionResult> => {
+  const tabsById = new Map(snapshot.tabs.map((tab) => [tab.id, tab]))
+  const discardableIds: number[] = []
+  const skippedIds: number[] = []
+  const failures: BatchTabFailure[] = []
+
+  for (const tabId of tabIds) {
+    const tab = tabsById.get(tabId)
+    if (!tab) {
+      failures.push({ tabId, message: 'The tab is no longer available.' })
+    } else if (!isTabDiscardable(tab)) {
+      skippedIds.push(tabId)
+    } else {
+      discardableIds.push(tabId)
+    }
+  }
+
+  const result = await runBatchTabAction(discardableIds, 'discard', ports)
+
+  return {
+    ...result,
+    requestedIds: [...tabIds],
+    failures: [...failures, ...result.failures],
+    skippedIds,
+  }
+}
 
 export const runBatchWindowAction = (
   windowIds: readonly number[],

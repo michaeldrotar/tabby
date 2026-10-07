@@ -4,6 +4,7 @@ import { toggleTabGroupCollapsed } from '@extension/chrome/actions/tabGroups/tog
 import { addTabToGroup } from '@extension/chrome/actions/tabs/addTabToGroup'
 import { addTabToNewGroup } from '@extension/chrome/actions/tabs/addTabToNewGroup'
 import { closeTabs } from '@extension/chrome/actions/tabs/closeTabs'
+import { discardTab } from '@extension/chrome/actions/tabs/discardTab'
 import { duplicateTab } from '@extension/chrome/actions/tabs/duplicateTab'
 import { moveTabToNewWindow } from '@extension/chrome/actions/tabs/moveTabToNewWindow'
 import { moveTabToWindow } from '@extension/chrome/actions/tabs/moveTabToWindow'
@@ -63,6 +64,12 @@ const performTabAction = (
       return reloadTab(id)
     case 'duplicate':
       return duplicateTab(id)
+    case 'discard':
+      return discardTab(id).then((tab) => {
+        if (!tab?.discarded) {
+          throw new Error('Chrome could not discard this tab.')
+        }
+      })
     case 'ungroup':
       return removeTabFromGroup(id)
   }

@@ -51,6 +51,12 @@
   "tabContextMenu_alreadyDiscarded": {
     "message": "This tab is already discarded."
   },
+  "tabContextMenu_discardOtherTabs": {
+    "message": "Discard Other Tabs"
+  },
+  "tabContextMenu_noOtherDiscardableTabs": {
+    "message": "No other tabs can be discarded."
+  },
   "tabContextMenu_pinTab": {
     "message": "Pin Tab"
   },
@@ -122,6 +128,12 @@
   },
   "batch_reloadTabs": {
     "message": "Reload $1"
+  },
+  "batch_discardTabs": {
+    "message": "Discard $1"
+  },
+  "batch_discardNoEligibleTabs": {
+    "message": "All selected tabs are active or already discarded."
   },
   "batch_pinTabs": {
     "message": "Pin $1"
@@ -273,6 +285,24 @@
   },
   "toast_tabDiscardFailed": {
     "message": "Chrome could not discard this tab"
+  },
+  "toast_nTabsDiscarded": {
+    "message": "$COUNT$ tabs discarded from memory",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsDiscarded_one": {
+    "message": "1 tab discarded from memory"
+  },
+  "toast_batchDiscardSkipped": {
+    "message": "$0 discarded from memory; skipped $1 for being active or already discarded"
+  },
+  "toast_batchDiscardPartial": {
+    "message": "$0 discarded from memory; skipped $1 for being active or already discarded; $2 failed"
   },
   "toast_nUrlsCopied": {
     "message": "$COUNT$ URLs copied",

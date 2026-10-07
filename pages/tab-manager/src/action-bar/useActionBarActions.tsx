@@ -1,10 +1,8 @@
-import { discardTab } from '@extension/chrome/actions/tabs/discardTab'
 import { useBrowserTabGroups } from '@extension/chrome/tabGroup/useBrowserTabGroups'
 import { usePlatformInfo } from '@extension/chrome/usePlatformInfo'
 import { useBrowserWindows } from '@extension/chrome/window/useBrowserWindows'
 import { t } from '@extension/i18n/i18n'
 import { tt } from '@extension/i18n/plurals'
-import { toast } from '@extension/ui/components/Toaster'
 import {
   getGroupColorClasses,
   TAB_GROUP_COLOR_IDS,
@@ -32,7 +30,10 @@ import {
   VolumeOff,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { getSingleGroupRenameState } from '../actions/batchTabActions'
+import {
+  getSingleGroupRenameState,
+  isTabDiscardable,
+} from '../actions/batchTabActions'
 import { useBatchTabActions } from '../actions/useBatchTabActions'
 import { useSelection } from '../selection/useSelection'
 import { GroupTabsPanel } from './GroupTabsPanel'
@@ -85,6 +86,7 @@ export const useActionBarActions = (
     const tab = batch.snapshot.tabs.find((candidate) => candidate.id === id)
     return tab ? [tab] : []
   })
+  const discardableSelectedCount = selectedTabs.filter(isTabDiscardable).length
   const selectedWindows = windows.filter((window) =>
     selection.windowIds.has(window.id),
   )
@@ -245,6 +247,18 @@ export const useActionBarActions = (
           kind: 'primary',
           execute: () => void batch.performTabAction('reload'),
         },
+        {
+          id: 'discard-selected-tabs',
+          icon: <MemoryStick size={17} />,
+          label: t('batch_discardTabs', countLabel),
+          kind: 'primary',
+          disabled: discardableSelectedCount === 0,
+          disabledReason:
+            discardableSelectedCount === 0
+              ? t('batch_discardNoEligibleTabs')
+              : undefined,
+          execute: () => void batch.discardTabs(),
+        },
       )
       if (hasAudioState) {
         items.push({
@@ -387,25 +401,34 @@ export const useActionBarActions = (
         kind: 'secondary',
         disabled: Boolean(discardDisabledReason),
         disabledReason: discardDisabledReason,
-        execute: () => {
-          void discardTab(singleTargetTab.id)
-            .then((tab) => {
-              if (tab?.discarded) toast.success(t('toast_tabDiscarded'))
-              else toast.error(t('toast_tabDiscardFailed'))
-            })
-            .catch(() => toast.error(t('toast_tabDiscardFailed')))
-        },
+        execute: () => void batch.discardTabs([singleTargetTab.id]),
       })
 
-      const siblingTabs = batch.snapshot.tabs.filter(
-        (tab) => tab.windowId === singleTargetTab.windowId && !tab.pinned,
+      const otherTabs = batch.snapshot.tabs.filter(
+        (tab) =>
+          tab.windowId === singleTargetTab.windowId &&
+          tab.id !== singleTargetTab.id,
       )
-      const closeOtherCount = siblingTabs.filter(
-        (tab) => tab.id !== singleTargetTab.id,
-      ).length
+      const discardableOtherTabs = otherTabs.filter(isTabDiscardable)
+      const siblingTabs = otherTabs.filter((tab) => !tab.pinned)
+      const closeOtherCount = siblingTabs.length
       const closeBelowCount = siblingTabs.filter(
         (tab) => tab.index > singleTargetTab.index,
       ).length
+      if (otherTabs.length > 0) {
+        items.push({
+          id: 'discard-other-tabs',
+          icon: <MemoryStick size={17} />,
+          label: t('tabContextMenu_discardOtherTabs'),
+          kind: 'secondary',
+          disabled: discardableOtherTabs.length === 0,
+          disabledReason:
+            discardableOtherTabs.length === 0
+              ? t('tabContextMenu_noOtherDiscardableTabs')
+              : undefined,
+          execute: () => void batch.discardOtherTabs(singleTargetTab.id),
+        })
+      }
       if (closeOtherCount > 0) {
         items.push({
           id: 'close-other-tabs',
@@ -463,6 +486,7 @@ export const useActionBarActions = (
     batch,
     collapseSelectedGroups,
     countLabel,
+    discardableSelectedCount,
     hasAudioState,
     groupDisabledReason,
     groups,
