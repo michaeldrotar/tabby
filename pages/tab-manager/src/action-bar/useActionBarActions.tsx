@@ -262,7 +262,10 @@ export const useActionBarActions = (
         {
           id: 'discard-selected-tabs',
           icon: <MemoryStick size={17} />,
-          label: t('batch_discardTabs', tt('nTabs', discardableSelectedCount)),
+          label:
+            discardableSelectedCount > 0
+              ? t('batch_discardTabs', tt('nTabs', discardableSelectedCount))
+              : t('batch_discardTabsNoCount'),
           kind: 'primary',
           disabled: discardableSelectedCount === 0,
           disabledReason: discardDisabledReason,
