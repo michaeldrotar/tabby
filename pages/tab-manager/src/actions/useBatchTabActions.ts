@@ -11,6 +11,7 @@ import { useCallback, useMemo } from 'react'
 import { useSelectionStore } from '../selection/SelectionStore'
 import {
   formatBatchTabCopyText,
+  getBatchDiscardSummaryCounts,
   getGroupActionBlockReason,
   getMoveBlockReason,
   getNewWindowMoveBlockReason,
@@ -294,33 +295,31 @@ export const useBatchTabActions = () => {
         getCurrentSnapshot(),
         chromeBatchTabActionPorts,
       )
+      const summary = getBatchDiscardSummaryCounts(result)
       const summaryParts = [
-        result.succeededIds.length > 0
-          ? tt('toast_nTabsDiscarded', result.succeededIds.length)
+        summary.discardedCount > 0
+          ? tt('toast_nTabsDiscarded', summary.discardedCount)
           : undefined,
-        result.skippedActiveIds.length > 0
-          ? tt(
-              'toast_nTabsActiveDiscardSkipped',
-              result.skippedActiveIds.length,
-            )
+        summary.activeSkippedCount > 0
+          ? tt('toast_nTabsActiveDiscardSkipped', summary.activeSkippedCount)
           : undefined,
-        result.skippedAlreadyDiscardedIds.length > 0
+        summary.alreadyDiscardedSkippedCount > 0
           ? tt(
               'toast_nTabsAlreadyDiscarded',
-              result.skippedAlreadyDiscardedIds.length,
+              summary.alreadyDiscardedSkippedCount,
             )
           : undefined,
-        result.failures.length > 0
-          ? tt('toast_nTabsDiscardFailed', result.failures.length)
+        summary.failedCount > 0
+          ? tt('toast_nTabsDiscardFailed', summary.failedCount)
           : undefined,
       ].filter((part): part is string => Boolean(part))
       if (summaryParts.length === 0) return result
       const message = summaryParts.join('; ')
 
-      if (result.failures.length > 0) {
-        if (result.succeededIds.length === 0) toast.error(message)
+      if (summary.failedCount > 0) {
+        if (summary.discardedCount === 0) toast.error(message)
         else toast.warning(message)
-      } else if (result.succeededIds.length > 0) {
+      } else if (summary.discardedCount > 0) {
         toast.success(message)
       } else {
         toast.info(message)

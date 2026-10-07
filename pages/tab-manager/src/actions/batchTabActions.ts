@@ -69,6 +69,28 @@ export type BatchDiscardActionResult = BatchTabActionResult & {
   skippedAlreadyDiscardedIds: number[]
 }
 
+export type BatchDiscardSummaryCounts = {
+  discardedCount: number
+  activeSkippedCount: number
+  alreadyDiscardedSkippedCount: number
+  failedCount: number
+}
+
+export const getBatchDiscardSummaryCounts = (
+  result: BatchDiscardActionResult,
+): BatchDiscardSummaryCounts => {
+  const includeSkipCounts = result.succeededIds.length === 0
+
+  return {
+    discardedCount: result.succeededIds.length,
+    activeSkippedCount: includeSkipCounts ? result.skippedActiveIds.length : 0,
+    alreadyDiscardedSkippedCount: includeSkipCounts
+      ? result.skippedAlreadyDiscardedIds.length
+      : 0,
+    failedCount: result.failures.length,
+  }
+}
+
 export type BatchTabActionPorts = {
   closeTab: (tabId: number) => Promise<void>
   moveTab: (tabId: number, targetWindowId: number) => Promise<void>

@@ -1,8 +1,13 @@
 import { useBrowserStore } from '@extension/chrome/useBrowserStore'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
+import { Toaster } from '@extension/ui/components/Toaster'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useSelectionStore } from '../../../pages/tab-manager/src/selection/SelectionStore'
+import {
+  resetSelectionInteraction,
+  useSelectionInteraction,
+} from '../../../pages/tab-manager/src/selection/useSelectionInteraction'
 import type { BrowserTab } from '../../chrome/lib/tab/BrowserTab'
 import type { BrowserWindow } from '../../chrome/lib/window/BrowserWindow'
 import type { Meta, StoryObj } from '@storybook/react'
@@ -11,11 +16,23 @@ import type { ComponentType } from 'react'
 const demoTabId = 43
 const demoActiveTabId = 44
 const demoPinnedTabId = 45
-const demoTabIds = [demoTabId, demoActiveTabId, demoPinnedTabId]
+const demoAlreadyDiscardedTabId = 46
+const demoTabIds = [
+  demoTabId,
+  demoActiveTabId,
+  demoPinnedTabId,
+  demoAlreadyDiscardedTabId,
+]
 const singleTabSelection = [demoTabId]
-const mixedTabSelection = demoTabIds
-const alreadyDiscardedTabIds = [demoPinnedTabId]
+const alreadyDiscardedTabIds = [demoPinnedTabId, demoAlreadyDiscardedTabId]
 const noInitiallyDiscardedTabs: number[] = []
+const noInitiallySelectedTabs: number[] = []
+const noDiscardableSelection = [
+  demoActiveTabId,
+  demoPinnedTabId,
+  demoAlreadyDiscardedTabId,
+]
+const orderedTabItems = demoTabIds.map((id) => ({ type: 'tab' as const, id }))
 const demoWindowId = 1
 
 const demoTabs = [
@@ -67,6 +84,22 @@ const demoTabs = [
     discarded: false,
     lifecycle: 'loaded',
   },
+  {
+    id: demoAlreadyDiscardedTabId,
+    windowId: demoWindowId,
+    index: 3,
+    title: 'Research notes',
+    url: 'https://example.com/research-notes',
+    status: 'complete',
+    active: false,
+    highlighted: false,
+    pinned: false,
+    audible: false,
+    mutedInfo: { muted: false },
+    groupId: -1,
+    discarded: false,
+    lifecycle: 'loaded',
+  },
 ] as BrowserTab[]
 
 const demoWindow = {
@@ -88,14 +121,17 @@ const demoMessages: Record<string, string> = {
   batch_duplicateTabs: 'Duplicate tab',
   batch_reloadTabs: 'Reload tab',
   batch_discardTabs: 'Discard $1',
+  batch_discardTabsNoCount: 'Discard tabs',
+  tabContextMenu_closeOtherTabs: 'Close Other Tabs',
+  tabContextMenu_closeTabsBelow: 'Close Tabs Below',
   batch_discardNoEligibleTabs: 'No selected tabs can be discarded.',
   batch_discardActiveTabs: 'All selected tabs are active.',
   batch_discardAlreadyDiscardedTabs: 'All selected tabs are already discarded.',
   batch_discardMixedIneligibleTabs:
     'Some selected tabs are active and others are already discarded.',
   batch_copyTabs: 'Copy tab',
-  toast_nTabsDiscarded: 'Tabs discarded from memory',
-  toast_nTabsDiscarded_one: 'Tab discarded from memory',
+  toast_nTabsDiscarded: '$1 tabs discarded from memory',
+  toast_nTabsDiscarded_one: '1 tab discarded from memory',
   toast_nTabsActiveDiscardSkipped: 'Tabs were active and were skipped',
   toast_nTabsActiveDiscardSkipped_one: 'Tab was active and was skipped',
   toast_nTabsAlreadyDiscarded: 'Tabs were already discarded and were skipped',
@@ -144,6 +180,8 @@ const ManualTabDiscardDemo = ({
   })
   const tabById = useBrowserStore((state) => state.tabById)
   const selectedTabIds = useSelectionStore((state) => state.tabIds)
+  const selectionMode = useSelectionStore((state) => state.mode)
+  const selectionInteraction = useSelectionInteraction()
   const tabs = demoTabIds.flatMap((id) => {
     const tab = tabById[id]
     return tab ? [tab] : []
@@ -151,6 +189,7 @@ const ManualTabDiscardDemo = ({
 
   useEffect(() => {
     let active = true
+    resetSelectionInteraction()
     useBrowserStore.setState({
       state: 'loaded',
       tabById: Object.fromEntries(
@@ -208,7 +247,7 @@ const ManualTabDiscardDemo = ({
           return values.reduce(
             (message, value, index) =>
               message.replaceAll(`$${index + 1}`, value),
-            demoMessages[messageName] ?? messageName,
+            demoMessages[messageName] ?? '',
           )
         },
       },
@@ -225,6 +264,7 @@ const ManualTabDiscardDemo = ({
 
     return () => {
       active = false
+      resetSelectionInteraction()
       chromeTarget.chrome = previousChrome
       useBrowserStore.setState({
         state: 'initial',
@@ -250,11 +290,14 @@ const ManualTabDiscardDemo = ({
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <div className="mx-auto w-[420px] max-w-full">
         <p className="text-muted mb-3 text-sm">
           {multiSelect
-            ? 'One eligible tab, one active tab, and one already-discarded tab are selected. The discard count and summary reflect each state.'
-            : 'Right-click a tab to open its action menu. Discarding updates this demo locally; clicking a tab simulates activation.'}
+            ? initialSelection.length === 0
+              ? 'Use Cmd/Ctrl-click to add or remove tabs, or Shift-click to select a range. Select all four to test one eligible tab, one active tab, and two already-discarded tabs.'
+              : 'One active tab and two already-discarded tabs are selected, so no tabs can be discarded.'
+            : 'Right-click a tab to open its action menu. Select an active tab to see the disabled “Discard tabs” label. Discarding updates this demo locally.'}
         </p>
         <div className="bg-background border-border rounded-lg border">
           {tabs.map((tab) => (
@@ -268,30 +311,47 @@ const ManualTabDiscardDemo = ({
               active={tab.active}
               discarded={tab.discarded}
               pinned={tab.pinned}
-              isMultiSelectMode={multiSelect}
-              onClick={() => {
-                for (const id of demoTabIds) {
-                  useBrowserStore.getState().updateTabById(id, {
-                    active: id === tab.id,
-                    ...(id === tab.id
-                      ? {
-                          discarded: false,
-                          lifecycle: 'loading',
-                          status: 'loading',
-                        }
-                      : {}),
-                  })
+              isMultiSelectMode={selectionMode === 'multi-select'}
+              onClick={(event) => {
+                const modifiers = {
+                  shiftKey: event.shiftKey,
+                  metaKey: event.metaKey,
+                  ctrlKey: event.ctrlKey,
+                }
+                selectionInteraction.handleClick(
+                  { type: 'tab', id: tab.id },
+                  modifiers,
+                  'tab',
+                  orderedTabItems,
+                )
+
+                if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
+                  for (const id of demoTabIds) {
+                    useBrowserStore.getState().updateTabById(id, {
+                      active: id === tab.id,
+                      ...(id === tab.id
+                        ? {
+                            discarded: false,
+                            lifecycle: 'loading',
+                            status: 'loading',
+                          }
+                        : {}),
+                    })
+                  }
+                } else {
+                  event.preventDefault()
                 }
               }}
               onContextMenu={(event) => {
                 event.preventDefault()
-                useSelectionStore.setState({
-                  windowIds: new Set(),
-                  expandedWindowIds: new Set(),
-                  groupIds: new Set(),
-                  tabIds: new Set([tab.id]),
-                  mode: 'default',
-                })
+                if (!selectedTabIds.has(tab.id)) {
+                  selectionInteraction.handleClick(
+                    { type: 'tab', id: tab.id },
+                    { shiftKey: false, metaKey: false, ctrlKey: false },
+                    'tab',
+                    orderedTabItems,
+                  )
+                }
                 setOpenMenuRequest((request) => request + 1)
               }}
             />
@@ -323,7 +383,17 @@ export const ContextMenu: StoryObj<typeof meta> = {
 export const MultiSelect: StoryObj<typeof meta> = {
   render: () => (
     <ManualTabDiscardDemo
-      initialSelection={mixedTabSelection}
+      initialSelection={noInitiallySelectedTabs}
+      initialDiscardedTabIds={alreadyDiscardedTabIds}
+      multiSelect
+    />
+  ),
+}
+
+export const NoDiscardableTabs: StoryObj<typeof meta> = {
+  render: () => (
+    <ManualTabDiscardDemo
+      initialSelection={noDiscardableSelection}
       initialDiscardedTabIds={alreadyDiscardedTabIds}
       multiSelect
     />

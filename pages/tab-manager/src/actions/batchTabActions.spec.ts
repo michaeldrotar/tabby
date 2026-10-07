@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   formatBatchTabCopyText,
+  getBatchDiscardSummaryCounts,
   getGroupActionBlockReason,
   getMoveBlockReason,
   getSingleGroupRenameState,
@@ -202,6 +203,40 @@ describe('batchTabActions', () => {
       ],
       skippedActiveIds: [2],
       skippedAlreadyDiscardedIds: [3],
+    })
+  })
+
+  it('summarizes successful discards without repeating ineligible selections', () => {
+    expect(
+      getBatchDiscardSummaryCounts({
+        requestedIds: [1, 2, 3, 4],
+        succeededIds: [1],
+        failures: [],
+        skippedActiveIds: [2],
+        skippedAlreadyDiscardedIds: [3, 4],
+      }),
+    ).toEqual({
+      discardedCount: 1,
+      activeSkippedCount: 0,
+      alreadyDiscardedSkippedCount: 0,
+      failedCount: 0,
+    })
+  })
+
+  it('keeps ineligible reasons when no selected tab can be discarded', () => {
+    expect(
+      getBatchDiscardSummaryCounts({
+        requestedIds: [2, 3],
+        succeededIds: [],
+        failures: [],
+        skippedActiveIds: [2],
+        skippedAlreadyDiscardedIds: [3],
+      }),
+    ).toEqual({
+      discardedCount: 0,
+      activeSkippedCount: 1,
+      alreadyDiscardedSkippedCount: 1,
+      failedCount: 0,
     })
   })
 
