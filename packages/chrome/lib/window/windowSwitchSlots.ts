@@ -13,13 +13,6 @@ export const getWindowSwitchSlotNumber = (
   return index + 1
 }
 
-export const getWindowSwitchSlotIndexFromKey = (
-  key: string,
-): number | undefined => {
-  if (!/^\d$/.test(key)) return undefined
-  return key === '0' ? 9 : Number(key) - 1
-}
-
 export const getWindowSwitchCommandName = (index: number): string => {
   const number = getWindowSwitchSlotNumber(index)
   if (number === undefined)
