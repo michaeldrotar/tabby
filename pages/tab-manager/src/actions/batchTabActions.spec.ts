@@ -11,6 +11,7 @@ import {
   runBatchClipboardAction,
   runBatchClose,
   runBatchCreateGroup,
+  runBatchDiscardAction,
   runBatchGroupAction,
   runBatchMoveToNewWindow,
   runBatchMoveToWindow,
@@ -151,6 +152,41 @@ describe('batchTabActions', () => {
       failures: [{ tabId: 2, message: 'tab disappeared' }],
     })
     expect(closeTab).toHaveBeenCalledTimes(3)
+  })
+
+  it('discards eligible tabs and reports skipped tabs and individual failures', async () => {
+    const discardSnapshot: BatchTabSnapshot = {
+      ...snapshot,
+      tabs: [
+        { id: 1, windowId: 10, index: 0, pinned: true },
+        { id: 2, windowId: 10, index: 1, active: true },
+        { id: 3, windowId: 10, index: 2, discarded: true },
+        { id: 6, windowId: 20, index: 0 },
+      ],
+    }
+    const calls: number[] = []
+    const result = await runBatchDiscardAction(
+      [1, 2, 3, 6, 999],
+      discardSnapshot,
+      createPorts({
+        performTabAction: async (action, tabId) => {
+          expect(action).toBe('discard')
+          calls.push(tabId)
+          if (tabId === 6) throw new Error('tab became active')
+        },
+      }),
+    )
+
+    expect(calls).toEqual([1, 6])
+    expect(result).toEqual({
+      requestedIds: [1, 2, 3, 6, 999],
+      succeededIds: [1],
+      failures: [
+        { tabId: 999, message: 'The tab is no longer available.' },
+        { tabId: 6, message: 'tab became active' },
+      ],
+      skippedIds: [2, 3],
+    })
   })
 
   it('skips tabs already in a move target and preserves the selected order', async () => {
