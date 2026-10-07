@@ -4,6 +4,7 @@ import {
   getGroupActionBlockReason,
   getMoveBlockReason,
   getSingleGroupRenameState,
+  getTabDiscardSelectionCounts,
   isSelectionItemRepresented,
   resolveSelectedTabIds,
   resolveSelectionItemTabIds,
@@ -119,6 +120,20 @@ describe('batchTabActions', () => {
     )
   })
 
+  it('counts discardable, active, and already-discarded selected tabs separately', () => {
+    expect(
+      getTabDiscardSelectionCounts([
+        { active: false, discarded: false },
+        { active: true, discarded: false },
+        { active: false, discarded: true },
+      ]),
+    ).toEqual({
+      discardableCount: 1,
+      activeCount: 1,
+      alreadyDiscardedCount: 1,
+    })
+  })
+
   it('derives group rename visibility and enabled state from selection type and count', () => {
     expect(getSingleGroupRenameState(selection([], [], [1]))).toEqual({
       visible: false,
@@ -185,7 +200,8 @@ describe('batchTabActions', () => {
         { tabId: 999, message: 'The tab is no longer available.' },
         { tabId: 6, message: 'tab became active' },
       ],
-      skippedIds: [2, 3],
+      skippedActiveIds: [2],
+      skippedAlreadyDiscardedIds: [3],
     })
   })
 

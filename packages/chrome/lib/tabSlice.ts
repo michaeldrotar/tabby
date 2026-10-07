@@ -26,6 +26,12 @@ export type TabSlice = {
    */
   replaceTab: (browserTab: BrowserTab) => BrowserTab
 
+  /** Replaces a tab after Chrome changes its ID, in one store update. */
+  replaceTabById: (
+    previousTabId: BrowserTabID,
+    browserTab: BrowserTab,
+  ) => BrowserTab
+
   /**
    * Removes a browser tab from the store.
    */
@@ -60,6 +66,15 @@ export const createTabSlice: StateCreator<TabSlice> = (set, get) => ({
     const { tabById } = get()
     const { id } = browserTab
     set({ tabById: { ...tabById, [id]: browserTab } })
+    return browserTab
+  },
+
+  replaceTabById: (previousTabId, browserTab) => {
+    const { tabById } = get()
+    const nextTabById = { ...tabById }
+    delete nextTabById[previousTabId]
+    nextTabById[browserTab.id] = browserTab
+    set({ tabById: nextTabById })
     return browserTab
   },
 

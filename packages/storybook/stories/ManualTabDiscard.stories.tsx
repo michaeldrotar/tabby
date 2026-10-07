@@ -13,7 +13,9 @@ const demoActiveTabId = 44
 const demoPinnedTabId = 45
 const demoTabIds = [demoTabId, demoActiveTabId, demoPinnedTabId]
 const singleTabSelection = [demoTabId]
-const multiTabSelection = [demoTabId, demoPinnedTabId]
+const mixedTabSelection = demoTabIds
+const alreadyDiscardedTabIds = [demoPinnedTabId]
+const noInitiallyDiscardedTabs: number[] = []
 const demoWindowId = 1
 
 const demoTabs = [
@@ -76,27 +78,30 @@ const demoWindow = {
 } as BrowserWindow
 
 const demoMessages: Record<string, string> = {
+  nTabs: '$1 tabs',
+  nTabs_one: '1 tab',
+  nTabs_other: '$1 tabs',
   batch_closeTabs: 'Close tab',
   batch_moveTabs: 'Move tab',
   batch_groupTabs: 'Group tab',
   batch_pinTabs: 'Pin tab',
   batch_duplicateTabs: 'Duplicate tab',
   batch_reloadTabs: 'Reload tab',
-  batch_discardTabs: 'Discard tab',
-  batch_discardNoEligibleTabs:
-    'All selected tabs are active or already discarded.',
+  batch_discardTabs: 'Discard $1',
+  batch_discardNoEligibleTabs: 'No selected tabs can be discarded.',
+  batch_discardActiveTabs: 'All selected tabs are active.',
+  batch_discardAlreadyDiscardedTabs: 'All selected tabs are already discarded.',
+  batch_discardMixedIneligibleTabs:
+    'Some selected tabs are active and others are already discarded.',
   batch_copyTabs: 'Copy tab',
-  tabContextMenu_discardTab: 'Discard Tab',
-  tabContextMenu_discardOtherTabs: 'Discard Other Tabs',
-  tabContextMenu_noOtherDiscardableTabs: 'No other tabs can be discarded.',
-  tabContextMenu_discardActiveTab: 'The active tab cannot be discarded.',
-  tabContextMenu_alreadyDiscarded: 'This tab is already discarded.',
-  toast_tabDiscarded: 'Tab discarded from memory',
-  toast_tabDiscardFailed: 'Chrome could not discard this tab',
   toast_nTabsDiscarded: 'Tabs discarded from memory',
   toast_nTabsDiscarded_one: 'Tab discarded from memory',
-  toast_batchDiscardSkipped: 'Tabs discarded or skipped',
-  toast_batchDiscardPartial: 'Some tabs could not be discarded',
+  toast_nTabsActiveDiscardSkipped: 'Tabs were active and were skipped',
+  toast_nTabsActiveDiscardSkipped_one: 'Tab was active and was skipped',
+  toast_nTabsAlreadyDiscarded: 'Tabs were already discarded and were skipped',
+  toast_nTabsAlreadyDiscarded_one: 'Tab was already discarded and was skipped',
+  toast_nTabsDiscardFailed: 'Tabs could not be discarded',
+  toast_nTabsDiscardFailed_one: 'Tab could not be discarded',
 }
 
 type DemoChrome = {
@@ -105,7 +110,10 @@ type DemoChrome = {
   }
   i18n?: {
     getUILanguage: () => string
-    getMessage: (messageName: string) => string
+    getMessage: (
+      messageName: string,
+      substitutions?: string | string[],
+    ) => string
   }
   runtime?: {
     getPlatformInfo: () => Promise<chrome.runtime.PlatformInfo>
@@ -119,9 +127,11 @@ type ActionBarProps = {
 
 const ManualTabDiscardDemo = ({
   initialSelection = singleTabSelection,
+  initialDiscardedTabIds = noInitiallyDiscardedTabs,
   multiSelect = false,
 }: {
   initialSelection?: number[]
+  initialDiscardedTabIds?: number[]
   multiSelect?: boolean
 }) => {
   const [ActionBarComponent, setActionBarComponent] =
@@ -143,7 +153,14 @@ const ManualTabDiscardDemo = ({
     let active = true
     useBrowserStore.setState({
       state: 'loaded',
-      tabById: Object.fromEntries(demoTabs.map((tab) => [tab.id, tab])),
+      tabById: Object.fromEntries(
+        demoTabs.map((tab) => [
+          tab.id,
+          initialDiscardedTabIds.includes(tab.id)
+            ? { ...tab, discarded: true, status: 'unloaded' }
+            : tab,
+        ]),
+      ),
       tabGroupById: {},
       windowById: { [demoWindowId]: demoWindow },
       windowIds: [demoWindowId],
@@ -182,7 +199,18 @@ const ManualTabDiscardDemo = ({
       tabs: { ...previousChrome?.tabs, discard: fakeDiscard },
       i18n: {
         getUILanguage: () => 'en',
-        getMessage: (messageName) => demoMessages[messageName] ?? messageName,
+        getMessage: (messageName, substitutions) => {
+          const values = Array.isArray(substitutions)
+            ? substitutions
+            : substitutions
+              ? [substitutions]
+              : []
+          return values.reduce(
+            (message, value, index) =>
+              message.replaceAll(`$${index + 1}`, value),
+            demoMessages[messageName] ?? messageName,
+          )
+        },
       },
       runtime: {
         getPlatformInfo: async () =>
@@ -216,7 +244,7 @@ const ManualTabDiscardDemo = ({
         mode: 'default',
       })
     }
-  }, [initialSelection])
+  }, [initialDiscardedTabIds, initialSelection])
 
   if (!ActionBarComponent || tabs.length === 0) return null
 
@@ -225,7 +253,7 @@ const ManualTabDiscardDemo = ({
       <div className="mx-auto w-[420px] max-w-full">
         <p className="text-muted mb-3 text-sm">
           {multiSelect
-            ? 'Two inactive tabs are selected. Open More actions to discard them together.'
+            ? 'One eligible tab, one active tab, and one already-discarded tab are selected. The discard count and summary reflect each state.'
             : 'Right-click a tab to open its action menu. Discarding updates this demo locally; clicking a tab simulates activation.'}
         </p>
         <div className="bg-background border-border rounded-lg border">
@@ -294,6 +322,10 @@ export const ContextMenu: StoryObj<typeof meta> = {
 
 export const MultiSelect: StoryObj<typeof meta> = {
   render: () => (
-    <ManualTabDiscardDemo initialSelection={multiTabSelection} multiSelect />
+    <ManualTabDiscardDemo
+      initialSelection={mixedTabSelection}
+      initialDiscardedTabIds={alreadyDiscardedTabIds}
+      multiSelect
+    />
   ),
 }

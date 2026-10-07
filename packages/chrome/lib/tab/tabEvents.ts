@@ -154,7 +154,7 @@ const onChromeTabRemoved = (
 /**
  * Handles when a chrome tab is replaced by another tab (prerender, etc.).
  */
-const onChromeTabReplaced = (
+export const onChromeTabReplaced = (
   addedTabId: number,
   removedTabId: number,
 ): void => {
@@ -171,17 +171,12 @@ const onChromeTabReplaced = (
 
       const newBrowserTab = toBrowserTab(newChromeTab, {
         lifecycle,
+        renderKey: removedBrowserTab?.renderKey ?? removedTabId,
       })
       if (!newBrowserTab) return
 
-      // TODO: maybe add a similar replace method to handle preserving
-      // the BrowserTab props and for keeping a stable id reference different
-      // from Chrome's internal id that gets replaced. It could simply be a
-      // new stableId property on BrowserTab that gets set initially from
-      // the chrome tab id and never changes. ASSUMPTION: chrome doesn't
-      // reuse tab ids for different tabs during the same session.
-      state.removeTabById(removedTabId)
-      state.addTab(newBrowserTab)
+      // Keep the list row mounted while adopting Chrome's replacement ID.
+      state.replaceTabById(removedTabId, newBrowserTab)
     })
     .catch((error) => {
       console.error('Failed to handle tab replacement', addedTabId, error)

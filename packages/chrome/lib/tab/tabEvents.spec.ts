@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useBrowserStore } from '../useBrowserStore.js'
-import { onChromeTabUpdated } from './tabEvents.js'
+import { onChromeTabReplaced, onChromeTabUpdated } from './tabEvents.js'
 import type { BrowserTab } from './BrowserTab.js'
 
 describe('onChromeTabUpdated', () => {
@@ -29,6 +29,7 @@ describe('onChromeTabUpdated', () => {
 
   afterEach(() => {
     useBrowserStore.setState({ tabById: {} })
+    vi.unstubAllGlobals()
   })
 
   it('reflects native discarded and restored tab updates', () => {
@@ -57,5 +58,33 @@ describe('onChromeTabUpdated', () => {
       discarded: false,
       lifecycle: 'reloading',
     })
+  })
+
+  it('keeps one tab row through Chrome replacement after discard', async () => {
+    const replacementId = 456
+    const replacement = {
+      ...makeTab(true, 'unloaded'),
+      id: replacementId,
+    } as chrome.tabs.Tab
+    vi.stubGlobal('chrome', {
+      tabs: { get: vi.fn().mockResolvedValue(replacement) },
+    })
+    const updates: number[][] = []
+    const unsubscribe = useBrowserStore.subscribe((state) => {
+      updates.push(Object.keys(state.tabById).map(Number))
+    })
+
+    onChromeTabReplaced(replacementId, tabId)
+    await vi.waitFor(() =>
+      expect(useBrowserStore.getState().tabById[replacementId]).toMatchObject({
+        id: replacementId,
+        renderKey: tabId,
+        discarded: true,
+      }),
+    )
+
+    unsubscribe()
+    expect(useBrowserStore.getState().tabById[tabId]).toBeUndefined()
+    expect(updates).toEqual([[replacementId]])
   })
 })

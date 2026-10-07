@@ -30,7 +30,6 @@ import {
 import { chromeBatchTabActionPorts } from './chromeBatchTabActionPorts'
 import type { SelectionItemRef } from '../selection/SelectionModel'
 import type {
-  BatchDiscardActionResult,
   BatchGroupAction,
   BatchTabActionName,
   BatchTabActionResult,
@@ -295,53 +294,40 @@ export const useBatchTabActions = () => {
         getCurrentSnapshot(),
         chromeBatchTabActionPorts,
       )
-      const succeeded = tt('nTabs', result.succeededIds.length)
-      const skipped = tt('nTabs', result.skippedIds.length)
-      const failures = tt('nTabs', result.failures.length)
+      const summaryParts = [
+        result.succeededIds.length > 0
+          ? tt('toast_nTabsDiscarded', result.succeededIds.length)
+          : undefined,
+        result.skippedActiveIds.length > 0
+          ? tt(
+              'toast_nTabsActiveDiscardSkipped',
+              result.skippedActiveIds.length,
+            )
+          : undefined,
+        result.skippedAlreadyDiscardedIds.length > 0
+          ? tt(
+              'toast_nTabsAlreadyDiscarded',
+              result.skippedAlreadyDiscardedIds.length,
+            )
+          : undefined,
+        result.failures.length > 0
+          ? tt('toast_nTabsDiscardFailed', result.failures.length)
+          : undefined,
+      ].filter((part): part is string => Boolean(part))
+      if (summaryParts.length === 0) return result
+      const message = summaryParts.join('; ')
 
       if (result.failures.length > 0) {
-        const message = t('toast_batchDiscardPartial', [
-          succeeded,
-          skipped,
-          failures,
-        ])
         if (result.succeededIds.length === 0) toast.error(message)
         else toast.warning(message)
-      } else if (result.skippedIds.length > 0) {
-        const message = t('toast_batchDiscardSkipped', [succeeded, skipped])
-        if (result.succeededIds.length === 0) toast.info(message)
-        else toast.success(message)
       } else if (result.succeededIds.length > 0) {
-        toast.success(tt('toast_nTabsDiscarded', result.succeededIds.length))
+        toast.success(message)
+      } else {
+        toast.info(message)
       }
       return result
     },
     [getCurrentSnapshot, selectedTabIds],
-  )
-
-  const discardOtherTabs = useCallback(
-    async (tabId: number) => {
-      const latest = getCurrentSnapshot()
-      const target = latest.tabs.find((tab) => tab.id === tabId)
-      if (!target) {
-        const result = blockedDiscardResult(
-          [tabId],
-          'The selected tab is no longer available.',
-        )
-        const message = t('toast_batchDiscardPartial', [
-          tt('nTabs', 0),
-          tt('nTabs', 0),
-          tt('nTabs', result.failures.length),
-        ])
-        toast.error(message)
-        return result
-      }
-      const siblingIds = latest.tabs
-        .filter((tab) => tab.windowId === target.windowId && tab.id !== tabId)
-        .map((tab) => tab.id)
-      return discardTabs(siblingIds)
-    },
-    [discardTabs, getCurrentSnapshot],
   )
 
   const performTabAction = useCallback(
@@ -363,7 +349,6 @@ export const useBatchTabActions = () => {
         unmute: 'unmuted',
         reload: 'reloaded',
         duplicate: 'duplicated',
-        discard: 'discarded',
         ungroup: 'ungrouped',
       }[action]
       reportTabActionResult(result, actionVerb)
@@ -609,7 +594,6 @@ export const useBatchTabActions = () => {
     close,
     closeRelativeToTab,
     discardTabs,
-    discardOtherTabs,
     moveToWindow,
     moveToNewWindow,
     addToGroup,
@@ -640,14 +624,4 @@ const blockedResult = (
   requestedIds: [...ids],
   succeededIds: [],
   failures: ids.map((tabId) => ({ tabId, message })),
-})
-
-const blockedDiscardResult = (
-  ids: readonly number[],
-  message: string,
-): BatchDiscardActionResult => ({
-  requestedIds: [...ids],
-  succeededIds: [],
-  failures: ids.map((tabId) => ({ tabId, message })),
-  skippedIds: [],
 })

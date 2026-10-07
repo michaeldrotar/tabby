@@ -42,21 +42,6 @@
   "tabContextMenu_reload": {
     "message": "Reload"
   },
-  "tabContextMenu_discardTab": {
-    "message": "Discard Tab"
-  },
-  "tabContextMenu_discardActiveTab": {
-    "message": "The active tab cannot be discarded."
-  },
-  "tabContextMenu_alreadyDiscarded": {
-    "message": "This tab is already discarded."
-  },
-  "tabContextMenu_discardOtherTabs": {
-    "message": "Discard Other Tabs"
-  },
-  "tabContextMenu_noOtherDiscardableTabs": {
-    "message": "No other tabs can be discarded."
-  },
   "tabContextMenu_pinTab": {
     "message": "Pin Tab"
   },
@@ -133,7 +118,16 @@
     "message": "Discard $1"
   },
   "batch_discardNoEligibleTabs": {
-    "message": "All selected tabs are active or already discarded."
+    "message": "No selected tabs can be discarded."
+  },
+  "batch_discardActiveTabs": {
+    "message": "All selected tabs are active."
+  },
+  "batch_discardAlreadyDiscardedTabs": {
+    "message": "All selected tabs are already discarded."
+  },
+  "batch_discardMixedIneligibleTabs": {
+    "message": "Some selected tabs are active and others are already discarded."
   },
   "batch_pinTabs": {
     "message": "Pin $1"
@@ -280,12 +274,6 @@
   "toast_titleAndUrlCopied": {
     "message": "Title and URL copied"
   },
-  "toast_tabDiscarded": {
-    "message": "Tab discarded from memory"
-  },
-  "toast_tabDiscardFailed": {
-    "message": "Chrome could not discard this tab"
-  },
   "toast_nTabsDiscarded": {
     "message": "$COUNT$ tabs discarded from memory",
     "placeholders": {
@@ -298,11 +286,41 @@
   "toast_nTabsDiscarded_one": {
     "message": "1 tab discarded from memory"
   },
-  "toast_batchDiscardSkipped": {
-    "message": "$0 discarded from memory; skipped $1 for being active or already discarded"
+  "toast_nTabsActiveDiscardSkipped": {
+    "message": "$COUNT$ tabs were active and were skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
   },
-  "toast_batchDiscardPartial": {
-    "message": "$0 discarded from memory; skipped $1 for being active or already discarded; $2 failed"
+  "toast_nTabsActiveDiscardSkipped_one": {
+    "message": "1 tab was active and was skipped"
+  },
+  "toast_nTabsAlreadyDiscarded": {
+    "message": "$COUNT$ tabs were already discarded and were skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsAlreadyDiscarded_one": {
+    "message": "1 tab was already discarded and was skipped"
+  },
+  "toast_nTabsDiscardFailed": {
+    "message": "$COUNT$ tabs could not be discarded",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "toast_nTabsDiscardFailed_one": {
+    "message": "1 tab could not be discarded"
   },
   "toast_nUrlsCopied": {
     "message": "$COUNT$ URLs copied",
