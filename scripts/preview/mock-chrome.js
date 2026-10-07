@@ -403,21 +403,26 @@
   globalThis.chrome = api
 
   if (typeof document !== 'undefined') {
-    const iconColors = [
-      '#d9a14e',
-      '#94a3b8',
-      '#60a5fa',
-      '#a78bfa',
-      '#e2e8f0',
-      '#f87171',
-    ]
+    const createFaviconDataUrl = (extensionUrl) => {
+      const pageUrl = new URL(extensionUrl).searchParams.get('pageUrl') ?? ''
+      let hostname = ''
+      try {
+        hostname = new URL(pageUrl).hostname.replace(/^www\./, '')
+      } catch {}
+
+      const label = hostname[0]?.toUpperCase() ?? '?'
+      const hue = Array.from(hostname).reduce(
+        (hash, character) => (hash * 31 + character.charCodeAt(0)) % 360,
+        0,
+      )
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill="hsl(${hue} 68% 45%)"/><text x="12" y="16" fill="white" font-family="Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">${label}</text></svg>`
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`
+    }
+
     new MutationObserver(() => {
       document
         .querySelectorAll('img[src^="chrome-extension://preview/_favicon/"]')
-        .forEach((img, index) => {
-          const color = iconColors[index % iconColors.length]
-          img.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="${color}"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#171717" stroke-width="2"/></svg>`)}`
-        })
+        .forEach((img) => (img.src = createFaviconDataUrl(img.src)))
     }).observe(document.documentElement, {
       childList: true,
       subtree: true,

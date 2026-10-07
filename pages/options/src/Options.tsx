@@ -538,9 +538,12 @@ const OptionsContent = () => {
               `}
             >
               <div>
-                <h3 className="text-foreground font-medium">Window Icon</h3>
+                <h3 className="text-foreground font-medium">
+                  Window Identification
+                </h3>
                 <p className="text-muted text-sm">
-                  Choose which tab icon to display for windows
+                  Choose which tab supplies a window's name and icon in the
+                  sidebar and move menus
                 </p>
               </div>
               <div
@@ -564,7 +567,7 @@ const OptionsContent = () => {
                       sm:w-[160px]
                     `}
                   >
-                    <SelectValue placeholder="Select icon" />
+                    <SelectValue placeholder="Select tab" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Active Tab</SelectItem>

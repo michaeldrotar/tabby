@@ -24,6 +24,7 @@ const loadMock = (source = mockSource, fixture = browser, environment = {}) => {
     ...environment,
     __TABBY_PREVIEW__: { browser: fixture, messages, platform: 'linux' },
     structuredClone,
+    URL,
     console,
   }
   runInNewContext(source, context)
@@ -115,6 +116,41 @@ describe('full application preview', () => {
 })
 
 describe('sample Chrome interactions', () => {
+  it('keeps preview favicons stable by page URL and changes them with the URL', () => {
+    const pageUrl = 'https://github.com/michaeldrotar/tabby'
+    const image = {
+      src: `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=48`,
+    }
+    let onMutation
+    loadMock(mockSource, browser, {
+      document: {
+        documentElement: {},
+        querySelectorAll: () =>
+          image.src.startsWith('chrome-extension://preview/_favicon/')
+            ? [image]
+            : [],
+      },
+      MutationObserver: class {
+        constructor(callback) {
+          onMutation = callback
+        }
+
+        observe() {}
+      },
+    })
+
+    onMutation()
+    const githubFavicon = image.src
+    image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent('https://docs.google.com/document/project')}&size=48`
+    onMutation()
+    const docsFavicon = image.src
+
+    expect(docsFavicon).not.toBe(githubFavicon)
+    image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=48`
+    onMutation()
+    expect(image.src).toBe(githubFavicon)
+  })
+
   it('keeps Search and Settings inactive in the preview', async () => {
     const pages = []
     const chrome = loadMock(mockSource, browser, {

@@ -1,9 +1,19 @@
 import { t } from '@extension/i18n/i18n'
+import { usePreferenceStorage } from '@extension/shared/hooks/preference'
+import { getWindowIdentificationTab } from '@extension/shared/utils/window-identification'
+import { Favicon } from '@extension/ui/Favicon'
 import { ExternalLink, MonitorUp } from 'lucide-react'
 import type { BrowserWindow } from '@extension/chrome/window/BrowserWindow'
 
 type MoveToWindowPanelProps = {
   windows: readonly BrowserWindow[]
+  tabs: readonly {
+    active?: boolean
+    index: number
+    title?: string
+    url?: string
+    windowId: number
+  }[]
   selectedTabIds: readonly number[]
   isMac: boolean
   newWindowDisabledReason?: string
@@ -30,6 +40,7 @@ const itemClass = `
 
 export const MoveToWindowPanel = ({
   windows,
+  tabs,
   selectedTabIds,
   isMac,
   newWindowDisabledReason,
@@ -38,6 +49,15 @@ export const MoveToWindowPanel = ({
   onMoveToWindow,
 }: MoveToWindowPanelProps) => {
   const newWindowDisabled = Boolean(newWindowDisabledReason)
+  const { tabManagerCompactIconMode: identificationMode } =
+    usePreferenceStorage()
+  const tabsByWindowId = new Map<number, (typeof tabs)[number][]>()
+
+  for (const tab of tabs) {
+    const windowTabs = tabsByWindowId.get(tab.windowId) ?? []
+    windowTabs.push(tab)
+    tabsByWindowId.set(tab.windowId, windowTabs)
+  }
 
   return (
     <div className="py-1">
@@ -58,6 +78,11 @@ export const MoveToWindowPanel = ({
       {windows.length > 0 && <div className="bg-border mx-2 my-1 h-px" />}
       {windows.map((window) => {
         const disabledReason = getWindowDisabledReason(window.id)
+        const identificationTab = getWindowIdentificationTab(
+          tabsByWindowId.get(window.id) ?? [],
+          identificationMode,
+        )
+        const label = identificationTab?.title || getWindowLabel(window, isMac)
         return (
           <button
             key={window.id}
@@ -68,11 +93,14 @@ export const MoveToWindowPanel = ({
             className={itemClass}
           >
             <span className="text-muted flex-shrink-0">
-              <MonitorUp size={16} />
+              {identificationTab?.url ? (
+                <Favicon pageUrl={identificationTab.url} size={16} alt="" />
+              ) : (
+                <MonitorUp size={16} />
+              )}
             </span>
             <span className="flex-1 truncate text-left">
-              {getWindowLabel(window, isMac)}
-              {` · ${selectedTabIds.length}`}
+              {label} · {selectedTabIds.length}
             </span>
           </button>
         )
