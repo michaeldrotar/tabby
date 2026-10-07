@@ -12,7 +12,7 @@ This is the approved workflow for the repository. `main` is the integration bran
 
 - Start feature branches from `main` and open pull requests to `main`.
 - Keep `main` buildable and green. CI checks lint, formatting, type checking, unit tests, Chrome-extension E2E tests, and the production build. Commits have no lint or formatting hooks.
-- Update the active versioned release-notes file directly in the pull request. Add one concise line under the right heading. If a change has no user-facing impact, say so in the pull request instead of adding a note.
+- Update the active versioned release-notes file directly in the pull request. Name the file to match the release title, using a lowercase hyphenated slug (for example, `product/releases/v1.3.0-batch-actions-and-smarter-search.md`), and rename it if the title changes. Add one concise line under the right heading. If a change has no user-facing impact, say so in the pull request instead of adding a note.
 - Add or update tests and, when relevant, documentation, Storybook examples, and marketing-site content. Do not add a duplicate minor-release note for a fix already documented in its patch release.
 - Do not build or upload release artifacts during ordinary feature work. Use `pnpm zip` for a requested release.
 
