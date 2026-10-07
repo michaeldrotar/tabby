@@ -3,6 +3,7 @@ import {
   clearSelectionInteractionAnchor,
   createSelectionInteractionState,
   reduceSelectionIntent,
+  remapSelectionInteractionTabIds as remapTabIdsInInteractionState,
 } from './SelectionModel'
 import { useSelectionStore } from './SelectionStore'
 import type {
@@ -26,6 +27,15 @@ let interactionState: SelectionInteractionState =
 
 export const clearAnchorIfRemoved = (item: SelectionItemRef): void => {
   interactionState = clearSelectionInteractionAnchor(interactionState, item)
+}
+
+export const remapTabSelectionInteraction = (
+  replacements: ReadonlyMap<number, number>,
+): void => {
+  interactionState = remapTabIdsInInteractionState(
+    interactionState,
+    replacements,
+  )
 }
 
 export const resetSelectionInteraction = (): void => {

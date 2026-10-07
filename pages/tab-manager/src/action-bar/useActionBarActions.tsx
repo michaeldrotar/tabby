@@ -32,7 +32,7 @@ import {
 import { useMemo } from 'react'
 import {
   getSingleGroupRenameState,
-  isTabDiscardable,
+  getTabDiscardSelectionCounts,
 } from '../actions/batchTabActions'
 import { useBatchTabActions } from '../actions/useBatchTabActions'
 import { useSelection } from '../selection/useSelection'
@@ -86,7 +86,19 @@ export const useActionBarActions = (
     const tab = batch.snapshot.tabs.find((candidate) => candidate.id === id)
     return tab ? [tab] : []
   })
-  const discardableSelectedCount = selectedTabs.filter(isTabDiscardable).length
+  const discardSelectionCounts = getTabDiscardSelectionCounts(selectedTabs)
+  const discardableSelectedCount = discardSelectionCounts.discardableCount
+  const discardDisabledReason =
+    discardableSelectedCount > 0
+      ? undefined
+      : discardSelectionCounts.activeCount > 0 &&
+          discardSelectionCounts.alreadyDiscardedCount > 0
+        ? t('batch_discardMixedIneligibleTabs')
+        : discardSelectionCounts.activeCount > 0
+          ? t('batch_discardActiveTabs')
+          : discardSelectionCounts.alreadyDiscardedCount > 0
+            ? t('batch_discardAlreadyDiscardedTabs')
+            : t('batch_discardNoEligibleTabs')
   const selectedWindows = windows.filter((window) =>
     selection.windowIds.has(window.id),
   )
@@ -250,13 +262,10 @@ export const useActionBarActions = (
         {
           id: 'discard-selected-tabs',
           icon: <MemoryStick size={17} />,
-          label: t('batch_discardTabs', countLabel),
+          label: t('batch_discardTabs', tt('nTabs', discardableSelectedCount)),
           kind: 'primary',
           disabled: discardableSelectedCount === 0,
-          disabledReason:
-            discardableSelectedCount === 0
-              ? t('batch_discardNoEligibleTabs')
-              : undefined,
+          disabledReason: discardDisabledReason,
           execute: () => void batch.discardTabs(),
         },
       )
@@ -389,46 +398,16 @@ export const useActionBarActions = (
     }
 
     if (singleTargetTab) {
-      const discardDisabledReason = singleTargetTab.active
-        ? t('tabContextMenu_discardActiveTab')
-        : singleTargetTab.discarded
-          ? t('tabContextMenu_alreadyDiscarded')
-          : undefined
-      items.push({
-        id: 'discard-selected-tab',
-        icon: <MemoryStick size={17} />,
-        label: t('tabContextMenu_discardTab'),
-        kind: 'secondary',
-        disabled: Boolean(discardDisabledReason),
-        disabledReason: discardDisabledReason,
-        execute: () => void batch.discardTabs([singleTargetTab.id]),
-      })
-
-      const otherTabs = batch.snapshot.tabs.filter(
+      const siblingTabs = batch.snapshot.tabs.filter(
         (tab) =>
           tab.windowId === singleTargetTab.windowId &&
-          tab.id !== singleTargetTab.id,
+          tab.id !== singleTargetTab.id &&
+          !tab.pinned,
       )
-      const discardableOtherTabs = otherTabs.filter(isTabDiscardable)
-      const siblingTabs = otherTabs.filter((tab) => !tab.pinned)
       const closeOtherCount = siblingTabs.length
       const closeBelowCount = siblingTabs.filter(
         (tab) => tab.index > singleTargetTab.index,
       ).length
-      if (otherTabs.length > 0) {
-        items.push({
-          id: 'discard-other-tabs',
-          icon: <MemoryStick size={17} />,
-          label: t('tabContextMenu_discardOtherTabs'),
-          kind: 'secondary',
-          disabled: discardableOtherTabs.length === 0,
-          disabledReason:
-            discardableOtherTabs.length === 0
-              ? t('tabContextMenu_noOtherDiscardableTabs')
-              : undefined,
-          execute: () => void batch.discardOtherTabs(singleTargetTab.id),
-        })
-      }
       if (closeOtherCount > 0) {
         items.push({
           id: 'close-other-tabs',
@@ -487,6 +466,7 @@ export const useActionBarActions = (
     collapseSelectedGroups,
     countLabel,
     discardableSelectedCount,
+    discardDisabledReason,
     hasAudioState,
     groupDisabledReason,
     groups,

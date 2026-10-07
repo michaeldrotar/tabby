@@ -20,6 +20,9 @@ export type BrowserTab = Omit<chrome.tabs.Tab, 'id'> & {
    */
   id: BrowserTabID
 
+  /** Stable list identity across Chrome tab ID replacements. */
+  renderKey?: BrowserTabID
+
   /**
    * Enhanced lifecycle status that tracks whether a tab is initializing, loading for the first time,
    * fully loaded, or reloading after being loaded.

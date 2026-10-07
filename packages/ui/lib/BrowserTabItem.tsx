@@ -296,7 +296,7 @@ export const BrowserTabItem = memo(
               `
                 flex min-h-[48px] w-full items-center gap-0 rounded-lg border
                 border-transparent
-                transition-[background-color,filter,transform,box-shadow,border-color]
+                transition-[opacity,background-color,filter,transform,box-shadow,border-color]
                 duration-200 ease-out
               `,
               !selected &&

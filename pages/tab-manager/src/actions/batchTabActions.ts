@@ -65,7 +65,8 @@ export type BatchTabActionResult = {
 }
 
 export type BatchDiscardActionResult = BatchTabActionResult & {
-  skippedIds: number[]
+  skippedActiveIds: number[]
+  skippedAlreadyDiscardedIds: number[]
 }
 
 export type BatchTabActionPorts = {
@@ -86,9 +87,40 @@ export type BatchTabActionPorts = {
   writeClipboardText: (text: string) => Promise<void>
 }
 
-export const isTabDiscardable = (
+export type TabDiscardStatus =
+  | 'missing'
+  | 'discardable'
+  | 'active'
+  | 'already-discarded'
+
+export const getTabDiscardStatus = (
   tab: Pick<BatchTabRecord, 'active' | 'discarded'> | undefined,
-): boolean => Boolean(tab && !tab.active && !tab.discarded)
+): TabDiscardStatus => {
+  if (!tab) return 'missing'
+  if (tab.active) return 'active'
+  if (tab.discarded) return 'already-discarded'
+  return 'discardable'
+}
+
+export const getTabDiscardSelectionCounts = (
+  tabs: readonly Pick<BatchTabRecord, 'active' | 'discarded'>[],
+): {
+  discardableCount: number
+  activeCount: number
+  alreadyDiscardedCount: number
+} =>
+  tabs.reduce(
+    (counts, tab) => {
+      const status = getTabDiscardStatus(tab)
+      if (status === 'discardable') counts.discardableCount += 1
+      else if (status === 'active') counts.activeCount += 1
+      else if (status === 'already-discarded') {
+        counts.alreadyDiscardedCount += 1
+      }
+      return counts
+    },
+    { discardableCount: 0, activeCount: 0, alreadyDiscardedCount: 0 },
+  )
 
 /** Resolve explicit tabs plus tabs represented by selected groups/windows. */
 export const resolveSelectedTabIds = (
@@ -140,17 +172,25 @@ export const runBatchDiscardAction = async (
 ): Promise<BatchDiscardActionResult> => {
   const tabsById = new Map(snapshot.tabs.map((tab) => [tab.id, tab]))
   const discardableIds: number[] = []
-  const skippedIds: number[] = []
+  const skippedActiveIds: number[] = []
+  const skippedAlreadyDiscardedIds: number[] = []
   const failures: BatchTabFailure[] = []
 
   for (const tabId of tabIds) {
     const tab = tabsById.get(tabId)
-    if (!tab) {
-      failures.push({ tabId, message: 'The tab is no longer available.' })
-    } else if (!isTabDiscardable(tab)) {
-      skippedIds.push(tabId)
-    } else {
-      discardableIds.push(tabId)
+    switch (getTabDiscardStatus(tab)) {
+      case 'missing':
+        failures.push({ tabId, message: 'The tab is no longer available.' })
+        break
+      case 'active':
+        skippedActiveIds.push(tabId)
+        break
+      case 'already-discarded':
+        skippedAlreadyDiscardedIds.push(tabId)
+        break
+      case 'discardable':
+        discardableIds.push(tabId)
+        break
     }
   }
 
@@ -160,7 +200,8 @@ export const runBatchDiscardAction = async (
     ...result,
     requestedIds: [...tabIds],
     failures: [...failures, ...result.failures],
-    skippedIds,
+    skippedActiveIds,
+    skippedAlreadyDiscardedIds,
   }
 }
 

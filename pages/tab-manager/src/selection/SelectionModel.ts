@@ -255,6 +255,39 @@ export const clearSelectionInteractionAnchor = (
   return next
 }
 
+export const remapSelectionInteractionTabIds = (
+  interaction: SelectionInteractionState,
+  replacements: ReadonlyMap<number, number>,
+): SelectionInteractionState => {
+  if (replacements.size === 0) return interaction
+
+  const remapItem = (
+    item: SelectionItemRef | null,
+  ): SelectionItemRef | null => {
+    if (!item || item.type !== 'tab') return item
+    const id = replacements.get(item.id)
+    return id === undefined ? item : { ...item, id }
+  }
+
+  const next: SelectionInteractionState = {
+    ...interaction,
+    anchorItem: remapItem(interaction.anchorItem),
+    shiftArrowAnchor: remapItem(interaction.shiftArrowAnchor),
+  }
+
+  if (interaction.baseSelection) {
+    const baseSelection = cloneSnapshot(interaction.baseSelection)
+    for (const [previousId, currentId] of replacements) {
+      if (baseSelection.tabIds.delete(previousId)) {
+        baseSelection.tabIds.add(currentId)
+      }
+    }
+    next.baseSelection = baseSelection
+  }
+
+  return next
+}
+
 export const getSelectionRange = (
   orderedItems: readonly SelectionItemRef[],
   anchor: SelectionItemRef | null,

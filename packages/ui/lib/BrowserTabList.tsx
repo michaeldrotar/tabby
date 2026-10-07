@@ -11,6 +11,7 @@ export type BrowserTabListID = number | string
 
 export type BrowserTabListTab = {
   id: BrowserTabListID
+  renderKey?: BrowserTabListID
   title?: string
   url?: string
   favicon?: ReactNode
@@ -170,7 +171,7 @@ export const BrowserTabList = memo(
           {items.map((item) => {
             if (item.type === 'tab') {
               return (
-                <TabListItem key={item.tab.id}>
+                <TabListItem key={item.tab.renderKey ?? item.tab.id}>
                   {(renderTabItem || defaultRenderTabItem)({
                     tab: item.tab,
                     selected: selectedTabIds.has(item.tab.id),
@@ -195,7 +196,7 @@ export const BrowserTabList = memo(
                   const groupChildren = !item.group.collapsed ? (
                     <TabList className="gap-0.5 pl-2">
                       {item.tabs.map((tab) => (
-                        <TabListItem key={tab.id}>
+                        <TabListItem key={tab.renderKey ?? tab.id}>
                           {(renderTabItem || defaultRenderTabItem)({
                             tab,
                             selected: selectedTabIds.has(tab.id),
