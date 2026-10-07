@@ -90,15 +90,13 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         ref={sidebarSurfaceRef}
         data-sidebar-surface
         className={cn(
-          `
-            bg-input/30 flex h-full flex-col transition-[width] duration-300
-            ease-in-out
-          `,
+          `flex h-full flex-col transition-[width] duration-300 ease-in-out`,
+          isOverlayExpanded ? 'bg-input' : 'bg-input/30',
           isExpanded ? 'w-64' : 'w-16',
           isOverlayExpanded
             ? `
-              border-border absolute left-0 top-0 z-40 overflow-visible border-r
-              shadow-lg
+              border-border absolute left-0 top-0 z-[60] overflow-visible
+              border-r shadow-lg
             `
             : 'relative overflow-x-clip',
         )}

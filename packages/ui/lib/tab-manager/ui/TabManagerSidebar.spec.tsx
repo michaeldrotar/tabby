@@ -99,7 +99,7 @@ describe('TabManagerSidebar', () => {
 
     expect(layout).toHaveAttribute('data-sidebar-layout', 'overlay')
     expect(layout).toHaveClass('w-16')
-    expect(surface).toHaveClass('absolute', 'w-64')
+    expect(surface).toHaveClass('absolute', 'w-64', 'bg-input', 'z-[60]')
     expect(
       screen.getByRole('button', { name: 'Collapse sidebar' }),
     ).toHaveAttribute('aria-expanded', 'true')
