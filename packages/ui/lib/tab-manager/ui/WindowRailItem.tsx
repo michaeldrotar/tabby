@@ -20,11 +20,6 @@ export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   selected?: boolean
   /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
   isMultiSelectMode?: boolean
-  /** Numeric shortcut slot for focusing this window, if it is one of the first ten */
-  shortcutSlot?: number
-  /** Current Chrome command binding for the shortcut slot */
-  shortcutBinding?: string
-  unassignedShortcutLabel?: string
   onClick: (event: React.MouseEvent) => void
   onClose?: () => void
 }
@@ -42,9 +37,6 @@ export const WindowRailItem = memo(
         isExpanded,
         selected = false,
         isMultiSelectMode = false,
-        shortcutSlot,
-        shortcutBinding,
-        unassignedShortcutLabel = 'Unassigned',
         onClick,
         onClose,
         className,
@@ -143,12 +135,7 @@ export const WindowRailItem = memo(
             {/* TODO: Fix this to toggle visible/invisible on the text, transition-[visibility] isn't working and hides the text too soon */}
             <div className={cn('w-full overflow-clip text-left')}>
               {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
-              <div
-                className={cn(
-                  'flex w-44 flex-1 flex-col',
-                  shortcutSlot !== undefined && 'pr-14',
-                )}
-              >
+              <div className="flex w-44 flex-1 flex-col">
                 <span className="truncate text-sm font-medium leading-tight">
                   {title}
                 </span>
@@ -162,35 +149,6 @@ export const WindowRailItem = memo(
                 </span>
               </div>
             </div>
-
-            {shortcutSlot !== undefined && (
-              <div
-                className={cn(
-                  `
-                    bg-background/80 text-muted absolute right-1 top-1 flex
-                    min-w-7 flex-col items-center rounded border px-1 py-0.5
-                    text-[10px] leading-tight
-                  `,
-                  isExpanded ? 'max-w-16' : 'min-w-5',
-                )}
-                aria-hidden="true"
-              >
-                <span className="text-foreground font-semibold">
-                  {shortcutSlot}
-                </span>
-                {isExpanded && (
-                  <span className="max-w-full truncate">
-                    {shortcutBinding || unassignedShortcutLabel}
-                  </span>
-                )}
-              </div>
-            )}
-            {shortcutSlot !== undefined && (
-              <span className="sr-only">
-                Window slot {shortcutSlot}. Shortcut{' '}
-                {shortcutBinding || unassignedShortcutLabel}
-              </span>
-            )}
           </button>
         </div>
       )
@@ -203,12 +161,6 @@ export const WindowRailItem = memo(
           <TooltipContent side="right">
             <div>{title}</div>
             <div className="text-tooltip-foreground/50 text-xs">{subtitle}</div>
-            {shortcutSlot !== undefined && (
-              <div className="text-tooltip-foreground/50 mt-1 text-xs">
-                Slot {shortcutSlot}:{' '}
-                {shortcutBinding || unassignedShortcutLabel}
-              </div>
-            )}
           </TooltipContent>
         </Tooltip>
       )

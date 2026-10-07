@@ -688,9 +688,9 @@ const OptionsContent = () => {
                 ))}
               </ul>
               <p className="text-muted mt-3 text-xs">
-                Window shortcuts follow the numbered order in the Tab Manager.
-                Assign any window shortcut in Chrome’s shortcut settings, or
-                search “window 1” in the Omnibar.
+                Window shortcut slots follow the order of windows shown in the
+                Tab Manager. Assign any window shortcut in Chrome’s shortcut
+                settings, or search “window 1” in the Omnibar.
               </p>
               {os !== 'mac' && (
                 <p className="text-muted mt-3 text-xs">
