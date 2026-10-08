@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 export const useOmnibarQuery = (
   inputRef: React.RefObject<HTMLInputElement | null>,
+  { focusInputOnOpen = true }: { focusInputOnOpen?: boolean } = {},
 ) => {
   const [query, setQueryState] = useState('')
   const [isLoaded, setIsLoaded] = useState(false)
@@ -47,12 +48,12 @@ export const useOmnibarQuery = (
   }, [inputRef])
 
   useEffect(() => {
-    if (!isLoaded || hasFocusedInitialInput.current) return
+    if (!isLoaded || !focusInputOnOpen || hasFocusedInitialInput.current) return
 
     hasFocusedInitialInput.current = true
     inputRef.current?.focus()
     if (query && !hasUserEditedQuery.current) inputRef.current?.select()
-  }, [inputRef, isLoaded, query])
+  }, [focusInputOnOpen, inputRef, isLoaded, query])
 
   useEffect(() => {
     if (
