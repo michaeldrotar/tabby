@@ -24,6 +24,13 @@ This is the approved workflow for the repository. `main` is the integration bran
 - Keep simulations at the Chrome API boundary in [`scripts/preview/mock-chrome.js`](./scripts/preview/mock-chrome.js). Extend the shared fixture or mock when a task needs another interaction, and add focused coverage in [`scripts/preview/preview.spec.mjs`](./scripts/preview/preview.spec.mjs). Keep the application components, stores, styling, and animations real.
 - Search and Settings buttons are inactive in the preview. Use the preview for manual UI checks and visual review. Continue using the Chrome-extension E2E tests for actual browser API behavior.
 
+## E2E Testing
+
+- Structure E2E tests as complete user workflows with a realistic starting point and a meaningful end state. Use unit tests for isolated behavior that does not need a real browser.
+- For one cohesive workflow, prefer one E2E test that follows the user through related actions and verifies visible results, action labels and counts, selection counts, and the final state. Avoid separate browser tests for each small interaction when they can be covered in that workflow.
+- Add another E2E test when it starts from a meaningfully different supported state that changes the workflow or outcome, such as a substantially larger dataset. Do not test states the browser guarantees cannot occur, such as an extension starting with no window or tab.
+- Keep browser setup proportional to the workflow. Create only the tabs and windows needed to exercise it; do not open many windows to repeat the same actions.
+
 ## Review and Merge
 
 - The implementation agent must not review its own work. Ask a different agent, with fresh context, to review the issue criteria, diff, tests, release notes, and relevant docs.

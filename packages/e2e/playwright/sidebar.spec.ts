@@ -73,31 +73,24 @@ const sampleSidebarTransition = (page: Page) =>
     return { before, samples }
   })
 
-for (const { colorScheme, width } of [
-  { colorScheme: 'light', width: 390 },
-  { colorScheme: 'dark', width: 320 },
-] as const) {
-  test(`sidebar stays opaque above tabs throughout ${colorScheme} transitions`, async ({
-    page,
-    extensionId,
-  }) => {
+test('sidebar transitions stay opaque and actions remain reachable across themes and widths', async ({
+  page,
+  extensionId,
+}) => {
+  for (const { colorScheme, width } of [
+    { colorScheme: 'light', width: 390 },
+    { colorScheme: 'dark', width: 320 },
+  ] as const) {
     await page.setViewportSize({ width, height: 700 })
     await page.emulateMedia({ colorScheme, reducedMotion: 'no-preference' })
-    await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+    if (colorScheme === 'light') {
+      await page.goto(
+        `chrome-extension://${extensionId}/tab-manager/index.html`,
+      )
+    } else {
+      await page.reload()
+    }
     await expect(page.locator('[data-nav-type="window"]')).toBeVisible()
-    await page.evaluate(async () => {
-      const currentWindow = await chrome.windows.getCurrent()
-      for (const title of ['Product brief', 'Design review']) {
-        await chrome.tabs.create({
-          windowId: currentWindow.id,
-          active: false,
-          url: `data:text/html,<title>${title}</title>`,
-        })
-      }
-    })
-    await expect(
-      page.getByRole('option', { name: 'Tab: Product brief' }),
-    ).toBeVisible()
     await expect(page.locator('body')).toHaveAttribute(
       'data-theme',
       colorScheme,
@@ -133,32 +126,26 @@ for (const { colorScheme, width } of [
       true,
     )
     expect(samples.at(-1)?.width).toBe(64)
-  })
-}
+  }
 
-test('action menu stays clickable after reversing sidebar expansion', async ({
-  page,
-  extensionId,
-}) => {
-  await page.setViewportSize({ width: 320, height: 700 })
   await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
   const toggle = page.getByRole('button', { name: 'Expand sidebar' })
   await expect(toggle).toBeVisible()
   await toggle.evaluate(async (button) => {
-    const surface = button.closest('[data-sidebar-surface]')
+    const toggleButton = button as HTMLButtonElement
+    const surface = toggleButton.closest('[data-sidebar-surface]')
     if (!surface) throw new Error('The sidebar must be ready.')
     const nextFrame = () =>
       new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
     const width = () => surface.getBoundingClientRect().width
     const deadline = performance.now() + 2000
 
-    button.click()
+    toggleButton.click()
     while (width() < 96 && performance.now() < deadline) await nextFrame()
     if (width() < 96 || width() >= 256) {
       throw new Error('The sidebar must be midway through opening.')
     }
-    button.click()
+    toggleButton.click()
     while (width() > 64 && performance.now() < deadline) await nextFrame()
     if (width() !== 64) throw new Error('The sidebar must finish closing.')
   })
