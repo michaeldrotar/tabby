@@ -17,6 +17,8 @@ export type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 export type OmnibarProps = {
   className?: string
+  /** Focus the search field after the last query loads. */
+  focusInputOnOpen?: boolean
   onDismiss: () => void
   /** Tab data converted to search results */
   tabs: OmnibarSearchResult[]
@@ -40,6 +42,7 @@ export type OmnibarProps = {
 
 export const Omnibar = ({
   className,
+  focusInputOnOpen = true,
   onDismiss,
   tabs,
   groups = [],
@@ -52,7 +55,7 @@ export const Omnibar = ({
   isMac = false,
 }: OmnibarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { query, setQuery } = useOmnibarQuery(inputRef)
+  const { query, setQuery } = useOmnibarQuery(inputRef, { focusInputOnOpen })
   const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
   const [isShiftPressed, setIsShiftPressed] = useState(false)
 
@@ -155,14 +158,16 @@ export const Omnibar = ({
     if (e.key === 'Shift') setIsShiftPressed(false)
   }
 
+  // Contain bubbled input and result events within the search region.
+  /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
   return (
     <div
       className={cn(
         'bg-card text-card-foreground flex h-full flex-col',
         className,
       )}
-      role="button"
-      tabIndex={0}
+      role="search"
+      aria-label="Tabby Search"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={handleContainerKeyDown}
       onKeyUp={handleContainerKeyUp}
@@ -207,4 +212,5 @@ export const Omnibar = ({
       </ScrollArea>
     </div>
   )
+  /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
 }

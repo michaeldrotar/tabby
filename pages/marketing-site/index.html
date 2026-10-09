@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Find what you need and keep your browser in order with Tabby, a keyboard-first tab manager for Chrome."
+    />
+    <meta name="theme-color" content="#f8f6f0" />
+    <title>Tabby — find your flow between the tabs</title>
+    <link rel="icon" type="image/png" href="/images/tabby-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Tabby home">
+        <img src="/images/tabby-icon.png" alt="" width="36" height="36" />
+        <span>tabby</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#privacy">Privacy</a>
+        <a
+          class="button button-small button-dark store-link"
+          href="https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Get Tabby <span aria-hidden="true">↗</span>
+        </a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero page-shell">
+        <div class="hero-copy">
+          <p class="eyebrow"
+            ><span class="eyebrow-dot"></span> A little more room to think</p
+          >
+          <h1>Find your flow<br />between the <em>tabs.</em></h1>
+          <p class="hero-description">
+            Search across tabs, bookmarks, and history in a flash. Then see
+            every window in one calm, keyboard-friendly place.
+          </p>
+          <div class="hero-actions">
+            <a
+              class="button button-dark store-link"
+              href="https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Get Tabby for Chrome <span aria-hidden="true">↗</span>
+            </a>
+            <a class="text-link" href="#tour"
+              >See it in action <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <div class="hero-note">
+            <span class="note-star" aria-hidden="true">✳</span>
+            <span>Made for keyboard people. Friendly to everyone.</span>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="visual-scribble" aria-hidden="true">all together now</div>
+          <div class="browser-frame">
+            <div class="browser-bar" aria-hidden="true">
+              <span></span><span></span><span></span>
+              <div class="address-bar">tabby</div>
+            </div>
+            <iframe
+              class="product-preview-frame hero-image"
+              src="/product-preview.html?view=manager"
+              title="Live Tabby Tab Manager preview"
+            ></iframe>
+          </div>
+          <div class="floating-note">
+            <span class="floating-icon" aria-hidden="true">⌘</span>
+            <span><strong>One shortcut</strong><br />back in your flow</span>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="feature-band page-shell"
+        id="features"
+        aria-label="Tabby features"
+      >
+        <div class="section-intro">
+          <p class="eyebrow">Less hunting, more doing</p>
+          <h2>Your browser,<br /><em>back in balance.</em></h2>
+          <p>
+            Tabby gives your open tabs a home and puts the rest of your browser
+            one shortcut away.
+          </p>
+        </div>
+
+        <article class="feature-card search-card">
+          <div class="feature-card-copy">
+            <span class="feature-number">01 / SEARCH</span>
+            <h3>Find the thing.<br />Keep the thought.</h3>
+            <p>
+              Search open tabs, bookmarks, and history from the same quick
+              popup. Type a URL, search Google, or jump straight to a browser
+              action.
+            </p>
+            <p class="shortcut"
+              ><kbd>⌘ E</kbd><span>or</span><kbd>Alt E</kbd
+              ><span>to open Tabby Search</span></p
+            >
+          </div>
+          <div class="image-frame image-frame-search">
+            <iframe
+              class="product-preview-frame"
+              src="/product-preview.html?view=search"
+              title="Interactive Tabby Search preview"
+              loading="lazy"
+            ></iframe>
+          </div>
+        </article>
+
+        <article class="feature-card manager-card" id="tour">
+          <div class="manager-copy">
+            <span class="feature-number">02 / TAB MANAGER</span>
+            <h3>All your windows.<br />One clear view.</h3>
+            <p>
+              Scan every window and tab, keep groups together, and select a
+              whole set to close, move, or organize at once.
+            </p>
+            <p class="shortcut"
+              ><kbd>⌘ ⇧ E</kbd><span>or</span><kbd>Alt ⇧ E</kbd
+              ><span>to open Tab Manager</span></p
+            >
+          </div>
+          <div class="video-frame">
+            <video
+              class="product-video"
+              controls
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="A short tour of Tabby's multi-window tab manager"
+            >
+              <source src="/videos/tab-manager-tour.mp4" type="video/mp4" />
+              Your browser does not support embedded video.
+            </video>
+            <span class="video-caption"
+              >A quick look around Tabby’s Tab Manager</span
+            >
+          </div>
+        </article>
+      </section>
+
+      <section class="privacy-section" id="privacy">
+        <div class="page-shell privacy-inner">
+          <div class="privacy-mark" aria-hidden="true">
+            <img
+              src="/images/tabby-icon.png"
+              alt=""
+              width="72"
+              height="72"
+              loading="lazy"
+            />
+          </div>
+          <div class="privacy-copy">
+            <p class="eyebrow">Your browser is yours</p>
+            <h2>Search stays close<br />to home.</h2>
+            <p>
+              Searches across your tabs, bookmarks, and history happen on your
+              device. If you choose Google Search, Tabby opens Google with your
+              query.
+            </p>
+          </div>
+          <a
+            class="privacy-link"
+            href="https://github.com/michaeldrotar/tabby/blob/main/PRIVACY.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Read the privacy details <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="closing-cta page-shell">
+        <div class="closing-card">
+          <div class="closing-copy">
+            <p class="eyebrow">Ready when you are</p>
+            <h2>Make room<br />for what matters.</h2>
+            <a
+              class="button button-light store-link"
+              href="https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Get Tabby for Chrome <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <div class="closing-decoration" aria-hidden="true">
+            <span class="paw paw-one">✳</span>
+            <span class="paw paw-two">✳</span>
+            <img
+              src="/images/tabby-icon.png"
+              alt=""
+              width="180"
+              height="180"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer page-shell">
+      <a class="brand footer-brand" href="#top">
+        <img
+          src="/images/tabby-icon.png"
+          alt=""
+          width="28"
+          height="28"
+          loading="lazy"
+        />
+        <span>tabby</span>
+      </a>
+      <span>Made for a more thoughtful browser.</span>
+      <a
+        href="https://github.com/michaeldrotar/tabby"
+        target="_blank"
+        rel="noreferrer"
+        >Open source <span aria-hidden="true">↗</span></a
+      >
+    </footer>
+  </body>
+</html>
