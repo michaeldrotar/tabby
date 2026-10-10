@@ -17,13 +17,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@extension/chrome": "workspace:*",
     "@extension/env": "workspace:*",
-    "@extension/i18n": "workspace:*",
-    "@extension/shared": "workspace:*",
-    "@extension/storage": "workspace:*",
     "@extension/ui": "workspace:*",
-    "@tanstack/react-query": "5.90.7"
+    "@extension/app": "workspace:*",
+    "@extension/providers": "workspace:*"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",

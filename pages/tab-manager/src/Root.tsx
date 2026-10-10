@@ -1,24 +1,13 @@
-import { BrowserStoreProvider } from '@extension/chrome/BrowserStoreProvider'
-import { useThemeApplicator } from '@extension/shared/hooks/preference'
-import { loadPreferenceStorage } from '@extension/storage/impl/preference-storage'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { EventLog } from './EventLog'
-import TabManager from './TabManager'
+import { TabbySurface, TabManagerExperience } from '@extension/app'
+import { ChromeTabbyProvider } from '@extension/providers/chrome'
 
-const queryClient = new QueryClient()
-loadPreferenceStorage()
-
-export const Root = () => {
-  useThemeApplicator()
-
-  return (
-    <>
-      <EventLog />
-      <QueryClientProvider client={queryClient}>
-        <BrowserStoreProvider>
-          <TabManager />
-        </BrowserStoreProvider>
-      </QueryClientProvider>
-    </>
-  )
-}
+export const Root = () => (
+  <ChromeTabbyProvider surface="tab-manager">
+    <TabbySurface
+      instanceId="extension-tab-manager"
+      style={{ height: '100dvh' }}
+    >
+      <TabManagerExperience focusOnMount />
+    </TabbySurface>
+  </ChromeTabbyProvider>
+)

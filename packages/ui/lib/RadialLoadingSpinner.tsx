@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import { memo, useRef } from 'react'
-import { useShouldReduceMotion } from './useShouldReduceMotion'
+import {
+  useShouldReduceMotion,
+  useShouldSettleMotion,
+} from './useShouldReduceMotion'
 import type { SVGAttributes } from 'react'
 
 export type RadialLoadingSpinnerProps = Omit<
@@ -33,6 +36,7 @@ export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
   ({ size = 20, variant = 'foreground', ...props }) => {
     const svgRef = useRef<SVGSVGElement>(null)
     const shouldReduceMotion = useShouldReduceMotion(svgRef) ?? false
+    const shouldSettleMotion = useShouldSettleMotion()
 
     // Constants
     const duration = 1.5
@@ -56,6 +60,15 @@ export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
           ? 'stroke-muted'
           : 'stroke-foreground'
 
+    const circleProps = {
+      cx: size / 2,
+      cy: size / 2,
+      r: radius,
+      fill: 'none',
+      strokeLinecap: 'round' as const,
+      className: strokeClass,
+    }
+
     return (
       <svg
         ref={svgRef}
@@ -67,73 +80,77 @@ export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
         aria-busy="true"
         {...props}
       >
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeLinecap="round"
-          className={strokeClass}
-          initial={{
-            rotate: initialRotation,
-            strokeDasharray: `${maxArcLength} ${circumference}`,
-            strokeWidth: strokeWidth,
-          }}
-          animate={
-            shouldReduceMotion
-              ? {
-                  // Reduced motion: just a simple steady spin, no thickness/arc changes
-                  rotate: [
-                    initialRotation,
-                    directionMultiplier * 360 + initialRotation,
-                  ],
-                  strokeDasharray: `${maxArcLength} ${circumference}`,
-                  strokeWidth: strokeWidth,
-                }
-              : {
-                  rotate: [
-                    initialRotation,
-                    directionMultiplier * 360 + initialRotation,
-                  ],
-                  strokeDasharray: [
-                    `${maxArcLength} ${circumference}`,
-                    `${minArcLength} ${circumference}`,
-                    `${maxArcLength} ${circumference}`,
-                  ],
-                  strokeWidth: [strokeWidth, minStroke, strokeWidth],
-                }
-          }
-          transition={
-            shouldReduceMotion
-              ? {
-                  rotate: {
-                    duration,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  },
-                }
-              : {
-                  rotate: {
-                    duration,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  },
-                  strokeDasharray: {
-                    duration,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  },
-                  strokeWidth: {
-                    duration,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  },
-                }
-          }
-          style={{
-            transformOrigin: '50% 50%',
-          }}
-        />
+        {shouldSettleMotion ? (
+          <circle
+            {...circleProps}
+            transform={`rotate(${initialRotation} ${size / 2} ${size / 2})`}
+            strokeDasharray={`${maxArcLength} ${circumference}`}
+            strokeWidth={strokeWidth}
+          />
+        ) : (
+          <motion.circle
+            {...circleProps}
+            initial={{
+              rotate: initialRotation,
+              strokeDasharray: `${maxArcLength} ${circumference}`,
+              strokeWidth: strokeWidth,
+            }}
+            animate={
+              shouldReduceMotion
+                ? {
+                    // Reduced motion: just a simple steady spin, no thickness/arc changes
+                    rotate: [
+                      initialRotation,
+                      directionMultiplier * 360 + initialRotation,
+                    ],
+                    strokeDasharray: `${maxArcLength} ${circumference}`,
+                    strokeWidth: strokeWidth,
+                  }
+                : {
+                    rotate: [
+                      initialRotation,
+                      directionMultiplier * 360 + initialRotation,
+                    ],
+                    strokeDasharray: [
+                      `${maxArcLength} ${circumference}`,
+                      `${minArcLength} ${circumference}`,
+                      `${maxArcLength} ${circumference}`,
+                    ],
+                    strokeWidth: [strokeWidth, minStroke, strokeWidth],
+                  }
+            }
+            transition={
+              shouldReduceMotion
+                ? {
+                    rotate: {
+                      duration,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    },
+                  }
+                : {
+                    rotate: {
+                      duration,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    },
+                    strokeDasharray: {
+                      duration,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    },
+                    strokeWidth: {
+                      duration,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    },
+                  }
+            }
+            style={{
+              transformOrigin: '50% 50%',
+            }}
+          />
+        )}
       </svg>
     )
   },

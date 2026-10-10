@@ -1,4 +1,4 @@
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/chrome/manifest'
 
 export interface IManifestParser {
   convertManifestToString: (

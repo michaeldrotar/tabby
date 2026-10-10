@@ -4,7 +4,7 @@ import { BrowserTabGroupItem } from './BrowserTabGroupItem'
 import { BrowserTabItem } from './BrowserTabItem'
 import { TabList, TabListItem } from './TabList'
 import { cn } from './utils/cn'
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/core'
 import type { ReactNode } from 'react'
 
 export type BrowserTabListID = number | string
@@ -22,6 +22,7 @@ export type BrowserTabListTab = {
   discarded?: boolean
   audio?: 'muted' | 'on' | 'off'
   lastAccessed?: number
+  ageLabel?: string
 }
 
 export type BrowserTabListGroup = {
@@ -53,6 +54,9 @@ type BrowserTabGroupRenderArgs = {
   selectedTabIds: Set<BrowserTabListID>
   duplicateTabIds: Set<BrowserTabListID>
   isMultiSelectMode: boolean
+  isRenaming: boolean
+  renameTitle?: string
+  onRenameTitleChange?: (title: string) => void
   onSelect?: (event: React.MouseEvent) => void
   onTabClick?: (
     tab: BrowserTabListTab,
@@ -73,6 +77,8 @@ export type BrowserTabListProps = {
   selectedGroupIds?: Set<BrowserTabListID>
   duplicateTabIds?: Set<BrowserTabListID>
   isMultiSelectMode?: boolean
+  renamingGroupId?: BrowserTabListID | null
+  renamingGroupTitle?: string
   onTabClick?: (
     tab: BrowserTabListTab,
     event: React.MouseEvent<HTMLDivElement>,
@@ -81,6 +87,7 @@ export type BrowserTabListProps = {
   onGroupSelect?: (group: BrowserTabListGroup, event: React.MouseEvent) => void
   onGroupToggleCollapse?: (group: BrowserTabListGroup) => void
   onGroupRenameComplete?: (group: BrowserTabListGroup, newTitle: string) => void
+  onGroupRenameTitleChange?: (group: BrowserTabListGroup, title: string) => void
   onGroupRenameCancel?: (group: BrowserTabListGroup) => void
   onGroupClose?: (group: BrowserTabListGroup) => void
   renderTabItem?: (args: BrowserTabRenderArgs) => ReactNode
@@ -97,11 +104,14 @@ export const BrowserTabList = memo(
     selectedGroupIds = emptySelection,
     duplicateTabIds = emptySelection,
     isMultiSelectMode = false,
+    renamingGroupId,
+    renamingGroupTitle,
     onTabClick,
     onTabClose,
     onGroupSelect,
     onGroupToggleCollapse,
     onGroupRenameComplete,
+    onGroupRenameTitleChange,
     onGroupRenameCancel,
     onGroupClose,
     renderTabItem,
@@ -128,6 +138,7 @@ export const BrowserTabList = memo(
         discarded={tab.discarded}
         audio={tab.audio}
         lastAccessed={tab.lastAccessed}
+        ageLabel={tab.ageLabel}
         duplicate={duplicate}
         isMultiSelectMode={tabIsMultiSelectMode}
         onClick={onClick}
@@ -139,6 +150,9 @@ export const BrowserTabList = memo(
       group,
       selected,
       isMultiSelectMode: groupIsMultiSelectMode,
+      isRenaming,
+      renameTitle,
+      onRenameTitleChange,
       onSelect,
       onToggleCollapse,
       onRenameComplete,
@@ -152,7 +166,9 @@ export const BrowserTabList = memo(
         color={group.color}
         collapsed={group.collapsed}
         active={group.active}
-        isRenaming={group.isRenaming}
+        isRenaming={isRenaming}
+        renameTitle={renameTitle}
+        onRenameTitleChange={onRenameTitleChange}
         selected={selected}
         isMultiSelectMode={groupIsMultiSelectMode}
         onSelect={onSelect}
@@ -171,7 +187,7 @@ export const BrowserTabList = memo(
           {items.map((item) => {
             if (item.type === 'tab') {
               return (
-                <TabListItem key={item.tab.renderKey ?? item.tab.id}>
+                <TabListItem key={`tab-${item.tab.renderKey ?? item.tab.id}`}>
                   {(renderTabItem || defaultRenderTabItem)({
                     tab: item.tab,
                     selected: selectedTabIds.has(item.tab.id),
@@ -187,12 +203,16 @@ export const BrowserTabList = memo(
             }
 
             return (
-              <TabListItem key={item.group.id}>
+              <TabListItem key={`group-${item.group.id}`}>
                 {/*
                   Build grouped tab content once and allow app-layer wrappers
                   (e.g. context menus) to decide how to compose around it.
                 */}
                 {(() => {
+                  const isRenaming =
+                    renamingGroupId === undefined
+                      ? !!item.group.isRenaming
+                      : renamingGroupId === item.group.id
                   const groupChildren = !item.group.collapsed ? (
                     <TabList className="gap-0.5 pl-2">
                       {item.tabs.map((tab) => (
@@ -219,6 +239,11 @@ export const BrowserTabList = memo(
                     selectedTabIds,
                     duplicateTabIds,
                     isMultiSelectMode,
+                    isRenaming,
+                    renameTitle: isRenaming ? renamingGroupTitle : undefined,
+                    onRenameTitleChange: onGroupRenameTitleChange
+                      ? (title) => onGroupRenameTitleChange(item.group, title)
+                      : undefined,
                     onSelect: (event) => onGroupSelect?.(item.group, event),
                     onTabClick: onTabClick,
                     onTabClose: onTabClose,

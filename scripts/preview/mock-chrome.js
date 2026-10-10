@@ -134,7 +134,10 @@
     runtime: {
       id: 'preview',
       getPlatformInfo: async () => ({ os: platform }),
-      getURL: (path) => new URL(`/${path}`, globalThis.location.origin).href,
+      getURL: (path) =>
+        path.startsWith('_favicon/')
+          ? `chrome-extension://preview/${path}`
+          : new URL(`/${path}`, globalThis.location.origin).href,
       sendMessage: async () => undefined,
       openOptionsPage: async () => undefined,
       onMessage: event(),
@@ -189,6 +192,8 @@
           windows.find((window) => window.id === browser.currentWindowId) ??
             windows[0],
         ),
+      getLastFocused: async () =>
+        clone(windows.find((window) => window.focused) ?? windows[0]),
       get: async (id) => clone(find(windows, id)),
       update: async (id, values) => {
         const window = find(windows, id)

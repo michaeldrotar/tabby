@@ -1,31 +1,22 @@
 import { formatShortcut } from '@extension/shared/utils/platform'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { LayoutGridIcon, SettingsIcon } from '../icons'
 import { ScrollArea } from '../ScrollArea'
 import { cn } from '../utils/cn'
 import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
 import { OmnibarItem } from './OmnibarItem'
-import { useOmnibarFiltering } from './useOmnibarFiltering'
 import { useOmnibarQuery } from './useOmnibarQuery'
-import { useOmnibarSearch } from './useOmnibarSearch'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
-import type { OmnibarResultGenerators } from './useOmnibarFiltering'
+import type { Dispatch, SetStateAction } from 'react'
 
 export type { OmnibarSearchResult } from './OmnibarSearchResult'
-export type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 export type OmnibarProps = {
   className?: string
   onDismiss: () => void
-  /** Tab data converted to search results */
-  tabs: OmnibarSearchResult[]
-  /** Open native tab groups converted to search results */
-  groups?: OmnibarSearchResult[]
-  /** Search handler for external results (history, bookmarks, closed tabs) */
-  onSearch: (query: string) => Promise<OmnibarSearchResult[]>
-  /** Generators for creating omnibar result items */
-  generators: OmnibarResultGenerators
+  /** Results arranged by the application for the current query. */
+  results: OmnibarSearchResult[]
   /** If true, hides the "Open Tab Manager" quick action (useful when already in Tab Manager) */
   hideTabManagerAction?: boolean
   /** Callback to open the side panel tab manager */
@@ -36,29 +27,68 @@ export type OmnibarProps = {
   originalWindowId?: number
   /** Whether running on macOS (for keyboard shortcuts) */
   isMac?: boolean
+  query?: string
+  onQueryChange?: (query: string) => void
+  selectedIndex?: number
+  onSelectedIndexChange?: Dispatch<SetStateAction<number>>
+  modifiers?: { command: boolean; shift: boolean }
+  onModifiersChange?: (modifiers: { command: boolean; shift: boolean }) => void
+  onOpenOptions?: () => void | Promise<void>
+  onError?: (error: unknown) => void
+  scrollTop?: number
+  onScrollChange?: (top: number) => void
+  autofocus?: boolean
 }
 
 export const Omnibar = ({
   className,
   onDismiss,
-  tabs,
-  groups = [],
-  onSearch,
-  generators,
+  results: filteredItems,
   hideTabManagerAction,
   onOpenTabManager,
   openTabManagerShortcut,
   originalWindowId,
   isMac = false,
+  query: controlledQuery,
+  onQueryChange,
+  selectedIndex: controlledIndex,
+  onSelectedIndexChange,
+  modifiers,
+  onModifiersChange,
+  onOpenOptions,
+  onError,
+  autofocus = true,
+  scrollTop,
+  onScrollChange,
 }: OmnibarProps) => {
+  const rootRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (scrollTop === undefined) return
+    const viewport = rootRef.current?.querySelector<HTMLElement>(
+      '[data-radix-scroll-area-viewport]',
+    )
+    if (viewport && viewport.scrollTop !== scrollTop)
+      viewport.scrollTop = scrollTop
+  }, [scrollTop])
   const inputRef = useRef<HTMLInputElement>(null)
-  const { query, setQuery } = useOmnibarQuery(inputRef)
-  const [isCmdCtrlPressed, setIsCmdCtrlPressed] = useState(false)
-  const [isShiftPressed, setIsShiftPressed] = useState(false)
+  const localQuery = useOmnibarQuery(inputRef, controlledQuery, autofocus)
+  const query = controlledQuery ?? localQuery.query
+  const setQuery = onQueryChange ?? localQuery.setQuery
+  const [localModifiers, setLocalModifiers] = useState({
+    command: false,
+    shift: false,
+  })
+  const currentModifiers = modifiers ?? localModifiers
+  const setModifiers = onModifiersChange ?? setLocalModifiers
+  const isCmdCtrlPressed = currentModifiers.command
+  const isShiftPressed = currentModifiers.shift
 
-  const externalResults = useOmnibarSearch(query, onSearch)
-  const { filteredItems, selectedIndex, setSelectedIndex } =
-    useOmnibarFiltering(query, tabs, externalResults, generators, groups)
+  const [localIndex, setLocalIndex] = useState(0)
+  const selectedIndex = Math.max(
+    0,
+    Math.min(controlledIndex ?? localIndex, filteredItems.length - 1),
+  )
+  const setSelectedIndex = onSelectedIndexChange ?? setLocalIndex
 
   const openTabManager = useCallback(() => {
     if (!onOpenTabManager) return
@@ -66,9 +96,9 @@ export const Omnibar = ({
     void Promise.resolve(onOpenTabManager())
       .then(onDismiss)
       .catch((error) => {
-        console.warn('Could not open the Tab Manager side panel', error)
+        onError?.(error)
       })
-  }, [onDismiss, onOpenTabManager])
+  }, [onDismiss, onOpenTabManager, onError])
 
   // Quick actions for empty state
   const quickActions = useMemo(() => {
@@ -84,15 +114,15 @@ export const Omnibar = ({
       })
     }
 
-    actions.push({
-      id: 'open-options',
-      icon: <SettingsIcon className="h-4 w-4" />,
-      label: 'Open Options',
-      onClick: () => {
-        chrome.runtime.openOptionsPage()
-        onDismiss()
-      },
-    })
+    if (onOpenOptions)
+      actions.push({
+        id: 'open-options',
+        icon: <SettingsIcon className="h-4 w-4" />,
+        label: 'Open Options',
+        onClick: () => {
+          void Promise.resolve(onOpenOptions()).then(onDismiss).catch(onError)
+        },
+      })
 
     return actions
   }, [
@@ -100,6 +130,8 @@ export const Omnibar = ({
     isMac,
     onDismiss,
     onOpenTabManager,
+    onOpenOptions,
+    onError,
     openTabManager,
     openTabManagerShortcut,
   ])
@@ -109,15 +141,12 @@ export const Omnibar = ({
     modifier?: 'new-tab' | 'new-window',
     originalWindowId?: number,
   ) => {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.remove('lastQuery')
+    try {
+      await item.execute(modifier, originalWindowId)
+      onDismiss()
+    } catch (error) {
+      onError?.(error)
     }
-    await item.execute(modifier, originalWindowId)
-    onDismiss()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -145,18 +174,27 @@ export const Omnibar = ({
       onDismiss()
       return
     }
-    if (e.key === 'Meta' || e.key === 'Control') setIsCmdCtrlPressed(true)
-    if (e.key === 'Shift') setIsShiftPressed(true)
+    if (e.key === 'Meta' || e.key === 'Control')
+      setModifiers({ ...currentModifiers, command: true })
+    if (e.key === 'Shift') setModifiers({ ...currentModifiers, shift: true })
   }
 
   const handleContainerKeyUp = (e: React.KeyboardEvent) => {
     e.stopPropagation()
-    if (e.key === 'Meta' || e.key === 'Control') setIsCmdCtrlPressed(false)
-    if (e.key === 'Shift') setIsShiftPressed(false)
+    if (e.key === 'Meta' || e.key === 'Control')
+      setModifiers({ ...currentModifiers, command: false })
+    if (e.key === 'Shift') setModifiers({ ...currentModifiers, shift: false })
   }
 
   return (
     <div
+      ref={rootRef}
+      data-omnibar
+      onScrollCapture={(event) => {
+        const viewport = event.target as HTMLElement
+        if (viewport.hasAttribute('data-radix-scroll-area-viewport'))
+          onScrollChange?.(viewport.scrollTop)
+      }}
       className={cn(
         'bg-card text-card-foreground flex h-full flex-col',
         className,
@@ -166,6 +204,10 @@ export const Omnibar = ({
       onClick={(e) => e.stopPropagation()}
       onKeyDown={handleContainerKeyDown}
       onKeyUp={handleContainerKeyUp}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setModifiers({ command: false, shift: false })
+      }}
     >
       <OmnibarInput
         ref={inputRef}
@@ -192,7 +234,6 @@ export const Omnibar = ({
                 isShiftPressed={isShiftPressed}
                 isCmdCtrlPressed={isCmdCtrlPressed}
                 query={query}
-                // ref={index === selectedIndex ? selectedItemRef : null}
               />
             ))}
           </ul>

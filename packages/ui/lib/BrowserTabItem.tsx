@@ -1,53 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Layers, Pin, Volume2, VolumeOff, X } from 'lucide-react'
-import { forwardRef, memo, useEffect, useRef, useState } from 'react'
+import { forwardRef, memo, useRef } from 'react'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
-import { useShouldReduceMotion } from './useShouldReduceMotion'
+import {
+  useShouldReduceMotion,
+  useShouldSettleMotion,
+} from './useShouldReduceMotion'
 import { cn } from './utils/cn'
-import { formatTimeAgo } from './utils/formatTimeAgo'
 import type { HTMLAttributes, ReactNode } from 'react'
-
-/** When true, floor age to minute before formatting: 0–59s → "just now", 60–119s → "1m". */
-const timestampForFormatting = (ts: number, reduceMotion: boolean): number => {
-  if (!reduceMotion) return ts
-  const ageSeconds = (Date.now() - ts) / 1000
-  const flooredSeconds = Math.floor(ageSeconds / 60) * 60
-  return Date.now() - flooredSeconds * 1000
-}
 
 /** Pattern for "(N) Title" in formatTitle. */
 const TITLE_NUMBER_PATTERN = /^(\(\d+\))\s(.+)$/
-
-/**
- * Renders " • {timeAgo}" and updates every second when the string changes.
- * Isolated so interval-driven state updates only re-render this component.
- */
-const TimeAgoText = memo(function TimeAgoText({
-  lastAccessed,
-  shouldReduceMotion,
-}: {
-  lastAccessed?: number
-  shouldReduceMotion: boolean
-}) {
-  const [timeAgoText, setTimeAgoText] = useState<string>(() =>
-    lastAccessed
-      ? formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
-      : '',
-  )
-  useEffect(() => {
-    if (!lastAccessed) return
-    const format = () =>
-      formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
-    queueMicrotask(() => setTimeAgoText(format()))
-    const interval = setInterval(() => {
-      const next = format()
-      setTimeAgoText((prev) => (next !== prev ? next : prev))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [lastAccessed, shouldReduceMotion])
-  if (!timeAgoText) return null
-  return <span className="flex-shrink-0"> • {timeAgoText}</span>
-})
 
 /**
  * Props for the BrowserTabItem component.
@@ -93,6 +56,8 @@ export type BrowserTabItemProps = Omit<
   audio?: 'muted' | 'on' | 'off'
   /** Timestamp in milliseconds when the tab was last accessed */
   lastAccessed?: number
+  /** Explicit display text; skips clock-based updates when supplied. */
+  ageLabel?: string
   /** Whether this tab is a duplicate (same URL as another tab) */
   duplicate?: boolean
 
@@ -142,7 +107,8 @@ export const BrowserTabItem = memo(
         pinned = false,
         discarded = false,
         audio,
-        lastAccessed,
+        lastAccessed: _lastAccessed,
+        ageLabel,
         duplicate = false,
         onClose,
         ...props
@@ -158,10 +124,13 @@ export const BrowserTabItem = memo(
           ;(forwardedRef as { current: HTMLDivElement | null }).current = el
         }
       }
+      const shouldSettleMotion = useShouldSettleMotion()
       const shouldReduceMotion = useShouldReduceMotion(rootRef) ?? false
-      const transition = shouldReduceMotion
-        ? { duration: 0.15, ease: 'linear' as const }
-        : { type: 'spring' as const, stiffness: 300, damping: 25 }
+      const transition = shouldSettleMotion
+        ? { duration: 0 }
+        : shouldReduceMotion
+          ? { duration: 0.15, ease: 'linear' as const }
+          : { type: 'spring' as const, stiffness: 300, damping: 25 }
 
       // Extract domain from URL for display
       const getDomain = (url?: string): string => {
@@ -234,7 +203,11 @@ export const BrowserTabItem = memo(
           ref={setRef}
           layout={!shouldReduceMotion}
           initial={
-            shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }
+            shouldSettleMotion
+              ? false
+              : shouldReduceMotion
+                ? { opacity: 0 }
+                : { opacity: 0, scale: 0.95 }
           }
           animate={{ opacity: 1, scale: 1 }}
           exit={
@@ -242,7 +215,7 @@ export const BrowserTabItem = memo(
           }
           transition={transition}
           className={cn(
-            `group relative overflow-hidden rounded-lg`,
+            `group/tab-row relative overflow-hidden rounded-lg`,
             // Transition for smooth mode changes
             'transition-shadow duration-150',
             // Focus ring styling: option (tab row) or button (close) can be focused
@@ -302,13 +275,13 @@ export const BrowserTabItem = memo(
               !selected &&
                 `
                   hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  group-data-[hover=true]/tab-row:bg-accent/[calc(var(--accent-strength)*0.5%)]
                 `,
               selected &&
                 `
                   bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
                   hover:brightness-95
-                  data-[hover]:brightness-95
+                  group-data-[hover=true]/tab-row:brightness-95
                 `,
               active &&
                 `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
@@ -373,9 +346,11 @@ export const BrowserTabItem = memo(
                   {loading && (
                     <motion.div
                       initial={
-                        shouldReduceMotion
-                          ? { opacity: 0 }
-                          : { opacity: 0, scale: 0.8 }
+                        shouldSettleMotion
+                          ? false
+                          : shouldReduceMotion
+                            ? { opacity: 0 }
+                            : { opacity: 0, scale: 0.8 }
                       }
                       animate={
                         shouldReduceMotion
@@ -427,21 +402,22 @@ export const BrowserTabItem = memo(
                       filter: blurred ? 'blur(4px)' : 'blur(0px)',
                     }}
                     transition={
-                      shouldReduceMotion
-                        ? { duration: 0.15, ease: 'linear' as const }
-                        : {
-                            type: 'spring' as const,
-                            stiffness: 300,
-                            damping: 25,
-                            delay: 0.05,
-                          }
+                      shouldSettleMotion
+                        ? { duration: 0 }
+                        : shouldReduceMotion
+                          ? { duration: 0.15, ease: 'linear' as const }
+                          : {
+                              type: 'spring' as const,
+                              stiffness: 300,
+                              damping: 25,
+                              delay: 0.05,
+                            }
                     }
                   >
                     <span className="min-w-0 truncate">{domain}</span>
-                    <TimeAgoText
-                      lastAccessed={lastAccessed}
-                      shouldReduceMotion={shouldReduceMotion}
-                    />
+                    {ageLabel && (
+                      <span className="flex-shrink-0"> • {ageLabel}</span>
+                    )}
                   </motion.div>
                 )}
               </div>
@@ -512,12 +488,12 @@ export const BrowserTabItem = memo(
                     ? 'opacity-100'
                     : cn(
                         'opacity-0',
-                        'group-hover:opacity-100',
-                        'group-data-[hover=true]:opacity-100',
+                        'group-hover/tab-row:opacity-100',
+                        'group-data-[hover=true]/tab-row:opacity-100',
                         `
-                          group-has-[[data-tab-option]:focus-visible]:opacity-100
+                          group-has-[[data-tab-option]:focus-visible]/tab-row:opacity-100
                         `,
-                        'group-has-[button:focus-visible]:opacity-100',
+                        'group-has-[button:focus-visible]/tab-row:opacity-100',
                       ),
                 )}
                 aria-label="Close tab"

@@ -1,69 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSurface, useSurfaceInputOwner } from '../Surface'
 
+/** Local input behavior only; hosts supply persistence through controlled props. */
 export const useOmnibarQuery = (
   inputRef: React.RefObject<HTMLInputElement | null>,
+  initialQuery = '',
+  autofocus = true,
 ) => {
-  const [query, setQueryState] = useState('')
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [query, setQuery] = useState(initialQuery)
   const hasFocusedInitialInput = useRef(false)
-  const hasUserEditedQuery = useRef(false)
-
-  const setQuery = (nextQuery: string) => {
-    hasUserEditedQuery.current = true
-    setQueryState(nextQuery)
-  }
-
-  useEffect(() => {
-    let cancelled = false
-
-    const loadLastQuery = async () => {
-      let lastQuery = ''
-
-      if (
-        typeof chrome !== 'undefined' &&
-        chrome.storage &&
-        chrome.storage.local
-      ) {
-        try {
-          const result = await chrome.storage.local.get('lastQuery')
-          if (typeof result.lastQuery === 'string') {
-            lastQuery = result.lastQuery
-          }
-        } catch (error) {
-          console.debug('Could not load the last search query', { error })
-        }
-      }
-
-      if (cancelled) return
-      if (!hasUserEditedQuery.current) setQueryState(lastQuery)
-      setIsLoaded(true)
-    }
-
-    void loadLastQuery()
-
-    return () => {
-      cancelled = true
-    }
-  }, [inputRef])
-
-  useEffect(() => {
-    if (!isLoaded || hasFocusedInitialInput.current) return
-
-    hasFocusedInitialInput.current = true
-    inputRef.current?.focus()
-    if (query && !hasUserEditedQuery.current) inputRef.current?.select()
-  }, [inputRef, isLoaded, query])
+  const surface = useSurface()
+  const { canFocusInput } = useSurfaceInputOwner()
 
   useEffect(() => {
     if (
-      isLoaded &&
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      void chrome.storage.local.set({ lastQuery: query })
-    }
-  }, [query, isLoaded])
+      !autofocus ||
+      hasFocusedInitialInput.current ||
+      (surface && (surface.inputMode !== 'live' || !surface.root)) ||
+      !inputRef.current
+    )
+      return
+    hasFocusedInitialInput.current = true
+    if (!canFocusInput()) return
+    inputRef.current?.focus()
+    if (initialQuery) inputRef.current?.select()
+  }, [autofocus, initialQuery, inputRef, surface, canFocusInput])
 
-  return { query, setQuery, isLoaded }
+  return { query, setQuery }
 }

@@ -1,4 +1,5 @@
 import { ScrollArea } from '../../ScrollArea'
+import { useSurface } from '../../Surface'
 import { cn } from '../../utils/cn'
 
 export type TabManagerShellProps = {
@@ -21,17 +22,23 @@ export const TabManagerShell = ({
   className,
   selectionMode = 'default',
 }: TabManagerShellProps) => {
+  const surface = useSurface()
   return (
     <div
       data-selection-mode={selectionMode}
       className={cn(
-        'bg-background relative flex h-screen w-full overflow-hidden',
+        'bg-background relative flex w-full overflow-hidden',
+        surface ? 'h-full min-h-0' : 'h-screen',
         className,
       )}
     >
       <aside className="border-border flex-shrink-0 border-r">{sidebar}</aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <ScrollArea className="flex-1" orientation="vertical">
+        <ScrollArea
+          data-manager-scroll
+          className="flex-1"
+          orientation="vertical"
+        >
           <main className="h-full">{children}</main>
         </ScrollArea>
         {actionBar}

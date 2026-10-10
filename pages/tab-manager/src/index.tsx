@@ -1,17 +1,7 @@
 import '@src/index.css'
 import { createRoot } from 'react-dom/client'
-import { initDevProfiler } from './initDevProfiler'
 import { Root } from './Root'
 
-const init = () => {
-  const appContainer = document.querySelector('#app-container')
-  if (!appContainer) {
-    throw new Error('Can not find #app-container')
-  }
-  const root = createRoot(appContainer)
-  root.render(<Root />)
-
-  initDevProfiler()
-}
-
-init()
+const appContainer = document.querySelector('#app-container')
+if (!appContainer) throw new Error('Can not find #app-container')
+createRoot(appContainer).render(<Root />)

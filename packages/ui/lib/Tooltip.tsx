@@ -1,4 +1,5 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import { useSurface } from './Surface'
 import { cn } from './utils/cn'
 import type * as React from 'react'
 
@@ -37,8 +38,11 @@ export const TooltipContent = ({
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) => {
+  const surface = useSurface()
+  if (surface && (surface.inputMode !== 'live' || !surface.portalHost))
+    return null
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal container={surface?.portalHost ?? undefined}>
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}

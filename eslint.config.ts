@@ -1,5 +1,4 @@
 import eslint from '@eslint/js'
-import pluginQuery from '@tanstack/eslint-plugin-query'
 import { defineConfig } from 'eslint/config'
 import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x'
@@ -16,19 +15,12 @@ import localRules from './eslint-rules/index.js'
 export default defineConfig([
   // Shared configs
   eslint.configs.recommended,
-  ...pluginQuery.configs['flat/recommended'],
   ...tsConfigs.recommended,
   reactHooks.configs.flat.recommended,
   jsxA11y.flatConfigs.recommended,
   importXFlatConfig.recommended,
   importXFlatConfig.typescript,
   eslintPluginPrettierRecommended,
-  // ...fixupConfigRules(
-  //   new FlatCompat().extends(
-  //     // 'plugin:@tanstack/eslint-plugin-query/recommended',
-  //     'plugin:react-hooks/recommended',
-  //   ) as FixupConfigArray,
-  // ),
   {
     files: ['**/*.{ts,tsx,mts}'],
     ...reactPlugin.configs.flat.recommended,
@@ -42,7 +34,6 @@ export default defineConfig([
       '**/dist/**',
       '**/dist-zip/**',
       '**/node_modules/**',
-      '**/storybook-static/**',
       'chrome-extension/manifest.js',
       'eslint-rules/**',
       'scripts/**',
@@ -103,14 +94,6 @@ export default defineConfig([
       'func-style': 'off', // Replaced by local/func-style-fix which has auto-fix
       'local/func-style-fix': 'error',
       'local/prefer-inline-export': 'error',
-      'no-restricted-imports': [
-        'error',
-        {
-          name: 'type-fest',
-          message:
-            'Please import from `@extension/shared` instead of `type-fest`.',
-        },
-      ],
       'arrow-body-style': ['off'],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-exports': 'error',
@@ -158,14 +141,103 @@ export default defineConfig([
       reportUnusedDisableDirectives: 'error',
     },
   },
-  // Overrides Rules
+  // Browser-independent product packages
   {
-    files: ['**/packages/shared/**/*.ts'],
+    files: [
+      'packages/{core,demo,app}/lib/**/*.{ts,tsx}',
+      'packages/ui/lib/**/*.{ts,tsx}',
+    ],
     rules: {
-      'no-restricted-imports': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome',
+                '@extension/chrome/*',
+                '@extension/storage',
+                '@extension/storage/*',
+                '**/pages/**',
+              ],
+              message:
+                'External data belongs in an adapter supplied by the host.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        { name: 'chrome', message: 'Use an injected backend.' },
+        {
+          name: 'localStorage',
+          message: 'Use an injected preference resource.',
+        },
+        {
+          name: 'sessionStorage',
+          message: 'Use an injected preference resource.',
+        },
+      ],
     },
   },
-  // Node.js scripts
+  {
+    files: ['packages/core/lib/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome*',
+                '@extension/storage*',
+                '@extension/app*',
+                '@extension/ui*',
+                'react',
+                'react/*',
+              ],
+              message:
+                'Core contracts and algorithms must be independent of runtime adapters and presentation.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        'chrome',
+        'window',
+        'document',
+        'navigator',
+        'localStorage',
+        'sessionStorage',
+      ],
+    },
+  },
+  {
+    files: ['packages/{ui,demo}/lib/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome',
+                '@extension/chrome/**',
+                '@extension/storage',
+                '@extension/storage/**',
+                '@extension/app',
+                '@extension/app/**',
+                '**/pages/**',
+              ],
+              message:
+                'Presentation and memory resources must not depend on application orchestration or external adapters.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: {

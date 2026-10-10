@@ -1,39 +1,12 @@
-# UI Package
+# Tabby UI
 
-This package provides the complete UI system for Tabby, including:
+This package contains reusable presentation components. Browser data, preferences, clocks, navigation, and command execution are supplied by their hosts. The components run with Chrome resources or memory resources through the same application layer.
 
-- **Components** - Reusable React components
-- **Theme system** - CSS variables, color palettes, and theme configuration
-- **Tailwind configuration** - Base config and merge utilities
-- **Icons and utilities** - Shared UI helpers
+The main interfaces are [TabManager](lib/tab-manager/TabManager.tsx), [Omnibar](lib/omnibar/Omnibar.tsx), and [Options](lib/options/Options.tsx). Each accepts display data and callbacks. [Surface](lib/Surface.tsx) owns the theme, container dimensions, input policy, motion policy, unique IDs, and portal destination for one mounted instance.
 
-## Installation
+## Styling
 
-First, move to the page you want to use.
-
-```shell
-cd pages/options
-```
-
-Add the following to the dependencies in `package.json`.
-
-```json
-{
-  "dependencies": {
-    "@extension/ui": "workspace:*"
-  }
-}
-```
-
-Then, run:
-
-```shell
-pnpm install
-```
-
-## Setup Tailwind
-
-Add the following to the `tailwind.config.ts` file.
+Add `@extension/ui` as a workspace dependency and include its classes in the consuming application's Tailwind configuration:
 
 ```ts
 import { createTailwindConfig } from '@extension/ui/create-tailwind-config'
@@ -44,64 +17,41 @@ export default createTailwindConfig(uiTailwindConfig, {
 })
 ```
 
-Add the following to the first line of `index.css` file.
+Import the base stylesheet:
 
 ```css
 @import '@extension/ui/base.css';
 ```
 
-## Theme Colors
-
-Import theme types and constants:
-
-```typescript
-import {
-  THEME_ACCENT_PALETTES,
-  THEME_NEUTRAL_PALETTES,
-  THEME_ACCENT_STRENGTH_OPTIONS,
-  type ThemeAccentPalette,
-  type ThemeNeutralPalette,
-} from '@extension/ui/theme-colors'
-```
-
-## Add Custom Component
-
-Add the following to the `lib/components/index.ts` file.
+Give each product a sized container. Themes and portals remain inside its Surface, allowing multiple themes on one page:
 
 ```tsx
-export * from './CustomComponent.js'
-```
+import { Surface } from '@extension/ui/Surface'
+import { TabManager } from '@extension/ui/tab-manager/TabManager'
+import type { TabManagerProps } from '@extension/ui/tab-manager/TabManager'
 
-Add the following to the `lib/components/CustomComponent.tsx` file.
-
-```tsx
-import { cn } from '@/lib/utils.js'
-import type { ComponentPropsWithoutRef } from 'react'
-
-type CustomComponentProps = ComponentPropsWithoutRef<'section'>
-
-export const CustomComponent = ({
-  children,
-  ...props
-}: CustomComponentProps) => {
-  return <section {...props}>{children}</section>
-}
-```
-
-## Usage
-
-```tsx
-import { CustomComponent, ErrorDisplay, LoadingSpinner } from '@extension/ui'
-
-const Page = () => {
-  return <CustomComponent>Hi, I'm a custom component.</CustomComponent>
-}
-
-export default withErrorBoundary(
-  withSuspense(Page, <LoadingSpinner />),
-  ErrorDisplay,
+export const ManagerFrame = (props: TabManagerProps) => (
+  <div style={{ width: 480, height: 640 }}>
+    <Surface theme="dark">
+      <TabManager {...props} />
+    </Surface>
+  </div>
 )
 ```
 
-> [!TIP]
-> You are able to set other size of the loading spinner by passing the `size` prop to the `<LoadingSpinner />`.
+Use `palette` for preference-driven background, foreground, accent, and strength values. [PreferenceSurface](../app/lib/PreferenceSurface.tsx) subscribes to an injected preference resource and applies those values.
+
+## Interaction and motion
+
+- `inputMode="live"` accepts ordinary mouse, keyboard, and scroll input.
+- `inputMode="scripted"` blocks real input. The host changes controlled component state to play or restore a frame.
+- `inputMode="static"` blocks input and settles motion for a still frame.
+- `motion="system"` follows the user's reduced-motion setting; `full` and `reduced` explicitly select the presentation policy.
+
+Script playback controls belong outside the blocked product Surface. Application views hold restorable query, selection, focus cues, menus, and scroll positions. Browser commands and persistence belong to injected resources, rather than UI callbacks calling platform APIs directly.
+
+## Development
+
+Run `pnpm workbench` from the repository root to inspect Tab Manager, Omnibar, and Options with deterministic sample data in the [product workbench](../../pages/workbench/README.md).
+
+The UI TypeScript configuration excludes Chrome ambient types. Lint prohibits Chrome and storage imports throughout this package. Keep new components data-driven and supply image URLs, timestamps, translated labels, and event callbacks explicitly.

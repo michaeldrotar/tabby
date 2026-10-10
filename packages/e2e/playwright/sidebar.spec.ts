@@ -91,10 +91,9 @@ test('sidebar transitions stay opaque and actions remain reachable across themes
       await page.reload()
     }
     await expect(page.locator('[data-nav-type="window"]')).toBeVisible()
-    await expect(page.locator('body')).toHaveAttribute(
-      'data-theme',
-      colorScheme,
-    )
+    await expect(
+      page.locator('[data-surface="extension-tab-manager"]'),
+    ).toHaveAttribute('data-theme', colorScheme)
     await page.getByRole('button', { name: 'Expand sidebar' }).click()
     const surface = page.locator('[data-sidebar-surface]')
     await expect

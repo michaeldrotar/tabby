@@ -1,7 +1,7 @@
 {
   "name": "@extension/chrome",
   "version": "0.0.0",
-  "description": "React-friendly access to chrome APIs",
+  "description": "Injected Chrome resources for browser data, preferences, and extension hosts",
   "type": "module",
   "private": true,
   "sideEffects": false,
@@ -24,9 +24,7 @@
     "postinstall": "pnpm ready"
   },
   "dependencies": {
-    "@extension/shared": "workspace:*",
-    "@tanstack/react-query": "5.90.7",
-    "zustand": "^5.0.9"
+    "@extension/core": "workspace:*"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"

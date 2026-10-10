@@ -1,0 +1,8 @@
+{
+  "extends": "@extension/tsconfig/base",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": []
+  },
+  "include": ["lib/**/*.ts"]
+}

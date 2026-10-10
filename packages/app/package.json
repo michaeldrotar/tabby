@@ -1,0 +1,24 @@
+{
+  "name": "@extension/app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./lib/index.ts"
+  },
+  "scripts": {
+    "ready": "tsc --noEmit",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/core": "workspace:*",
+    "@extension/i18n": "workspace:*",
+    "@extension/ui": "workspace:*",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*",
+    "@extension/demo": "workspace:*"
+  }
+}

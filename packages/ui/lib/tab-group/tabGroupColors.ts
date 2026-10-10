@@ -1,4 +1,4 @@
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/core'
 
 /**
  * Tab group color configuration matching Chrome's chrome.tabGroups.Color enum.
@@ -79,5 +79,5 @@ export const getGroupColorClasses = (
   color: BrowserTabGroupColor | undefined,
 ): TabGroupColorClasses => {
   const resolvedColor = color ?? 'grey'
-  return TAB_GROUP_COLORS[resolvedColor]
+  return TAB_GROUP_COLORS[resolvedColor] ?? TAB_GROUP_COLORS.grey
 }

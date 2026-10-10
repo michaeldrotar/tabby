@@ -1,9 +1,0 @@
-@import '@extension/ui/base.css';
-
-:root,
-html,
-body,
-#root {
-  background-color: transparent !important;
-  color-scheme: light dark;
-}

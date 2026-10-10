@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from '../../icons'
 import { ScrollArea } from '../../ScrollArea'
+import { useSurface } from '../../Surface'
 import { cn } from '../../utils/cn'
 
 const NARROW_SIDEBAR_QUERY = '(max-width: 599px)'
@@ -26,11 +27,16 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
   collapseSidebarLabel,
   expandSidebarLabel,
 }: TabManagerSidebarProps) {
-  const [isNarrowViewport, setIsNarrowViewport] = useState(
+  const surface = useSurface()
+  const isManagedSurface = surface !== null
+  const [legacyNarrowViewport, setIsNarrowViewport] = useState(
     () =>
       typeof window !== 'undefined' &&
       window.matchMedia?.(NARROW_SIDEBAR_QUERY).matches === true,
   )
+  const isNarrowViewport = surface
+    ? (surface.width ?? 600) < 600
+    : legacyNarrowViewport
   const [surfaceState, setSurfaceState] = useState({
     isExpanded,
     isRaised: isExpanded,
@@ -42,6 +48,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
   const isOverlayExpanded = isExpanded && isNarrowViewport
 
   useEffect(() => {
+    if (isManagedSurface) return
     const mediaQuery = window.matchMedia?.(NARROW_SIDEBAR_QUERY)
     if (!mediaQuery) return
 
@@ -51,7 +58,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  }, [isManagedSurface])
 
   useEffect(() => {
     if (isExpanded) return
@@ -81,10 +88,12 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
   }, [isExpanded, isNarrowViewport])
 
   useEffect(() => {
-    if (!isOverlayExpanded) return
+    if (!isOverlayExpanded || (surface && surface.inputMode !== 'live')) return
 
     const dismissOutside = (event: Event) => {
       const target = event.target
+      if (surface && target instanceof Node && !surface.root?.contains(target))
+        return
       if (
         target instanceof Node &&
         sidebarSurfaceRef.current?.contains(target)
@@ -93,20 +102,21 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
       }
       onToggleExpand()
     }
-    const dismissOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onToggleExpand()
+    const dismissOnEscape = (event: Event) => {
+      if ((event as KeyboardEvent).key === 'Escape') onToggleExpand()
     }
 
     // Capture dismissal without preventing the click from reaching its target.
-    document.addEventListener('click', dismissOutside, true)
-    document.addEventListener('contextmenu', dismissOutside, true)
-    document.addEventListener('keydown', dismissOnEscape)
+    const eventRoot = surface?.root ?? document
+    eventRoot.addEventListener('click', dismissOutside, true)
+    eventRoot.addEventListener('contextmenu', dismissOutside, true)
+    eventRoot.addEventListener('keydown', dismissOnEscape)
     return () => {
-      document.removeEventListener('click', dismissOutside, true)
-      document.removeEventListener('contextmenu', dismissOutside, true)
-      document.removeEventListener('keydown', dismissOnEscape)
+      eventRoot.removeEventListener('click', dismissOutside, true)
+      eventRoot.removeEventListener('contextmenu', dismissOutside, true)
+      eventRoot.removeEventListener('keydown', dismissOnEscape)
     }
-  }, [isOverlayExpanded, onToggleExpand])
+  }, [isOverlayExpanded, onToggleExpand, surface])
 
   return (
     <div

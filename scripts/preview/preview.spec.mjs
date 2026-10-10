@@ -73,6 +73,14 @@ describe('full application preview', () => {
       browser.tabs.map((tab) => tab.title),
     )
     expect((await chrome.windows.getCurrent()).id).toBe(browser.currentWindowId)
+    expect((await chrome.windows.getLastFocused()).id).toBe(
+      browser.windows.find((window) => window.focused)?.id ??
+        browser.windows[0].id,
+    )
+    await chrome.windows.update(browser.windows.at(-1).id, { focused: true })
+    expect((await chrome.windows.getLastFocused()).id).toBe(
+      browser.windows.at(-1).id,
+    )
     expect(await chrome.tabGroups.query()).toEqual(browser.groups)
     expect(chrome.i18n.getMessage('nTabs', '3')).toBe('3 tabs')
     expect(
@@ -122,7 +130,8 @@ describe('sample Chrome interactions', () => {
       src: `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=48`,
     }
     let onMutation
-    loadMock(mockSource, browser, {
+    const chrome = loadMock(mockSource, browser, {
+      location: { origin: 'http://localhost:5175' },
       document: {
         documentElement: {},
         querySelectorAll: () =>
@@ -139,6 +148,10 @@ describe('sample Chrome interactions', () => {
       },
     })
 
+    expect(chrome.runtime.getURL('tab-manager/index.html')).toBe(
+      'http://localhost:5175/tab-manager/index.html',
+    )
+    image.src = `${chrome.runtime.getURL('_favicon/')}?pageUrl=${encodeURIComponent(pageUrl)}&size=48`
     onMutation()
     const githubFavicon = image.src
     image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent('https://docs.google.com/document/project')}&size=48`

@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   e2e:
-    name: Chrome extension E2E
+    name: Browser workflows
     runs-on: ubuntu-latest
     env:
       CEB_CI: true
@@ -22,3 +22,4 @@ jobs:
       - run: pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm --filter @extension/e2e exec playwright install --with-deps chromium
       - run: xvfb-run pnpm e2e
+      - run: pnpm test:workbench

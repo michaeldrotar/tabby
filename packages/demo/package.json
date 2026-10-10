@@ -1,0 +1,21 @@
+{
+  "name": "@extension/demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./lib/index.ts",
+    "./*": "./lib/*.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "ready": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*"
+  },
+  "dependencies": {
+    "@extension/core": "workspace:*"
+  }
+}
