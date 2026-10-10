@@ -1,0 +1,30 @@
+{
+  "name": "@extension/workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5180 --strictPort",
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/app": "workspace:*",
+    "@extension/core": "workspace:*",
+    "@extension/demo": "workspace:*",
+    "@extension/ui": "workspace:*",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "vite": "^7.2.6",
+    "@types/node": "^24.10.1"
+  },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
+  }
+}

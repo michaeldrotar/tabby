@@ -23,6 +23,8 @@
     "base-dev": "pnpm clean:bundle && turbo ready && turbo watch dev",
     "dev": "pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
     "preview": "pnpm build && node scripts/preview/server.mjs",
+    "workbench": "pnpm exec turbo ready && pnpm -F @extension/workbench dev",
+    "test:workbench": "pnpm -F @extension/e2e exec playwright test --config workbench.config.ts",
     "zip": "pnpm build && pnpm -F zipper zip",
     "e2e": "pnpm build && turbo e2e",
     "lint": "eslint .",

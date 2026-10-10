@@ -167,6 +167,78 @@ export default defineConfig([
   },
   // Node.js scripts
   {
+    files: [
+      'packages/{core,demo,app}/lib/**/*.{ts,tsx}',
+      'packages/ui/lib/Surface.tsx',
+      'packages/ui/lib/tab-manager/TabManager.tsx',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome',
+                '@extension/chrome/*',
+                '@extension/storage',
+                '@extension/storage/*',
+                '**/pages/**',
+              ],
+              message:
+                'External data belongs in an adapter supplied by the host.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        { name: 'chrome', message: 'Use an injected backend.' },
+        {
+          name: 'localStorage',
+          message: 'Use an injected preference resource.',
+        },
+        {
+          name: 'sessionStorage',
+          message: 'Use an injected preference resource.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/core/lib/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome*',
+                '@extension/storage*',
+                '@extension/app*',
+                '@extension/ui*',
+                'react',
+                'react/*',
+              ],
+              message:
+                'Core contracts and algorithms must be independent of runtime adapters and presentation.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        'chrome',
+        'window',
+        'document',
+        'navigator',
+        'localStorage',
+        'sessionStorage',
+      ],
+    },
+  },
+  {
     files: ['scripts/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 'latest',

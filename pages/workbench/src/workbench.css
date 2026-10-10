@@ -1,0 +1,184 @@
+@import '@extension/ui/base.css';
+
+body {
+  margin: 0;
+  background: #eef0f5;
+  color: #1e293b;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.workbench {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 40px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #52647f;
+  font-weight: 700;
+}
+h1 {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin: 8px 0 12px;
+}
+header > p:last-child {
+  max-width: 760px;
+  margin-bottom: 24px;
+  color: #58677d;
+}
+.controls,
+.themes,
+.transport-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.controls {
+  background: white;
+  border: 1px solid #d8deea;
+  padding: 16px;
+  border-radius: 12px;
+}
+.controls label:not(.check),
+.themes label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.check {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.workbench > .themes {
+  justify-content: space-between;
+  margin: 16px 0 8px;
+}
+.workbench select,
+.workbench > .controls button,
+.transport button,
+.instance-footer button {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #1e293b;
+  padding: 6px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.instances {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.instance {
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px #3341550d;
+  background: white;
+}
+.instance-heading,
+.instance-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.instance-heading span {
+  color: #64748b;
+}
+.product-frame {
+  position: relative;
+  height: 560px;
+}
+.transport {
+  margin: 12px 0 16px;
+  padding: 16px;
+  border: 1px solid #bccbee;
+  background: #f8faff;
+  border-radius: 12px;
+}
+.transport > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.transport input {
+  flex: 1;
+  min-width: 120px;
+}
+.step-segments {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.step-segments button {
+  flex: 1;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.step-segments button[aria-current] {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+.transport p,
+.mode-note {
+  font-size: 12px;
+  color: #58677d;
+  margin: 12px 0 0;
+}
+.demo-pointer {
+  position: absolute;
+  pointer-events: none;
+  color: #fff;
+  text-shadow:
+    0 1px 2px #000,
+    1px 0 #000,
+    -1px 0 #000;
+  font-size: 34px;
+  line-height: 1;
+  z-index: 20;
+}
+.key-cue {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #fff;
+  border: 1px solid #64748b;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+footer {
+  margin-top: 20px;
+  color: #58677d;
+  font-size: 12px;
+  max-width: 900px;
+}
+@media (max-width: 800px) {
+  .instances {
+    grid-template-columns: 1fr;
+  }
+  .workbench {
+    padding: 20px 12px;
+  }
+  h1 {
+    font-size: 25px;
+  }
+}

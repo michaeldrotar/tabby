@@ -174,8 +174,30 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
 
+  packages/app:
+    dependencies:
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../core
+      '@extension/ui':
+        specifier: workspace:*
+        version: link:../ui
+      zustand:
+        specifier: ^5.0.9
+        version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      '@extension/demo':
+        specifier: workspace:*
+        version: link:../demo
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+
   packages/chrome:
     dependencies:
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../core
       '@extension/shared':
         specifier: workspace:*
         version: link:../shared
@@ -185,6 +207,22 @@ importers:
       zustand:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+
+  packages/core:
+    devDependencies:
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+
+  packages/demo:
+    dependencies:
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@extension/tsconfig':
         specifier: workspace:*
@@ -314,6 +352,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../core
       '@extension/shared':
         specifier: workspace:*
         version: link:../shared
@@ -496,9 +537,15 @@ importers:
 
   pages/tab-manager:
     dependencies:
+      '@extension/app':
+        specifier: workspace:*
+        version: link:../../packages/app
       '@extension/chrome':
         specifier: workspace:*
         version: link:../../packages/chrome
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@extension/env':
         specifier: workspace:*
         version: link:../../packages/env
@@ -533,6 +580,37 @@ importers:
       '@extension/vite-config':
         specifier: workspace:*
         version: link:../../packages/vite-config
+
+  pages/workbench:
+    dependencies:
+      '@extension/app':
+        specifier: workspace:*
+        version: link:../../packages/app
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@extension/demo':
+        specifier: workspace:*
+        version: link:../../packages/demo
+      '@extension/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      zustand:
+        specifier: ^5.0.9
+        version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.4
+      '@vitejs/plugin-react-swc':
+        specifier: ^4.2.2
+        version: 4.2.2(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+      vite:
+        specifier: ^7.2.6
+        version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
 
 packages:
 
@@ -5903,6 +5981,14 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
+
+  '@vitejs/plugin-react-swc@4.2.2(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@rolldown/pluginutils': 1.0.0-beta.47
+      '@swc/core': 1.15.3
+      vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - '@swc/helpers'
 
   '@vitejs/plugin-react-swc@4.2.2(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
