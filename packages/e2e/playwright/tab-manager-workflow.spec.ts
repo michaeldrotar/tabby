@@ -14,14 +14,15 @@ const getSelectionSummary = (page: Page) =>
   page.locator('[data-selection-summary]').first()
 
 const dismissNotifications = async (page: Page) => {
-  const notifications = page.locator('[data-sonner-toast]')
+  const cards = page.locator('[data-notification-card]')
   const dismissButton = page
-    .locator('[data-sonner-toast][data-front="true"]')
+    .locator('[data-notification-status]')
     .getByRole('button', { name: 'Dismiss notification' })
+    .first()
   while (await dismissButton.isVisible()) {
-    const count = await notifications.count()
+    const count = await cards.count()
     await dismissButton.click()
-    await expect(notifications).toHaveCount(count - 1)
+    await expect(cards).toHaveCount(count - 1)
   }
 }
 
@@ -163,13 +164,19 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await firstTab.click()
     await page.keyboard.press('ContextMenu')
     const keyboardContextMenu = page.locator('[data-action-bar-menu]')
-    await expect(
-      page.getByRole('button', { name: 'More actions' }),
-    ).toBeFocused()
     await expect(keyboardContextMenu).toBeVisible()
+    const keyboardEntries = keyboardContextMenu.locator(
+      '[role="menuitem"]:not(:disabled)',
+    )
+    await expect(keyboardEntries.first()).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(keyboardEntries.nth(1)).toBeFocused()
     await expect(page.locator('[data-radix-menu-content]')).toHaveCount(0)
     await page.keyboard.press('Escape')
     await expect(keyboardContextMenu).toHaveCount(0)
+    await expect(
+      page.getByRole('button', { name: 'More actions' }),
+    ).toBeFocused()
 
     await page.bringToFront()
     await firstTab.click({ button: 'right' })
@@ -208,19 +215,19 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
       'Discard 2 tabs',
       'Copy 2 tabs',
     ]) {
-      await expect(menu.getByRole('button', { name: action })).toBeVisible()
+      await expect(menu.getByRole('menuitem', { name: action })).toBeVisible()
     }
 
-    await menu.getByRole('button', { name: 'Copy 2 tabs' }).click()
+    await menu.getByRole('menuitem', { name: 'Copy 2 tabs' }).click()
     const copyPanel = page.locator('[data-action-bar-panel]')
     await expect(
-      copyPanel.getByRole('button', { name: 'Copy URLs' }),
+      copyPanel.getByRole('menuitem', { name: 'Copy URLs' }),
     ).toBeVisible()
     await expect(
-      copyPanel.getByRole('button', { name: 'Copy titles', exact: true }),
+      copyPanel.getByRole('menuitem', { name: 'Copy titles', exact: true }),
     ).toBeVisible()
     await expect(
-      copyPanel.getByRole('button', {
+      copyPanel.getByRole('menuitem', {
         name: 'Copy titles and URLs',
         exact: true,
       }),
@@ -228,7 +235,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await page.keyboard.press('Escape')
 
     let actionMenu = await openActionMenu(page)
-    await actionMenu.getByRole('button', { name: 'Pin 2 tabs' }).click()
+    await actionMenu.getByRole('menuitem', { name: 'Pin 2 tabs' }).click()
     await expect
       .poll(() =>
         page.evaluate(
@@ -245,9 +252,9 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
 
     actionMenu = await openActionMenu(page)
     await expect(
-      actionMenu.getByRole('button', { name: 'Unpin 2 tabs' }),
+      actionMenu.getByRole('menuitem', { name: 'Unpin 2 tabs' }),
     ).toBeVisible()
-    await actionMenu.getByRole('button', { name: 'Unpin 2 tabs' }).click()
+    await actionMenu.getByRole('menuitem', { name: 'Unpin 2 tabs' }).click()
     await expect
       .poll(() =>
         page.evaluate(
@@ -265,9 +272,9 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
 
   await test.step('group, rename, color, and add a tab', async () => {
     const groupingMenu = await openActionMenu(page)
-    await groupingMenu.getByRole('button', { name: 'Group 2 tabs' }).click()
+    await groupingMenu.getByRole('menuitem', { name: 'Group 2 tabs' }).click()
     const groupPanel = page.locator('[data-action-bar-panel]')
-    await groupPanel.getByRole('button', { name: /New Group.*2/ }).click()
+    await groupPanel.getByRole('menuitem', { name: /New Group.*2/ }).click()
     await expect(getGroups(page)).toHaveCount(1)
 
     const groupRow = getGroups(page).first()
@@ -283,12 +290,12 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     )
     const groupMenu = await openActionMenu(page)
     await expect(
-      groupMenu.getByRole('button', { name: 'Rename Group' }),
+      groupMenu.getByRole('menuitem', { name: 'Rename Group' }),
     ).toBeEnabled()
     await expect(
-      groupMenu.getByRole('button', { name: 'Ungroup 2 tabs' }),
+      groupMenu.getByRole('menuitem', { name: 'Ungroup 2 tabs' }),
     ).toBeVisible()
-    await groupMenu.getByRole('button', { name: 'Rename Group' }).click()
+    await groupMenu.getByRole('menuitem', { name: 'Rename Group' }).click()
     const renameInput = groupRow.getByRole('textbox')
     await expect(renameInput).toBeFocused()
     await renameInput.fill('Project group')
@@ -296,12 +303,12 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await expect(groupRow).toContainText('Project group')
 
     const colorMenu = await openActionMenu(page)
-    await colorMenu.getByRole('button', { name: 'Change Color' }).click()
+    await colorMenu.getByRole('menuitem', { name: 'Change Color' }).click()
     const colorPanel = page.locator('[data-action-bar-panel]')
     await expect(
       colorPanel.locator('[aria-label$="color swatch"]'),
     ).toHaveCount(9)
-    await colorPanel.getByRole('button', { name: 'Blue' }).click()
+    await colorPanel.getByRole('menuitem', { name: 'Blue' }).click()
 
     const groupId = Number(await groupRow.getAttribute('data-group-id'))
     await expect
@@ -317,10 +324,10 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
       .toBe('blue')
 
     const collapseMenu = await openActionMenu(page)
-    await collapseMenu.getByRole('button', { name: 'Collapse Group' }).click()
+    await collapseMenu.getByRole('menuitem', { name: 'Collapse Group' }).click()
     await expect(groupRow).toHaveAttribute('data-collapsed', 'true')
     const expandMenu = await openActionMenu(page)
-    await expandMenu.getByRole('button', { name: 'Expand Group' }).click()
+    await expandMenu.getByRole('menuitem', { name: 'Expand Group' }).click()
     await expect(groupRow).not.toHaveAttribute('data-collapsed', 'true')
 
     const groupTabSnapshot = await page.evaluate(
@@ -501,15 +508,15 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await expect(getSelected(page, 'tab')).toHaveCount(2)
 
     const menu = await openActionMenu(page)
-    await menu.getByRole('button', { name: 'Move 2 tabs' }).click()
+    await menu.getByRole('menuitem', { name: 'Move 2 tabs' }).click()
     const movePanel = page.locator('[data-action-bar-panel]')
-    const destination = movePanel.getByRole('button', {
+    const destination = movePanel.getByRole('menuitem', {
       name: 'Workflow Destination First · 2',
     })
     await expect(destination).toContainText('· 2')
     await destination.click()
     const movedNotification = page
-      .locator('[data-sonner-toast]')
+      .locator('[data-notification-card]')
       .filter({ hasText: '2 tabs moved' })
     await expect(movedNotification).toBeVisible()
     await expect(
@@ -520,8 +527,9 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     ).toHaveCount(0)
     await movedNotification
       .getByRole('button', { name: 'Dismiss notification' })
+      .first()
       .click()
-    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
+    await expect(page.locator('[data-notification-status]')).toHaveCount(0)
 
     await expect
       .poll(() =>
@@ -550,9 +558,9 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
 
     const windowMenu = await openActionMenu(page)
     await expect(
-      windowMenu.getByRole('button', { name: 'Close 2 windows' }),
+      windowMenu.getByRole('menuitem', { name: 'Close 2 windows' }),
     ).toBeVisible()
-    const crossWindowGroupAction = windowMenu.getByRole('button', {
+    const crossWindowGroupAction = windowMenu.getByRole('menuitem', {
       name: `Group ${totalTabCount} tabs`,
     })
     await expect(crossWindowGroupAction).toBeDisabled()
@@ -569,7 +577,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     const windowContextMenu = page.locator('[data-action-bar-menu]')
     await expect(windowContextMenu).toBeVisible()
     await expect(
-      windowContextMenu.getByRole('button', { name: 'Close Window' }),
+      windowContextMenu.getByRole('menuitem', { name: 'Close Window' }),
     ).toBeVisible()
     await page.keyboard.press('Escape')
 
@@ -579,17 +587,18 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await firstMovedTab.click()
     await secondMovedTab.click({ modifiers: ['Meta'] })
     const tabMenu = await openActionMenu(page)
-    await tabMenu.getByRole('button', { name: 'Close 2 tabs' }).click()
+    await tabMenu.getByRole('menuitem', { name: 'Close 2 tabs' }).click()
     await expect(firstMovedTab).toHaveCount(0)
     await expect(secondMovedTab).toHaveCount(0)
     const closedNotification = page
-      .locator('[data-sonner-toast]')
+      .locator('[data-notification-card]')
       .filter({ hasText: '2 tabs closed' })
     await expect(closedNotification).toBeVisible()
     await closedNotification
       .getByRole('button', { name: 'Dismiss notification' })
+      .first()
       .click()
-    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
+    await expect(page.locator('[data-notification-status]')).toHaveCount(0)
 
     await destinationWindow.click()
     await page.keyboard.press('Backspace')
@@ -606,7 +615,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await expect(firstTab).toHaveCount(0)
     await expect(secondTab).toHaveCount(0)
     const keyboardCloseNotification = page
-      .locator('[data-sonner-toast]')
+      .locator('[data-notification-card]')
       .filter({ hasText: '2 tabs closed' })
     await expect(keyboardCloseNotification).toBeVisible()
     await dismissNotifications(page)

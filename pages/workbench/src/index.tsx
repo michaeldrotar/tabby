@@ -1,10 +1,12 @@
 import './workbench.css'
 import {
+  OmnibarExperience,
+  OptionsExperience,
   TabbyProvider,
+  TabbySurface,
   TabManagerExperience,
   useTabbyPreferences,
 } from '@extension/app'
-import { Surface } from '@extension/ui/Surface'
 import {
   useEffect,
   useLayoutEffect,
@@ -14,8 +16,9 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useStore } from 'zustand'
+import { DemoTransport } from './DemoTransport'
 import { createScenario } from './scenario'
-import type { Scenario, Sharing } from './scenario'
+import type { Dataset, Scenario, Sharing } from './scenario'
 import type { SurfaceInputMode } from '@extension/ui/Surface'
 
 const Panel = ({
@@ -39,6 +42,7 @@ const Panel = ({
     resources.backend.getSnapshot,
   )
   const view = useStore(resources.view)
+  const navigation = useStore(scenario.navigation[index]!)
   const root = useRef<HTMLDivElement>(null)
   const pointer = useRef<HTMLSpanElement>(null)
   const cue = mode === 'scripted' && index === 0 ? scenario.getCue() : null
@@ -54,19 +58,9 @@ const Panel = ({
     const box = item.getBoundingClientRect()
     const outer = root.current.getBoundingClientRect()
     pointer.current.style.visibility = 'visible'
-    pointer.current.style.left = `${box.left - outer.left + 110}px`
+    pointer.current.style.left = `${box.left - outer.left + Math.min(box.width - 12, 110)}px`
     pointer.current.style.top = `${box.top - outer.top + box.height / 2}px`
-  }, [cue])
-  const theme =
-    themeOverride === 'preference'
-      ? preferences.theme === 'dark'
-        ? 'dark'
-        : 'light'
-      : themeOverride
-  const accent =
-    theme === 'light'
-      ? preferences.themeLightAccent
-      : preferences.themeDarkAccent
+  }, [cue, navigation.product, view.scrollTop])
   return (
     <section
       className="instance"
@@ -79,25 +73,34 @@ const Panel = ({
           {view.viewedWindowId ?? 'none'}
         </span>
       </div>
-      <div ref={root} className="product-frame">
-        <Surface
+      <nav
+        className="product-tabs"
+        aria-label={`${index === 0 ? 'Left' : 'Right'} product`}
+      >
+        {(['manager', 'omnibar', 'options'] as const).map((product) => (
+          <button
+            key={product}
+            aria-pressed={navigation.product === product}
+            onClick={() => {
+              if (mode === 'live')
+                root.current
+                  ?.querySelector<HTMLElement>('[data-surface]')
+                  ?.focus({ preventScroll: true })
+              scenario.navigation[index]!.setState({ product, notice: null })
+            }}
+          >
+            {product === 'manager'
+              ? 'Tab Manager'
+              : product === 'omnibar'
+                ? 'Omnibar'
+                : 'Options'}
+          </button>
+        ))}
+      </nav>
+      <div ref={root} className="product-frame" data-playing={playing}>
+        <TabbySurface
           instanceId={index === 0 ? 'left' : 'right'}
-          theme={theme}
-          palette={{
-            background:
-              theme === 'light'
-                ? preferences.themeLightBackground
-                : preferences.themeDarkBackground,
-            foreground:
-              theme === 'light'
-                ? preferences.themeLightForeground
-                : preferences.themeDarkForeground,
-            accent,
-            strength:
-              theme === 'light'
-                ? preferences.themeLightAccentStrength
-                : preferences.themeDarkAccentStrength,
-          }}
+          theme={themeOverride === 'preference' ? undefined : themeOverride}
           inputMode={mode}
           motion={
             mode === 'live'
@@ -107,20 +110,58 @@ const Panel = ({
                 : 'reduced'
           }
         >
-          <TabManagerExperience controller={scenario.controllers[index]} />
-        </Surface>
+          {navigation.product === 'manager' && (
+            <TabManagerExperience controller={scenario.controllers[index]} />
+          )}
+          {navigation.product === 'omnibar' && (
+            <OmnibarExperience
+              className="h-full"
+              onDismiss={() =>
+                scenario.navigation[index]!.setState({ product: 'manager' })
+              }
+            />
+          )}
+          {navigation.product === 'options' && <OptionsExperience />}
+        </TabbySurface>
         {cue?.kind === 'mouse' && (
-          <span aria-hidden className="demo-pointer" ref={pointer}>
-            ↖
+          <span
+            aria-hidden
+            className="demo-pointer"
+            data-click={cue.label === 'Click'}
+            ref={pointer}
+          >
+            <svg width="26" height="32" viewBox="0 0 26 32">
+              <path
+                d="M2 2v24l6-6 5 10 5-2-5-10h9Z"
+                fill="white"
+                stroke="#172033"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="pointer-label">{cue.label}</span>
           </span>
         )}
         {cue?.kind === 'keyboard' && (
           <span className="key-cue">{cue.label}</span>
         )}
       </div>
+      {navigation.notice && (
+        <div className="host-notice" role="status">
+          {navigation.notice}
+          <button
+            aria-label="Dismiss host notice"
+            onClick={() =>
+              scenario.navigation[index]!.setState({ notice: null })
+            }
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div className="instance-footer">
         <span>
-          Selected: {view.selection.selection.tabIds.size} tabs,{' '}
+          Explicit selection: {view.selection.selection.tabIds.size} tabs,{' '}
           {view.selection.selection.groupIds.size} groups
         </span>
         <button
@@ -145,6 +186,7 @@ const Workbench = ({ initial }: { initial: Scenario }) => {
   const [sharing, setSharing] = useState<Sharing>('data')
   const [sharePreferences, setSharePreferences] = useState(false)
   const [ignoreCommands, setIgnoreCommands] = useState(false)
+  const [dataset, setDataset] = useState<Dataset>('standard')
   const [mode, setMode] = useState<SurfaceInputMode>('live')
   const [themes, setThemes] = useState<('light' | 'dark' | 'preference')[]>([
     'light',
@@ -161,34 +203,67 @@ const Workbench = ({ initial }: { initial: Scenario }) => {
     nextSharing: Sharing,
     nextPreferences: boolean,
     nextIgnore: boolean,
+    nextDataset: Dataset = dataset,
   ) => {
     const operation = ++generation.current
-    const next = await createScenario(nextSharing, nextPreferences, nextIgnore)
+    const next = await createScenario(
+      nextSharing,
+      nextPreferences,
+      nextIgnore,
+      nextDataset,
+    )
     if (operation !== generation.current) {
       next.dispose()
       return
     }
+    next.setInputMode(mode)
     setSharing(nextSharing)
     setSharePreferences(nextPreferences)
     setIgnoreCommands(nextIgnore)
+    setDataset(nextDataset)
     setScenario(next)
   }
   const changeMode = (next: SurfaceInputMode) => {
     scenario.player.pause()
+    scenario.setInputMode(next)
     scenario.reset()
     setMode(next)
   }
   return (
     <main className="workbench">
       <header>
-        <p className="eyebrow">Architecture foundation · alignment review</p>
-        <h1>One Tab Manager. Two independent surfaces.</h1>
+        <p className="eyebrow">Reusable product workbench</p>
+        <h1>The real product, on your terms.</h1>
         <p>
-          Try the real components with in-memory browser data. Choose what the
-          instances share, then play a tutorial or stage a still frame.
+          Try Tab Manager, Omnibar, and Options with sample data. Choose what
+          the instances share, then play a tutorial or stage a still frame.
         </p>
       </header>
       <div className="controls">
+        <label>
+          Sample data
+          <select
+            aria-label="Sample data"
+            value={dataset}
+            onChange={(event) =>
+              void configure(
+                sharing,
+                sharePreferences,
+                ignoreCommands,
+                event.target.value as Dataset,
+              )
+            }
+          >
+            <option value="single-window">Single window</option>
+            <option value="standard">Standard browser</option>
+            <option value="many-windows">Many windows</option>
+            <option value="large">400 tabs</option>
+            <option value="restricted">Normal and incognito windows</option>
+            <option value="loading">Loading</option>
+            <option value="error">Loading error</option>
+            <option value="empty">Empty browser</option>
+          </select>
+        </label>
         <label>
           Sharing
           <select
@@ -268,58 +343,7 @@ const Workbench = ({ initial }: { initial: Scenario }) => {
         ))}
       </div>
       {mode === 'scripted' && (
-        <section className="transport" aria-label="Tutorial controls">
-          <div>
-            <strong>{playback.title}</strong>
-            <span>
-              Step {playback.step + 1} of 9 ·{' '}
-              {playback.playing ? 'Playing' : 'Paused'}
-            </span>
-          </div>
-          <div className="step-segments" aria-label="Tutorial steps">
-            {scenario.steps.map((step, index) => (
-              <button
-                key={step.at}
-                aria-label={`Jump to step ${index + 1}: ${step.title}`}
-                aria-current={playback.step === index ? 'step' : undefined}
-                onClick={() => scenario.player.seek(step.at)}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div>
-          <div className="transport-buttons">
-            <button onClick={() => scenario.player.rewind()}>Rewind</button>
-            <button onClick={() => scenario.player.previous()}>
-              Previous step
-            </button>
-            <button
-              onClick={() =>
-                playback.playing
-                  ? scenario.player.pause()
-                  : scenario.player.play()
-              }
-            >
-              {playback.playing ? 'Pause' : 'Play'}
-            </button>
-            <button onClick={() => scenario.player.next()}>Next step</button>
-            <input
-              aria-label="Tutorial progress"
-              type="range"
-              min="0"
-              max={playback.duration}
-              value={playback.time}
-              onChange={(event) =>
-                scenario.player.seek(Number(event.target.value))
-              }
-            />
-          </div>
-          <p>
-            The product ignores physical hover, clicks, keys and scrolling while
-            playing or paused. Step jumps restore the data, selection, panels,
-            scroll, clock and cues.
-          </p>
-        </section>
+        <DemoTransport player={scenario.player} steps={scenario.steps} />
       )}
       {mode === 'static' && (
         <p className="mode-note">
@@ -327,8 +351,8 @@ const Workbench = ({ initial }: { initial: Scenario }) => {
         </p>
       )}
       <div className="instances">
-        {scenario.resources.map((resources, index) => (
-          <TabbyProvider key={index} {...resources}>
+        {scenario.resources.map((_, index) => (
+          <TabbyProvider key={index} {...scenario.providerResources[index]!}>
             <Panel
               scenario={scenario}
               index={index}
@@ -349,8 +373,18 @@ const Workbench = ({ initial }: { initial: Scenario }) => {
   )
 }
 
-void createScenario('data', false).then((initial) =>
-  createRoot(document.getElementById('root')!).render(
-    <Workbench initial={initial} />,
-  ),
-)
+let disposed = false
+let applicationRoot: ReturnType<typeof createRoot> | undefined
+void createScenario('data', false).then((initial) => {
+  if (disposed) {
+    initial.dispose()
+    return
+  }
+  applicationRoot = createRoot(document.getElementById('root')!)
+  initial.setInputMode('live')
+  applicationRoot.render(<Workbench initial={initial} />)
+})
+import.meta.hot?.dispose(() => {
+  disposed = true
+  applicationRoot?.unmount()
+})

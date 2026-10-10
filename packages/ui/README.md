@@ -52,6 +52,6 @@ Script playback controls belong outside the blocked product Surface. Application
 
 ## Development
 
-Run `pnpm workbench` from the repository root to inspect components with deterministic sample data. Its [component gallery](../../pages/workbench/src/ComponentGallery.tsx) also demonstrates keyboard and mouse workflows.
+Run `pnpm workbench` from the repository root to inspect Tab Manager, Omnibar, and Options with deterministic sample data in the [product workbench](../../pages/workbench/README.md).
 
 The UI TypeScript configuration excludes Chrome ambient types. Lint prohibits Chrome and storage imports throughout this package. Keep new components data-driven and supply image URLs, timestamps, translated labels, and event callbacks explicitly.

@@ -113,6 +113,12 @@ tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
 restart after application source changes. The preview data stays in memory;
 Chrome-extension E2E tests cover integration with the actual browser.
 
+## Reusable Product Demos
+
+Run `pnpm workbench` and open [the workbench](http://localhost:5180/) to use Tab Manager, Omnibar, and Options with sample data. Instances can share browser data, view state, and preferences independently, with separate themes. The tutorial supports play, pause, seeking, and complete rewind; Still Frame disables product input and motion.
+
+The [workbench guide](./pages/workbench/README.md) documents resource composition, sample scenes, and verification. The [UI guide](./packages/ui/README.md) covers styling and embedding complete surfaces or individual components.
+
 ## Releasing
 
 This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`

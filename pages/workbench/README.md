@@ -1,67 +1,76 @@
-# Tab Manager workbench
+# Product workbench
 
-Run `pnpm workbench` from the workspace root. Open [the workbench](http://localhost:5180/).
-The page uses the reusable Tab Manager with deterministic sample browser data.
+Run `pnpm workbench` from the workspace root and open [the workbench](http://localhost:5180/). Tab Manager, Omnibar, and Options use the same experiences as the extension, with deterministic memory resources and local assets. They require no browser permissions.
 
-Choose separate data and views, shared data with separate views, or shared data
-and view state. Preference sharing is independent; each surface can override its
-theme. Changing sharing resets the sample scene. The interactive mode supports
-selection, keyboard navigation, group collapse, window activation, creating
-windows, and closing tabs or windows. Ignoring commands returns an honest ignored
-outcome while leaving browser data unchanged.
+Choose separate data and views, shared data with separate views, or shared data and view state. Preference sharing is independent. Each Surface can use its own theme or follow its preference resource. Changing sharing or sample data resets the scene. Samples include a single window, a standard browser, many windows, 400 tabs, normal/incognito windows, loading, an error, and an empty browser. The command policy can apply actions to memory or explicitly ignore them.
 
-The scripted tutorial has named steps, progress, play, pause, previous/next step,
-and rewind controls. Product input stays blocked while playing and paused. Every
-step restores browser data and ID allocation, selection and its anchors, viewed
-window, menus, notices, scroll position, preferences, clock, and pointer/focus cues.
-Still-frame mode disables product input and motion.
+The tutorial provides named steps, a progress slider, play/pause, previous/next, and rewind. Product input stays blocked while playing and paused. Checkpoints restore browser data and ID allocation, selection and anchors, viewed windows, panels, notifications, scroll, search queries/results, preferences, host navigation, the clock, and pointer/focus cues. Still Frame blocks product input and settles motion.
 
 ## Resource composition
 
-`@extension/core` owns the browser, command and preference contracts and the pure
-selection/batch algorithms. `@extension/ui/tab-manager/TabManager` accepts a view
-model and emits semantic intents. `Surface` owns an instance's theme, size, portal
-container, input mode and motion. `@extension/app` projects resources into that
-model and handles the intents. It has no Chrome or storage imports.
+`@extension/core` owns contracts and pure command, selection, search, and preference rules. `@extension/ui` owns presentation. `Surface` scopes theme, dimensions, portal destination, input, and motion. `@extension/app` connects injected resources and restorable view handles to the UI through one [TabbyProvider](../../packages/app/lib/TabbyProvider.tsx). `@extension/demo` supplies fixtures, scene presets, memory resources, scene serialization, and playback. `@extension/chrome` supplies injected Chrome resources. `@extension/providers` builds the shared provider contract for Chrome and memory hosts.
 
-The host creates and starts resources, then disposes them when the scene ends.
-Sharing a backend shares browser data; sharing a view handle also shares selection,
-panels and the viewed window. Actual DOM focus remains with the instance receiving
-input. Sharing a preference resource shares settings.
+One provider supplies Tab Manager, Omnibar, and Options. Its resources are `backend`, `preferences`, `omnibar`, and `options`; `views` holds independent `tabManager`, `omnibar`, and `options` handles. `environment` supplies the clock, system theme, platform, and optional scheduling/randomness. `host` supplies navigation and clipboard capabilities. The base provider requires these resources and leaves their lifecycle to the caller.
+
+Sharing a backend shares browser data. Sharing view handles also shares selection, panels, queries, and the viewed window. Physical DOM focus stays with the instance receiving input. Sharing a preference resource shares settings. [TabbySurface](../../packages/app/lib/TabbyProvider.tsx) derives appearance from the provider and accepts per-instance theme, input, and motion overrides.
 
 ```tsx
-const fixtures = createFixtureBuilder({ seed: 'documentation', now: 1700000000000 })
-const backend = new MemoryBackend(fixtures.generateScene({
-  windows: [fixtures.generateWindow({
-    tabs: [fixtures.generateTab({ title: 'Tabby' })],
-  })],
-}))
-const preferences = createMemoryPreferences({ theme: 'light' })
-const view = createTabManagerView()
-await Promise.all([backend.start(), preferences.start()])
+import {
+  TabbySurface,
+  TabManagerExperience,
+  OmnibarExperience,
+  OptionsExperience,
+} from '@extension/app'
+import { MemoryTabbyProvider } from '@extension/providers/memory'
 
-<TabbyProvider backend={backend} view={view} preferences={preferences}
-  environment={{ now: () => 1700000000000, systemTheme: 'light' }}>
-  <Surface theme="light" inputMode="live">
-    <TabManagerExperience />
-  </Surface>
-</TabbyProvider>
+const Demo = () => (
+  <MemoryTabbyProvider scene="standard">
+    <div style={{ width: 480, height: 640 }}>
+      <TabbySurface theme="dark" inputMode="live">
+        <TabManagerExperience />
+      </TabbySurface>
+    </div>
+    <TabbySurface theme="light">
+      <OmnibarExperience onDismiss={() => {}} />
+    </TabbySurface>
+    <TabbySurface>
+      <OptionsExperience />
+    </TabbySurface>
+  </MemoryTabbyProvider>
+)
 ```
 
-The same experience accepts `createChromeBackend(chrome)` and
-`createChromePreferences(chrome)` from `@extension/chrome`. To inspect that local
-composition, run `CLI_CEB_ARCHITECTURE_PROOF=true pnpm preview`, then open the
-printed Tab Manager URL with `?architecture=provider`. The flag defaults off.
+Memory presets are `single-window`, `standard`, `many-windows`, `large`, `restricted`, `loading`, `error`, and `empty`. Change the `scene` prop to replace owned browser data and views. Unrelated preference and externally supplied handles stay independent. Supply `preferences` for initial settings, `commands="ignore"` to ignore data actions, and `overrides` for the important browser details:
+
+```tsx
+import { createFixtureBuilder } from '@extension/demo'
+
+const fixtures = createFixtureBuilder({ seed: 'documentation' })
+const overrides = {
+  windows: [
+    fixtures.generateWindow({
+      tabs: [fixtures.generateTab({ title: 'Tabby' })],
+    }),
+  ],
+}
+
+const CustomDemo = () => (
+  <MemoryTabbyProvider scene="single-window" overrides={overrides}>
+    <TabbySurface inputMode="static">
+      <TabManagerExperience />
+    </TabbySurface>
+  </MemoryTabbyProvider>
+)
+```
+
+Pass existing handles through `resources` and `views` to share selected pieces. Injected handles stay under the caller's lifecycle control; the memory wrapper starts and disposes only resources it creates. `createMemoryTabbyData` also builds the complete data bundle for hosts that manage their own lifecycle and use the base provider directly.
+
+See [UI styling and leaf-component usage](../../packages/ui/README.md) and [the complete scene](src/scenario.ts) for host callbacks and independent sharing. `serializeDemoState` / `deserializeDemoState` preserve selection Sets in JSON; the tutorial's checkpoint has an explicit scene version. `[data-surface-ready="true"]` indicates that the container and portal destination have mounted and its width has been measured. For image capture, also wait for required assets and data to load.
+
+Extension hosts use `ChromeTabbyProvider` from `@extension/providers/chrome` with the same experiences. Run `pnpm preview` to inspect the Tab Manager with sample data at the Chrome boundary; open the printed URL. Search and Settings are inactive in that preview.
 
 ## Verification
 
-Run `pnpm test:workbench` after `pnpm exec turbo ready` for the browser workflow.
-The normal unit, extension E2E, type-check, lint and build commands cover the
-workspace. Sample data is created by the workbench; it needs no browser permissions.
+Run `pnpm test:workbench` after `pnpm exec turbo ready` for the web workflows. The ordinary unit, extension E2E, type-check, lint, and build commands cover the workspace. Server rendering is tested without Chrome or browser globals.
 
-For manual review, try all sharing choices with contrasting themes. Open a window
-in one instance, select and close tabs, create a window, and change the accent with
-preference sharing enabled. In scripted mode, play and pause, step to the action
-menu and close action, then move backward and rewind. Hover, click, type and scroll
-over the product while paused to verify it stays still. Check both a wide page and
-a narrow viewport.
+For manual review, try all sharing choices with contrasting themes. Select and close tabs, switch windows, use group/action panels, search via keyboard and mouse, and change shared preferences in Options. Try the 400-tab and normal/incognito samples. Play, pause, seek across all three products, move backward, and rewind. Hover, click, type, and scroll over the paused product to confirm it stays still. Review sidebar widths, then capture a Still Frame.

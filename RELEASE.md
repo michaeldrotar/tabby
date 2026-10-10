@@ -34,8 +34,8 @@ Replace the example versions with the latest published tag and the next patch ve
 ## Feature Work and CI
 
 1. Start from an issue with a clear outcome and acceptance criteria. Use a short-lived issue branch and open a pull request to `main`.
-2. Include the code, relevant tests, and direct update to the active versioned release-notes file. Update documentation, Storybook examples, and marketing-site content when the change affects them.
-3. CI runs lint, formatting checks, type checking, unit tests, and a production build on pull requests. The E2E workflow runs Chrome-extension E2E tests on pull requests. Both workflow checks must pass before merging. The build is a check only: CI does not upload an artifact. Commits do not run lint or formatting hooks.
+2. Include the code, relevant tests, and direct update to the active versioned release-notes file. Update documentation, product demos, and marketing-site content when the change affects them.
+3. CI runs lint, formatting checks, type checking, unit tests, and a production build on pull requests. The E2E workflow runs Chrome-extension and product workbench browser tests on pull requests. Both workflow checks must pass before merging. The build is a check only: CI does not upload an artifact. Commits do not run lint or formatting hooks.
 4. A separate agent reviews the issue criteria and diff with fresh context. The implementation agent fixes blocking findings; a new reviewer rechecks the changes. Merge when both workflow checks pass and no blocking findings remain.
 5. Use `Closes #N` in the pull request description to close the issue when the pull request is merged to `main`.
 

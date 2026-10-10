@@ -5,10 +5,6 @@ test('provider composition manages real tabs and windows with saved appearance',
   context,
   extensionId,
 }) => {
-  test.skip(
-    process.env['CLI_CEB_ARCHITECTURE_PROOF'] !== 'true',
-    'Build with CLI_CEB_ARCHITECTURE_PROOF=true to exercise the provider composition.',
-  )
   const worker = context.serviceWorkers()[0]!
   await worker.evaluate(async () => {
     const existing = await chrome.storage.local.get('preference-storage-key')
@@ -25,9 +21,7 @@ test('provider composition manages real tabs and windows with saved appearance',
   })
   const target = await context.newPage()
   await target.goto('data:text/html,<title>Provider test tab</title>')
-  await page.goto(
-    `chrome-extension://${extensionId}/tab-manager/index.html?architecture=provider`,
-  )
+  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
   const surface = page.locator('[data-surface="extension-tab-manager"]')
   await expect(surface).toBeVisible()
   await expect
@@ -52,6 +46,16 @@ test('provider composition manages real tabs and windows with saved appearance',
   })
   await expect(row).toBeVisible()
   await row.click()
+  await expect
+    .poll(() =>
+      worker.evaluate(
+        async () =>
+          (await chrome.tabs.query({})).find(
+            (tab) => tab.title === 'Provider test tab',
+          )?.active,
+      ),
+    )
+    .toBe(true)
   await page.keyboard.press('Delete')
   await expect(row).toHaveCount(0)
   await expect.poll(() => target.isClosed()).toBe(true)
@@ -59,7 +63,7 @@ test('provider composition manages real tabs and windows with saved appearance',
     async () =>
       (await chrome.windows.getAll({ windowTypes: ['normal'] })).length,
   )
-  await page.getByRole('button', { name: 'New window', exact: true }).click()
+  await page.getByRole('button', { name: 'New Window', exact: true }).click()
   await expect
     .poll(async () =>
       worker.evaluate(
