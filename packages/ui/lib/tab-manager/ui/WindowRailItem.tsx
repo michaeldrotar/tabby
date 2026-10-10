@@ -110,6 +110,7 @@ export const WindowRailItem = memo(
                     : `
                       text-foreground
                       group-hover:bg-highlighted/50
+                      group-data-[hover=true]:bg-highlighted/50
                     `,
             )}
           >

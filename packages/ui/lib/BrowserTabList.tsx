@@ -4,7 +4,7 @@ import { BrowserTabGroupItem } from './BrowserTabGroupItem'
 import { BrowserTabItem } from './BrowserTabItem'
 import { TabList, TabListItem } from './TabList'
 import { cn } from './utils/cn'
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/core'
 import type { ReactNode } from 'react'
 
 export type BrowserTabListID = number | string
@@ -22,6 +22,7 @@ export type BrowserTabListTab = {
   discarded?: boolean
   audio?: 'muted' | 'on' | 'off'
   lastAccessed?: number
+  ageLabel?: string
 }
 
 export type BrowserTabListGroup = {
@@ -128,6 +129,7 @@ export const BrowserTabList = memo(
         discarded={tab.discarded}
         audio={tab.audio}
         lastAccessed={tab.lastAccessed}
+        ageLabel={tab.ageLabel}
         duplicate={duplicate}
         isMultiSelectMode={tabIsMultiSelectMode}
         onClick={onClick}

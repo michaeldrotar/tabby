@@ -1,6 +1,7 @@
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { Check, ChevronRight, Circle } from 'lucide-react'
 import { forwardRef } from 'react'
+import { useSurface } from '../Surface'
 import { cn } from '../utils/cn'
 import type * as React from 'react'
 
@@ -19,35 +20,40 @@ export const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup
 export const ContextMenuContent = forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <ContextMenuPrimitive.Portal>
-    <ContextMenuPrimitive.Content
-      ref={ref}
-      collisionPadding={16}
-      className={cn(
-        `
-          animate-in fade-in-0 zoom-in-95 border-border bg-popover
-          text-popover-foreground z-50
-          max-h-[min(var(--radix-context-menu-content-available-height),480px)]
-          min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border p-1
-          shadow-lg shadow-black/10 outline-none
-          data-[state=closed]:animate-out data-[state=closed]:fade-out-0
-          data-[state=closed]:zoom-out-95
-          data-[side=bottom]:slide-in-from-top-2
-          data-[side=left]:slide-in-from-right-2
-          data-[side=right]:slide-in-from-left-2
-          data-[side=top]:slide-in-from-bottom-2
-          [&::-webkit-scrollbar-thumb]:bg-muted/60
-          [&::-webkit-scrollbar-thumb]:rounded-full
-          dark:shadow-black/20
-          [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2
-        `,
-        className,
-      )}
-      {...props}
-    />
-  </ContextMenuPrimitive.Portal>
-))
+>(({ className, ...props }, ref) => {
+  const surface = useSurface()
+  if (surface && !surface.portalHost) return null
+  return (
+    <ContextMenuPrimitive.Portal container={surface?.portalHost ?? undefined}>
+      <ContextMenuPrimitive.Content
+        ref={ref}
+        collisionPadding={16}
+        className={cn(
+          `
+            animate-in fade-in-0 zoom-in-95 border-border bg-popover
+            text-popover-foreground z-50
+            max-h-[min(var(--radix-context-menu-content-available-height),480px)]
+            min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border
+            p-1 shadow-lg shadow-black/10 outline-none
+            data-[state=closed]:animate-out data-[state=closed]:fade-out-0
+            data-[state=closed]:zoom-out-95
+            data-[side=bottom]:slide-in-from-top-2
+            data-[side=left]:slide-in-from-right-2
+            data-[side=right]:slide-in-from-left-2
+            data-[side=top]:slide-in-from-bottom-2
+            [&::-webkit-scrollbar-thumb]:bg-muted/60
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            dark:shadow-black/20
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar]:w-2
+          `,
+          className,
+        )}
+        {...props}
+      />
+    </ContextMenuPrimitive.Portal>
+  )
+})
 ContextMenuContent.displayName = ContextMenuPrimitive.Content.displayName
 
 export const ContextMenuSubTrigger = forwardRef<

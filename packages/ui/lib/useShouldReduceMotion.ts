@@ -1,5 +1,6 @@
 import { useReducedMotion } from 'framer-motion'
 import { useLayoutEffect, useState } from 'react'
+import { useSurface } from './Surface'
 import type { RefObject } from 'react'
 
 const DATA_ATTR_NAME = 'data-force-reduced-motion'
@@ -30,6 +31,7 @@ export const useShouldReduceMotion = (
   ref?: RefObject<Element | null> | null,
 ): boolean | null => {
   const preferred = useReducedMotion()
+  const surface = useSurface()
   const [domForce, setDomForce] = useState<boolean | null>(null)
 
   useLayoutEffect(() => {
@@ -49,5 +51,17 @@ export const useShouldReduceMotion = (
     queueMicrotask(() => setDomForce(force))
   }, [ref])
 
+  if (surface?.inputMode === 'static' || surface?.motion === 'reduced')
+    return true
+  if (surface?.motion === 'full') return false
   return domForce !== null ? domForce : preferred
+}
+
+/** Settled demo frames render their target state without timed visual interpolation. */
+export const useShouldSettleMotion = (): boolean => {
+  const surface = useSurface()
+  return (
+    surface?.inputMode === 'static' ||
+    (surface?.inputMode === 'scripted' && surface.motion === 'reduced')
+  )
 }

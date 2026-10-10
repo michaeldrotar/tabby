@@ -1,12 +1,17 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { forwardRef, memo, useCallback, useEffect, useRef } from 'react'
+import { useSurfaceId } from './Surface'
 import {
   getGroupColorClasses,
   TAB_GROUP_COLOR_IDS,
 } from './tab-group/tabGroupColors'
+import {
+  useShouldReduceMotion,
+  useShouldSettleMotion,
+} from './useShouldReduceMotion'
 import { cn } from './utils/cn'
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { BrowserTabGroupColor } from '@extension/core'
 import type { HTMLAttributes, ReactNode } from 'react'
 
 export type BrowserTabGroupItemProps = Omit<
@@ -62,7 +67,9 @@ export const BrowserTabGroupItem = memo(
       const renameCommittedRef = useRef(false)
       const hasRenameInputFocusedRef = useRef(false)
       const restoreFocusOnExitRef = useRef(false)
-      const prefersReducedMotion = useReducedMotion()
+      const prefersReducedMotion = useShouldReduceMotion()
+      const shouldSettleMotion = useShouldSettleMotion()
+      const contentId = useSurfaceId(`tab-group-content-${String(groupId)}`)
       const resolvedColor = TAB_GROUP_COLOR_IDS.includes(
         color as BrowserTabGroupColor,
       )
@@ -178,7 +185,7 @@ export const BrowserTabGroupItem = memo(
         <div
           ref={ref}
           className={cn(
-            'relative flex flex-col rounded-lg py-1 pl-4 pr-1',
+            'group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
             'transition-all duration-200',
             selected &&
               'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
@@ -237,6 +244,7 @@ export const BrowserTabGroupItem = memo(
             className={cn(
               `
                 hover:bg-highlighted/30
+                group-data-[hover=true]:bg-highlighted/30
                 mb-1 flex w-full cursor-pointer items-center gap-2 rounded-md
                 px-2 py-1 text-left transition-colors
                 focus:outline-none
@@ -244,11 +252,7 @@ export const BrowserTabGroupItem = memo(
               `,
             )}
             aria-expanded={!collapsed}
-            aria-controls={
-              groupId !== undefined
-                ? `tab-group-content-${String(groupId)}`
-                : undefined
-            }
+            aria-controls={groupId !== undefined ? contentId : undefined}
           >
             <div
               role="button"
@@ -333,11 +337,7 @@ export const BrowserTabGroupItem = memo(
           <AnimatePresence initial={false}>
             {!collapsed && children && (
               <motion.div
-                id={
-                  groupId !== undefined
-                    ? `tab-group-content-${String(groupId)}`
-                    : undefined
-                }
+                id={groupId !== undefined ? contentId : undefined}
                 initial={
                   prefersReducedMotion ? false : { height: 0, opacity: 0 }
                 }
@@ -345,10 +345,14 @@ export const BrowserTabGroupItem = memo(
                 exit={
                   prefersReducedMotion ? undefined : { height: 0, opacity: 0 }
                 }
-                transition={{
-                  height: { type: 'spring', stiffness: 400, damping: 30 },
-                  opacity: { duration: 0.15 },
-                }}
+                transition={
+                  shouldSettleMotion
+                    ? { duration: 0 }
+                    : {
+                        height: { type: 'spring', stiffness: 400, damping: 30 },
+                        opacity: { duration: 0.15 },
+                      }
+                }
                 className="overflow-hidden"
               >
                 {children}

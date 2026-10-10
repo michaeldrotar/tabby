@@ -2,7 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Layers, Pin, Volume2, VolumeOff, X } from 'lucide-react'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
-import { useShouldReduceMotion } from './useShouldReduceMotion'
+import {
+  useShouldReduceMotion,
+  useShouldSettleMotion,
+} from './useShouldReduceMotion'
 import { cn } from './utils/cn'
 import { formatTimeAgo } from './utils/formatTimeAgo'
 import type { HTMLAttributes, ReactNode } from 'react'
@@ -93,6 +96,8 @@ export type BrowserTabItemProps = Omit<
   audio?: 'muted' | 'on' | 'off'
   /** Timestamp in milliseconds when the tab was last accessed */
   lastAccessed?: number
+  /** Explicit display text; skips clock-based updates when supplied. */
+  ageLabel?: string
   /** Whether this tab is a duplicate (same URL as another tab) */
   duplicate?: boolean
 
@@ -143,6 +148,7 @@ export const BrowserTabItem = memo(
         discarded = false,
         audio,
         lastAccessed,
+        ageLabel,
         duplicate = false,
         onClose,
         ...props
@@ -158,10 +164,13 @@ export const BrowserTabItem = memo(
           ;(forwardedRef as { current: HTMLDivElement | null }).current = el
         }
       }
+      const shouldSettleMotion = useShouldSettleMotion()
       const shouldReduceMotion = useShouldReduceMotion(rootRef) ?? false
-      const transition = shouldReduceMotion
-        ? { duration: 0.15, ease: 'linear' as const }
-        : { type: 'spring' as const, stiffness: 300, damping: 25 }
+      const transition = shouldSettleMotion
+        ? { duration: 0 }
+        : shouldReduceMotion
+          ? { duration: 0.15, ease: 'linear' as const }
+          : { type: 'spring' as const, stiffness: 300, damping: 25 }
 
       // Extract domain from URL for display
       const getDomain = (url?: string): string => {
@@ -234,7 +243,11 @@ export const BrowserTabItem = memo(
           ref={setRef}
           layout={!shouldReduceMotion}
           initial={
-            shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }
+            shouldSettleMotion
+              ? false
+              : shouldReduceMotion
+                ? { opacity: 0 }
+                : { opacity: 0, scale: 0.95 }
           }
           animate={{ opacity: 1, scale: 1 }}
           exit={
@@ -302,13 +315,13 @@ export const BrowserTabItem = memo(
               !selected &&
                 `
                   hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  data-[hover]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  group-data-[hover=true]:bg-accent/[calc(var(--accent-strength)*0.5%)]
                 `,
               selected &&
                 `
                   bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
                   hover:brightness-95
-                  data-[hover]:brightness-95
+                  group-data-[hover=true]:brightness-95
                 `,
               active &&
                 `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
@@ -373,9 +386,11 @@ export const BrowserTabItem = memo(
                   {loading && (
                     <motion.div
                       initial={
-                        shouldReduceMotion
-                          ? { opacity: 0 }
-                          : { opacity: 0, scale: 0.8 }
+                        shouldSettleMotion
+                          ? false
+                          : shouldReduceMotion
+                            ? { opacity: 0 }
+                            : { opacity: 0, scale: 0.8 }
                       }
                       animate={
                         shouldReduceMotion
@@ -427,21 +442,29 @@ export const BrowserTabItem = memo(
                       filter: blurred ? 'blur(4px)' : 'blur(0px)',
                     }}
                     transition={
-                      shouldReduceMotion
-                        ? { duration: 0.15, ease: 'linear' as const }
-                        : {
-                            type: 'spring' as const,
-                            stiffness: 300,
-                            damping: 25,
-                            delay: 0.05,
-                          }
+                      shouldSettleMotion
+                        ? { duration: 0 }
+                        : shouldReduceMotion
+                          ? { duration: 0.15, ease: 'linear' as const }
+                          : {
+                              type: 'spring' as const,
+                              stiffness: 300,
+                              damping: 25,
+                              delay: 0.05,
+                            }
                     }
                   >
                     <span className="min-w-0 truncate">{domain}</span>
-                    <TimeAgoText
-                      lastAccessed={lastAccessed}
-                      shouldReduceMotion={shouldReduceMotion}
-                    />
+                    {ageLabel !== undefined ? (
+                      ageLabel ? (
+                        <span className="flex-shrink-0"> • {ageLabel}</span>
+                      ) : null
+                    ) : (
+                      <TimeAgoText
+                        lastAccessed={lastAccessed}
+                        shouldReduceMotion={shouldReduceMotion}
+                      />
+                    )}
                   </motion.div>
                 )}
               </div>

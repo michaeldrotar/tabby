@@ -17,7 +17,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/app": "workspace:*",
     "@extension/chrome": "workspace:*",
+    "@extension/core": "workspace:*",
     "@extension/env": "workspace:*",
     "@extension/i18n": "workspace:*",
     "@extension/omnibar": "workspace:*",
