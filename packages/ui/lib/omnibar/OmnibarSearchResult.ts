@@ -1,32 +1,8 @@
-import type { BrowserTabGroupColor } from '@extension/chrome/tabGroup/BrowserTabGroup'
+import type { OmnibarModifier, OmnibarResult } from '@extension/core'
 
-export type OmnibarSearchResult = {
-  id: string | number
-  type:
-    | 'tab'
-    | 'tab-group'
-    | 'bookmark'
-    | 'history'
-    | 'command'
-    | 'url'
-    | 'search'
-    | 'recently-closed'
-  title: string
-  url?: string
-  description?: string
-  favIconUrl?: string
-  windowId?: number
-  tabId?: number
-  active?: boolean
-  lastVisitTime?: number
-  sessionId?: string
-  tabCount?: number
-  groupColor?: BrowserTabGroupColor
-  groupTabCount?: number
-  groupWindowLabel?: string
-  groupCollapsed?: boolean
+export type OmnibarSearchResult = Omit<OmnibarResult, 'action'> & {
   execute: (
-    modifier?: 'new-tab' | 'new-window',
+    modifier?: OmnibarModifier,
     originalWindowId?: number,
   ) => Promise<void>
 }

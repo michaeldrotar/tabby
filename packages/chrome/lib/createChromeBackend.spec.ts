@@ -31,6 +31,7 @@ const mockBrowser = () => {
       windowId: 1,
       index: 0,
       title: 'Tabby',
+      url: 'https://tabby.test',
       active: true,
       groupId: 7,
       status: 'complete',
@@ -41,6 +42,7 @@ const mockBrowser = () => {
       windowId: 1,
       index: 1,
       title: 'Docs',
+      url: 'https://docs.test',
       active: false,
       groupId: 7,
       status: 'loading',
@@ -183,6 +185,7 @@ describe('Chrome browser backend', () => {
         windowId: 1,
         index: 0,
         title: 'Stale',
+        url: 'https://stale.test',
         active: true,
         groupId: 7,
         status: 'complete',
@@ -246,6 +249,187 @@ describe('Chrome browser backend', () => {
     })
     await backend.start()
     expect(backend.getSnapshot().state).toBe('loaded')
+    backend.dispose()
+  })
+})
+
+describe('Chrome command parity', () => {
+  it('creates a focused window with the originating privacy and window settings', async () => {
+    const { api } = mockBrowser()
+    for (const [incognito, state] of [
+      [false, 'normal'],
+      [true, 'normal'],
+      [true, 'maximized'],
+    ] as const) {
+      const source = {
+        id: 1,
+        incognito,
+        height: 700,
+        left: 100,
+        state,
+        top: 80,
+        width: 900,
+      }
+      const get = vi.fn(async () => source)
+      const create = vi.fn(async () => ({ id: 3 }))
+      const backend = createChromeBackend({
+        ...api,
+        windows: { ...api.windows, get, create },
+      } as unknown as ChromeBackendApi)
+      await backend.start()
+      expect(
+        await backend.execute({
+          type: 'create-window',
+          sourceWindowId: 1,
+        }),
+      ).toMatchObject({ status: 'success', createdWindowIds: [3] })
+      expect(get).toHaveBeenCalledExactlyOnceWith(1)
+      expect(create).toHaveBeenCalledExactlyOnceWith({
+        type: 'normal',
+        url: undefined,
+        focused: true,
+        incognito,
+        state,
+        ...(state === 'normal'
+          ? { height: 700, left: 100, top: 80, width: 900 }
+          : {}),
+      })
+      backend.dispose()
+    }
+  })
+
+  it('maps tab actions, ordered moves, grouping, and group metadata to injected browser APIs', async () => {
+    const { api, mock } = mockBrowser()
+    const reload = vi.fn(async () => {}),
+      discard = vi.fn(async () => undefined),
+      ungroup = vi.fn(async () => {}),
+      move = vi.fn(async () => []),
+      group = vi.fn(async () => 8),
+      duplicate = vi.fn(async () => ({ id: 21 })),
+      create = vi.fn(async () => ({ id: 22, windowId: 1 })),
+      moveGroup = vi.fn(async () => ({ id: 7 }))
+    const backend = createChromeBackend({
+      ...api,
+      tabs: {
+        ...api.tabs,
+        reload,
+        discard,
+        ungroup,
+        move,
+        group,
+        duplicate,
+        create,
+      },
+      tabGroups: { ...api.tabGroups!, move: moveGroup },
+    } as unknown as ChromeBackendApi)
+    await backend.start()
+    await backend.execute({ type: 'create-tab', groupId: 7 })
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      windowId: 1,
+      url: undefined,
+      active: true,
+      index: 2,
+      openerTabId: 12,
+    })
+    expect(group).toHaveBeenCalledExactlyOnceWith({ tabIds: 22, groupId: 7 })
+    expect(mock.windows.update).toHaveBeenCalledWith(1, { focused: true })
+    group.mockClear()
+    await backend.execute({
+      type: 'tab-action',
+      action: 'pin',
+      tabIds: [11, 11, 12],
+    })
+    expect(mock.tabs.update.mock.calls).toEqual([
+      [11, { pinned: true }],
+      [12, { pinned: true }],
+    ])
+    await backend.execute({
+      type: 'tab-action',
+      action: 'reload',
+      tabIds: [11],
+    })
+    expect(reload).toHaveBeenCalledWith(11)
+    const discarded = await backend.execute({
+      type: 'tab-action',
+      action: 'discard',
+      tabIds: [11, 12],
+    })
+    expect(discarded).toMatchObject({
+      succeededIds: [12],
+      skippedActiveIds: [11],
+    })
+    expect(discard).toHaveBeenCalledExactlyOnceWith(12)
+    expect(
+      await backend.execute({
+        type: 'tab-action',
+        action: 'duplicate',
+        tabIds: [12],
+      }),
+    ).toMatchObject({ createdTabIds: [21] })
+    await backend.execute({ type: 'group-tabs', tabIds: [11, 12] })
+    expect(group.mock.calls).toEqual([
+      [{ tabIds: 11, createProperties: { windowId: 1 } }],
+      [{ tabIds: 12, groupId: 8 }],
+    ])
+    await backend.execute({
+      type: 'group-action',
+      groupIds: [7],
+      action: { type: 'rename', title: 'Docs' },
+    })
+    expect(mock.tabGroups.update).toHaveBeenCalledWith(7, { title: 'Docs' })
+    await backend.execute({
+      type: 'move-tab',
+      tabId: 11,
+      direction: 'backward',
+    })
+    expect(ungroup).toHaveBeenCalledWith(11)
+    const moved = await backend.execute({ type: 'move-tabs', tabIds: [11, 12] })
+    expect(moved).toMatchObject({
+      createdWindowIds: [2],
+      succeededIds: [11, 12],
+    })
+    expect(mock.windows.create).toHaveBeenCalledWith({
+      tabId: 11,
+      type: 'normal',
+      incognito: false,
+    })
+    expect(move).toHaveBeenCalledWith(12, { windowId: 2, index: -1 })
+    await backend.execute({ type: 'move-group', groupId: 7 })
+    expect(moveGroup).toHaveBeenCalledWith(7, { windowId: 2, index: -1 })
+    backend.dispose()
+  })
+})
+
+describe('browser presentation facts', () => {
+  it('retains loaded content and render identity across reloads and replaced Chrome tab IDs', async () => {
+    const { api, mock } = mockBrowser()
+    const backend = createChromeBackend(api)
+    await backend.start()
+    const first = await mock.tabs.query()
+    mock.tabs.query.mockResolvedValueOnce(
+      first.map((tab) => (tab.id === 11 ? { ...tab, status: 'loading' } : tab)),
+    )
+    mock.tabs.onUpdated.emit()
+    await backend.start()
+    expect(backend.getSnapshot().tabs[0]).toMatchObject({
+      id: 11,
+      loading: true,
+      hasLoaded: true,
+      renderKey: 11,
+    })
+    mock.tabs.query.mockResolvedValueOnce(
+      first.map((tab) =>
+        tab.id === 11 ? { ...tab, id: 21, status: 'loading' } : tab,
+      ),
+    )
+    mock.tabs.onReplaced.emit(21, 11)
+    await backend.start()
+    expect(backend.getSnapshot().tabs[0]).toMatchObject({
+      id: 21,
+      loading: true,
+      hasLoaded: true,
+      renderKey: 11,
+    })
     backend.dispose()
   })
 })

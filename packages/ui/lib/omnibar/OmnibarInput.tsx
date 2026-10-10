@@ -20,6 +20,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
         <SearchIcon className="text-muted mr-3 h-5 w-5" />
         <input
           ref={ref}
+          data-omnibar-query
           type="text"
           className={`
             text-foreground flex-1 bg-transparent text-lg outline-none

@@ -1,7 +1,7 @@
 {
   "name": "@extension/shared",
   "version": "0.0.0",
-  "description": "chrome extension - shared code",
+  "description": "Pure shared utilities for keyboard shortcuts, commands, and build logging",
   "type": "module",
   "private": true,
   "sideEffects": false,
@@ -23,13 +23,7 @@
     "type-check": "tsc --noEmit",
     "postinstall": "pnpm ready"
   },
-  "dependencies": {
-    "@extension/env": "workspace:*",
-    "react-error-boundary": "^6.0.0"
-  },
   "devDependencies": {
-    "@extension/storage": "workspace:*",
-    "@extension/tsconfig": "workspace:*",
-    "type-fest": "^5.3.0"
+    "@extension/tsconfig": "workspace:*"
   }
 }

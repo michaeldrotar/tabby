@@ -1,0 +1,25 @@
+{
+  "name": "@extension/providers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./lib/index.ts",
+    "./chrome": "./lib/ChromeTabbyProvider.tsx",
+    "./memory": "./lib/MemoryTabbyProvider.tsx"
+  },
+  "scripts": {
+    "ready": "tsc --noEmit",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/app": "workspace:*",
+    "@extension/chrome": "workspace:*",
+    "@extension/core": "workspace:*",
+    "@extension/demo": "workspace:*"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*"
+  }
+}

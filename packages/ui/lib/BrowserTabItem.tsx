@@ -1,56 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Layers, Pin, Volume2, VolumeOff, X } from 'lucide-react'
-import { forwardRef, memo, useEffect, useRef, useState } from 'react'
+import { forwardRef, memo, useRef } from 'react'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
 import {
   useShouldReduceMotion,
   useShouldSettleMotion,
 } from './useShouldReduceMotion'
 import { cn } from './utils/cn'
-import { formatTimeAgo } from './utils/formatTimeAgo'
 import type { HTMLAttributes, ReactNode } from 'react'
-
-/** When true, floor age to minute before formatting: 0–59s → "just now", 60–119s → "1m". */
-const timestampForFormatting = (ts: number, reduceMotion: boolean): number => {
-  if (!reduceMotion) return ts
-  const ageSeconds = (Date.now() - ts) / 1000
-  const flooredSeconds = Math.floor(ageSeconds / 60) * 60
-  return Date.now() - flooredSeconds * 1000
-}
 
 /** Pattern for "(N) Title" in formatTitle. */
 const TITLE_NUMBER_PATTERN = /^(\(\d+\))\s(.+)$/
-
-/**
- * Renders " • {timeAgo}" and updates every second when the string changes.
- * Isolated so interval-driven state updates only re-render this component.
- */
-const TimeAgoText = memo(function TimeAgoText({
-  lastAccessed,
-  shouldReduceMotion,
-}: {
-  lastAccessed?: number
-  shouldReduceMotion: boolean
-}) {
-  const [timeAgoText, setTimeAgoText] = useState<string>(() =>
-    lastAccessed
-      ? formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
-      : '',
-  )
-  useEffect(() => {
-    if (!lastAccessed) return
-    const format = () =>
-      formatTimeAgo(timestampForFormatting(lastAccessed, shouldReduceMotion))
-    queueMicrotask(() => setTimeAgoText(format()))
-    const interval = setInterval(() => {
-      const next = format()
-      setTimeAgoText((prev) => (next !== prev ? next : prev))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [lastAccessed, shouldReduceMotion])
-  if (!timeAgoText) return null
-  return <span className="flex-shrink-0"> • {timeAgoText}</span>
-})
 
 /**
  * Props for the BrowserTabItem component.
@@ -147,7 +107,7 @@ export const BrowserTabItem = memo(
         pinned = false,
         discarded = false,
         audio,
-        lastAccessed,
+        lastAccessed: _lastAccessed,
         ageLabel,
         duplicate = false,
         onClose,
@@ -255,7 +215,7 @@ export const BrowserTabItem = memo(
           }
           transition={transition}
           className={cn(
-            `group relative overflow-hidden rounded-lg`,
+            `group/tab-row relative overflow-hidden rounded-lg`,
             // Transition for smooth mode changes
             'transition-shadow duration-150',
             // Focus ring styling: option (tab row) or button (close) can be focused
@@ -315,13 +275,13 @@ export const BrowserTabItem = memo(
               !selected &&
                 `
                   hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  group-data-[hover=true]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  group-data-[hover=true]/tab-row:bg-accent/[calc(var(--accent-strength)*0.5%)]
                 `,
               selected &&
                 `
                   bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
                   hover:brightness-95
-                  group-data-[hover=true]:brightness-95
+                  group-data-[hover=true]/tab-row:brightness-95
                 `,
               active &&
                 `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
@@ -455,15 +415,8 @@ export const BrowserTabItem = memo(
                     }
                   >
                     <span className="min-w-0 truncate">{domain}</span>
-                    {ageLabel !== undefined ? (
-                      ageLabel ? (
-                        <span className="flex-shrink-0"> • {ageLabel}</span>
-                      ) : null
-                    ) : (
-                      <TimeAgoText
-                        lastAccessed={lastAccessed}
-                        shouldReduceMotion={shouldReduceMotion}
-                      />
+                    {ageLabel && (
+                      <span className="flex-shrink-0"> • {ageLabel}</span>
                     )}
                   </motion.div>
                 )}
@@ -535,12 +488,12 @@ export const BrowserTabItem = memo(
                     ? 'opacity-100'
                     : cn(
                         'opacity-0',
-                        'group-hover:opacity-100',
-                        'group-data-[hover=true]:opacity-100',
+                        'group-hover/tab-row:opacity-100',
+                        'group-data-[hover=true]/tab-row:opacity-100',
                         `
-                          group-has-[[data-tab-option]:focus-visible]:opacity-100
+                          group-has-[[data-tab-option]:focus-visible]/tab-row:opacity-100
                         `,
-                        'group-has-[button:focus-visible]:opacity-100',
+                        'group-has-[button:focus-visible]/tab-row:opacity-100',
                       ),
                 )}
                 aria-label="Close tab"

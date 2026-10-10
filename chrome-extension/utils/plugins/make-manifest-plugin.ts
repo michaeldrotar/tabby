@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { getEnv } from '@extension/env/getEnv'
 import { colorfulLog } from '@extension/shared/utils/colorful-logger'
 import { ManifestParserImpl as ManifestParser } from './manifest-parser/impl.js'
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/chrome/manifest'
 import type { PluginOption } from 'vite'
 
 const ENV = getEnv()

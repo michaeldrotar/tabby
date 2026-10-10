@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Favicon } from '../Favicon'
 import { LayersIcon } from '../icons'
+import { useSurface } from '../Surface'
 import { getGroupColorClasses } from '../tab-group/tabGroupColors'
 import { cn } from '../utils/cn'
-import { formatTimeAgo } from '../utils/formatTimeAgo'
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
@@ -63,6 +63,8 @@ export const OmnibarItem = ({
   query,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
+  const surface = useSurface()
+  const interactive = !surface || surface.inputMode === 'live'
   const actionModifier = isShiftPressed
     ? 'new-window'
     : isCmdCtrlPressed
@@ -72,18 +74,19 @@ export const OmnibarItem = ({
     item.type === 'tab-group' ? getGroupColorClasses(item.groupColor) : null
 
   useEffect(() => {
-    if (isSelected) {
+    if (isSelected && interactive) {
       itemRef.current?.scrollIntoView({
         block: 'nearest',
       })
     }
-  }, [isSelected])
+  }, [isSelected, interactive])
 
   return (
     <li>
       <button
         ref={itemRef}
         type="button"
+        data-omnibar-result={item.id}
         className={cn(
           `
             focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
@@ -95,10 +98,7 @@ export const OmnibarItem = ({
           `,
           isSelected
             ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
-            : `
-              text-foreground
-              hover:bg-highlighted/50
-            `,
+            : cn('text-foreground', interactive && 'hover:bg-highlighted/50'),
         )}
         onClick={(e) => {
           let modifier: 'new-tab' | 'new-window' | undefined
@@ -175,6 +175,7 @@ export const OmnibarItem = ({
         ) : (
           <Favicon
             pageUrl={item.url}
+            faviconUrl={item.favIconUrl}
             className="h-8 w-8 flex-shrink-0"
             size={32}
           />
@@ -238,14 +239,14 @@ export const OmnibarItem = ({
               </span>
             )}
 
-            {item.lastVisitTime && (
+            {item.ageLabel && (
               <span
                 className={cn(
                   'flex-shrink-0',
                   isSelected ? 'text-foreground/70' : 'text-muted',
                 )}
               >
-                {formatTimeAgo(item.lastVisitTime)}
+                {item.ageLabel}
               </span>
             )}
 

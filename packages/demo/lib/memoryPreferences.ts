@@ -1,4 +1,8 @@
-import { defaultPreferences } from '@extension/core'
+import {
+  applyPreferencePatch,
+  defaultPreferences,
+  normalizePreferences,
+} from '@extension/core'
 import type { PreferenceResource, PreferenceState } from '@extension/core'
 
 export const createMemoryPreferences = (
@@ -6,10 +10,10 @@ export const createMemoryPreferences = (
 ): PreferenceResource & {
   restoreSnapshot: (snapshot: PreferenceState) => void
 } => {
-  let snapshot = { ...defaultPreferences, ...initial }
+  let snapshot = normalizePreferences(initial)
   const listeners = new Set<() => void>()
   const publish = (next: PreferenceState) => {
-    snapshot = { ...next }
+    snapshot = normalizePreferences(next)
     listeners.forEach((listener) => listener())
   }
   return {
@@ -18,7 +22,8 @@ export const createMemoryPreferences = (
       listeners.add(listener)
       return () => listeners.delete(listener)
     },
-    set: async (patch) => publish({ ...snapshot, ...patch }),
+    set: async (patch) => publish(applyPreferencePatch(snapshot, patch)),
+    reset: async () => publish({ ...defaultPreferences }),
     start: async () => {},
     dispose: () => listeners.clear(),
     restoreSnapshot: publish,

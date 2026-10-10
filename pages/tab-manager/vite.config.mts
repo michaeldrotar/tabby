@@ -8,10 +8,6 @@ const rootDir = resolve(import.meta.dirname)
 const srcDir = resolve(rootDir, 'src')
 
 export default withPageConfig({
-  define: {
-    __TABBY_ARCHITECTURE_PROOF__:
-      process.env['CLI_CEB_ARCHITECTURE_PROOF'] === 'true',
-  },
   resolve: {
     alias: {
       '@src': srcDir,

@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
   cleanup,
@@ -9,18 +8,9 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Omnibar } from './Omnibar'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
-import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 expect.extend(matchers)
 
@@ -36,54 +26,18 @@ const createLocalhostTabs = (): OmnibarSearchResult[] =>
     execute: vi.fn().mockResolvedValue(undefined),
   }))
 
-const createGenerators = (): OmnibarResultGenerators => ({
-  getGoogleSearchItem: (query) => ({
-    id: `google-${query}`,
-    type: 'search',
-    title: `Search Google for "${query}"`,
-    url: `https://google.com/search?q=${encodeURIComponent(query)}`,
-    execute: vi.fn().mockResolvedValue(undefined),
-  }),
-  getUrlNavigationItem: () => [],
-  getMatchingCommands: () => [],
-  getMatchingTabs: (tabs, queryTerms) =>
-    tabs.filter((tab) =>
-      queryTerms.every((term) =>
-        `${tab.title} ${tab.url}`.toLowerCase().includes(term.toLowerCase()),
-      ),
-    ),
-})
-
 describe('Omnibar modifier actions', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = vi.fn()
   })
 
-  beforeEach(() => {
-    globalThis.chrome = {
-      runtime: { id: 'test-extension-id' },
-    } as unknown as typeof chrome
-  })
-
   afterEach(cleanup)
 
   const renderOmnibar = (tabs: OmnibarSearchResult[]) => {
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
     const onDismiss = vi.fn()
-    const onSearch = vi.fn().mockResolvedValue([])
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <Omnibar
-          tabs={tabs}
-          onSearch={onSearch}
-          generators={createGenerators()}
-          onDismiss={onDismiss}
-          originalWindowId={1}
-        />
-      </QueryClientProvider>,
+      <Omnibar results={tabs} onDismiss={onDismiss} originalWindowId={1} />,
     )
   }
 

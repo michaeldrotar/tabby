@@ -1,3 +1,4 @@
+import { findTabIdReplacements } from '@extension/core/selection/TabIdentity'
 import { describe, expect, it } from 'vitest'
 import { createFixtureBuilder } from './fixtures'
 import { MemoryBackend } from './memoryBackend'
@@ -110,5 +111,136 @@ describe('memory backend', () => {
     release()
     expect(await pending).toMatchObject({ status: 'ignored' })
     expect(backend.getSnapshot()).toEqual(checkpoint.snapshot)
+  })
+})
+
+describe('memory backend action parity', () => {
+  it('gives a duplicate its own render identity when seeded with browser identities', async () => {
+    const initial = scene()
+    initial.tabs = initial.tabs.map((tab) => ({ ...tab, renderKey: tab.id }))
+    const backend = new MemoryBackend(initial)
+    const outcome = await backend.execute({
+      type: 'tab-action',
+      action: 'duplicate',
+      tabIds: [1],
+    })
+    const duplicated = backend.getSnapshot()
+    const clone = duplicated.tabs.find(
+      (tab) => tab.id === outcome.createdTabIds?.[0],
+    )!
+    expect(clone.renderKey).not.toBe(initial.tabs[0]!.renderKey)
+    expect(
+      new Set(duplicated.tabs.map((tab) => tab.renderKey ?? tab.id)).size,
+    ).toBe(duplicated.tabs.length)
+    await backend.execute({ type: 'close-tabs', tabIds: [1] })
+    expect(
+      findTabIdReplacements(duplicated.tabs, backend.getSnapshot().tabs).size,
+    ).toBe(0)
+  })
+
+  it('preserves group metadata and source order through regrouping, moving, pinning, and discarding', async () => {
+    const backend = new MemoryBackend(scene())
+    await backend.execute({ type: 'move-tab', tabId: 3, direction: 'backward' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 3)?.groupId,
+    ).toBe(1)
+    await backend.execute({
+      type: 'tab-action',
+      action: 'ungroup',
+      tabIds: [2],
+    })
+    expect(
+      backend
+        .getSnapshot()
+        .tabs.filter((tab) => tab.windowId === 1)
+        .map((tab) => [tab.id, tab.groupId]),
+    ).toEqual([
+      [1, 1],
+      [3, 1],
+      [2, undefined],
+    ])
+    await backend.execute({
+      type: 'group-action',
+      groupIds: [1],
+      action: { type: 'rename', title: 'Research' },
+    })
+    await backend.execute({
+      type: 'group-action',
+      groupIds: [1],
+      action: { type: 'change-color', color: 'purple' },
+    })
+    const moved = await backend.execute({ type: 'move-group', groupId: 1 })
+    expect(backend.getSnapshot().groups[0]).toMatchObject({
+      id: 1,
+      title: 'Research',
+      color: 'purple',
+      windowId: moved.createdWindowIds![0],
+    })
+    expect(
+      backend
+        .getSnapshot()
+        .tabs.filter((tab) => tab.windowId === moved.createdWindowIds![0])
+        .map((tab) => tab.id),
+    ).toEqual([1, 3])
+    await backend.execute({ type: 'tab-action', action: 'pin', tabIds: [3] })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 3),
+    ).toMatchObject({ index: 0, pinned: true, groupId: undefined })
+    const discarded = await backend.execute({
+      type: 'tab-action',
+      action: 'discard',
+      tabIds: [1, 3, 999],
+    })
+    expect(discarded).toMatchObject({
+      status: 'partial',
+      succeededIds: [3],
+      skippedActiveIds: [1],
+      failures: [{ id: 999 }],
+    })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 3)?.discarded,
+    ).toBe(true)
+  })
+
+  it('shares eligibility rules and creates navigable tabs without breaking group continuity', async () => {
+    const backend = new MemoryBackend(scene())
+    const created = await backend.execute({
+      type: 'create-tab',
+      windowId: 1,
+      groupId: 1,
+      url: 'https://example.com',
+    })
+    expect(
+      backend
+        .getSnapshot()
+        .tabs.filter((tab) => tab.windowId === 1)
+        .map((tab) => tab.groupId),
+    ).toEqual([1, 1, 1, undefined])
+    const tabId = created.createdTabIds![0]!
+    await backend.execute({
+      type: 'navigate-tab',
+      tabId,
+      url: 'https://tabby.test',
+    })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === tabId),
+    ).toMatchObject({ url: 'https://tabby.test', active: true })
+    const before = backend.getSnapshot()
+    expect(
+      await backend.execute({ type: 'group-tabs', tabIds: [1, 4] }),
+    ).toMatchObject({ status: 'failed', succeededIds: [] })
+    expect(backend.getSnapshot()).toBe(before)
+    await backend.execute({ type: 'tab-action', action: 'pin', tabIds: [1] })
+    await backend.execute({
+      type: 'close-relative-tabs',
+      tabId: tabId,
+      direction: 'other',
+    })
+    expect(
+      backend
+        .getSnapshot()
+        .tabs.filter((tab) => tab.windowId === 1)
+        .map((tab) => tab.id),
+    ).toEqual([1, tabId])
   })
 })

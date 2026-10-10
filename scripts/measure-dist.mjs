@@ -410,7 +410,7 @@ async function analyzeImportStatements(packages) {
     // Scan all files except package.json, markdown, and lock files
     const allFiles = await fg([`${pkg.dir}/**/*`], {
       onlyFiles: true,
-      dot: true, // Include "hidden" directories like .storybook
+      dot: true, // Include hidden directories
       ignore: ANALYSIS_IGNORE_PATTERNS,
     })
 

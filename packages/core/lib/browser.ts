@@ -26,6 +26,8 @@ export interface BrowserTab {
   pinned?: boolean
   discarded?: boolean
   loading?: boolean
+  hasLoaded?: boolean
+  renderKey?: number
   audible?: boolean
   muted?: boolean
   faviconUrl?: string
@@ -50,10 +52,41 @@ export interface BrowserSnapshot {
   error?: string
 }
 
+export type TabAction =
+  | 'pin'
+  | 'unpin'
+  | 'mute'
+  | 'unmute'
+  | 'reload'
+  | 'duplicate'
+  | 'discard'
+  | 'ungroup'
+
+export type GroupAction =
+  | { type: 'rename'; title: string }
+  | { type: 'change-color'; color: BrowserTabGroupColor }
+  | { type: 'set-collapse'; collapsed: boolean }
+  | { type: 'move-backward' }
+  | { type: 'move-forward' }
+
 export type BrowserCommand =
-  | { type: 'create-window' }
+  | { type: 'create-window'; url?: string; sourceWindowId?: number }
+  | { type: 'create-tab'; windowId?: number; url?: string; groupId?: number }
+  | { type: 'navigate-tab'; tabId: number; url: string }
+  | { type: 'move-group'; groupId: number; windowId?: number }
+  | { type: 'tab-action'; action: TabAction; tabIds: readonly number[] }
+  | { type: 'move-tabs'; tabIds: readonly number[]; windowId?: number }
+  | { type: 'group-tabs'; tabIds: readonly number[]; groupId?: number }
+  | { type: 'group-action'; action: GroupAction; groupIds: readonly number[] }
+  | { type: 'move-tab'; tabId: number; direction: 'backward' | 'forward' }
+  | { type: 'close-relative-tabs'; tabId: number; direction: 'other' | 'below' }
   | { type: 'close-tabs'; tabIds: readonly number[] }
   | { type: 'close-window'; windowId: number }
+  | {
+      type: 'window-action'
+      action: 'close' | 'focus'
+      windowIds: readonly number[]
+    }
   | { type: 'activate-tab'; tabId: number }
   | { type: 'activate-window'; windowId: number }
   | { type: 'set-group-collapsed'; groupId: number; collapsed: boolean }
@@ -65,6 +98,9 @@ export interface CommandOutcome {
   failures: readonly { id: number; message: string }[]
   createdWindowIds?: readonly number[]
   createdTabIds?: readonly number[]
+  createdGroupIds?: readonly number[]
+  skippedActiveIds?: readonly number[]
+  skippedAlreadyDiscardedIds?: readonly number[]
 }
 
 export interface BrowserBackend {
@@ -76,7 +112,10 @@ export interface BrowserBackend {
 }
 
 export interface HostCapabilities {
-  openSearch?: () => void
-  openOptions?: () => void
+  getCurrentWindowId?: () => number | undefined
+  openWindowTabManager?: (windowId: number) => Promise<void>
+  openSearch?: () => void | Promise<void>
+  openOptions?: () => void | Promise<void>
   writeClipboardText?: (text: string) => Promise<void>
+  onSidebarExpandedChange?: (expanded: boolean) => void | Promise<void>
 }

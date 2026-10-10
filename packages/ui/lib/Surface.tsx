@@ -1,8 +1,10 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useId,
   useLayoutEffect,
+  useRef,
   useState,
 } from 'react'
 import { cn } from './utils/cn'
@@ -35,13 +37,38 @@ const SurfaceContext = createContext<{
   width: number | null
   root: HTMLDivElement | null
   portalHost: HTMLDivElement | null
+  isInputOwner: () => boolean
 } | null>(null)
 
 export const useSurface = () => useContext(SurfaceContext)
+const standaloneInputOwner = () => true
+/** Tracks physical input separately from shared or scripted view state. */
+export const useSurfaceInputOwner = () => {
+  const surface = useSurface()
+  const root = surface?.root
+  const scoped = !!surface
+  const live = !surface || surface.inputMode === 'live'
+  const ownsInput = surface?.isInputOwner ?? standaloneInputOwner
+  const canFocusInput = useCallback(() => {
+    if (!live) return false
+    if (!scoped) return true
+    if (!root) return false
+    const active = root.ownerDocument.activeElement
+    return (
+      ownsInput() ||
+      root.contains(active) ||
+      (active === root.ownerDocument.body &&
+        root.ownerDocument.querySelectorAll(
+          '[data-surface][data-input-mode="live"]',
+        ).length === 1)
+    )
+  }, [live, scoped, root, ownsInput])
+  return { ownsInput, canFocusInput }
+}
 export const useSurfaceId = (name: string) => {
   const surface = useSurface()
   const id = useId()
-  return `${surface?.instanceId ?? id}-${name}`
+  return `${surface?.instanceId ? `${surface.instanceId}-${id}` : id}-${name}`
 }
 
 const palettes = {
@@ -94,6 +121,30 @@ export const Surface = ({
   const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null)
   const [width, setWidth] = useState<number | null>(null)
   const blocked = inputMode !== 'live'
+  const inputOwner = useRef(false)
+  const isInputOwner = useCallback(
+    () => !blocked && inputOwner.current,
+    [blocked],
+  )
+  useLayoutEffect(() => {
+    if (!root) return
+    if (blocked) inputOwner.current = false
+    const document = root.ownerDocument
+    const recordInput = (event: Event) => {
+      // Removing a focused popup can leave focus on body before its replacement mounts.
+      if (event.type === 'focusin' && event.target === document.body) return
+      inputOwner.current =
+        !blocked &&
+        event.target instanceof Element &&
+        event.target.closest('[data-surface]') === root
+    }
+    document.addEventListener('focusin', recordInput, true)
+    document.addEventListener('pointerdown', recordInput, true)
+    return () => {
+      document.removeEventListener('focusin', recordInput, true)
+      document.removeEventListener('pointerdown', recordInput, true)
+    }
+  }, [root, blocked])
   useLayoutEffect(() => {
     const element = root
     if (!element) return
@@ -158,12 +209,15 @@ export const Surface = ({
         width,
         root,
         portalHost,
+        isInputOwner,
       }}
     >
       <div
         ref={setRoot}
+        tabIndex={blocked ? undefined : -1}
         data-surface={instanceId ?? generatedId}
         data-input-mode={inputMode}
+        data-surface-ready={!!root && !!portalHost && width !== null}
         data-theme={theme}
         data-theme-background={palette?.background}
         data-theme-foreground={palette?.foreground}

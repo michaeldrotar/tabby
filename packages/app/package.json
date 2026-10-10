@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@extension/core": "workspace:*",
+    "@extension/i18n": "workspace:*",
     "@extension/ui": "workspace:*",
     "zustand": "^5.0.9"
   },

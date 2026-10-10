@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { forwardRef, memo, useCallback, useEffect, useRef } from 'react'
-import { useSurfaceId } from './Surface'
+import { useSurfaceId, useSurfaceInputOwner } from './Surface'
 import {
   getGroupColorClasses,
   TAB_GROUP_COLOR_IDS,
@@ -24,6 +24,8 @@ export type BrowserTabGroupItemProps = Omit<
   collapsed?: boolean
   active?: boolean
   isRenaming?: boolean
+  renameTitle?: string
+  onRenameTitleChange?: (title: string) => void
   /** Whether this group is part of selection */
   selected?: boolean
   /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
@@ -48,6 +50,8 @@ export const BrowserTabGroupItem = memo(
         collapsed = false,
         active = false,
         isRenaming = false,
+        renameTitle,
+        onRenameTitleChange,
         selected = false,
         isMultiSelectMode = false,
         onSelect,
@@ -67,6 +71,7 @@ export const BrowserTabGroupItem = memo(
       const renameCommittedRef = useRef(false)
       const hasRenameInputFocusedRef = useRef(false)
       const restoreFocusOnExitRef = useRef(false)
+      const { ownsInput } = useSurfaceInputOwner()
       const prefersReducedMotion = useShouldReduceMotion()
       const shouldSettleMotion = useShouldSettleMotion()
       const contentId = useSurfaceId(`tab-group-content-${String(groupId)}`)
@@ -167,25 +172,29 @@ export const BrowserTabGroupItem = memo(
           if (!inputRef.current) return
           renameCommittedRef.current = false
           hasRenameInputFocusedRef.current = false
-          requestAnimationFrame(() => {
+          const frame = requestAnimationFrame(() => {
+            if (!ownsInput()) return
             inputRef.current?.focus()
             inputRef.current?.select()
           })
-          return
+          return () => cancelAnimationFrame(frame)
         }
         if (restoreFocusOnExitRef.current) {
           restoreFocusOnExitRef.current = false
-          requestAnimationFrame(() => {
+          const frame = requestAnimationFrame(() => {
+            if (!ownsInput()) return
             buttonRef.current?.focus()
           })
+          return () => cancelAnimationFrame(frame)
         }
-      }, [isRenaming])
+        return undefined
+      }, [isRenaming, ownsInput])
 
       return (
         <div
           ref={ref}
           className={cn(
-            'group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
+            'group/tab-group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
             'transition-all duration-200',
             selected &&
               'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
@@ -244,7 +253,7 @@ export const BrowserTabGroupItem = memo(
             className={cn(
               `
                 hover:bg-highlighted/30
-                group-data-[hover=true]:bg-highlighted/30
+                group-data-[hover=true]/tab-group:bg-highlighted/30
                 mb-1 flex w-full cursor-pointer items-center gap-2 rounded-md
                 px-2 py-1 text-left transition-colors
                 focus:outline-none
@@ -306,10 +315,15 @@ export const BrowserTabGroupItem = memo(
               <input
                 ref={inputRef}
                 type="text"
-                defaultValue={title ?? ''}
+                {...(renameTitle === undefined
+                  ? { defaultValue: title ?? '' }
+                  : { value: renameTitle })}
+                onChange={(event) =>
+                  onRenameTitleChange?.(event.currentTarget.value)
+                }
                 onKeyDown={handleRenameKeyDown}
                 onFocus={() => {
-                  hasRenameInputFocusedRef.current = true
+                  hasRenameInputFocusedRef.current = ownsInput()
                 }}
                 onBlur={handleRenameBlur}
                 onClick={(e) => e.stopPropagation()}

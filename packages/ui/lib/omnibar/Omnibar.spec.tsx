@@ -1,25 +1,19 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react'
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { useState } from 'react'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { Surface } from '../Surface'
 import { Omnibar } from './Omnibar'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
-import type { OmnibarResultGenerators } from './useOmnibarFiltering'
 
 expect.extend(matchers)
 
@@ -58,104 +52,74 @@ describe('Omnibar', () => {
     },
   ]
 
-  beforeEach(() => {
-    // Mock Chrome APIs
-    globalThis.chrome = {
-      tabs: {
-        update: vi.fn(),
-      },
-      windows: {
-        update: vi.fn(),
-      },
-      history: {
-        search: vi.fn().mockResolvedValue([]),
-      },
-      bookmarks: {
-        search: vi.fn().mockResolvedValue([]),
-      },
-      sessions: {
-        getRecentlyClosed: vi.fn().mockResolvedValue([]),
-      },
-      storage: {
-        local: {
-          get: vi.fn().mockResolvedValue({}),
-          set: vi.fn(),
-          remove: vi.fn(),
-        },
-      },
-      runtime: {
-        id: 'test-extension-id',
-        getPlatformInfo: vi.fn().mockResolvedValue({ os: 'mac' }),
-        openOptionsPage: vi.fn(),
-      },
-    } as unknown as typeof chrome
-  })
-
   afterEach(() => {
     cleanup()
   })
 
   const mockOnDismiss = vi.fn()
-  const mockOnSearch = vi.fn().mockResolvedValue([])
+  const renderOmnibar = render
 
-  const mockGenerators: OmnibarResultGenerators = {
-    getGoogleSearchItem: (query: string) => ({
-      id: `google-${query}`,
-      type: 'search' as const,
-      title: `Search Google for "${query}"`,
-      url: `https://google.com/search?q=${encodeURIComponent(query)}`,
-      execute: vi.fn(),
-    }),
-    getUrlNavigationItem: () => [],
-    getMatchingCommands: () => [],
-    getMatchingTabs: (tabs, queryTerms) =>
-      tabs.filter((tab) =>
-        queryTerms.some(
-          (term) =>
-            tab.title?.toLowerCase().includes(term.toLowerCase()) ||
-            tab.url?.toLowerCase().includes(term.toLowerCase()),
-        ),
-      ),
-  }
+  it('keeps keyboard input with the initiating surface when shared omnibars mount', async () => {
+    const Shared = () => {
+      const [open, setOpen] = useState(false)
+      const [query, setQuery] = useState('Tab')
+      return (
+        <>
+          {['Left', 'Right'].map((name) => (
+            <section key={name} aria-label={name}>
+              <Surface>
+                {!open && <button onClick={() => setOpen(true)}>Search</button>}
+                {open && (
+                  <Omnibar
+                    results={mockTabs}
+                    query={query}
+                    onQueryChange={setQuery}
+                    onDismiss={vi.fn()}
+                  />
+                )}
+              </Surface>
+            </section>
+          ))}
+        </>
+      )
+    }
+    render(<Shared />)
+    const left = within(screen.getByRole('region', { name: 'Left' }))
+    const right = within(screen.getByRole('region', { name: 'Right' }))
+    const trigger = right.getByRole('button', { name: 'Search' })
+    act(() => trigger.focus())
+    fireEvent.click(trigger)
+    const input = right.getByRole('textbox') as HTMLInputElement
+    await waitFor(() => expect(document.activeElement).toBe(input))
+    fireEvent.change(document.activeElement!, { target: { value: 'Tab 2' } })
+    expect((left.getByRole('textbox') as HTMLInputElement).value).toBe('Tab 2')
+    expect(input.value).toBe('Tab 2')
+    expect(document.activeElement).toBe(input)
+  })
 
-  const createQueryClient = () =>
-    new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    })
-
-  const renderWithQuery = (ui: React.ReactElement) => {
-    const qc = createQueryClient()
-    return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
-  }
+  it('focuses and selects the initial query in a standalone live popup', async () => {
+    render(
+      <Surface>
+        <Omnibar results={mockTabs} query="Tab" onDismiss={vi.fn()} />
+      </Surface>,
+    )
+    const input = screen.getByRole('textbox') as HTMLInputElement
+    await waitFor(() => expect(document.activeElement).toBe(input))
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(3)
+  })
 
   it('should select item on mouse move', async () => {
-    renderWithQuery(
-      <Omnibar
-        tabs={mockTabs}
-        onSearch={mockOnSearch}
-        generators={mockGenerators}
-        onDismiss={mockOnDismiss}
-      />,
-    )
+    renderOmnibar(<Omnibar results={mockTabs} onDismiss={mockOnDismiss} />)
 
     // Type into input to get results
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Tab' } })
 
-    // Wait for items to appear
-    // "Tab" matches the mock tabs
-    // filteredItems will contain:
-    // 1. Google Search "Tab"
-    // 2. Commands (maybe "Tabby: Open Tab Manager")
-    // 3. Local tabs "Tab 1", "Tab 2", "Tab 3"
-
-    // Let's find the items. They are <li> elements or buttons.
-    // OmnibarItem renders a <button>.
     const list = await screen.findByRole('list')
     const items = await within(list).findAllByRole('button', { name: /Tab/i })
 
     // The first item (index 0) should be selected by default
-    // Google search is usually first.
     expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
 
     // Move mouse to the second item
@@ -171,14 +135,7 @@ describe('Omnibar', () => {
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
-    renderWithQuery(
-      <Omnibar
-        tabs={mockTabs}
-        onSearch={mockOnSearch}
-        generators={mockGenerators}
-        onDismiss={mockOnDismiss}
-      />,
-    )
+    renderOmnibar(<Omnibar results={mockTabs} onDismiss={mockOnDismiss} />)
 
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Tab' } })

@@ -18,6 +18,15 @@ expect.extend(matchers)
 afterEach(cleanup)
 
 const model: TabManagerViewModel = {
+  actions: [
+    {
+      id: 'close-selected-tabs',
+      label: 'Close 0 selected tabs',
+      icon: 'Trash2',
+      kind: 'primary',
+    },
+    { id: 'dismiss', label: 'Dismiss menu', icon: 'X', kind: 'secondary' },
+  ],
   windows: [
     {
       id: 1,
@@ -44,6 +53,82 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('activates ordinary tab clicks while modifier and group clicks only select', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager model={model} onIntent={onIntent} />
+      </Surface>,
+    )
+    const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
+    fireEvent.click(tab)
+    expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+      {
+        type: 'select-item',
+        item: { type: 'tab', id: 10 },
+        shift: false,
+        toggle: false,
+      },
+      { type: 'activate-tab', tabId: 10 },
+    ])
+
+    for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey']) {
+      onIntent.mockClear()
+      fireEvent.click(tab, { [modifier]: true })
+      expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+        {
+          type: 'select-item',
+          item: { type: 'tab', id: 10 },
+          shift: modifier === 'shiftKey',
+          toggle: modifier !== 'shiftKey',
+        },
+      ])
+    }
+    onIntent.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: 'Reading' }))
+    expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+      {
+        type: 'select-item',
+        item: { type: 'group', id: 20 },
+        shift: false,
+        toggle: false,
+      },
+    ])
+  })
+
+  it('synchronizes native keyboard focus without replacing a modifier selection', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            focusedItem: { type: 'tab', id: 11 },
+            selectedTabIds: [10, 11],
+            windows: [
+              {
+                ...model.windows[0]!,
+                tabs: [
+                  ...model.windows[0]!.tabs,
+                  { id: 11, title: 'Notes', groupId: 20 },
+                ],
+              },
+            ],
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const firstTab = screen.getByRole('option', { name: 'Tab: Tabby' })
+    firstTab.focus()
+    fireEvent.keyDown(firstTab, { key: 'Backspace' })
+    expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+      { type: 'focus-item', item: { type: 'tab', id: 10 } },
+      { type: 'navigate', key: 'Backspace', shift: false, toggle: false },
+    ])
+    expect(screen.getAllByRole('option', { selected: true })).toHaveLength(2)
+  })
+
   it('emits product intents from mouse, keyboard and the action menu', () => {
     const onIntent = vi.fn()
     render(
@@ -68,16 +153,59 @@ describe('TabManager presentation', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Close tab' }))
     expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'close-tabs',
-      tabIds: [10],
+      type: 'close-item',
+      item: { type: 'tab', id: 10 },
     })
     fireEvent.contextMenu(tab)
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'open-action-menu',
       target: { type: 'tab', id: 10 },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'New window' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New Window' }))
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'create-window' })
+  })
+
+  it('uses first-tab identification in an expanded rail and renders a controlled rename checkpoint', () => {
+    const onIntent = vi.fn()
+    const initial: TabManagerViewModel = {
+      ...model,
+      compactIconMode: 'first',
+      renamingGroupId: 20,
+      renamingGroupTitle: 'Review draft',
+      windows: [
+        {
+          ...model.windows[0]!,
+          title: 'Active title',
+          tabs: [{ ...model.windows[0]!.tabs[0]!, title: 'First title' }],
+        },
+      ],
+    }
+    const { container, rerender } = render(
+      <Surface>
+        <TabManager model={initial} onIntent={onIntent} />
+      </Surface>,
+    )
+    expect(
+      container.querySelector('[data-nav-type="window"]'),
+    ).toHaveTextContent('First title')
+    expect(screen.getByRole('textbox')).toHaveValue('Review draft')
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Edited draft' },
+    })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-group-rename',
+      groupId: 20,
+      title: 'Edited draft',
+    })
+    rerender(
+      <Surface>
+        <TabManager
+          model={{ ...initial, renamingGroupTitle: 'Restored draft' }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    expect(screen.getByRole('textbox')).toHaveValue('Restored draft')
   })
 
   it.each(['Enter', ' '])(
@@ -97,8 +225,8 @@ describe('TabManager presentation', () => {
       // A browser activates a focused native button after the key's default action.
       fireEvent.click(close)
       expect(onIntent).toHaveBeenCalledExactlyOnceWith({
-        type: 'close-tabs',
-        tabIds: [10],
+        type: 'close-item',
+        item: { type: 'tab', id: 10 },
       })
     },
   )
@@ -118,7 +246,10 @@ describe('TabManager presentation', () => {
               onIntent(intent)
               if (intent.type === 'navigate' && intent.key === 'ContextMenu')
                 setCurrent({ ...current, actionMenu: {} })
-              if (intent.type === 'dismiss-action-menu')
+              if (
+                intent.type === 'dismiss-action-menu' ||
+                (intent.type === 'run-action' && intent.actionId === 'dismiss')
+              )
                 setCurrent({ ...current, actionMenu: null })
             }}
           />
@@ -139,7 +270,90 @@ describe('TabManager presentation', () => {
     expect(onIntent).toHaveBeenCalledOnce()
     expect(fireEvent.keyDown(dismiss, { key: 'Enter' })).toBe(true)
     fireEvent.click(dismiss)
-    expect(onIntent).toHaveBeenLastCalledWith({ type: 'dismiss-action-menu' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'run-action',
+      actionId: 'dismiss',
+    })
+  })
+
+  it('replaces the whole tab pane when switching windows without retaining exited rows', () => {
+    const other = {
+      id: 2,
+      title: 'Other',
+      tabs: [{ id: 11, title: 'Other tab' }],
+      groups: [],
+    }
+    const { rerender } = render(
+      <Surface>
+        <TabManager
+          model={{ ...model, windows: [...model.windows, other] }}
+          onIntent={vi.fn()}
+        />
+      </Surface>,
+    )
+    expect(
+      screen.getByRole('option', { name: 'Tab: Tabby' }),
+    ).toBeInTheDocument()
+    rerender(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            windows: [...model.windows, other],
+            viewedWindowId: 2,
+          }}
+          onIntent={vi.fn()}
+        />
+      </Surface>,
+    )
+    expect(
+      screen.queryByRole('option', { name: 'Tab: Tabby' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: 'Tab: Other tab' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders controlled panels and emits group rename and creation intents', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            actionPanel: { actionId: 'move' },
+            actions: [
+              {
+                id: 'move',
+                label: 'Move tabs',
+                icon: 'MonitorUp',
+                kind: 'primary',
+                panel: 'windows',
+                options: [{ id: '2', label: 'Second window' }],
+              },
+            ],
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Second window' }))
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'run-action',
+      actionId: 'move',
+      optionId: '2',
+    })
+    fireEvent.doubleClick(screen.getByRole('button', { name: 'Reading' }))
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'start-group-rename',
+      groupId: 20,
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'New Tab in Reading' }))
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'create-tab',
+      windowId: 1,
+      groupId: 20,
+    })
   })
 
   it('keeps theme tokens, group IDs and controlled menu portals within each instance', () => {
@@ -282,14 +496,14 @@ describe('TabManager presentation', () => {
             model={current}
             onIntent={(intent) => {
               onIntent(intent)
-              if (intent.type === 'close-tabs')
+              if (intent.type === 'close-item')
                 setCurrent({
                   ...current,
                   windows: [
                     {
                       ...current.windows[0]!,
                       tabs: current.windows[0]!.tabs.filter(
-                        (tab) => !intent.tabIds.includes(tab.id),
+                        (tab) => intent.item.id !== tab.id,
                       ),
                     },
                   ],

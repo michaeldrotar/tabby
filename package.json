@@ -37,8 +37,6 @@
     "test:e2e:ui": "turbo e2e:ui",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "storybook": "pnpm exec turbo ready && pnpm -F @extension/storybook dev",
-    "build-storybook": "pnpm exec turbo ready && pnpm -F @extension/storybook build",
     "prep": "node scripts/prep-release.mjs",
     "copy-env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
@@ -51,7 +49,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@tanstack/eslint-plugin-query": "^5.91.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/chrome": "^0.1.32",

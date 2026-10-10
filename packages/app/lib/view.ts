@@ -3,18 +3,24 @@ import {
   createSelectionInteractionState,
 } from '@extension/core/selection/SelectionModel'
 import { createStore } from 'zustand/vanilla'
+import { createNotificationState } from './notifications'
+import type { NotificationState } from './notifications'
 import type { SelectionModelContext } from '@extension/core/selection/SelectionModel'
 import type { TabManagerViewModel } from '@extension/ui/tab-manager/TabManager'
 
 export type TabManagerViewState = {
   viewedWindowId: number | null
   selection: SelectionModelContext
-  sidebarExpanded: boolean
+  sidebarExpanded: boolean | null
   focusedItem: NonNullable<TabManagerViewModel['focusedItem']> | null
   hoveredItem: NonNullable<TabManagerViewModel['hoveredItem']> | null
   actionMenu: TabManagerViewModel['actionMenu']
-  notice: TabManagerViewModel['notice']
+  notifications: NotificationState
   scrollTop: number
+  actionPanel: TabManagerViewModel['actionPanel']
+  renamingGroupId: number | null
+  renamingGroupTitle: string | null
+  scrollToItem: { id: number; revision: number } | null
 }
 
 export const createTabManagerView = (
@@ -26,12 +32,16 @@ export const createTabManagerView = (
       selection: { ...createEmptySelectionSnapshot(), mode: 'default' },
       interaction: createSelectionInteractionState(),
     },
-    sidebarExpanded: false,
+    sidebarExpanded: null,
     focusedItem: null,
     hoveredItem: null,
     actionMenu: null,
-    notice: null,
+    notifications: createNotificationState(),
     scrollTop: 0,
+    actionPanel: null,
+    renamingGroupId: null,
+    renamingGroupTitle: null,
+    scrollToItem: null,
     ...structuredClone(initial),
   }))
 

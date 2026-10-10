@@ -1,5 +1,4 @@
 import eslint from '@eslint/js'
-import pluginQuery from '@tanstack/eslint-plugin-query'
 import { defineConfig } from 'eslint/config'
 import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { flatConfigs as importXFlatConfig } from 'eslint-plugin-import-x'
@@ -16,19 +15,12 @@ import localRules from './eslint-rules/index.js'
 export default defineConfig([
   // Shared configs
   eslint.configs.recommended,
-  ...pluginQuery.configs['flat/recommended'],
   ...tsConfigs.recommended,
   reactHooks.configs.flat.recommended,
   jsxA11y.flatConfigs.recommended,
   importXFlatConfig.recommended,
   importXFlatConfig.typescript,
   eslintPluginPrettierRecommended,
-  // ...fixupConfigRules(
-  //   new FlatCompat().extends(
-  //     // 'plugin:@tanstack/eslint-plugin-query/recommended',
-  //     'plugin:react-hooks/recommended',
-  //   ) as FixupConfigArray,
-  // ),
   {
     files: ['**/*.{ts,tsx,mts}'],
     ...reactPlugin.configs.flat.recommended,
@@ -42,7 +34,6 @@ export default defineConfig([
       '**/dist/**',
       '**/dist-zip/**',
       '**/node_modules/**',
-      '**/storybook-static/**',
       'chrome-extension/manifest.js',
       'eslint-rules/**',
       'scripts/**',
@@ -103,14 +94,6 @@ export default defineConfig([
       'func-style': 'off', // Replaced by local/func-style-fix which has auto-fix
       'local/func-style-fix': 'error',
       'local/prefer-inline-export': 'error',
-      'no-restricted-imports': [
-        'error',
-        {
-          name: 'type-fest',
-          message:
-            'Please import from `@extension/shared` instead of `type-fest`.',
-        },
-      ],
       'arrow-body-style': ['off'],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-exports': 'error',
@@ -158,19 +141,11 @@ export default defineConfig([
       reportUnusedDisableDirectives: 'error',
     },
   },
-  // Overrides Rules
-  {
-    files: ['**/packages/shared/**/*.ts'],
-    rules: {
-      'no-restricted-imports': 'off',
-    },
-  },
-  // Node.js scripts
+  // Browser-independent product packages
   {
     files: [
       'packages/{core,demo,app}/lib/**/*.{ts,tsx}',
-      'packages/ui/lib/Surface.tsx',
-      'packages/ui/lib/tab-manager/TabManager.tsx',
+      'packages/ui/lib/**/*.{ts,tsx}',
     ],
     rules: {
       'no-restricted-imports': [
@@ -235,6 +210,31 @@ export default defineConfig([
         'navigator',
         'localStorage',
         'sessionStorage',
+      ],
+    },
+  },
+  {
+    files: ['packages/{ui,demo}/lib/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@extension/chrome',
+                '@extension/chrome/**',
+                '@extension/storage',
+                '@extension/storage/**',
+                '@extension/app',
+                '@extension/app/**',
+                '**/pages/**',
+              ],
+              message:
+                'Presentation and memory resources must not depend on application orchestration or external adapters.',
+            },
+          ],
+        },
       ],
     },
   },

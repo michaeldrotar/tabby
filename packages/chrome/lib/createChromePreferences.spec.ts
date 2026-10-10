@@ -24,6 +24,10 @@ const mockStorage = () => {
     storage: {
       local: {
         get: vi.fn(async () => structuredClone(data)),
+        remove: vi.fn(async (key: string) => {
+          delete data[key]
+          emit(undefined)
+        }),
         set: vi.fn(async (values: Record<string, unknown>) => {
           data = { ...data, ...values }
           emit(data[storageKey])
@@ -78,7 +82,8 @@ describe('Chrome preferences', () => {
       ...defaultPreferences,
       theme: 'dark',
     })
-    emit(undefined)
+    await preferences.reset()
+    expect(mock.storage.local.remove).toHaveBeenCalledWith(storageKey)
     expect(preferences.getSnapshot()).toEqual(defaultPreferences)
     preferences.dispose()
     expect(size()).toBe(0)

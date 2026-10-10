@@ -15,6 +15,14 @@ export interface FixtureOptions {
   now?: number
 }
 
+type ExplicitFields = {
+  windowId?: number
+  index?: number
+  active?: boolean
+  focused?: boolean
+}
+const explicitFields = new WeakMap<object, ExplicitFields>()
+
 /** Each builder owns its identifiers and clock; creating another resets the scene. */
 export const createFixtureBuilder = ({
   seed = 'tabby',
@@ -33,13 +41,6 @@ export const createFixtureBuilder = ({
   let nextWindowId = 1
   let nextTabId = 1
   let nextGroupId = 1
-  type ExplicitFields = {
-    windowId?: number
-    index?: number
-    active?: boolean
-    focused?: boolean
-  }
-  const explicitFields = new WeakMap<object, ExplicitFields>()
   const fieldsFor = (record: object): ExplicitFields =>
     explicitFields.get(record) ?? record
   const remember = <T extends object>(record: T, fields: ExplicitFields): T => {

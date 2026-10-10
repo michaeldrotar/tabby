@@ -6,7 +6,7 @@ import {
   WINDOW_SWITCH_SLOT_COUNT,
 } from '@extension/chrome/window/windowSwitchSlots'
 import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
-import type { ManifestType } from '@extension/shared/utils/types'
+import type { ManifestType } from '@extension/chrome/manifest'
 
 // Read version from root package.json (the single source of truth)
 const __filename = fileURLToPath(import.meta.url)
@@ -40,7 +40,7 @@ const manifest = {
   action: {
     default_icon: 'tabby-face.png',
     default_title: 'Search with Tabby',
-    default_popup: 'omnibar-popup/index.html',
+    default_popup: 'omnibar/index.html',
   },
   icons: {
     '128': 'tabby-face.png',

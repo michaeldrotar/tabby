@@ -1,5 +1,0 @@
-{
-  "extends": "@extension/tsconfig/app.json",
-  "compilerOptions": {},
-  "include": ["src", "vite.config.mts", "tailwind.config.ts"]
-}
