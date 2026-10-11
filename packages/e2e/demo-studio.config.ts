@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
-  testDir: './workbench',
+  testDir: './demo-studio',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -12,7 +12,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'pnpm -F @extension/workbench dev',
+    command: 'pnpm -F @extension/demo-studio dev',
     cwd: '../..',
     url: 'http://127.0.0.1:5180',
     reuseExistingServer: !process.env.CI,

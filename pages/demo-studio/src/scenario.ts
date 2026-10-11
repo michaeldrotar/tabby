@@ -29,7 +29,11 @@ import type { MemoryCheckpoint, MemoryScenePreset } from '@extension/demo'
 import type { TimelineFrame } from '@extension/demo/player'
 import type { TabManagerItem } from '@extension/ui/tab-manager/TabManager'
 
-export type Sharing = 'none' | 'data' | 'all'
+export type Sharing = {
+  data: boolean
+  state: boolean
+  preferences: boolean
+}
 export type Dataset = MemoryScenePreset
 export type Product = 'manager' | 'omnibar' | 'options'
 export type NavigationState = { product: Product; notice: string | null }
@@ -54,7 +58,6 @@ type Checkpoint = {
 const baselineTime = memorySceneTime
 export const createScenario = async (
   sharing: Sharing,
-  sharePreferences: boolean,
   ignoreCommands = false,
   dataset: Dataset = 'standard',
 ) => {
@@ -76,30 +79,29 @@ export const createScenario = async (
       commands: ignoreCommands ? 'ignore' : 'apply',
     },
   )
-  const rightBackend =
-    sharing === 'none'
-      ? new MemoryBackend(createMemoryScene(dataset, { variant: 'right' }), {
-          commands: ignoreCommands ? 'ignore' : 'apply',
-        })
-      : leftBackend
+  const rightBackend = sharing.data
+    ? leftBackend
+    : new MemoryBackend(createMemoryScene(dataset, { variant: 'right' }), {
+        commands: ignoreCommands ? 'ignore' : 'apply',
+      })
   const leftView = createTabManagerView({ viewedWindowId: 1 })
-  const rightView =
-    sharing === 'all' ? leftView : createTabManagerView({ viewedWindowId: 1 })
+  const rightView = sharing.state
+    ? leftView
+    : createTabManagerView({ viewedWindowId: 1 })
   const leftPreferences = createMemoryPreferences({ theme: 'light' })
-  const rightPreferences = sharePreferences
+  const rightPreferences = sharing.preferences
     ? leftPreferences
     : createMemoryPreferences({ theme: 'dark' })
   const leftNavigation = createStore<NavigationState>(() => ({
     product: 'manager',
     notice: null,
   }))
-  const rightNavigation =
-    sharing === 'all'
-      ? leftNavigation
-      : createStore<NavigationState>(() => ({
-          product: 'manager',
-          notice: null,
-        }))
+  const rightNavigation = sharing.state
+    ? leftNavigation
+    : createStore<NavigationState>(() => ({
+        product: 'manager',
+        notice: null,
+      }))
   const navigation = [leftNavigation, rightNavigation]
   const resources: TabManagerResources[] = [
     {
@@ -132,11 +134,11 @@ export const createScenario = async (
   const leftOptionsView = createOptionsView()
   const omnibarViews = [
     leftOmnibarView,
-    sharing === 'all' ? leftOmnibarView : createOmnibarView(),
+    sharing.state ? leftOmnibarView : createOmnibarView(),
   ]
   const optionsViews = [
     leftOptionsView,
-    sharing === 'all' ? leftOptionsView : createOptionsView(),
+    sharing.state ? leftOptionsView : createOptionsView(),
   ]
   const omnibarResources = resources.map((resource, index) =>
     createMemoryOmnibarResource(resource.backend, {
@@ -240,7 +242,7 @@ export const createScenario = async (
   })
   const restore = (checkpoint: Checkpoint) => {
     if (checkpoint.sceneVersion !== 1)
-      throw new Error('Unsupported Tab Manager tutorial version.')
+      throw new Error('Unsupported Demo Studio scene version.')
     controllers.forEach((controller) => controller.cancel())
     now = checkpoint.now
     clockOrigin = performance.now()

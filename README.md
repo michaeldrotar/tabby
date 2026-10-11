@@ -113,11 +113,11 @@ tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
 restart after application source changes. The preview data stays in memory;
 Chrome-extension E2E tests cover integration with the actual browser.
 
-## Reusable Product Demos
+## Demo Studio
 
-Run `pnpm workbench` and open [the workbench](http://localhost:5180/) to use Tab Manager, Omnibar, and Options with sample data. Instances can share browser data, view state, and preferences independently, with separate themes. The tutorial supports play, pause, seeking, and complete rewind; Still Frame disables product input and motion.
+Run `pnpm demo-studio` and open the URL it prints (usually [Demo Studio](http://localhost:5180/)) to use Tab Manager, Omnibar, and Options with sample data. Demo Studio starts with one instance; enable a second to compare shared browser data, view state, preferences, and themes. Choose Explore, Guided, Still, or Anatomy from the sidebar, then switch products from the stage. Appearance controls set the selected instance's theme and edit its background, foreground, and accent palettes.
 
-The [workbench guide](./pages/workbench/README.md) documents resource composition, sample scenes, and verification. The [UI guide](./packages/ui/README.md) covers styling and embedding complete surfaces or individual components.
+The [Demo Studio guide](./pages/demo-studio/README.md) documents resource composition, sample scenes, and verification. The [UI guide](./packages/ui/README.md) covers styling and embedding complete surfaces or individual components.
 
 ## Releasing
 
