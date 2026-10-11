@@ -119,6 +119,8 @@ Run `pnpm workbench` and open [the workbench](http://localhost:5180/) to use Tab
 
 The [workbench guide](./pages/workbench/README.md) documents resource composition, sample scenes, and verification. The [UI guide](./packages/ui/README.md) covers styling and embedding complete surfaces or individual components.
 
+The [marketing site](./pages/marketing/README.md) showcases Tabby with local screenshots, a captioned walkthrough, and interactive product demos. Run `pnpm exec turbo ready` and `pnpm -F @extension/marketing dev`, then open [the site](http://127.0.0.1:5183/).
+
 ## Releasing
 
 This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`

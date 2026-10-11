@@ -365,6 +365,37 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
+  pages/marketing:
+    dependencies:
+      '@extension/app':
+        specifier: workspace:*
+        version: link:../../packages/app
+      '@extension/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@extension/demo':
+        specifier: workspace:*
+        version: link:../../packages/demo
+      '@extension/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      zustand:
+        specifier: ^5.0.9
+        version: 5.0.9(@types/react@19.2.7)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+    devDependencies:
+      '@extension/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.4
+      '@vitejs/plugin-react-swc':
+        specifier: ^4.2.2
+        version: 4.2.2(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+      vite:
+        specifier: ^7.2.6
+        version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(sass@1.92.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
   pages/omnibar:
     dependencies:
       '@extension/app':

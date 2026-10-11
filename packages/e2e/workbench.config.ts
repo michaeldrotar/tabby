@@ -11,10 +11,18 @@ export default defineConfig({
     viewport: { width: 1280, height: 1000 },
     trace: 'retain-on-failure',
   },
-  webServer: {
-    command: 'pnpm -F @extension/workbench dev',
-    cwd: '../..',
-    url: 'http://127.0.0.1:5180',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: 'pnpm -F @extension/workbench dev',
+      cwd: '../..',
+      url: 'http://127.0.0.1:5180',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'pnpm -F @extension/marketing dev',
+      cwd: '../..',
+      url: 'http://127.0.0.1:5183',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 })
