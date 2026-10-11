@@ -1,0 +1,26 @@
+{
+  "name": "@extension/promotional-assets",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gallery": "vite --host 127.0.0.1 --port 5181 --strictPort",
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@extension/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@extension/tsconfig": "workspace:*",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "@types/node": "^24.10.1",
+    "vite": "^7.2.6"
+  },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
+  }
+}
