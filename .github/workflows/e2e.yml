@@ -22,4 +22,4 @@ jobs:
       - run: pnpm install --frozen-lockfile --prefer-offline
       - run: pnpm --filter @extension/e2e exec playwright install --with-deps chromium
       - run: xvfb-run pnpm e2e
-      - run: pnpm test:workbench
+      - run: pnpm test:demo-studio
