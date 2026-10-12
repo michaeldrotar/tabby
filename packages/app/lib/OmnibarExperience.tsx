@@ -80,18 +80,16 @@ export const OmnibarExperience = ({
     if (!live || !state.query) return
     let cancelled = false
     const query = state.query
-    const timer = setTimeout(() => {
-      void resource.search(query).then(
-        (externalResults) => {
-          if (!cancelled)
-            view.setState({ externalResults, resultsQuery: query })
-        },
-        () => {
-          if (!cancelled)
-            view.setState({ externalResults: [], resultsQuery: query })
-        },
-      )
-    }, 200)
+    const search = async () => {
+      try {
+        const externalResults = await resource.search(query)
+        if (!cancelled) view.setState({ externalResults, resultsQuery: query })
+      } catch {
+        if (!cancelled)
+          view.setState({ externalResults: [], resultsQuery: query })
+      }
+    }
+    const timer = setTimeout(() => void search(), 200)
     return () => {
       cancelled = true
       clearTimeout(timer)

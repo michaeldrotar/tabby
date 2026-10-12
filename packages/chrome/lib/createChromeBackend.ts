@@ -75,10 +75,9 @@ const normalizeSnapshot = (
       audible: tab.audible,
       muted: tab.mutedInfo?.muted,
       faviconUrl:
-        tab.favIconUrl ??
-        (runtime && tab.url
+        runtime && tab.url
           ? getChromeFaviconUrl(runtime, tab.url, 32)
-          : undefined),
+          : tab.favIconUrl,
       lastAccessed: tab.lastAccessed,
       groupId: tab.groupId >= 0 ? tab.groupId : undefined,
     }))

@@ -24,7 +24,8 @@
     "postinstall": "pnpm ready"
   },
   "dependencies": {
-    "@extension/core": "workspace:*"
+    "@extension/core": "workspace:*",
+    "@extension/shared": "workspace:*"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"

@@ -154,9 +154,6 @@ importers:
       '@extension/ui':
         specifier: workspace:*
         version: link:../packages/ui
-      webextension-polyfill:
-        specifier: ^0.12.0
-        version: 0.12.0
     devDependencies:
       '@extension/hmr':
         specifier: workspace:*
@@ -198,6 +195,9 @@ importers:
       '@extension/core':
         specifier: workspace:*
         version: link:../core
+      '@extension/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@extension/tsconfig':
         specifier: workspace:*
@@ -3970,9 +3970,6 @@ packages:
     resolution: {integrity: sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==}
     engines: {node: '>=18'}
 
-  webextension-polyfill@0.12.0:
-    resolution: {integrity: sha512-97TBmpoWJEE+3nFBQ4VocyCdLKfw54rFaJ6EVQYLBCXqCIpLSZkwGgASpv4oPt9gdKCJ80RJlcmNzNn008Ag6Q==}
-
   webidl-conversions@8.0.0:
     resolution: {integrity: sha512-n4W4YFyz5JzOfQeA8oN7dUYpR+MBP3PIUsn2jLjWXwK5ASUzt0Jc/A5sAUZoCYFJRGF0FBKJ+1JjN43rNdsQzA==}
     engines: {node: '>=20'}
@@ -7658,8 +7655,6 @@ snapshots:
   w3c-xmlserializer@5.0.0:
     dependencies:
       xml-name-validator: 5.0.0
-
-  webextension-polyfill@0.12.0: {}
 
   webidl-conversions@8.0.0: {}
 

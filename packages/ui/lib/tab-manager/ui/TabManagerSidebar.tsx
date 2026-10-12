@@ -78,10 +78,15 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         )
       }
     }
-    void (widthTransition?.finished ?? Promise.resolve()).then(
-      lowerSurface,
-      lowerSurface,
-    )
+    const finishCollapse = async () => {
+      try {
+        await widthTransition?.finished
+      } catch {
+        // A cancelled transition also releases the sidebar's raised surface.
+      }
+      lowerSurface()
+    }
+    void finishCollapse()
     return () => {
       cancelled = true
     }
@@ -189,7 +194,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
                 isExpanded ? 'visible' : 'invisible',
               )}
             >
-              {windowCount} Windows
+              {windowCount} {windowCount === 1 ? 'window' : 'windows'}
             </span>
           )}
         </div>

@@ -22,6 +22,7 @@ const setup = () => {
     sidePanel: { open: vi.fn(async () => {}) },
     action: { openPopup: vi.fn(async () => {}) },
     runtime: {
+      id: 'tabby-test',
       openOptionsPage: vi.fn(async () => {}),
       sendMessage: vi.fn(async () => undefined),
       onMessage,
@@ -57,11 +58,25 @@ describe('Chrome Tab Manager host', () => {
     expect(api.sidePanel.open).toHaveBeenCalledWith({ windowId: 9 })
     onFocusChanged.emit(9)
     onFocusChanged.emit(5)
-    onMessage.emit({ type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 9 })
-    onMessage.emit({
-      type: 'TAB_MANAGER_WINDOW_ACTIVATED',
-      windowId: 'invalid',
-    })
+    onMessage.emit(
+      { type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 9 },
+      { id: api.runtime.id },
+    )
+    onMessage.emit(
+      {
+        type: 'TAB_MANAGER_WINDOW_ACTIVATED',
+        windowId: 'invalid',
+      },
+      { id: api.runtime.id },
+    )
+    onMessage.emit(
+      { type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 3 },
+      { id: 'another-extension' },
+    )
+    onMessage.emit(
+      { type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: NaN },
+      { id: api.runtime.id },
+    )
     expect(activate.mock.calls).toEqual([[5], [9]])
     host.dispose()
     onMessage.emit({ type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 2 })

@@ -16,7 +16,7 @@ import {
 } from '@extension/demo'
 import { createDemoPlayer } from '@extension/demo/player'
 import { createStore } from 'zustand/vanilla'
-import logoUrl from '../../../chrome-extension/public/tabby-face.png?url'
+import logoUrl from '../../../chrome-extension/public/tabby-face-128.png?url'
 import type {
   OmnibarViewState,
   OptionsViewState,
@@ -276,7 +276,7 @@ export const createScenario = async (
   )
   controllers.forEach((controller) => controller.reconcile())
   const frames: TimelineFrame<Checkpoint>[] = [
-    { at: 0, title: 'Start with a clean Tab Manager', state: capture() },
+    { at: 0, title: 'Start with a clean Tab manager', state: capture() },
   ]
   const step = async (
     at: number,
@@ -396,7 +396,7 @@ export const createScenario = async (
   await step(19200, 'Change the shared appearance preferences', () =>
     leftPreferences.set({ themeLightAccent: 'rose', themeDarkAccent: 'rose' }),
   )
-  await step(21200, 'Return to the updated Tab Manager', () =>
+  await step(21200, 'Return to the updated Tab manager', () =>
     leftNavigation.setState({ product: 'manager' }),
   )
   const player = createDemoPlayer<Checkpoint>(

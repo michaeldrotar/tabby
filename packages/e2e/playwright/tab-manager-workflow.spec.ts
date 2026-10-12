@@ -41,7 +41,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await expect(page).toHaveTitle('Options')
 
     await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
-    await expect(page).toHaveTitle('Tab Manager')
+    await expect(page).toHaveTitle('Tab manager')
     await page.waitForSelector('[data-nav-type="window"]')
 
     await page.getByRole('button', { name: 'Expand sidebar' }).click()
@@ -57,7 +57,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
       chrome.windows.getAll({ populate: false }),
     ])
     if (currentTab?.id === undefined || currentWindow.id === undefined) {
-      throw new Error('The Tab Manager browser window was not available.')
+      throw new Error('The Tab manager browser window was not available.')
     }
 
     await Promise.all(
@@ -342,7 +342,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
       },
       { windowId: sourceWindowId, groupId },
     )
-    await page.getByRole('button', { name: 'New Tab in Project group' }).click()
+    await page.getByRole('button', { name: 'New tab in Project group' }).click()
     await expect
       .poll(() =>
         page.evaluate(
@@ -384,7 +384,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
       sourceWindowId,
     )
     const existingTabCount = existingTabIds.length
-    await page.getByRole('button', { name: 'New Tab', exact: true }).click()
+    await page.getByRole('button', { name: 'New tab', exact: true }).click()
     await expect
       .poll(() =>
         page.evaluate(
@@ -419,7 +419,7 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
 
   let destinationWindowId = -1
   await test.step('create a window and move a tab batch into it', async () => {
-    await page.getByRole('button', { name: 'New Window', exact: true }).click()
+    await page.getByRole('button', { name: 'New window', exact: true }).click()
     await expect(getWindows(page)).toHaveCount(2)
 
     destinationWindowId = await page.evaluate(async (sourceId) => {
@@ -491,11 +491,11 @@ test('extension tab management workflow', async ({ page, extensionId }) => {
     await expect(optionsPage).toHaveTitle('Options')
     const identificationSelect = optionsPage
       .getByRole('combobox')
-      .filter({ hasText: 'Active Tab' })
+      .filter({ hasText: 'Active tab' })
     await identificationSelect.click()
-    await optionsPage.getByRole('option', { name: 'First Tab' }).click()
+    await optionsPage.getByRole('option', { name: 'First tab' }).click()
     await expect(
-      optionsPage.getByRole('combobox').filter({ hasText: 'First Tab' }),
+      optionsPage.getByRole('combobox').filter({ hasText: 'First tab' }),
     ).toBeVisible()
     await optionsPage.close()
     await page.bringToFront()

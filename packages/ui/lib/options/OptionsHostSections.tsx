@@ -5,7 +5,15 @@ import type { OptionsProps } from './Options'
 export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
   <div className="mb-10 text-center">
     <div className="mb-4 flex items-center justify-center gap-3">
-      {logoUrl && <img src={logoUrl} className="h-12 w-12" alt="Tabby logo" />}
+      {logoUrl && (
+        <img
+          src={logoUrl}
+          width={48}
+          height={48}
+          className="h-12 w-12"
+          alt=""
+        />
+      )}
       <h1 className={cn('text-3xl font-bold', 'text-foreground')}>Tabby</h1>
     </div>
     <p className="text-muted">Your friendly tab manager for Chrome</p>
@@ -16,7 +24,7 @@ export const OptionsSidePanelSettings = ({
 }: Pick<OptionsProps, 'openSidePanelSettings'>) => (
   <section className="mb-6">
     <h2 className="text-foreground mb-4 text-lg font-semibold">
-      Side Panel Position
+      Side panel position
     </h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
       <div
@@ -28,7 +36,7 @@ export const OptionsSidePanelSettings = ({
         `}
       >
         <p className="text-muted text-sm">
-          Move the Tab Manager between the left and right sides of your browser.
+          Move the Tab manager between the left and right sides of your browser.
         </p>
         <button
           onClick={openSidePanelSettings}
@@ -45,13 +53,13 @@ export const OptionsSidePanelSettings = ({
           )}
         >
           <ExternalLinkIcon className="h-4 w-4" />
-          Open Appearance Settings
+          Open appearance settings
         </button>
       </div>
       <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
-        <h4 className="text-foreground mb-2 text-sm font-medium">
+        <h3 className="text-foreground mb-2 text-sm font-medium">
           How to change the side panel position:
-        </h4>
+        </h3>
         <ol className={`text-muted list-inside list-decimal space-y-2 text-sm`}>
           <li>Scroll down to the "Side panel" section</li>
           <li>
@@ -59,7 +67,7 @@ export const OptionsSidePanelSettings = ({
             <strong className="text-foreground">"Show on left side"</strong> or{' '}
             <strong className="text-foreground">"Show on right side"</strong>
           </li>
-          <li>The Tab Manager will move to your chosen side</li>
+          <li>The Tab manager will move to your chosen side</li>
         </ol>
       </div>
     </div>

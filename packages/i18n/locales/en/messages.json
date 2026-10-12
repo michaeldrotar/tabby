@@ -8,7 +8,7 @@
     "description": "Extension name"
   },
   "displayErrorInfo": {
-    "message": "Error occur"
+    "message": "Unable to load this page"
   },
   "displayErrorDescription": {
     "message": "Sorry, something went wrong while loading the page."
@@ -20,7 +20,7 @@
     "message": "Unknown error"
   },
   "displayErrorReset": {
-    "message": "Run Again"
+    "message": "Try again"
   },
   "nTabs": {
     "message": "$COUNT$ tabs",
@@ -70,13 +70,13 @@
     "message": "Move to Window"
   },
   "tabContextMenu_newWindow": {
-    "message": "New Window"
+    "message": "New window"
   },
   "tabManager_newTab": {
-    "message": "New Tab"
+    "message": "New tab"
   },
   "tabManager_newTabInGroup": {
-    "message": "New Tab in $1"
+    "message": "New tab in $1"
   },
   "tabContextMenu_copy": {
     "message": "Copy"
@@ -213,7 +213,7 @@
     "message": "Ungroup Tabs"
   },
   "groupContextMenu_moveToNewWindow": {
-    "message": "Move Group to New Window"
+    "message": "Move Group to New window"
   },
   "groupContextMenu_copyAllUrls": {
     "message": "Copy All URLs"
@@ -223,7 +223,7 @@
   },
 
   "windowContextMenu_focusWindow": {
-    "message": "Focus Window"
+    "message": "Focus window"
   },
   "windowContextMenu_muteAllTabs": {
     "message": "Mute All Tabs"

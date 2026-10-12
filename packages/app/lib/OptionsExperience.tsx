@@ -124,20 +124,20 @@ export const OptionsExperience = () => {
   const shortcutRows = [
     {
       id: 'open-omnibar',
-      name: 'Open Tabby Search',
+      name: 'Open Tabby search',
       description:
         'Opens the standard extension popup for tabs, bookmarks, and history',
       shortcut: metadata.shortcuts['open-omnibar'],
     },
     {
       id: 'open-tab-manager',
-      name: 'Open Tab Manager',
+      name: 'Open tab manager',
       description: 'Opens the side panel',
       shortcut: metadata.shortcuts['open-tab-manager'],
     },
     ...Array.from({ length: 10 }, (_, index) => ({
       id: `focus-window-${index + 1}`,
-      name: `Focus Window ${index + 1}`,
+      name: `Focus window ${index + 1}`,
       description: 'Focuses the numbered window and keeps its current tab',
       shortcut:
         metadata.shortcuts[

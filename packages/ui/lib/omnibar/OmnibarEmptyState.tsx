@@ -28,7 +28,7 @@ export const OmnibarEmptyState = ({
   if (query) {
     return (
       <div className="text-muted px-4 py-8 text-center">
-        No results found for "{query}"
+        No results found for “{query}”. Try a tab title or website address.
       </div>
     )
   }
@@ -38,13 +38,9 @@ export const OmnibarEmptyState = ({
       {/* Quick Actions */}
       {quickActions && quickActions.length > 0 && (
         <div className="mb-4">
-          <h3
-            className={`
-              text-muted mb-2 text-xs font-medium uppercase tracking-wider
-            `}
-          >
-            Quick Actions
-          </h3>
+          <h2 className={`text-muted mb-2 text-xs font-medium`}>
+            Quick actions
+          </h2>
           <div className="flex flex-col gap-1">
             {quickActions.map((action) => (
               <button
@@ -84,13 +80,7 @@ export const OmnibarEmptyState = ({
 
       {/* Tips */}
       <div>
-        <h3
-          className={`
-            text-muted mb-2 text-xs font-medium uppercase tracking-wider
-          `}
-        >
-          Tips
-        </h3>
+        <h2 className={`text-muted mb-2 text-xs font-medium`}>Tips</h2>
         <ul className="text-muted space-y-1.5 text-sm">
           <li className="flex items-start gap-2">
             <span className="text-muted mt-0.5">•</span>

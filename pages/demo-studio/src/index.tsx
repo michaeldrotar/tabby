@@ -21,7 +21,7 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useStore } from 'zustand'
-import logoUrl from '../../../chrome-extension/public/tabby-face.png?url'
+import logoUrl from '../../../chrome-extension/public/tabby-face-128.png?url'
 import { DemoTransport } from './DemoTransport'
 import { createScenario } from './scenario'
 import type { Dataset, Product, Scenario, Sharing } from './scenario'
@@ -125,7 +125,7 @@ const anatomyParts: {
 ]
 
 const productLabels = {
-  manager: 'Tab Manager',
+  manager: 'Tab manager',
   omnibar: 'Omnibar',
   options: 'Options',
 } as const
@@ -417,7 +417,8 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
     setAnatomyPart(partId)
     if (partId === 'search-results') {
       scenario.omnibarResources.forEach((resource, index) => {
-        void resource.search('Tabby').then((results) => {
+        const showResults = async () => {
+          const results = await resource.search('Tabby')
           const view = scenario.omnibarViews[index]!
           view.setState({
             ...view.getState(),
@@ -426,7 +427,10 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
             resultsQuery: 'Tabby',
             externalResults: results,
           })
-        })
+        }
+        void showResults().catch((error: unknown) =>
+          console.error('Could not load the search anatomy results', error),
+        )
       })
     }
   }
@@ -505,7 +509,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
   const guidedDuration = `${String(Math.floor(playback.duration / 60000)).padStart(2, '0')}:${String(Math.floor(playback.duration / 1000) % 60).padStart(2, '0')}`
   const chapters = [
     {
-      label: 'Tab Manager',
+      label: 'Tab manager',
       at: 0,
       detail: 'Select, organize, and act on tabs',
     },
@@ -930,7 +934,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                 </h2>
                 <p>
                   {studioPage === 'guided'
-                    ? 'Follow real mouse and keyboard actions across Tab Manager, Omnibar, and Options.'
+                    ? 'Follow real mouse and keyboard actions across Tab manager, Omnibar, and Options.'
                     : studioPage === 'anatomy'
                       ? `Explore ${productLabels[selectedProduct]} components in the live demo.`
                       : comparisonEnabled
@@ -1070,7 +1074,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
           </section>
         </div>
         <footer className="studio-footer">
-          Tab Manager, Omnibar, and Options run with deterministic sample data
+          Tab manager, Omnibar, and Options run with deterministic sample data
           and local memory resources.
         </footer>
       </main>
@@ -1080,7 +1084,8 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
 
 let disposed = false
 let applicationRoot: ReturnType<typeof createRoot> | undefined
-void createScenario(initialSharing, false).then((initial) => {
+const initialize = async () => {
+  const initial = await createScenario(initialSharing, false)
   if (disposed) {
     initial.dispose()
     return
@@ -1088,7 +1093,10 @@ void createScenario(initialSharing, false).then((initial) => {
   applicationRoot = createRoot(document.getElementById('root')!)
   initial.setInputMode('live')
   applicationRoot.render(<DemoStudio initial={initial} />)
-})
+}
+void initialize().catch((error: unknown) =>
+  console.error('Could not start the Demo Studio', error),
+)
 import.meta.hot?.dispose(() => {
   disposed = true
   applicationRoot?.unmount()

@@ -6,7 +6,7 @@ export const createChromeOptionsResource = (
   let snapshot: OptionsMetadata = {
     status: 'loading',
     isMac: false,
-    logoUrl: api.runtime.getURL('tabby-face.png'),
+    logoUrl: api.runtime.getURL('tabby-face-128.png'),
     shortcuts: {},
   }
   let generation = 0
@@ -25,8 +25,12 @@ export const createChromeOptionsResource = (
     start: () => {
       if (task) return task
       const operation = ++generation
-      task = Promise.all([api.runtime.getPlatformInfo(), api.commands.getAll()])
-        .then(([platform, commands]) => {
+      task = (async () => {
+        try {
+          const [platform, commands] = await Promise.all([
+            api.runtime.getPlatformInfo(),
+            api.commands.getAll(),
+          ])
           if (operation !== generation) return
           publish({
             ...snapshot,
@@ -40,8 +44,7 @@ export const createChromeOptionsResource = (
               ]),
             ),
           })
-        })
-        .catch((error: unknown) => {
+        } catch (error: unknown) {
           if (operation === generation) {
             task = undefined
             publish({
@@ -50,7 +53,8 @@ export const createChromeOptionsResource = (
               error: error instanceof Error ? error.message : String(error),
             })
           }
-        })
+        }
+      })()
       return task
     },
     dispose: () => {

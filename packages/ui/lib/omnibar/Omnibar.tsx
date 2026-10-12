@@ -2,6 +2,7 @@ import { formatShortcut } from '@extension/shared/utils/platform'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { LayoutGridIcon, SettingsIcon } from '../icons'
 import { ScrollArea } from '../ScrollArea'
+import { useSurfaceId } from '../Surface'
 import { cn } from '../utils/cn'
 import { OmnibarEmptyState } from './OmnibarEmptyState'
 import { OmnibarInput } from './OmnibarInput'
@@ -17,7 +18,7 @@ export type OmnibarProps = {
   onDismiss: () => void
   /** Results arranged by the application for the current query. */
   results: OmnibarSearchResult[]
-  /** If true, hides the "Open Tab Manager" quick action (useful when already in Tab Manager) */
+  /** If true, hides the "Open tab manager" quick action (useful when already in Tab Manager) */
   hideTabManagerAction?: boolean
   /** Callback to open the side panel tab manager */
   onOpenTabManager?: () => void | Promise<void>
@@ -61,6 +62,7 @@ export const Omnibar = ({
   scrollTop,
   onScrollChange,
 }: OmnibarProps) => {
+  const resultsId = useSurfaceId('search-results')
   const rootRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     if (scrollTop === undefined) return
@@ -73,6 +75,13 @@ export const Omnibar = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const localQuery = useOmnibarQuery(inputRef, controlledQuery, autofocus)
   const query = controlledQuery ?? localQuery.query
+  const highlightPattern = useMemo(() => {
+    const terms = query
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    return terms.length ? new RegExp(`(${terms.join('|')})`, 'gi') : null
+  }, [query])
   const setQuery = onQueryChange ?? localQuery.setQuery
   const [localModifiers, setLocalModifiers] = useState({
     command: false,
@@ -90,14 +99,15 @@ export const Omnibar = ({
   )
   const setSelectedIndex = onSelectedIndexChange ?? setLocalIndex
 
-  const openTabManager = useCallback(() => {
+  const openTabManager = useCallback(async () => {
     if (!onOpenTabManager) return
 
-    void Promise.resolve(onOpenTabManager())
-      .then(onDismiss)
-      .catch((error) => {
-        onError?.(error)
-      })
+    try {
+      await onOpenTabManager()
+      onDismiss()
+    } catch (error) {
+      onError?.(error)
+    }
   }, [onDismiss, onOpenTabManager, onError])
 
   // Quick actions for empty state
@@ -108,7 +118,7 @@ export const Omnibar = ({
       actions.push({
         id: 'open-tab-manager',
         icon: <LayoutGridIcon className="h-4 w-4" />,
-        label: 'Open Tab Manager',
+        label: 'Open tab manager',
         shortcut: formatShortcut(openTabManagerShortcut, isMac),
         onClick: openTabManager,
       })
@@ -118,9 +128,14 @@ export const Omnibar = ({
       actions.push({
         id: 'open-options',
         icon: <SettingsIcon className="h-4 w-4" />,
-        label: 'Open Options',
-        onClick: () => {
-          void Promise.resolve(onOpenOptions()).then(onDismiss).catch(onError)
+        label: 'Open options',
+        onClick: async () => {
+          try {
+            await onOpenOptions()
+            onDismiss()
+          } catch (error) {
+            onError?.(error)
+          }
         },
       })
 
@@ -169,8 +184,8 @@ export const Omnibar = ({
   }
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
-    e.stopPropagation()
     if (e.key === 'Escape') {
+      e.stopPropagation()
       onDismiss()
       return
     }
@@ -180,7 +195,6 @@ export const Omnibar = ({
   }
 
   const handleContainerKeyUp = (e: React.KeyboardEvent) => {
-    e.stopPropagation()
     if (e.key === 'Meta' || e.key === 'Control')
       setModifiers({ ...currentModifiers, command: false })
     if (e.key === 'Shift') setModifiers({ ...currentModifiers, shift: false })
@@ -199,17 +213,22 @@ export const Omnibar = ({
         'bg-card text-card-foreground flex h-full flex-col',
         className,
       )}
-      role="button"
-      tabIndex={0}
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={handleContainerKeyDown}
-      onKeyUp={handleContainerKeyUp}
+      role="search"
+      aria-label="Tabby search"
+      onKeyDownCapture={handleContainerKeyDown}
+      onKeyUpCapture={handleContainerKeyUp}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null))
           setModifiers({ command: false, shift: false })
       }}
     >
+      <h1 className="sr-only">Tabby search</h1>
       <OmnibarInput
+        resultsId={resultsId}
+        hasResults={filteredItems.length > 0}
+        activeResultId={
+          filteredItems.length ? `${resultsId}-${selectedIndex}` : undefined
+        }
         ref={inputRef}
         query={query}
         onChange={(e) => {
@@ -221,10 +240,16 @@ export const Omnibar = ({
 
       <ScrollArea orientation="vertical" className="flex-1">
         {filteredItems.length > 0 && (
-          <ul className="py-2">
+          <ul
+            id={resultsId}
+            role="listbox"
+            aria-label="Search results"
+            className="py-2"
+          >
             {filteredItems.map((item, index) => (
               <OmnibarItem
                 key={item.id}
+                resultId={`${resultsId}-${index}`}
                 item={item}
                 isSelected={index === selectedIndex}
                 onSelect={(item, modifier) =>
@@ -233,7 +258,7 @@ export const Omnibar = ({
                 onMouseMove={() => setSelectedIndex(index)}
                 isShiftPressed={isShiftPressed}
                 isCmdCtrlPressed={isCmdCtrlPressed}
-                query={query}
+                highlightPattern={highlightPattern}
               />
             ))}
           </ul>
@@ -246,6 +271,11 @@ export const Omnibar = ({
           isMac={isMac}
         />
       </ScrollArea>
+      <p className="sr-only" role="status" aria-atomic="true">
+        {query
+          ? `${filteredItems.length} ${filteredItems.length === 1 ? 'result' : 'results'}`
+          : ''}
+      </p>
     </div>
   )
 }

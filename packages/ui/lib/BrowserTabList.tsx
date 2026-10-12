@@ -182,7 +182,16 @@ export const BrowserTabList = memo(
     )
 
     return (
-      <TabList className={cn(className)}>
+      <TabList
+        className={cn(className)}
+        deferOffscreen={
+          items.reduce(
+            (count, item) =>
+              count + (item.type === 'tab' ? 1 : item.tabs.length),
+            0,
+          ) > 50
+        }
+      >
         <AnimatePresence mode="popLayout" initial={false}>
           {items.map((item) => {
             if (item.type === 'tab') {

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import tabbyFace from '../../../../chrome-extension/public/tabby-face.png'
+import tabbyFace from '../../../../product/brand/tabby-face.png'
 import { promoTileAssets, screenshotAssets } from '../data/promoAssets'
 import type { PromoAsset } from '../data/promoAssets'
 

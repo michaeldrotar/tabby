@@ -63,7 +63,7 @@ test('provider composition manages real tabs and windows with saved appearance',
     async () =>
       (await chrome.windows.getAll({ windowTypes: ['normal'] })).length,
   )
-  await page.getByRole('button', { name: 'New Window', exact: true }).click()
+  await page.getByRole('button', { name: 'New window', exact: true }).click()
   await expect
     .poll(async () =>
       worker.evaluate(
@@ -73,7 +73,7 @@ test('provider composition manages real tabs and windows with saved appearance',
     )
     .toBe(initialWindows + 1)
   await expect(
-    page.getByRole('option', { name: /Tab: (New Tab|newtab)/ }),
+    page.getByRole('option', { name: /Tab: (New [Tt]ab|newtab)/ }),
   ).toBeVisible()
   await page.reload()
   await expect(surface).toHaveAttribute('data-theme-accent', 'rose')

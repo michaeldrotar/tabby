@@ -32,7 +32,7 @@ const PaletteSelect = ({
       {label}
     </legend>
     <Select {...control} value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full">
+      <SelectTrigger aria-label={label} className="w-full">
         <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
       </SelectTrigger>
       <SelectContent>

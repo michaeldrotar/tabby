@@ -19,8 +19,7 @@
     "@extension/chrome": "workspace:*",
     "@extension/env": "workspace:*",
     "@extension/shared": "workspace:*",
-    "@extension/ui": "workspace:*",
-    "webextension-polyfill": "^0.12.0"
+    "@extension/ui": "workspace:*"
   },
   "devDependencies": {
     "@extension/hmr": "workspace:*",

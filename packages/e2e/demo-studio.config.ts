@@ -1,5 +1,8 @@
 import { defineConfig } from '@playwright/test'
 
+const port = Number(process.env.TABBY_DEMO_STUDIO_PORT ?? 5180)
+const baseURL = `http://127.0.0.1:${port}`
+
 export default defineConfig({
   testDir: './demo-studio',
   fullyParallel: false,
@@ -7,14 +10,14 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:5180',
+    baseURL,
     viewport: { width: 1280, height: 1000 },
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'pnpm -F @extension/demo-studio dev',
+    command: `pnpm -F @extension/demo-studio dev --port ${port}`,
     cwd: '../..',
-    url: 'http://127.0.0.1:5180',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
 })
