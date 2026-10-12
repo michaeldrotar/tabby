@@ -18,9 +18,9 @@ Most commands support `Cmd/Ctrl` to open in a new tab and `Shift` to open in a n
 You can change Tabby's shortcuts in Chrome's extension shortcut settings. The
 shortcuts shown above are the defaults.
 
-### Tab Manager
+### Tab manager
 
-Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open Tab Manager** inside the search popup to open the side panel.
+Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open tab manager** inside the search popup to open the side panel.
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
@@ -34,24 +34,13 @@ Manage all your windows and tabs in a clear view. Use the default Tab Manager sh
   - `Space` to toggle individual items in multi-select mode
   - `ESC` to clear selections and return to standard selection mode
 
-## Privacy & Security
+## Privacy and security
 
 Privacy is a core value of Tabby. Searches across your tabs, bookmarks, and history happen locally on your device. If you choose **Search Google**, Tabby opens Google with your query in the search URL.
 
 ### Permissions
 
-I believe in transparency. Here is a breakdown of every permission Tabby requests and why:
-
-| Permission                                                                          | Reason                                                                  |
-| :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------- |
-| [`favicon`](https://developer.chrome.com/docs/extensions/reference/api/favicon)     | Required to display icons for your tabs, bookmarks, and history items.  |
-| [`storage`](https://developer.chrome.com/docs/extensions/reference/api/storage)     | Used to save local preferences, such as your last search query.         |
-| [`tabs`](https://developer.chrome.com/docs/extensions/reference/api/tabs)           | Core functionality for listing, switching, and managing your open tabs. |
-| [`tabGroups`](https://developer.chrome.com/docs/extensions/reference/api/tabGroups) | Enables viewing and organizing your tab groups.                         |
-| [`sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel) | Required to display the Tab Manager in the browser's side panel.        |
-| [`bookmarks`](https://developer.chrome.com/docs/extensions/reference/api/bookmarks) | Allows searching and navigating your saved bookmarks.                   |
-| [`history`](https://developer.chrome.com/docs/extensions/reference/api/history)     | Allows searching and navigating your browsing history.                  |
-| [`sessions`](https://developer.chrome.com/docs/extensions/reference/api/sessions)   | Allows searching and restoring your recently closed tabs and windows.   |
+See [Chrome Web Store documentation](./CHROMEWEBSTORE.md#permissions-justification) for every requested permission and its purpose, and the [privacy policy](./PRIVACY.md) for data handling.
 
 ## Credits & Inspiration
 
@@ -121,9 +110,9 @@ The [Demo Studio guide](./pages/demo-studio/README.md) documents resource compos
 
 ## Releasing
 
-This project uses a **Product SemVer** versioning scheme: `Major.Minor.Patch`
+This project uses **semantic versioning**: `Major.Minor.Patch`
 
-- **Major** (`1.0.0`): Marketing major releases (e.g., Tabby 2.0)
+- **Major** (`1.0.0`): Breaking changes
 - **Minor** (`1.1.0`): New features
 - **Patch** (`1.0.1`): Bug fixes
 

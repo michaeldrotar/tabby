@@ -1,6 +1,6 @@
-# Privacy Policy for Tabby
+# Privacy policy for Tabby
 
-Last updated: October 7, 2026
+Last updated: October 11, 2026
 
 ## Introduction
 
@@ -8,7 +8,7 @@ Your privacy is critically important to me. This Privacy Policy explains how I h
 
 **The short version:** I do not receive your browsing data or preferences. Tabby stores your preferences, including your last search query, in your browser's local storage. Searches across tabs, bookmarks, and history happen locally. If you choose **Search Google**, Tabby opens Google with your query in the search URL, and Google receives it.
 
-## Data Collection and Usage
+## Data collection and usage
 
 Tabby is designed with privacy as a core value.
 
@@ -27,15 +27,17 @@ To provide its functionality, Tabby requires certain permissions.
 | `storage`   | Used to save your local preferences and settings on your device.                             |
 | `tabs`      | Core functionality for listing, switching, and managing your open tabs.                      |
 | `tabGroups` | Enables viewing and organizing your tab groups.                                              |
-| `sidePanel` | Required to display the Tab Manager in the browser's side panel.                             |
+| `sidePanel` | Required to display the tab manager in the browser's side panel.                             |
 | `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                |
 | `history`   | Allows searching and navigating your browsing history locally.                               |
 | `sessions`  | Allows searching and restoring your recently closed tabs and windows.                        |
 
-## Changes to This Policy
+Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance and tab manager defaults. Uninstalling removes the extension’s saved data. Tabby does not access website content or track your activity.
+
+## Changes to this policy
 
 I may update this Privacy Policy from time to time. I will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
 
-## Contact Me
+## Contact me
 
-If you have any questions about this Privacy Policy, please contact me via the GitHub repository.
+If you have any questions about this Privacy Policy, please contact me through [GitHub issues](https://github.com/michaeldrotar/tabby/issues).
