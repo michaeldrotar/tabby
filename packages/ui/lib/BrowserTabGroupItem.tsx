@@ -195,7 +195,7 @@ export const BrowserTabGroupItem = memo(
           ref={ref}
           className={cn(
             'group/tab-group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
-            'transition-all duration-200',
+            'transition-[background-color,border-color,box-shadow] duration-200',
             selected &&
               'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
             isMultiSelectMode
@@ -244,43 +244,76 @@ export const BrowserTabGroupItem = memo(
             />
           )}
 
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleClick}
-            onDoubleClick={handleDoubleClick}
-            onKeyDown={handleButtonKeyDown}
-            className={cn(
-              `
-                hover:bg-highlighted/30
-                group-data-[hover=true]/tab-group:bg-highlighted/30
-                mb-1 flex w-full cursor-pointer items-center gap-2 rounded-md
-                px-2 py-1 text-left transition-colors
-                focus:outline-none
-                focus-visible:outline-none
-              `,
-            )}
-            aria-expanded={!collapsed}
-            aria-controls={groupId !== undefined ? contentId : undefined}
+          <div
+            className={`
+              mb-1 flex w-full items-center gap-2 rounded-md px-2 py-1
+            `}
           >
-            <div
-              role="button"
-              tabIndex={-1}
+            {isRenaming ? (
+              <input
+                ref={inputRef}
+                type="text"
+                name="group-name"
+                aria-label="Group name"
+                autoComplete="off"
+                {...(renameTitle === undefined
+                  ? { defaultValue: title ?? '' }
+                  : { value: renameTitle })}
+                onChange={(event) =>
+                  onRenameTitleChange?.(event.currentTarget.value)
+                }
+                onKeyDown={handleRenameKeyDown}
+                onFocus={() => {
+                  hasRenameInputFocusedRef.current = ownsInput()
+                }}
+                onBlur={handleRenameBlur}
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  `
+                    border-border bg-background flex-1 rounded border px-1.5
+                    py-0.5 text-sm font-semibold outline-none
+                    focus:border-accent focus:ring-accent focus:ring-1
+                  `,
+                  colorClasses.text,
+                )}
+              />
+            ) : (
+              <button
+                ref={buttonRef}
+                data-group-option="true"
+                type="button"
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                onKeyDown={handleButtonKeyDown}
+                aria-expanded={!collapsed}
+                aria-controls={groupId !== undefined ? contentId : undefined}
+                className={cn(
+                  `
+                    hover:bg-highlighted/30
+                    min-w-0 flex-1 rounded text-left text-sm font-semibold
+                    focus-visible:outline-none
+                  `,
+                  colorClasses.text,
+                )}
+              >
+                <span className="block truncate">
+                  {title || 'Untitled group'}
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
               onClick={handleChevronClick}
               onDoubleClick={handleChevronDoubleClick}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onToggleCollapse?.()
-                }
-              }}
+              aria-expanded={!collapsed}
+              aria-controls={groupId !== undefined ? contentId : undefined}
+              aria-label={`${collapsed ? 'Expand' : 'Collapse'} group ${title || 'Untitled group'}`}
               className={`
                 hover:bg-background/80
-                flex h-5 w-5 items-center justify-center rounded
-                transition-colors
+                order-first flex h-5 w-5 shrink-0 items-center justify-center
+                rounded transition-colors
+                focus-visible:outline-none
               `}
-              aria-label={collapsed ? 'Expand group' : 'Collapse group'}
             >
               {prefersReducedMotion ? (
                 collapsed ? (
@@ -309,44 +342,8 @@ export const BrowserTabGroupItem = memo(
                   />
                 </motion.div>
               )}
-            </div>
-
-            {isRenaming ? (
-              <input
-                ref={inputRef}
-                type="text"
-                {...(renameTitle === undefined
-                  ? { defaultValue: title ?? '' }
-                  : { value: renameTitle })}
-                onChange={(event) =>
-                  onRenameTitleChange?.(event.currentTarget.value)
-                }
-                onKeyDown={handleRenameKeyDown}
-                onFocus={() => {
-                  hasRenameInputFocusedRef.current = ownsInput()
-                }}
-                onBlur={handleRenameBlur}
-                onClick={(e) => e.stopPropagation()}
-                className={cn(
-                  `
-                    border-border bg-background flex-1 rounded border px-1.5
-                    py-0.5 text-sm font-semibold outline-none
-                    focus:border-accent focus:ring-accent focus:ring-1
-                  `,
-                  colorClasses.text,
-                )}
-              />
-            ) : (
-              <h4
-                className={cn(
-                  'text-sm font-semibold opacity-85',
-                  colorClasses.text,
-                )}
-              >
-                {title || 'Untitled Group'}
-              </h4>
-            )}
-          </button>
+            </button>
+          </div>
 
           <AnimatePresence initial={false}>
             {!collapsed && children && (

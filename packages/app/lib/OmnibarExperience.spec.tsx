@@ -89,10 +89,10 @@ describe('Omnibar experience', () => {
     const leftPanel = within(screen.getByRole('region', { name: 'left' }))
     const rightPanel = within(screen.getByRole('region', { name: 'right' }))
     await waitFor(() =>
-      expect(leftPanel.getByRole('textbox')).toHaveValue('project'),
+      expect(leftPanel.getByRole('combobox')).toHaveValue('project'),
     )
-    expect(rightPanel.getByRole('textbox')).toHaveValue('window')
-    const tab = within(leftPanel.getByRole('list')).getByRole('button', {
+    expect(rightPanel.getByRole('combobox')).toHaveValue('window')
+    const tab = within(leftPanel.getByRole('listbox')).getByRole('option', {
       name: /^Tabby project/,
     })
     fireEvent.click(tab, { ctrlKey: true })
@@ -103,10 +103,10 @@ describe('Omnibar experience', () => {
     expect(resources.omnibar.getSavedQuery()).toBe('')
     expect(left.getState().query).toBe('')
     expect(right.getState().query).toBe('window')
-    fireEvent.change(leftPanel.getByRole('textbox'), {
+    fireEvent.change(leftPanel.getByRole('combobox'), {
       target: { value: 'saved search' },
     })
-    fireEvent.keyDown(leftPanel.getByRole('textbox'), { key: 'Escape' })
+    fireEvent.keyDown(leftPanel.getByRole('combobox'), { key: 'Escape' })
     await waitFor(() =>
       expect(resources.omnibar.getSavedQuery()).toBe('saved search'),
     )
@@ -144,9 +144,9 @@ describe('Omnibar experience', () => {
     act(() => vi.advanceTimersByTime(300))
     expect(search).not.toHaveBeenCalled()
     expect(
-      screen.getByRole('button', { name: /^Captured history/, hidden: true }),
+      screen.getByRole('option', { name: /^Captured history/, hidden: true }),
     ).toBeInTheDocument()
-    fireEvent.keyDown(screen.getByRole('textbox', { hidden: true }), {
+    fireEvent.keyDown(screen.getByRole('combobox', { hidden: true }), {
       key: 'Escape',
     })
     expect(dismiss).not.toHaveBeenCalled()
@@ -177,7 +177,7 @@ describe('Omnibar experience', () => {
         <OmnibarExperience onDismiss={dismiss} />
       </TabbyProvider>,
     )
-    const bookmark = within(screen.getByRole('list')).getByRole('button', {
+    const bookmark = within(screen.getByRole('listbox')).getByRole('option', {
       name: /^Tabby documentation/,
     })
     fireEvent.click(bookmark, { metaKey: true })
@@ -221,14 +221,14 @@ describe('Omnibar experience', () => {
         <OmnibarExperience onDismiss={() => undefined} />
       </TabbyProvider>,
     )
-    fireEvent.change(screen.getByRole('textbox'), {
+    fireEvent.change(screen.getByRole('combobox'), {
       target: { value: 'user edit' },
     })
     act(() => {
       metadata = { ...metadata, loaded: true, initialQuery: 'saved query' }
       listeners.forEach((listener) => listener())
     })
-    expect(screen.getByRole('textbox')).toHaveValue('user edit')
+    expect(screen.getByRole('combobox')).toHaveValue('user edit')
     expect(resource.getSavedQuery()).toBe('user edit')
   })
   it('keeps the newest query results when searches resolve out of order', async () => {
@@ -255,7 +255,7 @@ describe('Omnibar experience', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(200)
     })
-    fireEvent.change(screen.getByRole('textbox'), {
+    fireEvent.change(screen.getByRole('combobox'), {
       target: { value: 'second' },
     })
     await act(async () => {
@@ -275,10 +275,10 @@ describe('Omnibar experience', () => {
     })
     expect(view.getState().resultsQuery).toBe('second')
     expect(
-      screen.getByRole('button', { name: /^Second result/ }),
+      screen.getByRole('option', { name: /^Second result/ }),
     ).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /^First result/ }),
+      screen.queryByRole('option', { name: /^First result/ }),
     ).not.toBeInTheDocument()
   })
   it('preserves a restored view when an awaited host action finishes after rewind', async () => {
@@ -304,8 +304,8 @@ describe('Omnibar experience', () => {
       </TabbyProvider>,
     )
     fireEvent.click(
-      within(screen.getByRole('list')).getByRole('button', {
-        name: /Tabby: Open Options/,
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: /Tabby: Open options/,
       }),
     )
     act(() => {

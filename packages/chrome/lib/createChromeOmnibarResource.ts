@@ -1,3 +1,5 @@
+import { createAsyncQueue } from '@extension/core/asyncQueue'
+import { isNavigableUrl } from '@extension/core/navigation'
 import { OmnibarCancelledError } from '@extension/core/omnibar'
 import { getChromeFaviconUrl } from './favicon.js'
 import type {
@@ -37,7 +39,7 @@ export const createChromeOmnibarResource = (
   let generation = 0
   let started: Promise<void> | undefined
   let disposed = false
-  let writes = Promise.resolve()
+  const writes = createAsyncQueue()
   let savedQuery: string | undefined
   let queryVersion = 0
   const current = (operation = generation) => {
@@ -52,6 +54,10 @@ export const createChromeOmnibarResource = (
     operation = generation,
   ) => {
     current(operation)
+    if (!isNavigableUrl(url))
+      throw new Error(
+        'This URL cannot be opened. Use a web address or a supported browser page.',
+      )
     if (modifier === 'new-window') {
       await api.windows.create({ url, focused: true })
       return
@@ -150,15 +156,11 @@ export const createChromeOmnibarResource = (
     const operation = generation
     savedQuery = query
     queryVersion++
-    const result = writes
-      .catch(() => undefined)
-      .then(async () => {
-        current(operation)
-        if (query === undefined) await api.storage.local.remove('lastQuery')
-        else await api.storage.local.set({ lastQuery: query })
-      })
-    writes = result
-    return result
+    return writes.run(async () => {
+      current(operation)
+      if (query === undefined) await api.storage.local.remove('lastQuery')
+      else await api.storage.local.set({ lastQuery: query })
+    })
   }
   const clearQuery = () => queueQuery()
   const execute = async (action: OmnibarAction, modifier?: OmnibarModifier) => {
@@ -175,7 +177,7 @@ export const createChromeOmnibarResource = (
       } else {
         await clear
         // A newer edit must finish persisting before navigation can close the host.
-        await writes
+        await writes.wait()
         await navigate(action, modifier, operation)
       }
     } catch (error) {
@@ -199,14 +201,15 @@ export const createChromeOmnibarResource = (
       if (started) return started
       disposed = false
       const token = ++generation
-      started = Promise.allSettled([
-        api.storage.local.get('lastQuery'),
-        api.runtime.getPlatformInfo(),
-        api.commands.getAll(),
-        requestedWindowId === undefined
-          ? api.windows.getLastFocused()
-          : Promise.resolve({ id: requestedWindowId }),
-      ]).then(([query, platform, commands, window]) => {
+      started = (async () => {
+        const [query, platform, commands, window] = await Promise.allSettled([
+          api.storage.local.get('lastQuery'),
+          api.runtime.getPlatformInfo(),
+          api.commands.getAll(),
+          requestedWindowId === undefined
+            ? api.windows.getLastFocused()
+            : Promise.resolve({ id: requestedWindowId }),
+        ])
         if (token !== generation || disposed) return
         if (queryVersion === 0)
           savedQuery =
@@ -228,7 +231,7 @@ export const createChromeOmnibarResource = (
               : undefined,
         }
         for (const listener of listeners) listener()
-      })
+      })()
       return started
     },
     dispose: () => {
@@ -272,14 +275,12 @@ export const createChromeOmnibarResource = (
               type: 'recently-closed',
               title: tab.title || 'Untitled',
               url: tab.url,
-              favIconUrl:
-                tab.favIconUrl ||
-                (tab.url
-                  ? getChromeFaviconUrl(api.runtime, tab.url)
-                  : undefined),
+              favIconUrl: tab.url
+                ? getChromeFaviconUrl(api.runtime, tab.url)
+                : tab.favIconUrl,
               description: session.tab
-                ? 'Recently Closed'
-                : 'Recently Closed Window',
+                ? 'Recently closed'
+                : 'Recently closed window',
               sessionId,
               lastVisitTime: session.lastModified * 1000,
               tabCount: session.window?.tabs?.length,

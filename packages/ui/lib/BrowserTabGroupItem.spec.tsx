@@ -109,7 +109,7 @@ describe('controlled group rename', () => {
     expect(rightInput.value).toBe('Team planning')
     expect(leftInput.selectionStart).toBe('Team planning'.length)
     fireEvent.keyDown(leftInput, { key: 'Escape' })
-    const header = left.getByRole('button', { name: /Reading$/ })
+    const header = left.getByRole('button', { name: 'Reading' })
     await waitFor(() => expect(document.activeElement).toBe(header))
     expect(right.queryByRole('textbox')).toBeNull()
     expect(complete).not.toHaveBeenCalled()

@@ -22,6 +22,9 @@ const manifest = {
   name: '__MSG_extensionName__',
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'none'; base-uri 'none'",
+  },
   permissions: [
     'favicon',
     'storage',
@@ -38,12 +41,20 @@ const manifest = {
     type: 'module',
   },
   action: {
-    default_icon: 'tabby-face.png',
+    default_icon: {
+      '16': 'tabby-face-16.png',
+      '32': 'tabby-face-32.png',
+      '48': 'tabby-face-48.png',
+      '128': 'tabby-face-128.png',
+    },
     default_title: 'Search with Tabby',
     default_popup: 'omnibar/index.html',
   },
   icons: {
-    '128': 'tabby-face.png',
+    '16': 'tabby-face-16.png',
+    '32': 'tabby-face-32.png',
+    '48': 'tabby-face-48.png',
+    '128': 'tabby-face-128.png',
   },
   side_panel: {
     default_path: 'tab-manager/index.html',
@@ -54,14 +65,14 @@ const manifest = {
         default: 'Alt+E',
         mac: 'Command+E',
       },
-      description: 'Open Tabby Search',
+      description: 'Open Tabby search',
     },
     [TABBY_COMMANDS.openTabManager]: {
       suggested_key: {
         default: 'Alt+Shift+E',
         mac: 'Command+Shift+E',
       },
-      description: 'Open Tab Manager',
+      description: 'Open tab manager',
     },
     ...Object.fromEntries(
       Array.from({ length: WINDOW_SWITCH_SLOT_COUNT }, (_, index) => {

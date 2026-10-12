@@ -77,7 +77,10 @@ export const WindowRailItem = memo(
                 ? 'rounded-l-lg rounded-r-none' // Left side rounded, right edge flush
                 : 'rounded-md', // Standard rounded when not viewing
               // Transition for smooth mode changes
-              'transition-all duration-200',
+              `
+                transition-[background-color,border-color,box-shadow]
+                duration-200
+              `,
               // Focus ring styling via CSS based on mode
               isMultiSelectMode
                 ? // Multi-select mode: prominent focus ring with offset

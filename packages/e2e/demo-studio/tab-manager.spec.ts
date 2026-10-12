@@ -152,7 +152,7 @@ test('guided playback, anatomy, and product selection stay in sync', async ({
   await tour
     .getByRole('button', { name: /Find tabs, bookmarks, and history/ })
     .click()
-  await expect(instance.getByRole('textbox')).toHaveValue('Tabby')
+  await expect(instance.getByRole('combobox')).toHaveValue('Tabby')
   await chapters.getByRole('button', { name: /Options/ }).click()
   await expect(instance.locator('[data-options]')).toBeVisible()
   await tour.getByRole('button', { name: 'Rewind' }).click()
@@ -162,7 +162,7 @@ test('guided playback, anatomy, and product selection stay in sync', async ({
 
   await experience.getByRole('button', { name: /Anatomy/ }).click()
   const managerParts = page.getByRole('group', {
-    name: 'Tab Manager components',
+    name: 'Tab manager components',
   })
   const tabRows = managerParts.getByRole('button', { name: /Tab rows/ })
   await tabRows.click()
@@ -175,7 +175,7 @@ test('guided playback, anatomy, and product selection stay in sync', async ({
   ).toBeVisible()
   await experience.getByRole('button', { name: /Still/ }).click()
   await expect(
-    products.getByRole('button', { name: 'Tab Manager' }),
+    products.getByRole('button', { name: 'Tab manager' }),
   ).toHaveAttribute('aria-pressed', 'true')
   await expect(
     instance.locator('.product-frame[data-product="manager"]'),

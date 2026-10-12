@@ -536,6 +536,21 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     if (ids.length)
       return execute({ type: 'close-tabs', tabIds: ids }, 'Close tabs')
   }
+  const runHostAction = async (
+    action: () => void | Promise<void>,
+    fallback: string,
+  ) => {
+    const operation = generation
+    try {
+      await action()
+    } catch (error) {
+      if (operation === generation)
+        setNotice({
+          message: error instanceof Error ? error.message : fallback,
+          kind: 'error',
+        })
+    }
+  }
   const dispatch = (intent: TabManagerIntent): void | Promise<void> => {
     reconcile()
     const snapshot = backend.getSnapshot()
@@ -642,24 +657,12 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       intent.type === 'open-search' ||
       intent.type === 'open-settings'
     ) {
-      const operation = generation
       const action =
         intent.type === 'open-search'
           ? resources.host?.openSearch
           : resources.host?.openOptions
-      if (!action) return
-      return Promise.resolve()
-        .then(action)
-        .catch((error) => {
-          if (operation === generation)
-            setNotice({
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Could not open the requested page.',
-              kind: 'error',
-            })
-        })
+      if (action)
+        return runHostAction(action, 'Could not open the requested page.')
     } else if (intent.type === 'scroll-to-active') {
       const active = snapshot.tabs.find(
         (tab) =>
@@ -719,19 +722,10 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
       if (resources.host?.onSidebarExpandedChange) {
         view.setState({ sidebarExpanded: null })
-        const operation = generation
-        return Promise.resolve()
-          .then(() => resources.host?.onSidebarExpandedChange?.(expanded))
-          .catch((error) => {
-            if (operation === generation)
-              setNotice({
-                message:
-                  error instanceof Error
-                    ? error.message
-                    : 'Could not save sidebar layout.',
-                kind: 'error',
-              })
-          })
+        return runHostAction(
+          () => resources.host?.onSidebarExpandedChange?.(expanded),
+          'Could not save sidebar layout.',
+        )
       }
       view.setState({ sidebarExpanded: expanded })
     } else if (intent.type === 'scroll') {

@@ -260,7 +260,7 @@ export const TabManager = ({
         : item.type === 'tab'
           ? `[data-tab-id="${item.id}"] [data-tab-option]`
           : item.type === 'group'
-            ? `[data-group-id="${item.id}"] > button`
+            ? `[data-group-id="${item.id}"] [data-group-option]`
             : `[data-nav-type="window"][data-nav-id="${item.id}"]`
       const target = rootRef.current?.querySelector<HTMLElement>(selector)
       target?.focus({ preventScroll: true })
@@ -349,7 +349,7 @@ export const TabManager = ({
       (event.key === 'Enter' || event.key === ' ') &&
       control &&
       !control.matches('[data-nav-type="window"]') &&
-      !control.parentElement?.matches('[data-group-id]')
+      !control.matches('[data-group-option]')
     )
       return
     const item = itemAt(event.target)
@@ -423,7 +423,7 @@ export const TabManager = ({
           : t(
               'tabManager_newTabInGroup',
               viewedWindow?.groups.find((group) => group.id === groupId)
-                ?.title || 'Untitled Group',
+                ?.title || 'Untitled group',
             )
       }
       className={`

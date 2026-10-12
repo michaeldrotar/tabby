@@ -3,6 +3,7 @@ import {
   getMoveBlockReason,
   getNewWindowMoveBlockReason,
 } from './actions/batchTabActions.js'
+import { isNavigableUrl } from './navigation.js'
 import type {
   BrowserCommand,
   BrowserSnapshot,
@@ -58,6 +59,12 @@ export const getCommandBlockReason = (
   command: BrowserCommand,
   snapshot: BrowserSnapshot,
 ): string | undefined => {
+  if (
+    'url' in command &&
+    command.url !== undefined &&
+    !isNavigableUrl(command.url)
+  )
+    return 'This URL cannot be opened. Use a web address or a supported browser page.'
   const ids = getCommandTargetIds(command, snapshot)
   if (command.type === 'create-tab') {
     if (

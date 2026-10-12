@@ -1,4 +1,4 @@
-import tabbyFace from '../../../../chrome-extension/public/tabby-face.png'
+import tabbyFace from '../../../../product/brand/tabby-face.png'
 import type { ReactNode } from 'react'
 
 export type PromoAssetSize = 'screenshot' | 'small' | 'marquee'

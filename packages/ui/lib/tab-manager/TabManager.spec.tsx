@@ -161,7 +161,7 @@ describe('TabManager presentation', () => {
       type: 'open-action-menu',
       target: { type: 'tab', id: 10 },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'New Window' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New window' }))
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'create-window' })
   })
 
@@ -348,7 +348,7 @@ describe('TabManager presentation', () => {
       type: 'start-group-rename',
       groupId: 20,
     })
-    fireEvent.click(screen.getByRole('button', { name: 'New Tab in Reading' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New tab in Reading' }))
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'create-tab',
       windowId: 1,

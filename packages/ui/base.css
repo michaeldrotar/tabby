@@ -343,6 +343,24 @@
   * {
     @apply border-border;
   }
+
+  [data-surface] :is(button, a, input, select) {
+    touch-action: manipulation;
+  }
+
+  [data-surface] :is(h1, h2, h3) {
+    text-wrap: balance;
+  }
+
+  [data-defer-offscreen='true']
+    [data-tab-item]:not(:focus-within):not([data-focus='true']) {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 54px;
+  }
+
+  [data-surface] :is([role='menu'], [role='listbox']) {
+    overscroll-behavior: contain;
+  }
 }
 
 code {

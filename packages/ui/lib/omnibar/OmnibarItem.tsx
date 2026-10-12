@@ -9,26 +9,20 @@ import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
-const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
-  if (!query || !text) return <>{text}</>
-
-  const terms = query.split(/\s+/).filter((term) => term.length > 0)
-  if (terms.length === 0) return <>{text}</>
-
-  const escapedTerms = terms.map((term) =>
-    term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-  )
-  const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi')
-  const parts = text.split(regex)
+const HighlightMatch = ({
+  text,
+  pattern,
+}: {
+  text?: string
+  pattern: RegExp | null
+}) => {
+  if (!pattern || !text) return <>{text}</>
+  const parts = text.split(pattern)
 
   return (
     <>
       {parts.map((part, i) => {
-        const isMatch = escapedTerms.some((term) =>
-          new RegExp(`^${term}$`, 'i').test(part),
-        )
-
-        return isMatch ? (
+        return i % 2 === 1 ? (
           <span key={i} className="font-bold">
             {part}
           </span>
@@ -41,6 +35,7 @@ const HighlightMatch = ({ text, query }: { text?: string; query: string }) => {
 }
 
 type OmnibarItemProps = {
+  resultId: string
   item: OmnibarSearchResult
   isSelected: boolean
   onSelect: (
@@ -50,7 +45,7 @@ type OmnibarItemProps = {
   onMouseMove: () => void
   isShiftPressed: boolean
   isCmdCtrlPressed: boolean
-  query: string
+  highlightPattern: RegExp | null
 }
 
 export const OmnibarItem = ({
@@ -60,7 +55,8 @@ export const OmnibarItem = ({
   onMouseMove,
   isShiftPressed,
   isCmdCtrlPressed,
-  query,
+  highlightPattern,
+  resultId,
 }: OmnibarItemProps) => {
   const itemRef = useRef<HTMLButtonElement>(null)
   const surface = useSurface()
@@ -82,8 +78,11 @@ export const OmnibarItem = ({
   }, [isSelected, interactive])
 
   return (
-    <li>
+    <li role="presentation">
       <button
+        id={resultId}
+        role="option"
+        aria-selected={isSelected}
         ref={itemRef}
         type="button"
         data-omnibar-result={item.id}
@@ -153,7 +152,11 @@ export const OmnibarItem = ({
               justify-center rounded-full p-0.5 shadow-sm ring-1
             `}
           >
-            <svg viewBox="0 0 24 24" className="h-full w-full">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-full w-full"
+            >
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -183,12 +186,12 @@ export const OmnibarItem = ({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium">
-            <HighlightMatch text={item.title} query={query} />
+            <HighlightMatch text={item.title} pattern={highlightPattern} />
           </span>
           <div className="flex items-center gap-2 text-xs">
             <span
               className={cn(
-                'flex-shrink-0 font-medium capitalize',
+                'flex-shrink-0 font-medium',
                 getOmnibarTypeColor(item.type),
               )}
             >
@@ -256,7 +259,7 @@ export const OmnibarItem = ({
                 isSelected ? 'text-foreground/70' : 'text-muted',
               )}
             >
-              <HighlightMatch text={item.url} query={query} />
+              <HighlightMatch text={item.url} pattern={highlightPattern} />
             </span>
           </div>
         </div>
@@ -274,8 +277,8 @@ export const OmnibarItem = ({
               actionModifier && (
                 <span className="ml-1 opacity-50">
                   {actionModifier === 'new-window'
-                    ? ' in New Window'
-                    : ' in New Tab'}
+                    ? ' in new window'
+                    : ' in new tab'}
                 </span>
               )}
           </span>

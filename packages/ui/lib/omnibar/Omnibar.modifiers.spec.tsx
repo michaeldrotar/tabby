@@ -42,9 +42,9 @@ describe('Omnibar modifier actions', () => {
   }
 
   const searchLocalhostTabs = async () => {
-    const input = screen.getByRole('textbox')
+    const input = screen.getByRole('combobox')
     fireEvent.change(input, { target: { value: 'localhost' } })
-    const list = await screen.findByRole('list')
+    const list = await screen.findByRole('listbox')
     return { input, list }
   }
 
@@ -53,13 +53,13 @@ describe('Omnibar modifier actions', () => {
     renderOmnibar(tabs)
 
     const { input, list } = await searchLocalhostTabs()
-    const projectTwo = within(list).getByRole('button', {
+    const projectTwo = within(list).getByRole('option', {
       name: /Project Two/,
     })
     fireEvent.mouseMove(projectTwo)
     fireEvent.keyDown(input, { key: 'Control' })
 
-    expect(projectTwo).toHaveTextContent('Open in New Tab')
+    expect(projectTwo).toHaveTextContent('Open in new tab')
     expect(projectTwo).not.toHaveTextContent('Jump to')
 
     fireEvent.keyDown(input, { key: 'Enter', ctrlKey: true })
@@ -74,14 +74,14 @@ describe('Omnibar modifier actions', () => {
     renderOmnibar(tabs)
 
     const { input, list } = await searchLocalhostTabs()
-    const projectThree = within(list).getByRole('button', {
+    const projectThree = within(list).getByRole('option', {
       name: /Project Three/,
     })
     fireEvent.mouseMove(projectThree)
     fireEvent.keyDown(input, { key: 'Control' })
     fireEvent.keyDown(input, { key: 'Shift', ctrlKey: true })
 
-    expect(projectThree).toHaveTextContent('Open in New Window')
+    expect(projectThree).toHaveTextContent('Open in new window')
 
     fireEvent.keyDown(input, {
       key: 'Enter',
@@ -99,8 +99,8 @@ describe('Omnibar modifier actions', () => {
     renderOmnibar(tabs)
 
     const { list } = await searchLocalhostTabs()
-    const projectOne = within(list).getByRole('button', { name: /Project One/ })
-    const projectThree = within(list).getByRole('button', {
+    const projectOne = within(list).getByRole('option', { name: /Project One/ })
+    const projectThree = within(list).getByRole('option', {
       name: /Project Three/,
     })
 

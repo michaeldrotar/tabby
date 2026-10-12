@@ -1,3 +1,4 @@
+import { createAsyncQueue } from '@extension/core/asyncQueue'
 import {
   applyPreferencePatch,
   defaultPreferences,
@@ -21,7 +22,7 @@ export const createChromePreferences = (
   let generation = 0
   let changeRevision = 0
   let loadTask: Promise<void> | undefined
-  let writes: Promise<void> = Promise.resolve()
+  const writes = createAsyncQueue()
   let removeListener: (() => void) | undefined
 
   const publish = (next: PreferenceState) => {
@@ -53,9 +54,9 @@ export const createChromePreferences = (
     }
     api.storage.onChanged.addListener(onChanged)
     removeListener = () => api.storage.onChanged.removeListener(onChanged)
-    const task = api.storage.local
-      .get(storageKey)
-      .then((values) => {
+    const task = (async () => {
+      try {
+        const values = await api.storage.local.get(storageKey)
         if (
           running &&
           generation === currentGeneration &&
@@ -63,8 +64,7 @@ export const createChromePreferences = (
         ) {
           publish(normalizePreferences(values[storageKey]))
         }
-      })
-      .catch((error: unknown) => {
+      } catch (error: unknown) {
         if (generation === currentGeneration) {
           running = false
           removeListener?.()
@@ -72,38 +72,35 @@ export const createChromePreferences = (
           loadTask = undefined
         }
         throw error
-      })
+      }
+    })()
     loadTask = task
     return task
   }
 
   const write = (patch?: Partial<PreferenceState>) => {
     const currentGeneration = generation
-    const task = writes
-      .catch(() => undefined)
-      .then(async () => {
-        if (!running || generation !== currentGeneration) {
-          throw new Error('The preference connection is not running.')
-        }
-        await loadTask
-        if (!running || generation !== currentGeneration) {
-          throw new Error('The preference connection was stopped.')
-        }
-        const next = patch
-          ? applyPreferencePatch(snapshot, patch)
-          : { ...defaultPreferences }
-        const beforeWriteRevision = changeRevision
-        if (patch) await api.storage.local.set({ [storageKey]: next })
-        else await api.storage.local.remove(storageKey)
-        if (
-          running &&
-          generation === currentGeneration &&
-          beforeWriteRevision === changeRevision
-        )
-          publish(next)
-      })
-    writes = task
-    return task
+    return writes.run(async () => {
+      if (!running || generation !== currentGeneration) {
+        throw new Error('The preference connection is not running.')
+      }
+      await loadTask
+      if (!running || generation !== currentGeneration) {
+        throw new Error('The preference connection was stopped.')
+      }
+      const next = patch
+        ? applyPreferencePatch(snapshot, patch)
+        : { ...defaultPreferences }
+      const beforeWriteRevision = changeRevision
+      if (patch) await api.storage.local.set({ [storageKey]: next })
+      else await api.storage.local.remove(storageKey)
+      if (
+        running &&
+        generation === currentGeneration &&
+        beforeWriteRevision === changeRevision
+      )
+        publish(next)
+    })
   }
 
   return {

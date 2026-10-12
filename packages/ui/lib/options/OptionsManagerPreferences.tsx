@@ -19,7 +19,7 @@ export const OptionsManagerPreferences = ({
   return (
     <section className="mb-6">
       <h2 className="text-foreground mb-4 text-lg font-semibold">
-        Tab Manager
+        Tab manager
       </h2>
       <div
         className={cn(
@@ -37,7 +37,7 @@ export const OptionsManagerPreferences = ({
         >
           <div>
             <h3 className="text-foreground font-medium">
-              Window Identification
+              Window identification
             </h3>
             <p className="text-muted text-sm">
               Choose which tab supplies a window's name and icon in the sidebar
@@ -60,6 +60,7 @@ export const OptionsManagerPreferences = ({
               }
             >
               <SelectTrigger
+                aria-label="Window identification"
                 className={`
                   w-full
                   group-data-[wide=true]/options:w-[160px]
@@ -68,8 +69,8 @@ export const OptionsManagerPreferences = ({
                 <SelectValue placeholder="Select tab" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active Tab</SelectItem>
-                <SelectItem value="first">First Tab</SelectItem>
+                <SelectItem value="active">Active tab</SelectItem>
+                <SelectItem value="first">First tab</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -84,7 +85,7 @@ export const OptionsManagerPreferences = ({
           `}
         >
           <div>
-            <h3 className="text-foreground font-medium">Sidebar Layout</h3>
+            <h3 className="text-foreground font-medium">Sidebar layout</h3>
             <p className="text-muted text-sm">
               Toggle between collapsed (icon only) and expanded (list) views
             </p>
@@ -95,6 +96,8 @@ export const OptionsManagerPreferences = ({
             >
               <input
                 type="checkbox"
+                name="sidebar-layout"
+                aria-label="Expanded sidebar"
                 className="peer sr-only"
                 checked={tabManagerCompactLayout === 'list'}
                 onChange={(e) =>
@@ -108,7 +111,7 @@ export const OptionsManagerPreferences = ({
                   border-border bg-input peer h-6 w-11 rounded-full border
                   after:border-border after:bg-background after:absolute
                   after:left-[2px] after:top-[2px] after:h-5 after:w-5
-                  after:rounded-full after:border after:transition-all
+                  after:rounded-full after:border after:transition-transform
                   after:content-['']
                   peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
                   peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)]

@@ -208,7 +208,7 @@ export const ContextMenuLabel = forwardRef<
   <ContextMenuPrimitive.Label
     ref={ref}
     className={cn(
-      'text-muted px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider',
+      'text-muted px-2.5 py-1.5 text-xs font-semibold',
       inset && 'pl-8',
       className,
     )}

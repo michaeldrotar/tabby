@@ -17,7 +17,10 @@ export const Favicon = ({
   return (
     <img
       src={faviconUrl}
-      alt="favicon"
+      alt=""
+      width={size}
+      height={size}
+      decoding="async"
       {...imageProps}
       style={{ ...(size ? { height: `${size}px`, width: `${size}px` } : {}) }}
     />

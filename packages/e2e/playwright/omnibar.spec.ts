@@ -44,11 +44,11 @@ test('Omnibar restores its query, opens groups, and routes modifier navigation t
   const url = `chrome-extension://${extensionId}/${popupPath}?originalWindowId=${target.windowId}`
   await page.bringToFront()
   await page.goto(url)
-  const input = page.getByRole('textbox')
+  const input = page.getByRole('combobox')
   await input.fill('workflow research')
   const group = page
-    .getByRole('list')
-    .getByRole('button', { name: /Workflow research/ })
+    .getByRole('listbox')
+    .getByRole('option', { name: /Workflow research/ })
   await expect(group).toContainText('Collapsed')
   await group.click()
   await expect
@@ -71,7 +71,7 @@ test('Omnibar restores its query, opens groups, and routes modifier navigation t
   const second = await context.newPage()
   await second.bringToFront()
   await second.goto(url)
-  const secondInput = second.getByRole('textbox')
+  const secondInput = second.getByRole('combobox')
   await expect(secondInput).toHaveValue('')
   await secondInput.fill('omnibar-target')
   await expect(
@@ -114,8 +114,8 @@ test('Omnibar restores its query, opens groups, and routes modifier navigation t
   const third = await context.newPage()
   await third.bringToFront()
   await third.goto(url)
-  await expect(third.getByRole('textbox')).toHaveValue('')
-  await third.getByRole('textbox').fill('saved unfinished search')
+  await expect(third.getByRole('combobox')).toHaveValue('')
+  await third.getByRole('combobox').fill('saved unfinished search')
   await expect
     .poll(() =>
       worker.evaluate(
@@ -135,13 +135,13 @@ test('Omnibar restores its query, opens groups, and routes modifier navigation t
   const fourth = await context.newPage()
   await fourth.bringToFront()
   await fourth.goto(url)
-  await expect(fourth.getByRole('textbox')).toHaveValue(
+  await expect(fourth.getByRole('combobox')).toHaveValue(
     'saved unfinished search',
   )
-  await fourth.getByRole('textbox').fill('workflow external')
+  await fourth.getByRole('combobox').fill('workflow external')
   await fourth
-    .getByRole('list')
-    .getByRole('button', { name: /Workflow external documentation/ })
+    .getByRole('listbox')
+    .getByRole('option', { name: /Workflow external documentation/ })
     .click({ modifiers: ['Shift'] })
   await expect
     .poll(() =>

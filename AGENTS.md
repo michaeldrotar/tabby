@@ -2,6 +2,16 @@
 
 This is the approved workflow for the repository. `main` is the integration branch for accepted work. Apply the branch and release rules below.
 
+## Skill guidance
+
+- Use the [Chrome Extensions skill](./.agents/skills/chrome-extensions/SKILL.md) and its references for Chrome extension implementation and Chrome Web Store publishing guidance. Its guidance takes precedence over conflicting project, React, and security guidance on those subjects.
+- Use sentence case for interface headings, buttons, and labels, including when applying the [Web Design Guidelines skill](./.agents/skills/web-design-guidelines/SKILL.md).
+- Close tabs and windows and reset preferences directly, without confirmation dialogs.
+- Apply React and security guidance within the project's package and resource boundaries. Extension storage, content security policy, and sandboxed code execution follow the Chrome Extensions skill.
+- Deliver skill review findings using the project's review rules: provide clickable source links and contextual draft PR comments. Complete fixes already authorized by the user's request; request a new decision only for work outside that scope.
+- Write pull request descriptions as brief prose explaining the user benefit, with issue-closing references when applicable.
+- Treat each Surface as an embedded product instance. Scope controls, themes, motion, and accessibility to that instance. Keep search view state in injected resources; only a user-selected web search puts a query in a destination URL.
+
 ## Issues
 
 - Create or update GitHub issues when the user asks. Include the problem, desired outcome, acceptance criteria, and expected tests or release-note impact.
@@ -15,6 +25,7 @@ This is the approved workflow for the repository. `main` is the integration bran
 - Update the active versioned release-notes file directly in the pull request. Name the file to match the release title, using a lowercase hyphenated slug (for example, `product/releases/v1.3.0-batch-actions-and-smarter-search.md`), and rename it if the title changes. Add one concise line under the right heading for each user-facing difference in the release compared with the previous published release. Release notes describe the net result: omit work added and later removed if the released product is back to its previous state, and do not describe intermediate changes made during development. If a change has no user-facing impact, say so in the pull request instead of adding a note.
 - Add or update tests and, when relevant, documentation, product demos, and marketing-site content. Do not add a duplicate minor-release note for a fix already documented in its patch release.
 - When a release changes a promotional component visually, recapture its corresponding image and update the checked-in promotional asset.
+- For changes affecting the Chrome Web Store listing, permissions, privacy, screenshots, or version history, maintain `CHROMEWEBSTORE.md` according to the Chrome Extensions skill and [RELEASE.md](./RELEASE.md).
 - Do not build or upload release artifacts during ordinary feature work. Use `pnpm zip` for a requested release.
 
 ## Local UI Previews
@@ -48,6 +59,6 @@ This is the approved workflow for the repository. `main` is the integration bran
 ## Release and Publishing Actions
 
 - Release actions are user-triggered. CI and ordinary merges must not tag, package, upload, submit, or publish a release.
-- Follow [RELEASE.md](./RELEASE.md) for versioning, packaging, and Chrome Web Store steps. Never put store credentials in the repository.
+- Follow [RELEASE.md](./RELEASE.md) for versioning and packaging. Follow the Chrome Extensions skill for Chrome Web Store documentation and submission readiness. Never put store credentials in the repository.
 - If the user explicitly asks to submit a release and publish it once accepted, that instruction authorizes the agent to monitor the Chrome Web Store review status and publish after acceptance.
 - Once a marketing site exists, preview it with its pull request and deploy production as an explicit release action, coordinated with the published extension.

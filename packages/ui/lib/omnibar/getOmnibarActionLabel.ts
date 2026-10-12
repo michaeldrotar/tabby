@@ -6,8 +6,8 @@ export const getOmnibarActionLabel = (
 ) => {
   switch (item.type) {
     case 'tab':
-      if (modifier === 'new-tab') return 'Open in New Tab'
-      if (modifier === 'new-window') return 'Open in New Window'
+      if (modifier === 'new-tab') return 'Open in new tab'
+      if (modifier === 'new-window') return 'Open in new window'
       return 'Jump to'
     case 'tab-group':
       return 'Jump to group'

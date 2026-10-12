@@ -95,9 +95,9 @@ const calculateTextMatchBonus = (
   return score / queryTerms.length
 }
 
-export const calculateScore = (
+const scoreForTerms = (
   item: OmnibarRankableResult,
-  query: string,
+  queryTerms: string[],
   now: number,
 ): number => {
   const baseWeight = BASE_WEIGHTS[item.type] || 0
@@ -110,10 +110,27 @@ export const calculateScore = (
       MAX_RECENCY_BONUS * Math.exp((-Math.LN2 * ageMs) / RECENCY_HALF_LIFE_MS)
   }
 
-  const queryTerms = getUniqueQueryTerms(query)
   const textBonus = calculateTextMatchBonus(item, queryTerms)
 
   return baseWeight + recencyBonus + textBonus
+}
+
+export const calculateScore = (
+  item: OmnibarRankableResult,
+  query: string,
+  now: number,
+): number => scoreForTerms(item, getUniqueQueryTerms(query), now)
+
+export const rankOmnibarResults = <T extends OmnibarRankableResult>(
+  items: readonly T[],
+  query: string,
+  now: number,
+): T[] => {
+  const terms = getUniqueQueryTerms(query)
+  return items
+    .map((item) => ({ item, score: scoreForTerms(item, terms, now) }))
+    .sort(compareOmnibarScoredItems)
+    .map(({ item }) => item)
 }
 
 export type OmnibarScoredItem = {

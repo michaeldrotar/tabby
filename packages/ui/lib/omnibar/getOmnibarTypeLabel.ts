@@ -5,7 +5,7 @@ export const getOmnibarTypeLabel = (item: OmnibarSearchResult) => {
     case 'tab-group':
       return 'Tab group'
     case 'recently-closed':
-      return 'Recently Closed'
+      return 'Recently closed'
     default:
       return item.type
   }

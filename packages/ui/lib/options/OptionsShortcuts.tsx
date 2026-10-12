@@ -20,7 +20,7 @@ export const OptionsShortcuts = ({
   return (
     <section className="mb-6">
       <h2 className="text-foreground mb-4 text-lg font-semibold">
-        Keyboard Shortcuts
+        Keyboard shortcuts
       </h2>
       <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
         <div
@@ -49,13 +49,13 @@ export const OptionsShortcuts = ({
             )}
           >
             <ExternalLinkIcon className="h-4 w-4" />
-            Open Shortcut Settings
+            Open shortcut settings
           </button>
         </div>
         <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
-          <h4 className="text-foreground mb-3 text-sm font-medium">
-            Current Shortcuts
-          </h4>
+          <h3 className="text-foreground mb-3 text-sm font-medium">
+            Current shortcuts
+          </h3>
           <p className="text-muted mb-3 text-xs">
             These reflect the shortcuts currently assigned in Chrome.
           </p>

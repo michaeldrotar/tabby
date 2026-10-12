@@ -10,14 +10,17 @@ import type { BrowserTabGroupColor } from '@extension/core'
 export const TabList = ({
   children,
   className,
+  deferOffscreen = false,
 }: {
   children: React.ReactNode
   className?: string
+  deferOffscreen?: boolean
 }) => (
   <ol
     className={cn('flex flex-col gap-1', className)}
     role="listbox"
     aria-multiselectable="true"
+    data-defer-offscreen={deferOffscreen || undefined}
   >
     {children}
   </ol>
@@ -76,10 +79,7 @@ export const TabListGroup = ({
       <div className="mb-1 flex items-center gap-2 px-2 py-1">
         <div className={cn('h-3 w-3 rounded-full', colorClasses.dot)} />
         <h4
-          className={cn(
-            'text-xs font-bold uppercase tracking-wider opacity-80',
-            colorClasses.text,
-          )}
+          className={cn('text-xs font-semibold opacity-80', colorClasses.text)}
         >
           {title}
         </h4>

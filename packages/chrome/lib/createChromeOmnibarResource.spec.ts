@@ -82,6 +82,16 @@ const setup = (originalWindowId?: number) => {
 }
 
 describe('Chrome Omnibar resource', () => {
+  it('rejects executable bookmark URLs without changing a browser tab', async () => {
+    const { api, resource } = setup()
+    await resource.start()
+    await expect(
+      resource.execute({ kind: 'url', url: 'javascript:alert(1)' }),
+    ).rejects.toThrow('This URL cannot be opened')
+    expect(api.tabs.update).not.toHaveBeenCalled()
+    expect(api.tabs.create).not.toHaveBeenCalled()
+    expect(resource.getSnapshot().initialQuery).toBe('saved')
+  })
   it('loads host metadata, searches all sources, restores windows and preserves query ordering', async () => {
     const { api, resource } = setup()
     const initial = resource.getSnapshot()
