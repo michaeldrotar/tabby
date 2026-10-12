@@ -1,5 +1,13 @@
 # Release Process
 
+## Chrome Web Store documentation
+
+Follow the [Chrome Extensions skill](./.agents/skills/chrome-extensions/SKILL.md) for store documentation and publishing guidance. `CHROMEWEBSTORE.md` is the single source of truth for listing metadata, permission justifications, privacy disclosures, store version history, and publishing readiness.
+
+Create and maintain that file using the skill's [template](./.agents/skills/chrome-extensions/references/webstore/chromewebstore-template.md) and creation and update triggers. Keep it accurate when user-facing features, permissions, data use, screenshots, or submission status change. Keep the public privacy policy consistent with its disclosures. Record rejection reasons and their fixes there.
+
+The versioned files in `product/releases/` contain the detailed release notes for extension users. Keep their summaries consistent with the corresponding store version-history entry.
+
 ## Branches
 
 - **`main`** is the integration branch for the latest accepted code, including work not yet published. Pull requests target `main`. Require both CI workflow checks before merging and keep the branch buildable.
@@ -11,6 +19,8 @@ A tag labels a finished commit; pull requests merge into branches. For a patch r
 ## Versioning and Release Notes
 
 The version in the root `package.json` is the source for the Chrome extension manifest. Other packages remain private and use `0.0.0`.
+
+Use semantic versioning: patch for fixes, minor for features, and major for breaking changes, as required by the Chrome Extensions skill's [store review checklist](./.agents/skills/chrome-extensions/references/webstore/review-checklist.md).
 
 Start a feature-release cycle on `main` by preparing its version and notes file:
 
@@ -34,7 +44,7 @@ Replace the example versions with the latest published tag and the next patch ve
 ## Feature Work and CI
 
 1. Start from an issue with a clear outcome and acceptance criteria. Use a short-lived issue branch and open a pull request to `main`.
-2. Include the code, relevant tests, and direct update to the active versioned release-notes file. Update documentation, product demos, and marketing-site content when the change affects them.
+2. Include the code, relevant tests, and direct update to the active versioned release-notes file. Update `CHROMEWEBSTORE.md` according to the Chrome Extensions skill when store-facing information changes. Update documentation, product demos, and marketing-site content when the change affects them.
 3. CI runs lint, formatting checks, type checking, unit tests, and a production build on pull requests. The E2E workflow runs Chrome-extension and Demo Studio browser tests on pull requests. Both workflow checks must pass before merging. The build is a check only: CI does not upload an artifact. Commits do not run lint or formatting hooks.
 4. A separate agent reviews the issue criteria and diff with fresh context. The implementation agent fixes blocking findings; a new reviewer rechecks the changes. Merge when both workflow checks pass and no blocking findings remain.
 5. Use `Closes #N` in the pull request description to close the issue when the pull request is merged to `main`.
@@ -61,8 +71,8 @@ Run these steps when the user asks to cut a release:
    ```
 
 5. Create a GitHub release for that tag and attach the ZIP and finalized notes.
-6. Submit the package to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) only when the user asks. Upload the ZIP to the existing listing, check any applicable listing and privacy declarations, then submit it for review. The Chrome Web Store API v2 may also be used when credentials are configured; neither path is triggered automatically by CI, a merge, or a tag.
-7. If the user asks to publish once accepted, monitor the review status and publish after the Chrome Web Store accepts the submission. If the submission is rejected, report the reason and wait for a fix and new review. Record the submission date in the release notes.
+6. Submit the package to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) only when the user asks. Complete the skill's [store review checklist](./.agents/skills/chrome-extensions/references/webstore/review-checklist.md), use `CHROMEWEBSTORE.md` to complete the listing and privacy declarations, and upload the ZIP to the existing listing for review. The Chrome Web Store API v2 may also be used when credentials are configured; neither path is triggered automatically by CI, a merge, or a tag.
+7. If the user asks to publish once accepted, monitor the review status and publish after the Chrome Web Store accepts the submission. Handle rejections using the skill's [rejection workflow](./.agents/skills/chrome-extensions/references/webstore/store-listing.md#after-rejection). Record submission dates and status in `CHROMEWEBSTORE.md`, and use the submission date in the release notes.
 8. Verify the published version and smoke-test the installed Chrome Web Store update.
 
 The Chrome Web Store requires each uploaded version to be higher than the previously published version. Keep the release tag, manifest version, ZIP, and GitHub release notes aligned. See [version requirements](https://developer.chrome.com/docs/webstore/prepare) and the [Chrome Web Store API v2 guide](https://developer.chrome.com/docs/webstore/using-api) for the current upload and submission options.
