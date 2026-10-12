@@ -16,5 +16,6 @@ minimumReleaseAgeExclude:
   - react-dom@19.2.1
 
 overrides:
+  picomatch@>=4.0.0 <4.0.4: "4.0.4"
   esbuild@<=0.24.2: ">=0.25.0"
   react@<=19.2.0: ">=19.2.1"
