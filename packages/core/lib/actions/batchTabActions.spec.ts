@@ -79,7 +79,7 @@ describe('batchTabActions', () => {
   it('resolves focused rows and detects rows represented by selected parents', () => {
     expect(
       resolveSelectionItemTabIds({ type: 'window', id: 20 }, snapshot),
-    ).toEqual([4])
+    ).toEqual([4, 3])
     expect(
       resolveSelectedTabIds(selection([20], [], [], [20]), snapshot),
     ).toEqual([4, 3])

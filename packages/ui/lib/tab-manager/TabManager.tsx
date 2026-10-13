@@ -8,7 +8,7 @@ import { TabListSkeleton } from '../components/TabListSkeleton'
 import { ScrollToActiveIcon } from '../icons'
 import { useSurface } from '../Surface'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
-import { SidebarAction } from './ui/SidebarAction'
+import { creationItemFocusClass, SidebarAction } from './ui/SidebarAction'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
 import { TabManagerShell } from './ui/TabManagerShell'
 import { TabManagerSidebar } from './ui/TabManagerSidebar'
@@ -122,6 +122,7 @@ export type TabManagerIntent =
       item?: TabManagerItem
     }
   | { type: 'focus-item'; item: TabManagerItem }
+  | { type: 'focus-creation'; pane: 'window' | 'tab' }
   | { type: 'toggle-sidebar' }
   | { type: 'create-window' }
   | { type: 'create-tab'; windowId: number; groupId?: number }
@@ -199,6 +200,7 @@ export const TabManager = ({
   const viewedWindow = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
+  const selectedTabIds = new Set(model.selectedTabIds)
   const send = useCallback(
     (intent: TabManagerIntent) => {
       if (!live) return
@@ -232,10 +234,13 @@ export const TabManager = ({
   const onTabClick = useCallback(
     (tab: BrowserTabListTab, event: MouseEvent<HTMLDivElement>) => {
       select({ type: 'tab', id: Number(tab.id) }, event)
-      if (!(event.metaKey || event.ctrlKey || event.shiftKey))
-        send({ type: 'activate-tab', tabId: Number(tab.id) })
     },
-    [select, send],
+    [select],
+  )
+  const onTabActivate = useCallback(
+    (tab: BrowserTabListTab) =>
+      send({ type: 'activate-tab', tabId: Number(tab.id) }),
+    [send],
   )
   const onTabClose = useCallback(
     (tab: BrowserTabListTab) =>
@@ -392,12 +397,6 @@ export const TabManager = ({
       if (entry) {
         event.preventDefault()
         event.stopPropagation()
-        if (
-          model.sidebarExpanded &&
-          rootRef.current?.querySelector('[data-sidebar-layout="overlay"]') &&
-          ['tabs', 'actions'].includes(next.dataset.keyboardSection ?? '')
-        )
-          send({ type: 'toggle-sidebar' })
         focusControl(entry)
       }
       return
@@ -481,7 +480,10 @@ export const TabManager = ({
     const item = target.matches('[data-create-item]')
       ? undefined
       : itemAt(event.target)
-    if (!item && event.key !== 'Escape') return
+    const leavesCreation =
+      target.matches('[data-create-item]') &&
+      (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+    if (!item && event.key !== 'Escape' && !leavesCreation) return
     event.preventDefault()
     event.stopPropagation()
     if (item && !sameItem(model.focusedItem, item))
@@ -553,12 +555,10 @@ export const TabManager = ({
             )
       }
       className={`
-        text-muted flex min-h-10 w-full items-center gap-3 rounded-md px-3 py-2
+        text-muted flex min-h-12 w-full items-center gap-3 rounded-md px-3 py-2
         text-sm transition-colors
         hover:text-foreground hover:bg-highlighted/40
-        focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-        focus-visible:ring-offset-background focus-visible:outline-none
-        focus-visible:ring-2 focus-visible:ring-offset-2
+        ${creationItemFocusClass}
       `}
       onClick={() => {
         if (!viewedWindow) return
@@ -599,6 +599,11 @@ export const TabManager = ({
       data-tab-manager
       onFocusCapture={(event) => {
         const target = event.target as HTMLElement
+        if (target.matches('[data-create-item]'))
+          send({
+            type: 'focus-creation',
+            pane: target.dataset.createItem === 'window' ? 'window' : 'tab',
+          })
         physicalFocusOwner.current = target.closest('[data-notification-card]')
           ? null
           : target
@@ -686,14 +691,19 @@ export const TabManager = ({
                     isViewing={window.id === model.viewedWindowId}
                     isExpanded={model.sidebarExpanded}
                     selected={model.selectedWindowIds.includes(window.id)}
+                    hasSelectedItems={window.tabs.some((tab) =>
+                      selectedTabIds.has(tab.id),
+                    )}
                     isMultiSelectMode={model.selectionMode === 'multi-select'}
                     {...cues({ type: 'window', id: window.id })}
                     onDoubleClick={() =>
                       send({ type: 'activate-window', windowId: window.id })
                     }
-                    onClick={(event) =>
-                      select({ type: 'window', id: window.id }, event)
-                    }
+                    onClick={(event) => {
+                      if (event.metaKey || event.ctrlKey || event.shiftKey)
+                        select({ type: 'window', id: window.id }, event)
+                      else send({ type: 'view-window', windowId: window.id })
+                    }}
                     onClose={() =>
                       send({ type: 'close-window', windowId: window.id })
                     }
@@ -777,7 +787,7 @@ export const TabManager = ({
                     title,
                   })
                 }
-                selectedTabIds={new Set(model.selectedTabIds)}
+                selectedTabIds={selectedTabIds}
                 selectedGroupIds={new Set(model.selectedGroupIds)}
                 duplicateTabIds={new Set(model.duplicateTabIds)}
                 isMultiSelectMode={model.selectionMode === 'multi-select'}
@@ -792,6 +802,7 @@ export const TabManager = ({
                     : undefined
                 }
                 onTabClick={onTabClick}
+                onTabActivate={onTabActivate}
                 onTabClose={onTabClose}
                 onGroupSelect={(group, event) =>
                   select({ type: 'group', id: Number(group.id) }, event)

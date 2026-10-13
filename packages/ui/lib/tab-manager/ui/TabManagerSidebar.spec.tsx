@@ -123,6 +123,11 @@ describe('TabManagerSidebar', () => {
     ).toHaveAttribute('aria-expanded', 'false')
 
     fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }))
+    act(() => screen.getByRole('button', { name: 'Window item' }).focus())
+    expect(layout).toHaveAttribute('data-sidebar-layout', 'overlay')
+    act(() => screen.getByRole('button', { name: 'Open tab' }).focus())
+    expect(layout).toHaveAttribute('data-sidebar-layout', 'inline')
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }))
     fireEvent.keyDown(document, { key: 'Escape' })
 
     expect(

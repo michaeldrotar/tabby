@@ -32,6 +32,11 @@ export type SelectionModelState = SelectionSnapshot & {
   mode: SelectionMode
 }
 
+export type SelectionHierarchy = {
+  tabs: readonly { id: number; windowId: number; groupId?: number }[]
+  groups: readonly { id: number; windowId: number }[]
+}
+
 export type SelectionIntent =
   | {
       type: 'click'
@@ -43,7 +48,8 @@ export type SelectionIntent =
     }
   | { type: 'window-context-menu'; windowId: number }
   | { type: 'space'; item: SelectionItemRef; pane: PaneContext }
-  | { type: 'escape'; item: SelectionItemRef; pane: PaneContext }
+  | { type: 'escape' }
+  | { type: 'focus-creation'; pane: PaneContext }
   | {
       type: 'arrow'
       item: SelectionItemRef
@@ -86,9 +92,22 @@ export const createEmptySelectionSnapshot = (): SelectionSnapshot => ({
 export const reduceSelectionIntent = (
   context: SelectionModelContext,
   intent: SelectionIntent,
+  hierarchy: SelectionHierarchy = { tabs: [], groups: [] },
 ): SelectionModelContext => {
   const selection = cloneSelection(context.selection)
   const interaction = { ...context.interaction }
+  materializeChildren(selection, hierarchy)
+
+  if (intent.type === 'focus-creation') {
+    if (selection.mode === 'default') clearSelection(selection)
+    return {
+      selection,
+      interaction: {
+        ...createSelectionInteractionState(),
+        currentPane: intent.pane,
+      },
+    }
+  }
 
   if (intent.type === 'window-context-menu') {
     const item: SelectionItemRef = { type: 'window', id: intent.windowId }
@@ -96,7 +115,7 @@ export const reduceSelectionIntent = (
     interaction.shiftArrowAnchor = null
 
     if (!selection.windowIds.has(intent.windowId)) {
-      selectOnly(selection, item)
+      selectOnly(selection, item, hierarchy)
       selection.mode = 'default'
       interaction.anchorItem = item
     }
@@ -130,33 +149,27 @@ export const reduceSelectionIntent = (
       if (range.length > 0) {
         const base = interaction.baseSelection ?? createEmptySelectionSnapshot()
         const next = cloneSnapshot(base)
-        for (const item of range) addItem(next, item)
+        for (const item of range) addItem(next, item, hierarchy)
         replaceSelection(selection, next)
       } else {
-        selectOnly(selection, intent.item)
+        selectOnly(selection, intent.item, hierarchy)
         interaction.anchorItem = intent.item
         interaction.baseSelection = cloneSnapshot(selection)
       }
       selection.mode = 'default'
     } else if (intent.toggle) {
-      toggleItem(selection, intent.item)
+      toggleItem(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
       interaction.baseSelection = cloneSnapshot(selection)
       selection.mode = 'default'
     } else {
-      selectOnly(selection, intent.item)
+      selectOnly(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
       interaction.baseSelection = cloneSnapshot(selection)
       selection.mode = 'default'
     }
 
-    if (intent.item.type === 'window') {
-      if (intent.shift || intent.toggle) {
-        expandSelectedWindows(selection)
-      } else {
-        selection.expandedWindowIds.delete(intent.item.id)
-      }
-    }
+    if (intent.item.type === 'window') expandSelectedWindows(selection)
 
     return { selection, interaction }
   }
@@ -164,27 +177,28 @@ export const reduceSelectionIntent = (
   if (intent.type === 'space') {
     interaction.shiftArrowAnchor = null
     interaction.currentPane = intent.pane
-    if (selection.mode === 'default') {
+    if (
+      selection.mode === 'default' &&
+      !hasSelectedParent(selection, intent.item, hierarchy)
+    ) {
       selection.mode = 'multi-select'
-      selectOnly(selection, intent.item)
+      selectOnly(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
     } else {
-      toggleItem(selection, intent.item)
+      toggleItem(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
     }
+    selection.mode = 'multi-select'
+    interaction.baseSelection = cloneSnapshot(selection)
     if (intent.item.type === 'window') expandSelectedWindows(selection)
     return { selection, interaction }
   }
 
   if (intent.type === 'escape') {
-    clearSelection(selection)
-    selection.mode = 'default'
-    selectOnly(selection, intent.item)
-    interaction.anchorItem = intent.item
-    interaction.currentPane = intent.pane
-    interaction.baseSelection = cloneSnapshot(selection)
-    interaction.shiftArrowAnchor = null
-    return { selection, interaction }
+    return {
+      selection: { ...createEmptySelectionSnapshot(), mode: 'default' },
+      interaction: createSelectionInteractionState(),
+    }
   }
 
   if (intent.type === 'arrow') {
@@ -192,7 +206,7 @@ export const reduceSelectionIntent = (
     interaction.currentPane = intent.pane
     if (intent.forceSingleSelect || selection.mode === 'default') {
       selection.mode = 'default'
-      selectOnly(selection, intent.item)
+      selectOnly(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
       interaction.baseSelection = createEmptySelectionSnapshot()
       return { selection, interaction }
@@ -214,7 +228,7 @@ export const reduceSelectionIntent = (
       if (!interaction.anchorItem) {
         interaction.anchorItem = intent.item
         interaction.baseSelection = createEmptySelectionSnapshot()
-        selectOnly(selection, intent.item)
+        selectOnly(selection, intent.item, hierarchy)
         if (intent.pane === 'window') expandSelectedWindows(selection)
         return { selection, interaction }
       }
@@ -223,7 +237,7 @@ export const reduceSelectionIntent = (
 
     const range = getSelectionRange(intent.orderedItems, anchor, intent.item)
     if (range.length === 0) {
-      selectOnly(selection, intent.item)
+      selectOnly(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
       interaction.baseSelection = createEmptySelectionSnapshot()
       if (intent.pane === 'window') expandSelectedWindows(selection)
@@ -233,7 +247,7 @@ export const reduceSelectionIntent = (
     const next = cloneSnapshot(
       interaction.baseSelection ?? createEmptySelectionSnapshot(),
     )
-    for (const item of range) addItem(next, item)
+    for (const item of range) addItem(next, item, hierarchy)
     replaceSelection(selection, next)
     if (intent.pane === 'window') expandSelectedWindows(selection)
     return { selection, interaction }
@@ -244,7 +258,7 @@ export const reduceSelectionIntent = (
   if (intent.orderedItems.length === 0) return { selection, interaction }
 
   const next = createEmptySelectionSnapshot()
-  for (const item of intent.orderedItems) addItem(next, item)
+  for (const item of intent.orderedItems) addItem(next, item, hierarchy)
   replaceSelection(selection, next)
   if (intent.pane === 'window') expandSelectedWindows(selection)
   interaction.anchorItem = intent.orderedItems[0] ?? null
@@ -346,29 +360,96 @@ const replaceSelection = (
 const selectOnly = (
   selection: SelectionModelState,
   item: SelectionItemRef,
+  hierarchy: SelectionHierarchy,
 ): void => {
   clearSelection(selection)
-  addItem(selection, item)
+  addItem(selection, item, hierarchy)
+}
+
+const getParents = (
+  item: SelectionItemRef,
+  hierarchy: SelectionHierarchy,
+): { windowId: number; groupId?: number } | undefined =>
+  item.type === 'tab'
+    ? hierarchy.tabs.find((tab) => tab.id === item.id)
+    : item.type === 'group'
+      ? hierarchy.groups.find((group) => group.id === item.id)
+      : undefined
+
+const hasSelectedParent = (
+  selection: SelectionSnapshot,
+  item: SelectionItemRef,
+  hierarchy: SelectionHierarchy,
+): boolean => {
+  const child = getParents(item, hierarchy)
+  return Boolean(
+    child &&
+    (selection.windowIds.has(child.windowId) ||
+      (item.type === 'tab' &&
+        child.groupId !== undefined &&
+        selection.groupIds.has(child.groupId))),
+  )
 }
 
 const toggleItem = (
   selection: SelectionSnapshot,
   item: SelectionItemRef,
+  hierarchy: SelectionHierarchy,
 ): void => {
-  const set = getItemSet(selection, item.type)
-  if (set.has(item.id)) {
-    set.delete(item.id)
-    if (item.type === 'window') selection.expandedWindowIds.delete(item.id)
-  } else {
-    set.add(item.id)
+  if (!getItemSet(selection, item.type).has(item.id)) {
+    addItem(selection, item, hierarchy)
+    return
   }
+  removeItem(selection, item)
+  if (item.type === 'window') {
+    for (const group of hierarchy.groups)
+      if (group.windowId === item.id) selection.groupIds.delete(group.id)
+    for (const tab of hierarchy.tabs)
+      if (tab.windowId === item.id) selection.tabIds.delete(tab.id)
+  } else {
+    const child = getParents(item, hierarchy)
+    if (child) {
+      selection.windowIds.delete(child.windowId)
+      selection.expandedWindowIds.delete(child.windowId)
+      if (item.type === 'tab' && child.groupId !== undefined)
+        selection.groupIds.delete(child.groupId)
+    }
+    if (item.type === 'group')
+      for (const tab of hierarchy.tabs)
+        if (tab.groupId === item.id) selection.tabIds.delete(tab.id)
+  }
+}
+
+const materializeChildren = (
+  selection: SelectionSnapshot,
+  hierarchy: SelectionHierarchy,
+  parent?: SelectionItemRef,
+): void => {
+  const includesWindow = (id: number) =>
+    parent
+      ? parent.type === 'window' && parent.id === id
+      : selection.windowIds.has(id)
+  const includesGroup = (id: number) =>
+    parent
+      ? parent.type === 'group' && parent.id === id
+      : selection.groupIds.has(id)
+  for (const group of hierarchy.groups)
+    if (includesWindow(group.windowId)) selection.groupIds.add(group.id)
+  for (const tab of hierarchy.tabs)
+    if (
+      includesWindow(tab.windowId) ||
+      (tab.groupId !== undefined && includesGroup(tab.groupId))
+    )
+      selection.tabIds.add(tab.id)
 }
 
 const addItem = (
   selection: SelectionSnapshot,
   item: SelectionItemRef,
+  hierarchy: SelectionHierarchy,
 ): void => {
   getItemSet(selection, item.type).add(item.id)
+  if (item.type !== 'tab') materializeChildren(selection, hierarchy, item)
 }
 
 const removeItem = (

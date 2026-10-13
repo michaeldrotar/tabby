@@ -29,12 +29,16 @@ export const initializeTabManagerView = (
   view.setState({
     viewedWindowId: windowId,
     focusedItem: { type: 'window', id: windowId },
-    selection: reduceSelectionIntent(state.selection, {
-      type: 'arrow',
-      item: { type: 'window', id: windowId },
-      pane: 'window',
-      forceSingleSelect: true,
-    }),
+    selection: reduceSelectionIntent(
+      state.selection,
+      {
+        type: 'arrow',
+        item: { type: 'window', id: windowId },
+        pane: 'window',
+        forceSingleSelect: true,
+      },
+      snapshot,
+    ),
     ...(active
       ? {
           scrollToItem: {

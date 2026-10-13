@@ -467,12 +467,16 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         view.setState({
           viewedWindowId: tab.windowId,
           focusedItem: item,
-          selection: reduceSelectionIntent(state.selection, {
-            type: 'arrow',
-            item,
-            pane: 'tab',
-            forceSingleSelect: true,
-          }),
+          selection: reduceSelectionIntent(
+            state.selection,
+            {
+              type: 'arrow',
+              item,
+              pane: 'tab',
+              forceSingleSelect: true,
+            },
+            backend.getSnapshot(),
+          ),
           scrollToItem: {
             id: tab.id,
             revision: (state.scrollToItem?.revision ?? 0) + 1,
@@ -496,12 +500,16 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         ...(command.type === 'create-window'
           ? {
               focusedItem: item,
-              selection: reduceSelectionIntent(view.getState().selection, {
-                type: 'arrow',
-                item,
-                pane: 'window',
-                forceSingleSelect: true,
-              }),
+              selection: reduceSelectionIntent(
+                view.getState().selection,
+                {
+                  type: 'arrow',
+                  item,
+                  pane: 'window',
+                  forceSingleSelect: true,
+                },
+                backend.getSnapshot(),
+              ),
             }
           : {}),
       })
@@ -737,6 +745,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     } else if (intent.type === 'view-window') {
       view.setState({
         viewedWindowId: intent.windowId,
+        focusedItem: { type: 'window', id: intent.windowId },
+        selection: {
+          ...state.selection,
+          interaction: createSelectionInteractionState(),
+        },
         scrollTop: 0,
         actionMenu: null,
         actionPanel: null,
@@ -759,6 +772,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     } else if (intent.type === 'scroll') {
       if (state.scrollTop !== intent.top)
         view.setState({ scrollTop: intent.top })
+    } else if (intent.type === 'focus-creation') {
+      view.setState({
+        focusedItem: null,
+        selection: reduceSelectionIntent(state.selection, intent, snapshot),
+      })
     } else if (intent.type === 'focus-item') {
       if (itemExists(snapshot, intent.item))
         view.setState({ focusedItem: intent.item })
@@ -772,18 +790,19 @@ export const createTabManagerController = (resources: TabManagerResources) => {
             }))
           : getTabManagerOrder(snapshot, state.viewedWindowId)
       view.setState({
-        selection: reduceSelectionIntent(state.selection, {
-          type: 'click',
-          item,
-          pane: item.type === 'window' ? 'window' : 'tab',
-          orderedItems: order,
-          shift: intent.shift ?? false,
-          toggle: intent.toggle ?? false,
-        }),
+        selection: reduceSelectionIntent(
+          state.selection,
+          {
+            type: 'click',
+            item,
+            pane: item.type === 'window' ? 'window' : 'tab',
+            orderedItems: order,
+            shift: intent.shift ?? false,
+            toggle: intent.toggle ?? false,
+          },
+          backend.getSnapshot(),
+        ),
         focusedItem: item,
-        ...(item.type === 'window'
-          ? { viewedWindowId: item.id, scrollTop: 0 }
-          : {}),
       })
     } else if (intent.type === 'navigate') {
       if (intent.alt) {
@@ -848,7 +867,12 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
         return
       const pane: PaneContext =
-        (intent.item ?? state.focusedItem)?.type === 'window' ? 'window' : 'tab'
+        (intent.item ?? state.focusedItem)?.type === 'window' ||
+        (!intent.item &&
+          !state.focusedItem &&
+          state.selection.interaction.currentPane === 'window')
+          ? 'window'
+          : 'tab'
       if (intent.key === 'ArrowLeft' || intent.key === 'ArrowRight') {
         const targetPane = intent.key === 'ArrowLeft' ? 'window' : 'tab'
         if (targetPane === pane) return
@@ -871,12 +895,15 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           : visibleOrder[0]
         if (!item) return
         view.setState({
-          selection: reduceSelectionIntent(state.selection, {
-            type: 'arrow',
-            item,
-            pane: targetPane,
-            forceSingleSelect: true,
-          }),
+          selection: reduceSelectionIntent(
+            state.selection,
+            {
+              type: 'arrow',
+              item,
+              pane: targetPane,
+            },
+            backend.getSnapshot(),
+          ),
           focusedItem: item,
         })
         return
@@ -928,24 +955,30 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         view.setState({ actionMenu: null, actionPanel: null })
         return
       }
+      if (intent.key === 'Escape') {
+        clearSelection()
+        return
+      }
       const modelIntent =
         intent.key === ' '
           ? { type: 'space' as const, item, pane }
-          : intent.key === 'Escape'
-            ? { type: 'escape' as const, item, pane }
-            : intent.toggle && intent.key.toLowerCase() === 'a'
-              ? { type: 'select-all' as const, pane, orderedItems: order }
-              : intent.shift
-                ? {
-                    type: 'shift-arrow' as const,
-                    item,
-                    pane,
-                    focusedBeforeMove: state.focusedItem ?? undefined,
-                    orderedItems: order,
-                  }
-                : { type: 'arrow' as const, item, pane }
+          : intent.toggle && intent.key.toLowerCase() === 'a'
+            ? { type: 'select-all' as const, pane, orderedItems: order }
+            : intent.shift
+              ? {
+                  type: 'shift-arrow' as const,
+                  item,
+                  pane,
+                  focusedBeforeMove: state.focusedItem ?? undefined,
+                  orderedItems: order,
+                }
+              : { type: 'arrow' as const, item, pane }
       view.setState({
-        selection: reduceSelectionIntent(state.selection, modelIntent),
+        selection: reduceSelectionIntent(
+          state.selection,
+          modelIntent,
+          backend.getSnapshot(),
+        ),
         focusedItem: item,
         ...(item.type === 'window' ? { viewedWindowId: item.id } : {}),
       })
@@ -985,11 +1018,14 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         const target = intent.target
         if (target.type === 'window') {
           view.setState({
-            selection: reduceSelectionIntent(state.selection, {
-              type: 'window-context-menu',
-              windowId: target.id,
-            }),
-            viewedWindowId: target.id,
+            selection: reduceSelectionIntent(
+              state.selection,
+              {
+                type: 'window-context-menu',
+                windowId: target.id,
+              },
+              backend.getSnapshot(),
+            ),
             focusedItem: target,
           })
           view.setState({ actionMenu: { target }, actionPanel: null })
@@ -1018,10 +1054,13 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   }
   const clearSelection = () => {
     view.setState({
-      selection: {
-        selection: { ...createEmptySelectionSnapshot(), mode: 'default' },
-        interaction: createSelectionInteractionState(),
-      },
+      selection: reduceSelectionIntent(
+        view.getState().selection,
+        {
+          type: 'escape',
+        },
+        backend.getSnapshot(),
+      ),
       actionMenu: null,
       actionPanel: null,
     })

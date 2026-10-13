@@ -111,7 +111,10 @@ describe('TabManager presentation', () => {
     window.focus()
     fireEvent.keyDown(window, { key: 'ArrowDown' })
     expect(newWindow).toHaveFocus()
-    expect(onIntent).not.toHaveBeenCalled()
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'focus-creation',
+      pane: 'window',
+    })
     fireEvent.keyDown(newWindow, { key: 'ArrowUp' })
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'navigate',
@@ -126,6 +129,10 @@ describe('TabManager presentation', () => {
     tab.focus()
     fireEvent.keyDown(tab, { key: 'ArrowDown' })
     expect(groupNewTab).toHaveFocus()
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'focus-creation',
+      pane: 'tab',
+    })
     fireEvent.keyDown(groupNewTab, { key: 'ArrowDown' })
     expect(newTab).toHaveFocus()
     fireEvent.keyDown(newTab, { key: 'ArrowDown' })
@@ -165,7 +172,7 @@ describe('TabManager presentation', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('activates ordinary tab clicks while modifier and group clicks only select', () => {
+  it('selects rows and activates only from the favicon, double-click, or Enter', () => {
     const onIntent = vi.fn()
     render(
       <Surface>
@@ -181,20 +188,44 @@ describe('TabManager presentation', () => {
         shift: false,
         toggle: false,
       },
-      { type: 'activate-tab', tabId: 10 },
     ])
+
+    const favicon = screen.getByRole('button', { name: 'Go to tab: Tabby' })
+    for (const activate of [
+      () => fireEvent.click(favicon),
+      () => fireEvent.doubleClick(tab),
+    ]) {
+      onIntent.mockClear()
+      activate()
+      expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+        { type: 'activate-tab', tabId: 10 },
+      ])
+    }
+    onIntent.mockClear()
+    fireEvent.keyDown(tab, { key: 'Enter' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'navigate',
+      key: 'Enter',
+      shift: false,
+      toggle: false,
+    })
 
     for (const modifier of ['metaKey', 'ctrlKey', 'shiftKey']) {
       onIntent.mockClear()
-      fireEvent.click(tab, { [modifier]: true })
-      expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
-        {
-          type: 'select-item',
-          item: { type: 'tab', id: 10 },
-          shift: modifier === 'shiftKey',
-          toggle: modifier !== 'shiftKey',
-        },
-      ])
+      fireEvent.click(favicon, { [modifier]: true })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'select-item',
+        item: { type: 'tab', id: 10 },
+        shift: modifier === 'shiftKey',
+        toggle: modifier !== 'shiftKey',
+      })
+      expect(
+        onIntent.mock.calls.some(([intent]) => intent.type === 'activate-tab'),
+      ).toBe(false)
+      fireEvent.doubleClick(tab, { [modifier]: true })
+      expect(
+        onIntent.mock.calls.some(([intent]) => intent.type === 'activate-tab'),
+      ).toBe(false)
     }
     onIntent.mockClear()
     fireEvent.click(screen.getByRole('button', { name: 'Reading' }))
@@ -206,6 +237,50 @@ describe('TabManager presentation', () => {
         toggle: false,
       },
     ])
+  })
+
+  it('shows the three selection counters and marks windows containing selected items while browsing', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            selectedTabIds: [10, 11],
+            selectedWindowIds: [1],
+            selectedGroupIds: [20],
+            windows: [
+              ...model.windows,
+              {
+                id: 2,
+                title: 'Other',
+                tabs: [{ id: 11, title: 'Notes' }],
+                groups: [],
+              },
+            ],
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    expect(
+      screen.getByRole('status', { name: '1 window, 1 tab group, 2 tabs' }),
+    ).toHaveTextContent('112')
+    expect(screen.getByTitle('1 window')).toHaveTextContent('1')
+    expect(screen.getByTitle('1 tab group')).toHaveTextContent('1')
+    expect(screen.getByTitle('2 tabs')).toHaveTextContent('2')
+    expect(
+      screen.queryByRole('button', { name: 'Clear selection' }),
+    ).not.toBeInTheDocument()
+    const other = screen.getByRole('button', {
+      name: /Other, 1 tabs, contains selected items/,
+    })
+    expect(other).toHaveAttribute('data-has-selected-items', 'true')
+    fireEvent.click(other)
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'view-window',
+      windowId: 2,
+    })
   })
 
   it('synchronizes native keyboard focus without replacing a modifier selection', () => {

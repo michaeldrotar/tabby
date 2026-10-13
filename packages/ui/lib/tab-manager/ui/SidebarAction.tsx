@@ -1,6 +1,12 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../Tooltip'
 import { cn } from '../../utils/cn'
 
+export const creationItemFocusClass = `
+  focus-visible:bg-accent/[calc(var(--accent-strength)*1%)]
+  focus-visible:text-foreground focus-visible:ring-accent/70
+  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset
+`
+
 export type SidebarActionProps = {
   icon: React.ReactNode
   label: string
@@ -27,11 +33,14 @@ export const SidebarAction = ({
           text-foreground group flex w-full items-center gap-3 overflow-clip
           rounded-md p-2 transition-colors
           hover:bg-highlighted/50
-          focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-          focus-visible:ring-offset-background focus-visible:outline-none
-          focus-visible:ring-2 focus-visible:ring-offset-2
           focus:outline-none
         `,
+        createItem
+          ? creationItemFocusClass
+          : `
+            focus-visible:ring-accent/70 focus-visible:outline-none
+            focus-visible:ring-2 focus-visible:ring-inset
+          `,
       )}
     >
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">

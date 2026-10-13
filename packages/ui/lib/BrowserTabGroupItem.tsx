@@ -200,22 +200,20 @@ export const BrowserTabGroupItem = memo(
               'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
             isMultiSelectMode
               ? `
-                has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                has-[button:focus-visible]:ring-offset-background
-                has-[button:focus-visible]:ring-2
-                has-[button:focus-visible]:ring-offset-2
+                has-[[data-group-header]>button:focus-visible]:ring-accent/70
+                has-[[data-group-header]>button:focus-visible]:ring-2
+                has-[[data-group-header]>button:focus-visible]:ring-inset
               `
               : selected
                 ? `
-                  has-[button:focus-visible]:ring-foreground/20
-                  has-[button:focus-visible]:ring-1
-                  has-[button:focus-visible]:ring-inset
+                  has-[[data-group-header]>button:focus-visible]:ring-foreground/20
+                  has-[[data-group-header]>button:focus-visible]:ring-1
+                  has-[[data-group-header]>button:focus-visible]:ring-inset
                 `
                 : `
-                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-background
-                  has-[button:focus-visible]:ring-2
-                  has-[button:focus-visible]:ring-offset-2
+                  has-[[data-group-header]>button:focus-visible]:ring-accent/70
+                  has-[[data-group-header]>button:focus-visible]:ring-2
+                  has-[[data-group-header]>button:focus-visible]:ring-inset
                 `,
             className,
           )}
@@ -245,6 +243,7 @@ export const BrowserTabGroupItem = memo(
           )}
 
           <div
+            data-group-header
             className={`
               mb-1 flex w-full items-center gap-2 rounded-md px-2 py-1
             `}

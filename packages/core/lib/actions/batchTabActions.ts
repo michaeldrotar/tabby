@@ -156,9 +156,7 @@ export const resolveSelectedTabIds = (
   for (const tab of snapshot.tabs) {
     if (
       selection.tabIds.has(tab.id) ||
-      (selectedWindowIds.has(tab.windowId) &&
-        (selection.expandedWindowIds.has(tab.windowId) ||
-          tab.active === true)) ||
+      selectedWindowIds.has(tab.windowId) ||
       (tab.groupId !== undefined && selectedGroupIds.has(tab.groupId))
     ) {
       selectedIds.add(tab.id)

@@ -6,11 +6,15 @@ const dismissNotifications = async (page: Page) => {
     .locator('[data-notification-status]')
     .getByRole('button', { name: 'Dismiss notification' })
     .first()
+  if (await dismiss.isVisible()) await dismiss.hover()
   while (await dismiss.isVisible()) {
-    const cards = page.locator('[data-notification-card]')
-    const count = await cards.count()
+    const id = await dismiss.evaluate(
+      (button) =>
+        button.closest<HTMLElement>('[data-notification-card]')!.dataset
+          .notificationId,
+    )
     await dismiss.click()
-    await expect(cards).toHaveCount(count - 1)
+    await expect(page.locator(`[data-notification-id="${id}"]`)).toHaveCount(0)
   }
 }
 
@@ -50,7 +54,7 @@ test('organizes a tab selection into a group, moves it and closes its window usi
   await page.keyboard.press('ControlOrMeta+a')
   await expect(selectedTabs).toHaveCount(4)
   await page.keyboard.press('Escape')
-  await expect(selectedTabs).toHaveCount(1)
+  await expect(selectedTabs).toHaveCount(0)
   await first.click({ button: 'right' })
   await expect(page.locator('[data-action-bar-menu]')).toBeVisible()
   await page.keyboard.press('Escape')
@@ -118,12 +122,14 @@ test('organizes a tab selection into a group, moves it and closes its window usi
   await page
     .locator('[data-action-bar-panel]')
     .getByRole('menuitem', { name: 'New Tab · 2' })
+    .and(page.locator(':enabled'))
     .click()
   await expect(page.locator('[data-notification-card]')).toHaveCount(0)
   await expect(destination).toHaveAttribute('data-viewing', 'true')
   await source.click()
   await expect(first).toHaveCount(0)
   await expect(second).toHaveCount(0)
+  await source.click({ modifiers: ['ControlOrMeta'] })
   await destination.click({ modifiers: ['ControlOrMeta'] })
   await expect(summary).toHaveAttribute('data-selected-windows', '2')
   await expect(summary).toHaveAttribute('data-selected-tabs', '6')

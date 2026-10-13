@@ -47,6 +47,7 @@ type BrowserTabRenderArgs = {
   hovered: boolean
   isMultiSelectMode: boolean
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+  onActivate?: () => void
   onClose?: () => void
 }
 
@@ -89,6 +90,7 @@ export type BrowserTabListProps = {
     event: React.MouseEvent<HTMLDivElement>,
   ) => void
   onTabClose?: (tab: BrowserTabListTab) => void
+  onTabActivate?: (tab: BrowserTabListTab) => void
   onGroupSelect?: (group: BrowserTabListGroup, event: React.MouseEvent) => void
   onGroupToggleCollapse?: (group: BrowserTabListGroup) => void
   onGroupRenameComplete?: (group: BrowserTabListGroup, newTitle: string) => void
@@ -117,6 +119,7 @@ const renderDefaultTab = ({
   hovered,
   isMultiSelectMode,
   onClick,
+  onActivate,
   onClose,
 }: BrowserTabRenderArgs) => (
   <BrowserTabItem
@@ -141,6 +144,7 @@ const renderDefaultTab = ({
     duplicate={duplicate}
     isMultiSelectMode={isMultiSelectMode}
     onClick={onClick}
+    onActivate={onActivate}
     onClose={onClose}
     data-focus={focused || undefined}
     data-hover={hovered || undefined}
@@ -151,15 +155,20 @@ const TabRow = memo(
   ({
     tab,
     onTabClick,
+    onTabActivate,
     onTabClose,
     renderTabItem,
     ...state
   }: Omit<BrowserTabRenderArgs, 'onClick' | 'onClose'> &
-    Pick<BrowserTabListProps, 'onTabClick' | 'onTabClose' | 'renderTabItem'>) =>
+    Pick<
+      BrowserTabListProps,
+      'onTabClick' | 'onTabActivate' | 'onTabClose' | 'renderTabItem'
+    >) =>
     (renderTabItem ?? renderDefaultTab)({
       ...state,
       tab,
       onClick: (event) => onTabClick?.(tab, event),
+      onActivate: onTabActivate ? () => onTabActivate(tab) : undefined,
       onClose: onTabClose ? () => onTabClose(tab) : undefined,
     }),
   (previous, next) => {
@@ -185,6 +194,7 @@ export const BrowserTabList = memo(
     renamingGroupId,
     renamingGroupTitle,
     onTabClick,
+    onTabActivate,
     onTabClose,
     onGroupSelect,
     onGroupToggleCollapse,
@@ -254,6 +264,7 @@ export const BrowserTabList = memo(
                     hovered={hoveredTabId === item.tab.id}
                     isMultiSelectMode={isMultiSelectMode}
                     onTabClick={onTabClick}
+                    onTabActivate={onTabActivate}
                     onTabClose={onTabClose}
                     renderTabItem={renderTabItem}
                   />
@@ -284,6 +295,7 @@ export const BrowserTabList = memo(
                             hovered={hoveredTabId === tab.id}
                             isMultiSelectMode={isMultiSelectMode}
                             onTabClick={onTabClick}
+                            onTabActivate={onTabActivate}
                             onTabClose={onTabClose}
                             renderTabItem={renderTabItem}
                           />
