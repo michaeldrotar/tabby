@@ -1,6 +1,6 @@
 import { t } from '@extension/i18n/catalog'
 import { Plus, Search, Settings } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
 import { BrowserTabItem } from '../BrowserTabItem'
 import { BrowserTabList } from '../BrowserTabList'
@@ -120,6 +120,7 @@ export type TabManagerIntent =
       shift?: boolean
       toggle?: boolean
       alt?: boolean
+      item?: TabManagerItem
     }
   | { type: 'focus-item'; item: TabManagerItem }
   | { type: 'toggle-sidebar' }
@@ -156,10 +157,18 @@ export type TabManagerProps = {
   focusOnMount?: boolean
 }
 
-const sameItem = (a: TabManagerItem | null | undefined, b: TabManagerItem) =>
-  a?.type === b.type && a.id === b.id
+const navigationSelector =
+  '[data-nav-type="window"], [data-tab-option], [data-group-option], [data-create-item]'
+const controlSelector = 'button,summary,[data-tab-option],[data-group-option]'
+const sectionOrder = ['sidebar', 'windows', 'tools', 'tabs', 'actions']
+
+const sameItem = (
+  a: TabManagerItem | null | undefined,
+  b: TabManagerItem | undefined,
+) => !!b && a?.type === b.type && a.id === b.id
 const itemAt = (target: EventTarget | null): TabManagerItem | undefined => {
-  if (!(target instanceof Element)) return undefined
+  if (!(target instanceof Element) || target.closest('[data-create-item]'))
+    return undefined
   const tab = target.closest<HTMLElement>('[data-tab-id]')
   if (tab) return { type: 'tab', id: Number(tab.dataset.tabId) }
   const group = target.closest<HTMLElement>('[data-group-id]')
@@ -180,9 +189,11 @@ export const TabManager = ({
   const rootRef = useRef<HTMLDivElement>(null)
   const initialFocusApplied = useRef(false)
   const pendingKeyboardFocus = useRef(false)
-  const pendingCreatedTabFocus = useRef<{ knownTabIds: Set<number> } | null>(
-    null,
-  )
+  const pendingCreatedFocus = useRef<{
+    type: 'window' | 'tab'
+    knownIds: Set<number>
+  } | null>(null)
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false)
   const pendingMenuFocus = useRef(false)
   const physicalFocusOwner = useRef<HTMLElement | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -205,7 +216,7 @@ export const TabManager = ({
     'data-focus': sameItem(model.focusedItem, item) || undefined,
   })
   const select = (item: TabManagerItem, event: MouseEvent) => {
-    pendingCreatedTabFocus.current = null
+    pendingCreatedFocus.current = null
     pendingKeyboardFocus.current = false
     send({
       type: 'select-item',
@@ -277,15 +288,15 @@ export const TabManager = ({
         focusModelItem()
       }
     }
-    const createdTab = pendingCreatedTabFocus.current
-    const createdTabReady =
-      !createdTab ||
-      (model.focusedItem?.type === 'tab' &&
-        !createdTab.knownTabIds.has(model.focusedItem.id))
-    if (pendingKeyboardFocus.current && createdTabReady) {
+    const created = pendingCreatedFocus.current
+    const createdReady =
+      !created ||
+      (model.focusedItem?.type === created.type &&
+        !created.knownIds.has(model.focusedItem.id))
+    if (pendingKeyboardFocus.current && createdReady) {
       if (rootRef.current?.contains(document.activeElement)) focusModelItem()
       pendingKeyboardFocus.current = false
-      pendingCreatedTabFocus.current = null
+      pendingCreatedFocus.current = null
     }
     recoverRemovedOwner()
     // Exit animations can detach a focused row after the model has updated.
@@ -317,11 +328,116 @@ export const TabManager = ({
       ?.focus()
   }, [model.actionMenu, model.actionPanel, live])
 
+  const focusControl = (target: HTMLElement) => {
+    pendingCreatedFocus.current = null
+    pendingKeyboardFocus.current = false
+    target.focus({ preventScroll: true })
+    target.scrollIntoView?.({ block: 'nearest' })
+    const item = itemAt(target)
+    if (item) send({ type: 'focus-item', item })
+  }
+  const sectionControls = (section: Element) =>
+    Array.from(section.querySelectorAll<HTMLElement>(controlSelector)).filter(
+      (control) =>
+        !control.closest('[inert],[aria-hidden="true"]') &&
+        !control.matches(':disabled,[tabindex="-1"]'),
+    )
   const keyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!live) return
     const target = event.target as HTMLElement
     if (target.closest('input,textarea,[contenteditable="true"],[role="menu"]'))
       return
+    if (event.key === 'Escape' && shortcutHelpOpen) {
+      event.preventDefault()
+      event.stopPropagation()
+      setShortcutHelpOpen(false)
+      return
+    }
+    const section = target.closest<HTMLElement>('[data-keyboard-section]')
+    if (
+      event.key === 'Tab' &&
+      section &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      const sections = sectionOrder.flatMap((name) => {
+        const element = rootRef.current?.querySelector<HTMLElement>(
+          `[data-keyboard-section="${name}"]`,
+        )
+        return element && sectionControls(element).length ? [element] : []
+      })
+      const next =
+        sections[sections.indexOf(section) + (event.shiftKey ? -1 : 1)]
+      if (!next) return
+      const controls = sectionControls(next)
+      const remembered = controls.find((control) =>
+        sameItem(model.focusedItem, itemAt(control)),
+      )
+      const entry =
+        remembered ??
+        controls.find((control) => control.matches('[data-viewing="true"]')) ??
+        controls[0]
+      if (entry) {
+        event.preventDefault()
+        event.stopPropagation()
+        setShortcutHelpOpen(false)
+        if (
+          model.sidebarExpanded &&
+          rootRef.current?.querySelector('[data-sidebar-layout="overlay"]') &&
+          ['tabs', 'actions'].includes(next.dataset.keyboardSection ?? '')
+        )
+          send({ type: 'toggle-sidebar' })
+        focusControl(entry)
+      }
+      return
+    }
+    if (
+      section &&
+      ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey
+    ) {
+      const list =
+        section.dataset.keyboardSection === 'windows' ||
+        section.dataset.keyboardSection === 'tabs'
+      const entries = list
+        ? Array.from(section.querySelectorAll<HTMLElement>(navigationSelector))
+        : sectionControls(section)
+      const current = entries.findIndex(
+        (entry) => entry === target || entry.contains(target),
+      )
+      const next =
+        event.key === 'Home'
+          ? 0
+          : event.key === 'End'
+            ? entries.length - 1
+            : Math.max(
+                0,
+                Math.min(
+                  entries.length - 1,
+                  current + (event.key === 'ArrowUp' ? -1 : 1),
+                ),
+              )
+      const destination = entries[next]
+      if (
+        destination &&
+        (!list ||
+          destination.matches('[data-create-item]') ||
+          target.matches('[data-create-item]'))
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+        const item = itemAt(destination)
+        if (list && item) {
+          pendingKeyboardFocus.current = true
+          send({ type: 'navigate', key: event.key, item })
+        } else focusControl(destination)
+        return
+      }
+    }
     if (
       ![
         'ArrowDown',
@@ -352,7 +468,9 @@ export const TabManager = ({
       !control.matches('[data-group-option]')
     )
       return
-    const item = itemAt(event.target)
+    const item = target.matches('[data-create-item]')
+      ? undefined
+      : itemAt(event.target)
     if (!item && event.key !== 'Escape') return
     event.preventDefault()
     event.stopPropagation()
@@ -374,7 +492,7 @@ export const TabManager = ({
     const opensMenu =
       event.key === 'ContextMenu' ||
       (event.shiftKey && (event.key === 'F10' || event.key === 'Enter'))
-    pendingCreatedTabFocus.current = null
+    pendingCreatedFocus.current = null
     if (opensMenu) {
       pendingMenuFocus.current = true
       pendingKeyboardFocus.current = false
@@ -417,6 +535,7 @@ export const TabManager = ({
     <button
       type="button"
       data-nav-type="action"
+      data-create-item="tab"
       aria-label={
         groupId === undefined
           ? t('tabManager_newTab')
@@ -437,8 +556,9 @@ export const TabManager = ({
       onClick={() => {
         if (!viewedWindow) return
         pendingKeyboardFocus.current = true
-        pendingCreatedTabFocus.current = {
-          knownTabIds: new Set(
+        pendingCreatedFocus.current = {
+          type: 'tab',
+          knownIds: new Set(
             model.windows.flatMap((window) => window.tabs.map((tab) => tab.id)),
           ),
         }
@@ -471,7 +591,10 @@ export const TabManager = ({
       className="relative h-full min-h-0"
       data-tab-manager
       onFocusCapture={(event) => {
-        physicalFocusOwner.current = event.target as HTMLElement
+        const target = event.target as HTMLElement
+        physicalFocusOwner.current = target.closest('[data-notification-card]')
+          ? null
+          : target
       }}
       onBlurCapture={(event) => {
         const next = event.relatedTarget
@@ -573,7 +696,17 @@ export const TabManager = ({
                   icon={<Plus size={20} />}
                   label={t('tabContextMenu_newWindow')}
                   isExpanded={model.sidebarExpanded}
-                  onClick={() => send({ type: 'create-window' })}
+                  onClick={() => {
+                    pendingKeyboardFocus.current = true
+                    pendingCreatedFocus.current = {
+                      type: 'window',
+                      knownIds: new Set(
+                        model.windows.map((window) => window.id),
+                      ),
+                    }
+                    send({ type: 'create-window' })
+                  }}
+                  createItem="window"
                 />
               </>
             }
@@ -606,10 +739,22 @@ export const TabManager = ({
             model={model}
             onIntent={send}
             menuRef={menuRef}
+            onShortcutHelp={() => {
+              if (!live) return
+              send({ type: 'dismiss-action-menu' })
+              setShortcutHelpOpen(true)
+              rootRef.current
+                ?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
+                ?.focus()
+            }}
           />
         }
       >
-        <div data-manager-main className="min-h-full pb-4">
+        <div
+          data-manager-main
+          data-keyboard-section="tabs"
+          className="min-h-full pb-4"
+        >
           {model.status === 'error' ? (
             <p role="alert" className="p-4">
               {model.error ?? 'Unable to load tabs.'}
@@ -755,6 +900,44 @@ export const TabManager = ({
           )}
         </div>
       </TabManagerShell>
+      {shortcutHelpOpen && (
+        <section
+          aria-label="Keyboard shortcuts"
+          className={`
+            bg-popover text-popover-foreground border-border absolute bottom-16
+            left-16 right-2 z-[80] max-h-[75%] overflow-y-auto rounded-lg border
+            p-4 text-sm shadow-lg
+          `}
+        >
+          <h2 className="mb-3 font-semibold">Keyboard shortcuts</h2>
+          <dl className="space-y-2">
+            {[
+              ['Tab / Shift+Tab', 'Next / previous section'],
+              ['↑ / ↓ · Home / End', 'Navigate items and creation actions'],
+              ['← / →', 'Move between windows and tabs'],
+              ['Enter', 'Open a tab or window; collapse or expand a group'],
+              ['Space', 'Toggle selection; activate a creation action'],
+              ['Shift+↑ / ↓', 'Extend selection'],
+              ['Cmd / Ctrl+A', 'Select all items in the current list'],
+              ['Delete / Backspace', 'Close the selection or focused item'],
+              ['Menu / Shift+Enter / Shift+F10', 'Open selection actions'],
+              ['Alt+↑ / ↓', 'Reorder the focused tab or group'],
+              ['F2', 'Rename the focused group'],
+              ['Escape', 'Clear selection or dismiss help / menus'],
+            ].map(([keys, description]) => (
+              <div key={keys}>
+                <dt className="font-medium">{keys}</dt>
+                <dd className="text-muted">{description}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-muted mt-3 text-xs">
+            Section order: sidebar controls, windows, tools, tabs, actions. At
+            either end, Tab continues outside the manager. Creation actions
+            follow their list’s items.
+          </p>
+        </section>
+      )}
     </div>
   )
 }

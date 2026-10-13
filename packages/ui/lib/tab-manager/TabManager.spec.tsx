@@ -53,6 +53,123 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('moves forward and backward between sections without changing selection or trapping focus', () => {
+    const onIntent = vi.fn()
+    render(
+      <>
+        <button>Before manager</button>
+        <Surface>
+          <TabManager model={model} onIntent={onIntent} />
+        </Surface>
+        <button>After manager</button>
+      </>,
+    )
+    const window = document.querySelector<HTMLElement>(
+      '[data-nav-type="window"]',
+    )!
+    const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
+    const tools = screen.getByRole('button', { name: 'Scroll to active' })
+    const sidebar = screen.getByRole('button', { name: 'Collapse sidebar' })
+    const actions = screen.getByRole('button', { name: 'More actions' })
+    window.focus()
+    fireEvent.keyDown(window, { key: 'Tab' })
+    expect(tools).toHaveFocus()
+    fireEvent.keyDown(tools, { key: 'Tab', shiftKey: true })
+    expect(window).toHaveFocus()
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
+    expect(sidebar).toHaveFocus()
+    expect(fireEvent.keyDown(sidebar, { key: 'Tab', shiftKey: true })).toBe(
+      true,
+    )
+    tab.focus()
+    fireEvent.keyDown(tab, { key: 'Tab', shiftKey: true })
+    expect(tools).toHaveFocus()
+    fireEvent.keyDown(tools, { key: 'Tab' })
+    expect(screen.getByRole('button', { name: 'Reading' })).toHaveFocus()
+    tab.focus()
+    fireEvent.keyDown(tab, { key: 'Tab' })
+    expect(actions).toHaveFocus()
+    expect(fireEvent.keyDown(actions, { key: 'Tab' })).toBe(true)
+    fireEvent.keyDown(actions, { key: 'Tab', shiftKey: true })
+    expect(screen.getByRole('button', { name: 'Reading' })).toHaveFocus()
+    expect(
+      onIntent.mock.calls.every(([intent]) => intent.type === 'focus-item'),
+    ).toBe(true)
+  })
+
+  it('reaches creation actions in visual order and returns to list items', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager model={model} onIntent={onIntent} />
+      </Surface>,
+    )
+    const window = document.querySelector<HTMLElement>(
+      '[data-nav-type="window"]',
+    )!
+    const newWindow = screen.getByRole('button', { name: 'New window' })
+    window.focus()
+    fireEvent.keyDown(window, { key: 'ArrowDown' })
+    expect(newWindow).toHaveFocus()
+    expect(onIntent).not.toHaveBeenCalled()
+    fireEvent.keyDown(newWindow, { key: 'ArrowUp' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'navigate',
+      key: 'ArrowUp',
+      item: { type: 'window', id: 1 },
+    })
+    const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
+    const groupNewTab = screen.getByRole('button', {
+      name: 'New tab in Reading',
+    })
+    const newTab = screen.getByRole('button', { name: 'New tab' })
+    tab.focus()
+    fireEvent.keyDown(tab, { key: 'ArrowDown' })
+    expect(groupNewTab).toHaveFocus()
+    fireEvent.keyDown(groupNewTab, { key: 'ArrowDown' })
+    expect(newTab).toHaveFocus()
+    fireEvent.keyDown(newTab, { key: 'ArrowDown' })
+    expect(newTab).toHaveFocus()
+    fireEvent.keyDown(newTab, { key: 'ArrowUp' })
+    expect(groupNewTab).toHaveFocus()
+    fireEvent.keyDown(groupNewTab, { key: 'Home' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'navigate',
+      key: 'Home',
+      item: { type: 'group', id: 20 },
+    })
+    fireEvent.keyDown(tab, { key: 'End' })
+    expect(newTab).toHaveFocus()
+  })
+
+  it('keeps rename input keys local and exposes implemented shortcut help', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{ ...model, renamingGroupId: 20, actionMenu: {} }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const input = screen.getByRole('textbox', { name: 'Group name' })
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(input, { key: 'Delete' })
+    expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(true)
+    expect(onIntent).not.toHaveBeenCalled()
+    const help = screen.getByRole('menuitem', { name: 'Keyboard shortcuts' })
+    fireEvent.click(help)
+    expect(
+      screen.getByRole('region', { name: 'Keyboard shortcuts' }),
+    ).toHaveTextContent('Next / previous section')
+    fireEvent.keyDown(screen.getByRole('button', { name: 'More actions' }), {
+      key: 'Escape',
+    })
+    expect(
+      screen.queryByRole('region', { name: 'Keyboard shortcuts' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('activates ordinary tab clicks while modifier and group clicks only select', () => {
     const onIntent = vi.fn()
     render(
@@ -601,7 +718,7 @@ describe('TabManager presentation', () => {
     const { rerender } = render(pair(model))
     const firstTab = screen.getAllByRole('option', { name: 'Tab: Tabby' })[0]!
     firstTab.focus()
-    fireEvent.keyDown(firstTab, { key: 'ArrowDown' })
+    fireEvent.keyDown(firstTab, { key: 'ArrowUp' })
     rerender(pair({ ...model, focusedItem: { type: 'tab', id: 10 } }))
     expect(firstTab).toHaveFocus()
   })

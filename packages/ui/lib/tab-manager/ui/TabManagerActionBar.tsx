@@ -11,6 +11,7 @@ import {
   FileText,
   Focus,
   FolderPlus,
+  Keyboard,
   Layers,
   Link2,
   MemoryStick,
@@ -79,10 +80,12 @@ export const TabManagerActionBar = ({
   model,
   onIntent,
   menuRef,
+  onShortcutHelp,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
+  onShortcutHelp: () => void
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const surface = useSurface()
@@ -241,7 +244,7 @@ export const TabManagerActionBar = ({
                 </button>
               </div>
             </>
-          ) : ordered.length ? (
+          ) : (
             <div className="min-h-0 flex-1 overflow-y-auto py-1">
               {ordered.map((action, index) => (
                 <div key={action.id}>
@@ -275,11 +278,20 @@ export const TabManagerActionBar = ({
                     )}
                 </div>
               ))}
+              {!ordered.length && (
+                <p className="text-muted px-3 py-3 text-sm">
+                  Select items to see actions.
+                </p>
+              )}
+              <button
+                role="menuitem"
+                className={itemClass}
+                onClick={onShortcutHelp}
+              >
+                <Keyboard size={17} aria-hidden="true" />
+                <span>Keyboard shortcuts</span>
+              </button>
             </div>
-          ) : (
-            <p className="text-muted px-3 py-3 text-sm">
-              Select items to see actions.
-            </p>
           )}
         </motion.div>
       )}
@@ -289,6 +301,7 @@ export const TabManagerActionBar = ({
     <div
       ref={rootRef}
       data-action-bar-root
+      data-keyboard-section="actions"
       className="bg-background relative z-50"
     >
       <div
