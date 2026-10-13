@@ -1,6 +1,6 @@
 import { t } from '@extension/i18n/catalog'
 import { Plus, Search, Settings } from 'lucide-react'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
 import { BrowserTabList } from '../BrowserTabList'
 import { Skeleton } from '../components/Skeleton'
@@ -192,7 +192,6 @@ export const TabManager = ({
     type: 'window' | 'tab'
     knownIds: Set<number>
   } | null>(null)
-  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false)
   const pendingMenuFocus = useRef(false)
   const physicalFocusOwner = useRef<HTMLElement | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -365,12 +364,6 @@ export const TabManager = ({
     const target = event.target as HTMLElement
     if (target.closest('input,textarea,[contenteditable="true"],[role="menu"]'))
       return
-    if (event.key === 'Escape' && shortcutHelpOpen) {
-      event.preventDefault()
-      event.stopPropagation()
-      setShortcutHelpOpen(false)
-      return
-    }
     const section = target.closest<HTMLElement>('[data-keyboard-section]')
     if (
       event.key === 'Tab' &&
@@ -399,7 +392,6 @@ export const TabManager = ({
       if (entry) {
         event.preventDefault()
         event.stopPropagation()
-        setShortcutHelpOpen(false)
         if (
           model.sidebarExpanded &&
           rootRef.current?.querySelector('[data-sidebar-layout="overlay"]') &&
@@ -754,14 +746,6 @@ export const TabManager = ({
             model={model}
             onIntent={send}
             menuRef={menuRef}
-            onShortcutHelp={() => {
-              if (!live) return
-              send({ type: 'dismiss-action-menu' })
-              setShortcutHelpOpen(true)
-              rootRef.current
-                ?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
-                ?.focus()
-            }}
           />
         }
       >
@@ -888,44 +872,6 @@ export const TabManager = ({
           )}
         </div>
       </TabManagerShell>
-      {shortcutHelpOpen && (
-        <section
-          aria-label="Keyboard shortcuts"
-          className={`
-            bg-popover text-popover-foreground border-border absolute bottom-16
-            left-16 right-2 z-[80] max-h-[75%] overflow-y-auto rounded-lg border
-            p-4 text-sm shadow-lg
-          `}
-        >
-          <h2 className="mb-3 font-semibold">Keyboard shortcuts</h2>
-          <dl className="space-y-2">
-            {[
-              ['Tab / Shift+Tab', 'Next / previous section'],
-              ['↑ / ↓ · Home / End', 'Navigate items and creation actions'],
-              ['← / →', 'Move between windows and tabs'],
-              ['Enter', 'Open a tab or window; collapse or expand a group'],
-              ['Space', 'Toggle selection; activate a creation action'],
-              ['Shift+↑ / ↓', 'Extend selection'],
-              ['Cmd / Ctrl+A', 'Select all items in the current list'],
-              ['Delete / Backspace', 'Close the selection or focused item'],
-              ['Menu / Shift+Enter / Shift+F10', 'Open selection actions'],
-              ['Alt+↑ / ↓', 'Reorder the focused tab or group'],
-              ['F2', 'Rename the focused group'],
-              ['Escape', 'Clear selection or dismiss help / menus'],
-            ].map(([keys, description]) => (
-              <div key={keys}>
-                <dt className="font-medium">{keys}</dt>
-                <dd className="text-muted">{description}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="text-muted mt-3 text-xs">
-            Section order: sidebar controls, windows, tools, tabs, actions. At
-            either end, Tab continues outside the manager. Creation actions
-            follow their list’s items.
-          </p>
-        </section>
-      )}
     </div>
   )
 }

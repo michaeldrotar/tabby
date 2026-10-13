@@ -413,14 +413,6 @@ const buildTabManagerActions = (
           true,
         )
     }
-    for (const direction of ['backward', 'forward'] as const)
-      command(
-        `move-tab-${direction}`,
-        direction === 'backward' ? 'Move up' : 'Move down',
-        direction === 'backward' ? 'ArrowUp' : 'ArrowDown',
-        { type: 'move-tab', tabId: single.id, direction },
-        'secondary',
-      )
   }
   if (
     selection.groupIds.size === 1 &&
@@ -428,18 +420,6 @@ const buildTabManagerActions = (
     !selection.windowIds.size
   ) {
     const groupId = [...selection.groupIds][0]!
-    for (const direction of ['backward', 'forward'] as const)
-      command(
-        `move-group-${direction}`,
-        direction === 'backward' ? 'Move group up' : 'Move group down',
-        direction === 'backward' ? 'ArrowUp' : 'ArrowDown',
-        {
-          type: 'group-action',
-          groupIds: [groupId],
-          action: { type: `move-${direction}` },
-        },
-        'secondary',
-      )
     command(
       'move-group-new-window',
       'Move group to new window',

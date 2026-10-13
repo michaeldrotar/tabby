@@ -275,16 +275,34 @@ const describeOutcome = (
   outcome: CommandOutcome,
   action: string,
   command?: Parameters<TabManagerResources['backend']['execute']>[0],
-) => {
-  if (outcome.skippedActiveIds || outcome.skippedAlreadyDiscardedIds) {
-    const count = outcome.succeededIds.length
-    const skipped =
-      (outcome.skippedActiveIds?.length ?? 0) +
-      (outcome.skippedAlreadyDiscardedIds?.length ?? 0)
-    return count
-      ? `${count} ${count === 1 ? 'tab' : 'tabs'} discarded${outcome.failures.length ? `; ${outcome.failures.length} failed` : ''}.`
-      : `No tabs discarded${skipped ? `; ${skipped} ineligible` : ''}${outcome.failures.length ? `; ${outcome.failures.length} failed` : ''}.`
+): string | undefined => {
+  const skippedActive = outcome.skippedActiveIds?.length ?? 0
+  const alreadyDiscarded = outcome.skippedAlreadyDiscardedIds?.length ?? 0
+  const isDiscard =
+    command?.type === 'tab-action' && command.action === 'discard'
+  if (
+    isDiscard &&
+    (skippedActive > 0 || alreadyDiscarded > 0 || outcome.failures.length > 0)
+  ) {
+    return [
+      outcome.succeededIds.length
+        ? tt('toast_nTabsDiscarded', outcome.succeededIds.length)
+        : undefined,
+      skippedActive
+        ? tt('toast_nTabsActiveDiscardSkipped', skippedActive)
+        : undefined,
+      alreadyDiscarded
+        ? tt('toast_nTabsAlreadyDiscarded', alreadyDiscarded)
+        : undefined,
+      outcome.failures.length
+        ? tt('toast_nTabsDiscardFailed', outcome.failures.length)
+        : undefined,
+      outcome.status === 'failed' ? outcome.failures[0]?.message : undefined,
+    ]
+      .filter(Boolean)
+      .join('; ')
   }
+  if (outcome.status === 'success') return undefined
   if (outcome.status === 'ignored') return `${action} ignored; data unchanged.`
   if (outcome.status === 'failed') {
     return outcome.failures[0]?.message ?? `${action} could not be completed.`
@@ -292,13 +310,7 @@ const describeOutcome = (
   if (outcome.status === 'partial') {
     return `${outcome.succeededIds.length} succeeded; ${outcome.failures.length} failed.`
   }
-  if (command?.type === 'close-tabs' || command?.type === 'close-relative-tabs')
-    return tt('toast_nTabsClosed', outcome.succeededIds.length)
-  if (command?.type === 'move-tabs')
-    return tt('toast_nTabsMoved', outcome.succeededIds.length)
-  if (command?.type === 'group-tabs')
-    return tt('toast_nTabsGrouped', outcome.succeededIds.length)
-  return `${action} complete.`
+  return undefined
 }
 
 export const createTabManagerController = (resources: TabManagerResources) => {
@@ -531,11 +543,12 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           : {}),
       })
     }
-    if (command.type === 'activate-tab' && outcome.status === 'success') return
-    setNotice({
-      message: describeOutcome(outcome, label, command),
-      kind: outcome.status === 'failed' ? 'error' : 'info',
-    })
+    const message = describeOutcome(outcome, label, command)
+    if (message)
+      setNotice({
+        message,
+        kind: outcome.status === 'failed' ? 'error' : 'info',
+      })
   }
   const closeItem = (item: SelectionItemRef): void | Promise<void> => {
     if (item.type === 'window')

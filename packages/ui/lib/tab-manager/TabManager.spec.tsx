@@ -142,7 +142,7 @@ describe('TabManager presentation', () => {
     expect(newTab).toHaveFocus()
   })
 
-  it('keeps rename input keys local and exposes implemented shortcut help', () => {
+  it('keeps rename input keys local and leaves shortcut help in Options', () => {
     const onIntent = vi.fn()
     render(
       <Surface>
@@ -157,14 +157,9 @@ describe('TabManager presentation', () => {
     fireEvent.keyDown(input, { key: 'Delete' })
     expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(true)
     expect(onIntent).not.toHaveBeenCalled()
-    const help = screen.getByRole('menuitem', { name: 'Keyboard shortcuts' })
-    fireEvent.click(help)
     expect(
-      screen.getByRole('region', { name: 'Keyboard shortcuts' }),
-    ).toHaveTextContent('Next / previous section')
-    fireEvent.keyDown(screen.getByRole('button', { name: 'More actions' }), {
-      key: 'Escape',
-    })
+      screen.queryByRole('menuitem', { name: 'Keyboard shortcuts' }),
+    ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('region', { name: 'Keyboard shortcuts' }),
     ).not.toBeInTheDocument()
