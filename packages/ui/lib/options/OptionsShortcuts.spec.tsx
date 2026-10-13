@@ -2,11 +2,21 @@
 import { defaultPreferences } from '@extension/core'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { Options } from './Options'
 import type { OptionsProps } from './Options'
 
 expect.extend(matchers)
+beforeAll(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
+})
 afterEach(cleanup)
 
 const shortcutRows: OptionsProps['shortcutRows'] = [
