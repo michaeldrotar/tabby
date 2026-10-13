@@ -100,13 +100,21 @@ pnpm preview --port 5175 --fixture scripts/preview/browser-data.json
 Edit [`browser-data.json`](./scripts/preview/browser-data.json) to set up windows,
 tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
 restart after application source changes. The preview data stays in memory;
-Chrome-extension E2E tests cover integration with the actual browser.
+A small headless extension smoke test covers packaged extension integration.
 
 ## Demo Studio
 
 Run `pnpm demo-studio` and open the URL it prints (usually [Demo Studio](http://localhost:5180/)) to use Tab Manager, Omnibar, and Options with sample data. Demo Studio starts with one instance; enable a second to compare shared browser data, view state, preferences, and themes. Choose Explore, Guided, Still, or Anatomy from the sidebar, then switch products from the stage. Appearance controls set the selected instance's theme and edit its background, foreground, and accent palettes.
 
 The [Demo Studio guide](./pages/demo-studio/README.md) documents resource composition, sample scenes, and verification. The [UI guide](./packages/ui/README.md) covers styling and embedding complete surfaces or individual components.
+
+## Testing
+
+Run `pnpm exec turbo ready` and `pnpm test` for unit, component, and render-regression tests. The [200-tab render fixture](./packages/app/lib/TabManagerPerformance.spec.tsx) checks which rows update during selection, clock changes, tab updates, and opening and activating a tab.
+
+Run `pnpm e2e` to build and run the headless browser workflows. Tab Manager selection, grouping, movement, keyboard focus, and sidebar animation use sample data through the [shared preview mock](./scripts/preview/mock-chrome.js). One extension smoke test checks packaged pages, shared preferences, saved search, and live tab updates in an isolated profile with one normal browser window. The tests do not open desktop windows or take focus.
+
+Run `pnpm test:demo-studio` for the headless Demo Studio workflows, including the 400-tab fixture. To inspect the Tab Manager manually, run `pnpm preview` and use the sample-data preview.
 
 ## Releasing
 

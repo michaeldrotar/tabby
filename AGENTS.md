@@ -21,7 +21,7 @@ This is the approved workflow for the repository. `main` is the integration bran
 ## Feature Work
 
 - Start feature branches from `main` and open pull requests to `main`.
-- Keep `main` buildable and green. CI checks lint, formatting, type checking, unit tests, Chrome-extension E2E tests, and the production build. Commits have no lint or formatting hooks.
+- Keep `main` buildable and green. CI checks lint, formatting, type checking, unit tests, headless browser workflows, and the production build. Commits have no lint or formatting hooks.
 - Update the active versioned release-notes file directly in the pull request. Name the file to match the release title, using a lowercase hyphenated slug (for example, `product/releases/v1.3.0-batch-actions-and-smarter-search.md`), and rename it if the title changes. Add one concise line under the right heading for each user-facing difference in the release compared with the previous published release. Release notes describe the net result: omit work added and later removed if the released product is back to its previous state, and do not describe intermediate changes made during development. If a change has no user-facing impact, say so in the pull request instead of adding a note.
 - Add or update tests and, when relevant, documentation, product demos, and marketing-site content. Do not add a duplicate minor-release note for a fix already documented in its patch release.
 - When a release changes a promotional component visually, recapture its corresponding image and update the checked-in promotional asset.
@@ -34,14 +34,15 @@ This is the approved workflow for the repository. `main` is the integration bran
 - For Tab Manager visual work, open the printed `/tab-manager/index.html` URL in the harness's collaborative browser. Use its native preview tools when available, starting with `preview_status` and then `preview_open` if needed. Check a sidebar-sized viewport such as 480 × 640 and the narrow layout when relevant. Share the working URL and a screenshot or recording of the actual UI.
 - Sample windows, tabs, groups, and preferences live in [`scripts/preview/browser-data.json`](./scripts/preview/browser-data.json). Pass `--fixture path/to/browser-data.json` to use task-specific sample data. Refreshing resets the preview to the fixture; rebuild and restart after application source changes.
 - Keep simulations at the Chrome API boundary in [`scripts/preview/mock-chrome.js`](./scripts/preview/mock-chrome.js). Extend the shared fixture or mock when a task needs another interaction, and add focused coverage in [`scripts/preview/preview.spec.mjs`](./scripts/preview/preview.spec.mjs). Keep the application components, stores, styling, and animations real.
-- Search and Settings buttons are inactive in the preview. Use the preview for manual UI checks and visual review. Continue using the Chrome-extension E2E tests for actual browser API behavior.
+- Search and Settings buttons are inactive in the preview. Use the preview for manual UI checks and visual review. Use the headless extension smoke test for packaged extension integration.
 
 ## E2E Testing
 
-- Structure E2E tests as complete user workflows with a realistic starting point and a meaningful end state. Use unit tests for isolated behavior that does not need a real browser.
-- For one cohesive workflow, prefer one E2E test that follows the user through related actions and verifies visible results, action labels and counts, selection counts, and the final state. Avoid separate browser tests for each small interaction when they can be covered in that workflow.
-- Add another E2E test when it starts from a meaningfully different supported state that changes the workflow or outcome, such as a substantially larger dataset. Do not test states the browser guarantees cannot occur, such as an extension starting with no window or tab.
-- Keep browser setup proportional to the workflow. Create only the tabs and windows needed to exercise it; do not open many windows to repeat the same actions.
+- Run browser workflows headlessly by default. Keep one small extension smoke test for packaged entry points, shared preferences, saved search, and live tab updates. It uses an isolated profile and one normal browser window.
+- Test Tab Manager workflows with fixture data through the shared preview Chrome API boundary. Keep application components, stores, styling, animations, and notifications real. Use the memory resources for component and performance tests.
+- Use browser tests for native keyboard focus, layout, animation, and complete product workflows. Test command planning, API adapter mapping, and failure handling with unit tests; trust Chrome's implementation of its APIs.
+- Prefer one complete workflow for related interactions, verifying visible results, action labels and counts, selection counts, and a meaningful final state. Add another workflow only for a meaningfully different starting state or outcome.
+- Use large fixtures for performance coverage. Check render counts and the rows affected by an update in component tests; headless browser workflows cover layout and interaction with large datasets.
 
 ## Review and Merge
 
