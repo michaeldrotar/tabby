@@ -20,7 +20,7 @@ The tab manager keeps your windows and groups within reach in a side panel. Sele
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Choose a light or dark theme, adjust your colors, and use the keyboard to navigate, select, and reorder tabs. Search announces the selected result for assistive technology, and controls follow your reduced-motion preference.
+Choose a light or dark theme, adjust your colors, and use the keyboard to navigate sections, create windows and tabs, select, and reorder tabs. Open Keyboard shortcuts from More actions in the tab manager for navigation and selection help. Search announces the selected result for assistive technology, and controls follow your reduced-motion preference.
 
 Your tabs, bookmarks, and history are searched on your device. The developer receives none of your browsing data or saved preferences. If you choose Search Google, Google receives the query you send.
 
@@ -111,10 +111,10 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 ## Version history
 
-| Version | Date                     | Changes                                                                                                                                                                                                         | Status    |
-| ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1.4.0   | Not submitted            | Improve accessible controls and search, clarify labels, and improve large-list rendering. [Release notes](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md).                                    | Draft     |
-| 1.3.0   | Store updated 2026-10-08 | Batch actions, tab group search, numbered window shortcuts, manual tab discard, keyboard reordering, and a standard search popup. [Release notes](product/releases/v1.3.0-batch-actions-and-smarter-search.md). | Published |
+| Version | Date                     | Changes                                                                                                                                                                                                                                            | Status    |
+| ------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1.4.0   | Not submitted            | Improve accessible controls and search, navigate manager sections and creation actions with the keyboard, show shortcut help, and improve large-list rendering. [Release notes](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md). | Draft     |
+| 1.3.0   | Store updated 2026-10-08 | Batch actions, tab group search, numbered window shortcuts, manual tab discard, keyboard reordering, and a standard search popup. [Release notes](product/releases/v1.3.0-batch-actions-and-smarter-search.md).                                    | Published |
 
 The published listing identifies version 1.3.0 and its update date. Record submission dates when submitting a version; do not substitute a GitHub release date for a store submission date.
 

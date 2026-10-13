@@ -5,6 +5,7 @@ export type SidebarActionProps = {
   icon: React.ReactNode
   label: string
   onClick: () => void
+  createItem?: 'window'
   isExpanded: boolean
 }
 
@@ -13,11 +14,13 @@ export const SidebarAction = ({
   label,
   onClick,
   isExpanded,
+  createItem,
 }: SidebarActionProps) => {
   const content = (
     <button
       onClick={onClick}
       data-nav-type="action"
+      data-create-item={createItem}
       aria-label={label}
       className={cn(
         `

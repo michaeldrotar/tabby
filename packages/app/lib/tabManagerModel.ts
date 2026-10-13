@@ -477,8 +477,24 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       view.setState({ renamingGroupId: null, renamingGroupTitle: null })
     }
     const created = outcome.createdWindowIds?.[0]
-    if (created !== undefined)
-      view.setState({ viewedWindowId: created, scrollTop: 0 })
+    if (created !== undefined) {
+      const item = { type: 'window' as const, id: created }
+      view.setState({
+        viewedWindowId: created,
+        scrollTop: 0,
+        ...(command.type === 'create-window'
+          ? {
+              focusedItem: item,
+              selection: reduceSelectionIntent(view.getState().selection, {
+                type: 'arrow',
+                item,
+                pane: 'window',
+                forceSingleSelect: true,
+              }),
+            }
+          : {}),
+      })
+    }
     const openWindowId =
       command.type === 'activate-window' &&
       outcome.succeededIds.includes(command.windowId)
@@ -789,7 +805,18 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         intent.key === 'ContextMenu' ||
         (intent.shift && (intent.key === 'F10' || intent.key === 'Enter'))
       ) {
-        return dispatch({ type: 'open-action-menu' })
+        return dispatch({
+          type: 'open-action-menu',
+          target:
+            state.focusedItem &&
+            !isSelectionItemRepresented(
+              state.focusedItem,
+              state.selection.selection,
+              snapshot,
+            )
+              ? state.focusedItem
+              : undefined,
+        })
       }
       if (
         ![
@@ -809,7 +836,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
         return
       const pane: PaneContext =
-        state.focusedItem?.type === 'window' ? 'window' : 'tab'
+        (intent.item ?? state.focusedItem)?.type === 'window' ? 'window' : 'tab'
       if (intent.key === 'ArrowLeft' || intent.key === 'ArrowRight') {
         const targetPane = intent.key === 'ArrowLeft' ? 'window' : 'tab'
         if (targetPane === pane) return
@@ -852,15 +879,29 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       const index = order.findIndex((item) => sameItem(item, state.focusedItem))
       const delta = intent.key === 'ArrowUp' ? -1 : 1
       const item =
-        intent.key === 'Home'
+        intent.item ??
+        (intent.key === 'Home'
           ? order[0]
           : intent.key === 'End'
             ? order.at(-1)
             : intent.key.startsWith('Arrow')
               ? order[Math.max(0, Math.min(order.length - 1, index + delta))]
-              : (state.focusedItem ?? order[0])
+              : (state.focusedItem ?? order[0]))
       if (!item) return
       if (intent.key === 'Delete' || intent.key === 'Backspace') {
+        if (
+          isSelectionItemRepresented(item, state.selection.selection, snapshot)
+        )
+          return dispatch({
+            type: 'run-action',
+            actionId:
+              item.type === 'window' &&
+              getActions(snapshot, state).actions.some(
+                (action) => action.id === 'close-selected-windows',
+              )
+                ? 'close-selected-windows'
+                : 'close-selected-tabs',
+          })
         return closeItem(item)
       }
       if (intent.key === 'Enter') {

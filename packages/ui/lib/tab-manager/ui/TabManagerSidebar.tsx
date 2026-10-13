@@ -159,6 +159,7 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
         {/* Top Sticky: Toggle Mode */}
         {/* Keep fixed width so the text doesn't move as the sidebar opens and closes to reveal the full content */}
         <div
+          data-keyboard-section="sidebar"
           className={`
             flex h-14 w-64 flex-shrink-0 items-center justify-between px-3
           `}
@@ -203,11 +204,17 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
 
         {/* Middle Scrollable: Window List */}
         <ScrollArea className="flex-1 py-2" orientation="vertical">
-          <div className="flex flex-col gap-2 px-2 py-1">{windowList}</div>
+          <div
+            data-keyboard-section="windows"
+            className="flex flex-col gap-2 px-2 py-1"
+          >
+            {windowList}
+          </div>
         </ScrollArea>
 
         {/* Bottom Sticky: Actions */}
         <div
+          data-keyboard-section="tools"
           className={`
             border-border flex flex-shrink-0 flex-col gap-1 border-t p-2
           `}

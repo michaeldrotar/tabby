@@ -64,6 +64,10 @@ describe('Tab Manager controller', () => {
       const created = resources.backend.getSnapshot().windows.at(-1)!
       expect(created).toMatchObject({ incognito, focused: true })
       expect(resources.view.getState().viewedWindowId).toBe(created.id)
+      expect(resources.view.getState().focusedItem).toEqual({
+        type: 'window',
+        id: created.id,
+      })
       expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(created.id)
     }
     const resources = setup({ commands: 'ignore' })
@@ -344,6 +348,27 @@ describe('Tab Manager controller', () => {
     expect(view.getState().notifications.items[0]?.message).toBe(
       '2 tabs closed',
     )
+  })
+
+  it('closes selected windows through the shared window action', async () => {
+    const beforeExecute = vi.fn(async () => {})
+    const { controller, backend } = setup({ beforeExecute })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'window', id: 1 },
+    })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'window', id: 2 },
+      toggle: true,
+    })
+    await controller.dispatch({ type: 'navigate', key: 'Delete' })
+    expect(beforeExecute).toHaveBeenCalledExactlyOnceWith({
+      type: 'window-action',
+      action: 'close',
+      windowIds: [1, 2],
+    })
+    expect(backend.getSnapshot().windows).toEqual([])
   })
 
   it('shares browser data while retaining independent selection and viewed windows', async () => {
