@@ -24,15 +24,24 @@ Manage all your windows and tabs in a clear view. Use the default Tab Manager sh
 
 - **Multi-Window View**: See all your open windows and easily switch between them.
 - **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
-- **Multi-Selection**: Select multiple tabs using familiar keyboard and mouse patterns:
-  - Click to select a single tab
-  - `Shift+Click` to select a range
-  - `Cmd/Ctrl+Click` to toggle individual items
-  - `Cmd/Ctrl+A` to select all tabs in the current window
-  - Arrow keys to navigate
-  - `Shift+Up/Down` to select a range
-  - `Space` to toggle individual items in multi-select mode
-  - `ESC` to clear selections and return to standard selection mode
+- **Multi-selection**: Keep selected tabs, groups, and windows while browsing other windows. Selecting a group or window includes its children. Toggling a child off deselects its parents and keeps the other children selected.
+
+| Gesture                                     | Selection and keyboard focus                                                                               | Viewed window                                   | Chrome activation                                         |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------- |
+| Click a tab row or group name               | Select only that item and its children; focus it                                                           | Keep the current pane                           | None                                                      |
+| Click a tab favicon                         | Keep selection; focus the tab                                                                              | Keep the current pane                           | Activate the tab                                          |
+| Double-click a tab row                      | Select and focus that tab                                                                                  | Keep the current pane                           | Activate the tab                                          |
+| Click a window                              | Keep selection; focus the window                                                                           | Show that window's tabs                         | None                                                      |
+| Cmd/Ctrl-click an item, including a favicon | Toggle that item and its children; focus it                                                                | Keep the current pane                           | None                                                      |
+| Shift-click an item                         | Select a range in that pane; focus the endpoint                                                            | Keep the current pane                           | None                                                      |
+| Right-click an item                         | Focus its action menu; keep selection if it includes the item, otherwise select that item and its children | Keep the current pane                           | None                                                      |
+| Up/Down                                     | Move focus; replace selection in standard mode or keep it in multi-select mode                             | Show the focused window when navigating windows | None                                                      |
+| Left/Right                                  | Move focus between windows and tabs; use the same selection rules as Up/Down                               | Keep the current pane                           | None                                                      |
+| Space                                       | Enter multi-select mode, then toggle items; a selected parent's child can be deselected directly           | Keep the current pane                           | None                                                      |
+| Enter                                       | Keep selection                                                                                             | Show a focused window's tabs                    | Activate a tab or window; toggle a group's collapse state |
+| Escape                                      | Dismiss open menus first; otherwise clear selection across all windows                                     | Keep the current pane                           | None                                                      |
+
+Use `Cmd/Ctrl+A` to select all items in the focused pane and `Shift+Up/Down` to select a range. Arrow navigation to **New tab** or **New window** clears standard selection and preserves multi-selection. Moving keyboard focus into tabs collapses the expanded window sidebar in narrow panels.
 
 ## Privacy and security
 

@@ -281,7 +281,14 @@ const buildTabManagerActions = (
         { type: 'tab-action', action: muted ? 'unmute' : 'mute', tabIds: ids },
       )
   }
-  const rename = getSingleGroupRenameState({ ...selection, groupIds })
+  const hasTabsOutsideGroups = tabs.some(
+    (tab) => !groupIds.has(tab.groupId ?? -1),
+  )
+  const rename = getSingleGroupRenameState({
+    ...selection,
+    groupIds,
+    tabIds: hasTabsOutsideGroups ? selection.tabIds : new Set(),
+  })
   if (rename.visible)
     add(
       {
@@ -416,7 +423,7 @@ const buildTabManagerActions = (
   }
   if (
     selection.groupIds.size === 1 &&
-    !selection.tabIds.size &&
+    !hasTabsOutsideGroups &&
     !selection.windowIds.size
   ) {
     const groupId = [...selection.groupIds][0]!
@@ -430,8 +437,8 @@ const buildTabManagerActions = (
   }
   if (
     selection.windowIds.size &&
-    !selection.groupIds.size &&
-    !selection.tabIds.size
+    groups.every((group) => selection.windowIds.has(group.windowId)) &&
+    tabs.every((tab) => selection.windowIds.has(tab.windowId))
   ) {
     const windowIds = [...selection.windowIds]
     if (windowIds.length === 1)

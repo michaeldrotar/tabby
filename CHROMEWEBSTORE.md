@@ -16,7 +16,7 @@ Find the page you need and organize your open browser windows with Tabby.
 
 Search open tabs, tab groups, bookmarks, browsing history, and recently closed pages in one place. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window.
 
-The tab manager keeps your windows and groups within reach in a side panel. Select several tabs, groups, or windows to move, group, pin, duplicate, reload, discard, close, or copy them together.
+The tab manager keeps your windows and groups within reach in a side panel. Click a tab row to select it, and click its favicon, double-click the row, or press Enter to go to it. Active tabs stand out across the full row. Keep selections while viewing other windows, see selected window, group, and tab counts, and press Escape to clear the full selection. Selecting a window or group includes its children; deselecting a child keeps the other children selected. Select several tabs, groups, or windows to move, group, pin, duplicate, reload, discard, close, or copy them together.
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
@@ -34,13 +34,13 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 ## Graphics and assets
 
-| Asset                  | Dimensions    | Status        | File                                                                       |
-| ---------------------- | ------------- | ------------- | -------------------------------------------------------------------------- |
-| Store icon             | 128 × 128 PNG | Ready         | [tabby-face-128.png](chrome-extension/public/tabby-face-128.png)           |
-| Tab manager screenshot | 1280 × 800    | Needs refresh | [Current asset](product/promotional-assets/tab-manager-1280-800.jpg)       |
-| Search screenshot      | 1280 × 800    | Ready         | [Search screenshot](product/promotional-assets/omnibar-1280-800.png)       |
-| Small promo tile       | 440 × 280     | Ready         | [Small promo tile](product/promotional-assets/cws-small-promo-440-280.jpg) |
-| Marquee promo tile     | 1400 × 560    | Ready         | [Marquee promo tile](product/promotional-assets/cws-marquee-1400-560.jpg)  |
+| Asset                  | Dimensions    | Status | File                                                                       |
+| ---------------------- | ------------- | ------ | -------------------------------------------------------------------------- |
+| Store icon             | 128 × 128 PNG | Ready  | [tabby-face-128.png](chrome-extension/public/tabby-face-128.png)           |
+| Tab manager screenshot | 1280 × 800    | Ready  | [Current asset](product/promotional-assets/tab-manager-1280-800.jpg)       |
+| Search screenshot      | 1280 × 800    | Ready  | [Search screenshot](product/promotional-assets/omnibar-1280-800.png)       |
+| Small promo tile       | 440 × 280     | Ready  | [Small promo tile](product/promotional-assets/cws-small-promo-440-280.jpg) |
+| Marquee promo tile     | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/cws-marquee-1400-560.jpg)  |
 
 Screenshots show the current product with realistic sample tabs. Capture the tab manager and search separately, with readable labels and no development controls.
 
@@ -122,7 +122,7 @@ The published listing identifies version 1.3.0 and its update date. Record submi
 
 ### Submission readiness
 
-Version 1.4.0 has not been submitted. Refresh its tab manager screenshot, confirm dashboard regions and disclosure fields, and complete the [pre-publish checklist](.agents/skills/chrome-extensions/references/webstore/review-checklist.md) before a requested submission.
+Version 1.4.0 has not been submitted. Confirm dashboard regions and disclosure fields, and complete the [pre-publish checklist](.agents/skills/chrome-extensions/references/webstore/review-checklist.md) before a requested submission.
 
 ### Known limitations
 

@@ -1,5 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Layers, Pin, Volume2, VolumeOff, X } from 'lucide-react'
+import {
+  ArrowUpRight,
+  Check,
+  Layers,
+  Pin,
+  Volume2,
+  VolumeOff,
+  X,
+} from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
 import {
@@ -32,6 +40,7 @@ export type BrowserTabItemProps = Omit<
   className?: string
   /** Handler for when tab is clicked */
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
+  onActivate?: () => void
 
   // Interactive state props
   /** Whether this tab is currently selected (for keyboard navigation or multi-select) */
@@ -99,9 +108,10 @@ export const BrowserTabItem = memo(
         favicon,
         className,
         onClick,
+        onActivate,
         selected = false,
         active = false,
-        isMultiSelectMode = false,
+        isMultiSelectMode: _isMultiSelectMode = false,
         loading = false,
         blurred = false,
         pinned = false,
@@ -182,7 +192,8 @@ export const BrowserTabItem = memo(
         }
         if (e.key === 'Enter') {
           e.preventDefault()
-          onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>)
+          if (onActivate) onActivate()
+          else onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>)
         }
       }
 
@@ -197,6 +208,79 @@ export const BrowserTabItem = memo(
           e.preventDefault()
         }
       }
+
+      const handleActivateClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation()
+        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+          rootRef.current
+            ?.querySelector<HTMLElement>('[data-tab-option]')
+            ?.focus({ preventScroll: true })
+          onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>)
+        } else onActivate?.()
+      }
+
+      const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!(e.shiftKey || e.metaKey || e.ctrlKey)) onActivate?.()
+      }
+
+      const faviconContent = (
+        <>
+          {/* Favicon with scale animation during loading (skip scale when reduced: decorative) */}
+          <motion.div
+            animate={{
+              scale: shouldReduceMotion ? 1 : loading ? 0.75 : 1,
+            }}
+            transition={transition}
+            className="flex items-center justify-center"
+          >
+            {favicon ?? (
+              <div
+                className={`flex h-5 w-5 items-center justify-center rounded`}
+              >
+                {
+                  // Generic fallback icon when no favicon
+                  <div className="bg-muted/40 h-4 w-4 rounded-sm" />
+                }
+              </div>
+            )}
+          </motion.div>
+
+          {/* Radial loading spinner overlay */}
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                initial={
+                  shouldSettleMotion
+                    ? false
+                    : shouldReduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 0.8 }
+                }
+                animate={
+                  shouldReduceMotion
+                    ? { opacity: 1 }
+                    : { opacity: 1, scale: 1.15 }
+                }
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.8 }
+                }
+                transition={transition}
+                className={`
+                  pointer-events-none absolute inset-0 flex items-center
+                  justify-center
+                `}
+              >
+                <RadialLoadingSpinner
+                  size={22}
+                  variant={active ? 'accent' : 'muted'}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )
 
       return (
         <motion.div
@@ -218,37 +302,16 @@ export const BrowserTabItem = memo(
             `group/tab-row relative overflow-hidden rounded-lg`,
             // Transition for smooth mode changes
             'transition-shadow duration-150',
-            // Focus ring styling: option (tab row) or button (close) can be focused
-            isMultiSelectMode
-              ? `
-                has-[[data-tab-option]:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                has-[[data-tab-option]:focus-visible]:ring-offset-background
-                has-[[data-tab-option]:focus-visible]:ring-2
-                has-[[data-tab-option]:focus-visible]:ring-offset-2
-                has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                has-[button:focus-visible]:ring-offset-background
-                has-[button:focus-visible]:ring-2
-                has-[button:focus-visible]:ring-offset-2
-              `
-              : selected
-                ? `
-                  has-[[data-tab-option]:focus-visible]:ring-foreground/20
-                  has-[[data-tab-option]:focus-visible]:ring-1
-                  has-[[data-tab-option]:focus-visible]:ring-inset
-                  has-[button:focus-visible]:ring-foreground/20
-                  has-[button:focus-visible]:ring-1
-                  has-[button:focus-visible]:ring-inset
-                `
-                : `
-                  has-[[data-tab-option]:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[[data-tab-option]:focus-visible]:ring-offset-background
-                  has-[[data-tab-option]:focus-visible]:ring-2
-                  has-[[data-tab-option]:focus-visible]:ring-offset-2
-                  has-[button:focus-visible]:ring-accent/[calc(var(--accent-strength)*1%)]
-                  has-[button:focus-visible]:ring-offset-background
-                  has-[button:focus-visible]:ring-2
-                  has-[button:focus-visible]:ring-offset-2
-                `,
+            `
+              has-[[data-tab-option]:focus-visible]:after:ring-accent/70
+              has-[[data-tab-option]:focus-visible]:after:ring-2
+              has-[[data-tab-option]:focus-visible]:after:ring-inset
+              has-[button:focus-visible]:after:ring-accent/70
+              has-[button:focus-visible]:after:ring-2
+              has-[button:focus-visible]:after:ring-inset
+              after:pointer-events-none after:absolute after:inset-0
+              after:rounded-[inherit]
+            `,
             className,
           )}
           data-nav-type="tab"
@@ -283,18 +346,68 @@ export const BrowserTabItem = memo(
                   hover:brightness-95
                   group-data-[hover=true]/tab-row:brightness-95
                 `,
-              active &&
-                `bg-background border-border/40 translate-y-[-0.5px] shadow-md`,
+              active && 'bg-card border-foreground/20 shadow-sm',
               active &&
                 selected &&
                 `
                   bg-accent/[calc(var(--accent-strength)*1.2%)]
                   border-accent/[calc(var(--accent-strength)*1%)]
-                  shadow-accent/25 shadow-md
                 `,
               discarded && 'opacity-50 grayscale',
             )}
           >
+            <div
+              className={`
+                relative ml-2 flex size-9 flex-shrink-0 items-center
+                justify-center
+              `}
+            >
+              {onActivate ? (
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  data-tab-activate
+                  aria-label={`Go to tab: ${title || 'Tab'}${active ? ' (active in this window)' : ''}`}
+                  title={
+                    active
+                      ? 'Active in this window · Go to tab · Enter'
+                      : 'Go to tab · Enter'
+                  }
+                  onClick={handleActivateClick}
+                  onDoubleClick={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => {
+                    if (event.shiftKey || event.metaKey || event.ctrlKey)
+                      event.preventDefault()
+                  }}
+                  className={`
+                    group/activate relative flex size-9 items-center
+                    justify-center rounded-lg transition-colors
+                    hover:bg-highlighted/70
+                    focus-visible:outline-none
+                  `}
+                >
+                  <span
+                    className={`
+                      relative flex items-center justify-center
+                      group-hover/activate:opacity-20
+                      group-focus-visible/activate:opacity-20
+                    `}
+                  >
+                    {faviconContent}
+                  </span>
+                  <ArrowUpRight
+                    aria-hidden
+                    className={`
+                      text-foreground absolute size-5 opacity-0
+                      group-hover/activate:opacity-100
+                      group-focus-visible/activate:opacity-100
+                    `}
+                  />
+                </button>
+              ) : (
+                faviconContent
+              )}
+            </div>
             <div
               role="option"
               aria-selected={selected}
@@ -303,7 +416,7 @@ export const BrowserTabItem = memo(
               className={cn(
                 `
                   flex min-h-[48px] min-w-0 flex-1 cursor-pointer select-none
-                  items-center gap-3 rounded-lg py-2 pl-4 pr-2 text-left
+                  items-center gap-3 rounded-lg py-2 pl-2 pr-2 text-left
                   transition-[background-color,filter,transform,box-shadow]
                   duration-200 ease-out
                   focus:outline-none
@@ -311,72 +424,13 @@ export const BrowserTabItem = memo(
                 `,
               )}
               onClick={onClick}
+              onDoubleClick={handleDoubleClick}
               onMouseDown={handleMouseDown}
               onKeyDown={handleKeyDown}
               aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
               aria-current={active ? 'page' : undefined}
               aria-busy={loading}
             >
-              {/* Favicon */}
-              <div className="relative flex-shrink-0">
-                {/* Favicon with scale animation during loading (skip scale when reduced: decorative) */}
-                <motion.div
-                  animate={{
-                    scale: shouldReduceMotion ? 1 : loading ? 0.75 : 1,
-                  }}
-                  transition={transition}
-                  className="flex items-center justify-center"
-                >
-                  {favicon ?? (
-                    <div
-                      className={`
-                        flex h-5 w-5 items-center justify-center rounded
-                      `}
-                    >
-                      {
-                        // Generic fallback icon when no favicon
-                        <div className="bg-muted/40 h-4 w-4 rounded-sm" />
-                      }
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Radial loading spinner overlay */}
-                <AnimatePresence>
-                  {loading && (
-                    <motion.div
-                      initial={
-                        shouldSettleMotion
-                          ? false
-                          : shouldReduceMotion
-                            ? { opacity: 0 }
-                            : { opacity: 0, scale: 0.8 }
-                      }
-                      animate={
-                        shouldReduceMotion
-                          ? { opacity: 1 }
-                          : { opacity: 1, scale: 1.15 }
-                      }
-                      exit={
-                        shouldReduceMotion
-                          ? { opacity: 0 }
-                          : { opacity: 0, scale: 0.8 }
-                      }
-                      transition={transition}
-                      className={`
-                        pointer-events-none absolute inset-0 flex items-center
-                        justify-center
-                      `}
-                    >
-                      <RadialLoadingSpinner
-                        size={22}
-                        variant={active ? 'accent' : 'muted'}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
               {/* Tab info */}
               <div className="min-w-0 flex-1">
                 {/* Title */}
@@ -424,6 +478,9 @@ export const BrowserTabItem = memo(
 
               {/* Status indicators */}
               <div className="flex flex-shrink-0 items-center gap-1.5">
+                {selected && (
+                  <Check className="text-foreground size-4" aria-hidden />
+                )}
                 {/* Audio indicator */}
                 {audio === 'muted' && (
                   <div

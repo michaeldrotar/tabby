@@ -242,7 +242,7 @@ export const Surface = ({
         onContextMenuCapture={blockInput}
         onKeyDownCapture={blockInput}
       >
-        <style>{`[data-surface] [data-focus="true"] { outline: 2px solid var(--accent); outline-offset: 2px; }
+        <style>{`[data-surface] [data-focus="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
 [data-surface][data-motion="reduced"] *, [data-surface][data-input-mode="static"] * { animation: none !important; transition: none !important; }`}</style>
         <div
           inert={blocked ? true : undefined}

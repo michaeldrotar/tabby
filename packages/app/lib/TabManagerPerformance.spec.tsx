@@ -199,8 +199,8 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     idleClock: 0,
     recentAge: 1,
     changingAge: 1,
-    selectFirst: 4,
-    selectSecond: 4,
+    selectFirst: 2,
+    selectSecond: 2,
     openBackgroundTab: 1,
     activateOpenedTab: 2,
   })

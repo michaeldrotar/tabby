@@ -307,6 +307,7 @@ export const TabManagerActionBar = ({
             data-selected-tabs={model.selectedTabIds.length}
             data-selected-windows={model.selectedWindowIds.length}
             data-selected-groups={selectedGroupCount}
+            role="status"
             className="ml-auto flex flex-shrink-0 items-center gap-1"
             aria-label={`${countLabel(model.selectedWindowIds.length, 'window')}, ${countLabel(selectedGroupCount, 'tab group')}, ${countLabel(model.selectedTabIds.length, 'tab')}`}
           >

@@ -95,6 +95,12 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
   useEffect(() => {
     if (!isOverlayExpanded || (surface && surface.inputMode !== 'live')) return
 
+    let dismissed = false
+    const dismiss = () => {
+      if (dismissed) return
+      dismissed = true
+      onToggleExpand()
+    }
     const dismissOutside = (event: Event) => {
       const target = event.target
       if (surface && target instanceof Node && !surface.root?.contains(target))
@@ -105,20 +111,22 @@ export const TabManagerSidebar = memo(function TabManagerSidebar({
       ) {
         return
       }
-      onToggleExpand()
+      dismiss()
     }
     const dismissOnEscape = (event: Event) => {
-      if ((event as KeyboardEvent).key === 'Escape') onToggleExpand()
+      if ((event as KeyboardEvent).key === 'Escape') dismiss()
     }
 
     // Capture dismissal without preventing the click from reaching its target.
     const eventRoot = surface?.root ?? document
     eventRoot.addEventListener('click', dismissOutside, true)
     eventRoot.addEventListener('contextmenu', dismissOutside, true)
+    eventRoot.addEventListener('focusin', dismissOutside)
     eventRoot.addEventListener('keydown', dismissOnEscape)
     return () => {
       eventRoot.removeEventListener('click', dismissOutside, true)
       eventRoot.removeEventListener('contextmenu', dismissOutside, true)
+      eventRoot.removeEventListener('focusin', dismissOutside)
       eventRoot.removeEventListener('keydown', dismissOnEscape)
     }
   }, [isOverlayExpanded, onToggleExpand, surface])

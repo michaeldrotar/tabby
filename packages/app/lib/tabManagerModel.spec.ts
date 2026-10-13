@@ -44,6 +44,150 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('keeps parent actions available for materialized selections and drops them after child deselection', async () => {
+    const { backend, controller, view } = setup()
+    const snapshot = backend.getSnapshot()
+    backend.restoreSnapshot({
+      ...snapshot,
+      groups: [
+        {
+          id: 5,
+          windowId: 1,
+          title: 'Reading',
+          color: 'blue',
+          collapsed: false,
+        },
+      ],
+      tabs: snapshot.tabs.map((tab) =>
+        tab.windowId === 1 ? { ...tab, groupId: 5 } : tab,
+      ),
+    })
+    const actions = () =>
+      projectTabManager(backend.getSnapshot(), view.getState(), 0).actions!.map(
+        (action) => action.id,
+      )
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'window', id: 1 },
+      toggle: true,
+    })
+    expect(actions()).toContain('close-selected-windows')
+    expect(actions()).toContain('focus-selected-window')
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 11 },
+      toggle: true,
+    })
+    expect(actions()).not.toContain('close-selected-windows')
+    expect(view.getState().selection.selection.tabIds).toEqual(new Set([12]))
+    controller.dispatch({ type: 'select-item', item: { type: 'group', id: 5 } })
+    expect(actions()).toContain('move-group-new-window')
+    expect(
+      projectTabManager(
+        backend.getSnapshot(),
+        view.getState(),
+        0,
+      ).actions!.find((action) => action.id === 'rename-selected-group')
+        ?.disabled,
+    ).toBe(false)
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 11 },
+      toggle: true,
+    })
+    expect(actions()).not.toContain('move-group-new-window')
+    controller.dispatch({ type: 'focus-creation', pane: 'tab' })
+    expect(view.getState().focusedItem).toBeNull()
+    expect(actions()).toEqual([])
+    await controller.dispatch({ type: 'activate-window', windowId: 2 })
+    expect(view.getState().notifications.items).toEqual([])
+  })
+
+  it('preserves selections across viewed windows, activation, and local ranges, then clears every target', async () => {
+    const { backend, view, controller } = setup()
+    const fixtures = createFixtureBuilder()
+    backend.restoreSnapshot(
+      fixtures.generateScene({
+        windows: [
+          fixtures.generateWindow({
+            id: 1,
+            focused: true,
+            tabs: [
+              fixtures.generateTab({ id: 11, active: true }),
+              fixtures.generateTab({ id: 12, discarded: true }),
+            ],
+          }),
+          fixtures.generateWindow({
+            id: 2,
+            tabs: [
+              fixtures.generateTab({ id: 21, active: true }),
+              fixtures.generateTab({ id: 22 }),
+              fixtures.generateTab({ id: 23 }),
+            ],
+          }),
+        ],
+      }),
+    )
+    const selectedIds = () =>
+      projectTabManager(backend.getSnapshot(), view.getState(), 0)
+        .selectedTabIds
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 12),
+    ).toMatchObject({ active: false, discarded: true })
+    controller.dispatch({ type: 'view-window', windowId: 2 })
+    expect(selectedIds()).toEqual([12])
+    expect(
+      backend.getSnapshot().windows.find((window) => window.id === 1)?.focused,
+    ).toBe(true)
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 22 },
+      toggle: true,
+    })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 23 },
+      shift: true,
+    })
+    expect(selectedIds()).toEqual([12, 22, 23])
+    await controller.dispatch({ type: 'activate-tab', tabId: 21 })
+    expect(selectedIds()).toEqual([12, 22, 23])
+    expect(
+      backend.getSnapshot().windows.find((window) => window.id === 2)?.focused,
+    ).toBe(true)
+    controller.dispatch({ type: 'view-window', windowId: 1 })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 11 },
+      shift: true,
+    })
+    expect(selectedIds()).toEqual([11])
+    controller.dispatch({ type: 'navigate', key: ' ' })
+    controller.dispatch({ type: 'navigate', key: 'ArrowLeft' })
+    controller.dispatch({ type: 'navigate', key: 'ArrowDown' })
+    controller.dispatch({ type: 'navigate', key: 'ArrowRight' })
+    expect(view.getState().viewedWindowId).toBe(2)
+    expect(selectedIds()).toEqual([11])
+    controller.dispatch({ type: 'open-action-menu' })
+    controller.dispatch({ type: 'navigate', key: 'Escape' })
+    expect(selectedIds()).toEqual([11])
+    controller.dispatch({ type: 'navigate', key: 'Escape' })
+    expect(selectedIds()).toEqual([])
+    expect(view.getState().selection.selection.mode).toBe('default')
+    controller.dispatch({
+      type: 'open-action-menu',
+      target: { type: 'window', id: 2 },
+    })
+    controller.dispatch({ type: 'clear-selection' })
+    expect(view.getState().selection.selection).toEqual({
+      windowIds: new Set(),
+      expandedWindowIds: new Set(),
+      groupIds: new Set(),
+      tabIds: new Set(),
+      mode: 'default',
+    })
+  })
   it('creates windows in the host privacy context and opens their Tab Manager only when applied', async () => {
     for (const incognito of [false, true]) {
       const resources = setup()

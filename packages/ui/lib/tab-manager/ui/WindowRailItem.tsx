@@ -18,6 +18,7 @@ export type WindowRailItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'id'> & {
   isExpanded: boolean
   /** Whether this window is part of selection */
   selected?: boolean
+  hasSelectedItems?: boolean
   /** Whether in multi-select mode (affects visual treatment of focus vs selection) */
   isMultiSelectMode?: boolean
   onClick: (event: React.MouseEvent) => void
@@ -36,7 +37,8 @@ export const WindowRailItem = memo(
         isViewing,
         isExpanded,
         selected = false,
-        isMultiSelectMode = false,
+        hasSelectedItems = false,
+        isMultiSelectMode: _isMultiSelectMode = false,
         onClick,
         onClose,
         className,
@@ -54,7 +56,11 @@ export const WindowRailItem = memo(
       const button = (
         <div
           ref={ref}
-          className={cn('group relative w-full', className)}
+          className={cn(
+            'group relative w-full',
+            isViewing ? 'rounded-l-lg rounded-r-none' : 'rounded-md',
+            className,
+          )}
           {...props}
         >
           <button
@@ -65,6 +71,8 @@ export const WindowRailItem = memo(
             data-active={isActive}
             data-selected={selected}
             data-viewing={isViewing}
+            data-has-selected-items={hasSelectedItems}
+            aria-label={`${title}, ${subtitle}${hasSelectedItems ? ', contains selected items' : ''}${isViewing ? ', viewed window' : ''}${isActive ? ', focused Chrome window' : ''}`}
             className={cn(
               `
                 relative flex w-full items-center gap-3 overflow-clip p-2
@@ -81,33 +89,15 @@ export const WindowRailItem = memo(
                 transition-[background-color,border-color,box-shadow]
                 duration-200
               `,
-              // Focus ring styling via CSS based on mode
-              isMultiSelectMode
-                ? // Multi-select mode: prominent focus ring with offset
-                  `
-                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                    focus-visible:ring-offset-background focus-visible:ring-2
-                    focus-visible:ring-offset-2
-                  `
-                : // Default mode: subtle fused state when selected/viewing
-                  selected || isViewing
-                  ? `
-                    focus-visible:ring-foreground/20 focus-visible:ring-1
-                    focus-visible:ring-inset
-                  `
-                  : // Not selected/viewing: show standard focus ring
-                    `
-                      focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                      focus-visible:ring-offset-background focus-visible:ring-2
-                      focus-visible:ring-offset-2
-                    `,
+              `
+                focus-visible:ring-accent/70 focus-visible:ring-2
+                focus-visible:ring-inset
+              `,
               // Selection has highest priority for background
-              selected
+              selected || hasSelectedItems
                 ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
                 : isViewing
-                  ? `
-                    bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
-                  `
+                  ? `bg-input/70 text-foreground`
                   : isActive
                     ? 'bg-input/50'
                     : `
@@ -130,7 +120,7 @@ export const WindowRailItem = memo(
 
             <div
               className={`
-                flex h-8 w-8 flex-shrink-0 items-center justify-center
+                relative flex h-8 w-8 flex-shrink-0 items-center justify-center
               `}
             >
               {icon || <div className="bg-muted/40 h-4 w-4 rounded-full" />}

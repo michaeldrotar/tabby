@@ -44,6 +44,76 @@ const ids = (
 ) => [...selection[type]].sort((a, b) => a - b)
 
 describe('SelectionModel', () => {
+  it('selects descendants and splits parent selections when a child is toggled off', () => {
+    const hierarchy = {
+      groups: [{ id: 50, windowId: 10 }],
+      tabs: [
+        { id: 1, windowId: 10, groupId: 50 },
+        { id: 2, windowId: 10, groupId: 50 },
+        { id: 3, windowId: 10 },
+        { id: 4, windowId: 20 },
+      ],
+    }
+    const toggle = (context: SelectionModelContext, item: SelectionItemRef) =>
+      reduceSelectionIntent(
+        context,
+        {
+          type: 'click',
+          item,
+          pane: item.type === 'window' ? 'window' : 'tab',
+          toggle: true,
+          shift: false,
+          orderedItems: [],
+        },
+        hierarchy,
+      )
+    let context = toggle(emptyContext(), { type: 'window', id: 10 })
+    context = toggle(context, { type: 'tab', id: 4 })
+    expect(ids(context.selection, 'groupIds')).toEqual([50])
+    expect(ids(context.selection, 'tabIds')).toEqual([1, 2, 3, 4])
+    context = toggle(context, { type: 'tab', id: 1 })
+    expect(ids(context.selection, 'windowIds')).toEqual([])
+    expect(ids(context.selection, 'groupIds')).toEqual([])
+    expect(ids(context.selection, 'tabIds')).toEqual([2, 3, 4])
+    context = toggle(context, { type: 'window', id: 10 })
+    context = toggle(context, { type: 'group', id: 50 })
+    expect(ids(context.selection, 'windowIds')).toEqual([])
+    expect(ids(context.selection, 'tabIds')).toEqual([3, 4])
+    context = toggle(context, { type: 'group', id: 50 })
+    context = reduceSelectionIntent(
+      context,
+      {
+        type: 'space',
+        item: { type: 'tab', id: 2 },
+        pane: 'tab',
+      },
+      hierarchy,
+    )
+    expect(context.selection.mode).toBe('multi-select')
+    expect(ids(context.selection, 'groupIds')).toEqual([])
+    expect(ids(context.selection, 'tabIds')).toEqual([1, 3, 4])
+    context = toggle(context, { type: 'window', id: 10 })
+    context = toggle(context, { type: 'window', id: 10 })
+    expect(ids(context.selection, 'tabIds')).toEqual([4])
+  })
+
+  it('clears default selection on creation focus and preserves explicit multi-selection', () => {
+    for (const mode of ['default', 'multi-select'] as const) {
+      const context = emptyContext()
+      context.selection.mode = mode
+      context.selection.tabIds.add(1)
+      const result = reduceSelectionIntent(context, {
+        type: 'focus-creation',
+        pane: 'tab',
+      })
+      expect(ids(result.selection, 'tabIds')).toEqual(
+        mode === 'default' ? [] : [1],
+      )
+      expect(result.interaction.anchorItem).toBeNull()
+      expect(result.selection.mode).toBe(mode)
+    }
+  })
+
   it('applies plain, modifier, and range clicks to explicit item order', () => {
     const order: SelectionItemRef[] = [1, 2, 3, 4, 5].map((id) => ({
       type: 'tab',
@@ -111,7 +181,7 @@ describe('SelectionModel', () => {
       },
     )
     expect(ids(context.selection, 'windowIds')).toEqual([10])
-    expect(ids(context.selection, 'expandedWindowIds')).toEqual([])
+    expect(ids(context.selection, 'expandedWindowIds')).toEqual([10])
     expect(ids(context.selection, 'tabIds')).toEqual([1])
 
     context = click(context, { type: 'tab', id: 2 }, { orderedItems: tabs })
@@ -119,7 +189,7 @@ describe('SelectionModel', () => {
     expect(ids(context.selection, 'tabIds')).toEqual([2])
   })
 
-  it('expands every selected window only for modified or range selection', () => {
+  it('expands selected windows for plain, modified, and range selection', () => {
     const windows: SelectionItemRef[] = [10, 20, 30].map((id) => ({
       type: 'window',
       id,
@@ -133,7 +203,7 @@ describe('SelectionModel', () => {
       },
     )
     expect(ids(context.selection, 'windowIds')).toEqual([10])
-    expect(ids(context.selection, 'expandedWindowIds')).toEqual([])
+    expect(ids(context.selection, 'expandedWindowIds')).toEqual([10])
 
     context = click(
       context,
@@ -192,7 +262,7 @@ describe('SelectionModel', () => {
         ],
       },
     )
-    expect(ids(context.selection, 'expandedWindowIds')).toEqual([])
+    expect(ids(context.selection, 'expandedWindowIds')).toEqual([10])
 
     context = click(
       context,
@@ -255,11 +325,10 @@ describe('SelectionModel', () => {
 
     context = reduceSelectionIntent(context, {
       type: 'escape',
-      item: { type: 'tab', id: 4 },
-      pane: 'tab',
     })
     expect(context.selection.mode).toBe('default')
-    expect(ids(context.selection, 'tabIds')).toEqual([4])
+    expect(ids(context.selection, 'tabIds')).toEqual([])
+    expect(context.interaction).toEqual(createSelectionInteractionState())
   })
 
   it('uses only visible items for range and select-all intents', () => {
