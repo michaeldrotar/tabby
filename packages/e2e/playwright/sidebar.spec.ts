@@ -75,7 +75,6 @@ const sampleSidebarTransition = (page: Page) =>
 
 test('sidebar transitions stay opaque and actions remain reachable across themes and widths', async ({
   page,
-  extensionId,
 }) => {
   for (const { colorScheme, width } of [
     { colorScheme: 'light', width: 390 },
@@ -84,9 +83,7 @@ test('sidebar transitions stay opaque and actions remain reachable across themes
     await page.setViewportSize({ width, height: 700 })
     await page.emulateMedia({ colorScheme, reducedMotion: 'no-preference' })
     if (colorScheme === 'light') {
-      await page.goto(
-        `chrome-extension://${extensionId}/tab-manager/index.html`,
-      )
+      await page.goto('/tab-manager/index.html')
     } else {
       await page.reload()
     }

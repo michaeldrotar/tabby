@@ -4,9 +4,8 @@ test.describe.configure({ timeout: 60_000 })
 
 test('keyboard navigation crosses sections, creates items and acts on the selection', async ({
   page,
-  extensionId,
 }) => {
-  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  await page.goto('/tab-manager/index.html')
   const windows = page.locator('[data-nav-type="window"]')
   const tabs = page.getByRole('option')
   const newWindow = page.getByRole('button', {

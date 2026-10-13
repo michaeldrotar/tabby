@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest'
 import { createFixtureBuilder, MemoryBackend } from '@extension/demo'
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { Surface } from '@extension/ui/Surface'
@@ -57,6 +58,8 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     ).type,
     'render',
   )
+  const renderedTabIds = () =>
+    row.mock.calls.map(([props]) => (props as { tabId: number }).tabId)
   const { container } = render(
     <TabbyProvider {...resources}>
       <Surface motion="full">
@@ -162,6 +165,30 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
       .querySelector(`[data-tab-id="${tabs[2]!.id}"]`)
       ?.getAttribute('data-selected'),
   ).toBe('true')
+  const added = fixture.generateTab({
+    title: 'Opened tab',
+    url: 'https://performance.test/opened',
+    windowId: 1,
+    index: 180,
+    active: false,
+    lastAccessed: now - 3_600_000,
+  })
+  await measure('openBackgroundTab', () => {
+    const snapshot = backend.exportSnapshot()
+    backend.restoreSnapshot({ ...snapshot, tabs: [...snapshot.tabs, added] })
+  })
+  expect(container.querySelectorAll('[data-tab-id]')).toHaveLength(181)
+  expect(renderedTabIds()).toEqual([added.id])
+  const previousActiveId = backend
+    .getSnapshot()
+    .tabs.find((tab) => tab.windowId === 1 && tab.active)!.id
+  await measure('activateOpenedTab', () =>
+    backend.execute({ type: 'activate-tab', tabId: added.id }),
+  )
+  expect(
+    container.querySelector(`[data-tab-id="${added.id}"]`),
+  ).toHaveAttribute('data-active', 'true')
+  expect(renderedTabIds()).toEqual([previousActiveId, added.id])
   expect(measurements).toEqual({
     scroll: 0,
     hover: 1,
@@ -174,6 +201,7 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     changingAge: 1,
     selectFirst: 4,
     selectSecond: 4,
+    openBackgroundTab: 1,
+    activateOpenedTab: 2,
   })
-  console.log(JSON.stringify(measurements))
 }, 20_000)
