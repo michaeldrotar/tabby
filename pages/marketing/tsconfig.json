@@ -1,0 +1,5 @@
+{
+  "extends": "@extension/tsconfig/base",
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": ["src", "*.ts"]
+}
