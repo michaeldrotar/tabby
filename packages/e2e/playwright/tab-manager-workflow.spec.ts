@@ -119,13 +119,8 @@ test('organizes a tab selection into a group, moves it and closes its window usi
     .locator('[data-action-bar-panel]')
     .getByRole('menuitem', { name: 'New Tab · 2' })
     .click()
-  await expect(
-    page
-      .locator('[data-notification-card]')
-      .filter({ hasText: '2 tabs moved' }),
-  ).toBeVisible()
+  await expect(page.locator('[data-notification-card]')).toHaveCount(0)
   await expect(destination).toHaveAttribute('data-viewing', 'true')
-  await dismissNotifications(page)
   await source.click()
   await expect(first).toHaveCount(0)
   await expect(second).toHaveCount(0)
@@ -147,12 +142,7 @@ test('organizes a tab selection into a group, moves it and closes its window usi
   await menu.getByRole('menuitem', { name: 'Close 2 tabs' }).click()
   await expect(first).toHaveCount(0)
   await expect(second).toHaveCount(0)
-  await expect(
-    page
-      .locator('[data-notification-card]')
-      .filter({ hasText: '2 tabs closed' }),
-  ).toBeVisible()
-  await dismissNotifications(page)
+  await expect(page.locator('[data-notification-card]')).toHaveCount(0)
   await destination.click()
   await page.keyboard.press('Backspace')
   await expect(windows).toHaveCount(1)

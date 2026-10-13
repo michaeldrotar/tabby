@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
+import { defaultPreferences } from '@extension/core'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { defaultPreferences } from '@extension/core'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Options } from './Options'
 import type { OptionsProps } from './Options'

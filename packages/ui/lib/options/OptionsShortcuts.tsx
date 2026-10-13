@@ -93,10 +93,12 @@ const LocalShortcuts = ({ isMac }: Pick<OptionsProps, 'isMac'>) => (
     {tabManagerShortcutGroups(isMac).map(({ title, shortcuts }) => (
       <section key={title} aria-label={`${title} shortcuts`}>
         <p className="text-muted mb-1 text-xs font-medium">{title}</p>
-        <dl className="divide-y divide-border/60">
+        <dl className="divide-border/60 divide-y">
           {shortcuts.map(({ keys, label }) => (
             <div
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-1.5"
+              className={`
+                grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-1.5
+              `}
               key={keys}
             >
               <dt className="text-foreground/90 min-w-0 text-xs leading-5">
@@ -130,7 +132,7 @@ const ShortcutRows = ({
 }) => (
   <dl
     className={cn(
-      'divide-y divide-border/60',
+      'divide-border/60 divide-y',
       windowRows && 'border-border border-t pt-2',
     )}
   >
@@ -232,7 +234,7 @@ export const OptionsShortcuts = ({
         >
           Global shortcuts
         </h2>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="border-border bg-card rounded-lg border p-4">
           <ChromeShortcuts {...shortcutsProps} />
         </div>
       </section>
@@ -243,7 +245,7 @@ export const OptionsShortcuts = ({
         >
           Tab manager shortcuts
         </h2>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="border-border bg-card rounded-lg border p-4">
           <LocalShortcuts isMac={isMac} />
         </div>
       </section>
