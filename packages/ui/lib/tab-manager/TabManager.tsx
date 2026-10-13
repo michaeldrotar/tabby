@@ -1,8 +1,7 @@
 import { t } from '@extension/i18n/catalog'
 import { Plus, Search, Settings } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
-import { BrowserTabItem } from '../BrowserTabItem'
 import { BrowserTabList } from '../BrowserTabList'
 import { Skeleton } from '../components/Skeleton'
 import { TabListSkeleton } from '../components/TabListSkeleton'
@@ -201,30 +200,49 @@ export const TabManager = ({
   const viewedWindow = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
-  const send = (intent: TabManagerIntent) => {
-    if (!live) return
-    if (
-      intent.type === 'open-action-menu' ||
-      intent.type === 'open-action-panel' ||
-      intent.type === 'dismiss-action-panel'
-    )
-      pendingMenuFocus.current = true
-    void onIntent(intent)
-  }
+  const send = useCallback(
+    (intent: TabManagerIntent) => {
+      if (!live) return
+      if (
+        intent.type === 'open-action-menu' ||
+        intent.type === 'open-action-panel' ||
+        intent.type === 'dismiss-action-panel'
+      )
+        pendingMenuFocus.current = true
+      void onIntent(intent)
+    },
+    [live, onIntent],
+  )
   const cues = (item: TabManagerItem) => ({
     'data-hover': sameItem(model.hoveredItem, item) || undefined,
     'data-focus': sameItem(model.focusedItem, item) || undefined,
   })
-  const select = (item: TabManagerItem, event: MouseEvent) => {
-    pendingCreatedFocus.current = null
-    pendingKeyboardFocus.current = false
-    send({
-      type: 'select-item',
-      item,
-      shift: event.shiftKey,
-      toggle: event.metaKey || event.ctrlKey,
-    })
-  }
+  const select = useCallback(
+    (item: TabManagerItem, event: MouseEvent) => {
+      pendingCreatedFocus.current = null
+      pendingKeyboardFocus.current = false
+      send({
+        type: 'select-item',
+        item,
+        shift: event.shiftKey,
+        toggle: event.metaKey || event.ctrlKey,
+      })
+    },
+    [send],
+  )
+  const onTabClick = useCallback(
+    (tab: BrowserTabListTab, event: MouseEvent<HTMLDivElement>) => {
+      select({ type: 'tab', id: Number(tab.id) }, event)
+      if (!(event.metaKey || event.ctrlKey || event.shiftKey))
+        send({ type: 'activate-tab', tabId: Number(tab.id) })
+    },
+    [select, send],
+  )
+  const onTabClose = useCallback(
+    (tab: BrowserTabListTab) =>
+      send({ type: 'close-item', item: { type: 'tab', id: Number(tab.id) } }),
+    [send],
+  )
 
   useLayoutEffect(() => {
     if (
@@ -511,9 +529,6 @@ export const TabManager = ({
   const toTab = (tab: TabManagerTabView): BrowserTabListTab => ({
     ...tab,
     ageLabel: tab.ageLabel ?? '',
-    favicon: tab.faviconUrl ? (
-      <img src={tab.faviconUrl} width={20} height={20} alt="" />
-    ) : undefined,
   })
   const items: BrowserTabListItemData[] = []
   const seenGroups = new Set<number>()
@@ -782,17 +797,18 @@ export const TabManager = ({
                 selectedGroupIds={new Set(model.selectedGroupIds)}
                 duplicateTabIds={new Set(model.duplicateTabIds)}
                 isMultiSelectMode={model.selectionMode === 'multi-select'}
-                onTabClick={(tab, event) => {
-                  select({ type: 'tab', id: Number(tab.id) }, event)
-                  if (!(event.metaKey || event.ctrlKey || event.shiftKey))
-                    send({ type: 'activate-tab', tabId: Number(tab.id) })
-                }}
-                onTabClose={(tab) =>
-                  send({
-                    type: 'close-item',
-                    item: { type: 'tab', id: Number(tab.id) },
-                  })
+                focusedTabId={
+                  model.focusedItem?.type === 'tab'
+                    ? model.focusedItem.id
+                    : undefined
                 }
+                hoveredTabId={
+                  model.hoveredItem?.type === 'tab'
+                    ? model.hoveredItem.id
+                    : undefined
+                }
+                onTabClick={onTabClick}
+                onTabClose={onTabClose}
                 onGroupSelect={(group, event) =>
                   select({ type: 'group', id: Number(group.id) }, event)
                 }
@@ -803,34 +819,6 @@ export const TabManager = ({
                     collapsed: !group.collapsed,
                   })
                 }
-                renderTabItem={({
-                  tab,
-                  selected,
-                  duplicate,
-                  isMultiSelectMode,
-                  onClick,
-                  onClose,
-                }) => (
-                  <BrowserTabItem
-                    title={tab.title}
-                    url={tab.url}
-                    favicon={tab.favicon}
-                    active={tab.active}
-                    loading={tab.loading}
-                    blurred={tab.blurred}
-                    pinned={tab.pinned}
-                    discarded={tab.discarded}
-                    audio={tab.audio}
-                    ageLabel={tab.ageLabel}
-                    tabId={tab.id}
-                    selected={selected}
-                    duplicate={duplicate}
-                    isMultiSelectMode={isMultiSelectMode}
-                    onClick={onClick}
-                    onClose={onClose}
-                    {...cues({ type: 'tab', id: Number(tab.id) })}
-                  />
-                )}
                 renderGroupItem={({
                   group,
                   selected,

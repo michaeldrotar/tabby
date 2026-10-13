@@ -7,7 +7,8 @@ import {
 } from '@extension/demo'
 import { Surface } from '@extension/ui/Surface'
 import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { Profiler } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTabbyViews } from './createTabbyViews'
 import { TabbyProvider } from './TabbyProvider'
 import { TabManagerExperience } from './TabManagerExperience'
@@ -33,6 +34,7 @@ describe('experience clock', () => {
     const preferences = createMemoryPreferences()
     const view = createTabManagerView()
     const pending: Array<() => void> = []
+    const onRender = vi.fn()
     const environment = {
       now: () => now,
       systemTheme: 'light' as const,
@@ -50,7 +52,9 @@ describe('experience clock', () => {
         views={createTabbyViews({ tabManager: view })}
       >
         <Surface inputMode={inputMode} motion="full">
-          <TabManagerExperience />
+          <Profiler id="manager" onRender={onRender}>
+            <TabManagerExperience />
+          </Profiler>
         </Surface>
       </TabbyProvider>
     )
@@ -61,10 +65,27 @@ describe('experience clock', () => {
       pending.shift()!()
     })
     expect(screen.getByText('• 1s')).toBeInTheDocument()
+    act(() => {
+      now += 59000
+      pending.shift()!()
+    })
+    expect(screen.getByText('• 1m')).toBeInTheDocument()
+    onRender.mockClear()
+    act(() => {
+      now += 1000
+      pending.shift()!()
+    })
+    expect(screen.getByText('• 1m')).toBeInTheDocument()
+    expect(onRender).not.toHaveBeenCalled()
+    act(() => {
+      now += 59000
+      pending.shift()!()
+    })
+    expect(screen.getByText('• 2m')).toBeInTheDocument()
     rerender(product('scripted'))
     expect(pending).toHaveLength(0)
     now += 10000
-    expect(screen.getByText('• 1s')).toBeInTheDocument()
+    expect(screen.getByText('• 2m')).toBeInTheDocument()
     rerender(product('static'))
     expect(pending).toHaveLength(0)
   })

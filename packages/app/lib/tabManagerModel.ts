@@ -148,7 +148,7 @@ const projectedWindows = new WeakMap<
     duplicateTabIds: number[]
   }
 >()
-const projectWindows = (
+export const projectTabManagerWindows = (
   snapshot: BrowserSnapshot,
   now: number,
   minutePrecision = false,
@@ -229,7 +229,11 @@ export const projectTabManager = (
   now: number,
   options: ManagerActionOptions = {},
 ): TabManagerViewModel => {
-  const data = projectWindows(snapshot, now, options.reduceAgePrecision)
+  const data = projectTabManagerWindows(
+    snapshot,
+    now,
+    options.reduceAgePrecision,
+  )
   const catalog = getTabManagerActions(snapshot, state, options)
   const selectedGroupIds = [
     ...new Set([

@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BrowserTabGroupItem } from './BrowserTabGroupItem'
 import { BrowserTabList } from './BrowserTabList'
 import { Surface } from './Surface'
+import { TabList } from './TabList'
 
 afterEach(cleanup)
 const nextFrame = () =>
@@ -29,6 +30,35 @@ const items = [
 ]
 
 describe('controlled group rename', () => {
+  it('settles nested large lists without changing motion in a neighboring list', async () => {
+    const product = (collapsed: boolean) => (
+      <Surface motion="full">
+        <TabList deferOffscreen>
+          <TabList>
+            <BrowserTabGroupItem
+              groupId={20}
+              title="Large"
+              collapsed={collapsed}
+            >
+              <span>Large tab</span>
+            </BrowserTabGroupItem>
+          </TabList>
+        </TabList>
+        <TabList>
+          <BrowserTabGroupItem groupId={21} title="Small" collapsed={collapsed}>
+            <span>Small tab</span>
+          </BrowserTabGroupItem>
+        </TabList>
+      </Surface>
+    )
+    const { rerender } = render(product(false))
+    await nextFrame()
+    rerender(product(true))
+    await nextFrame()
+    expect(screen.queryByText('Large tab')).toBeNull()
+    expect(screen.queryByText('Small tab')).not.toBeNull()
+  })
+
   it('mirrors a draft through both list renderers while only its physical owner focuses and restores focus', async () => {
     const complete = vi.fn()
     const Harness = () => {

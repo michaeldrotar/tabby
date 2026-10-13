@@ -1,6 +1,7 @@
 import { useReducedMotion } from 'framer-motion'
-import { useLayoutEffect, useState } from 'react'
+import { useContext, useLayoutEffect, useState } from 'react'
 import { useSurface } from './Surface'
+import { TabListMotionContext } from './TabList'
 import type { RefObject } from 'react'
 
 const DATA_ATTR_NAME = 'data-force-reduced-motion'
@@ -33,8 +34,13 @@ export const useShouldReduceMotion = (
   const preferred = useReducedMotion()
   const surface = useSurface()
   const [domForce, setDomForce] = useState<boolean | null>(null)
+  const surfaceOverridesMotion =
+    surface?.inputMode === 'static' ||
+    surface?.motion === 'reduced' ||
+    surface?.motion === 'full'
 
   useLayoutEffect(() => {
+    if (surfaceOverridesMotion) return
     const el = ref?.current ?? null
     const attrElement = el?.closest(`[${DATA_ATTR_NAME}]`) ?? null
     if (!attrElement) {
@@ -49,7 +55,7 @@ export const useShouldReduceMotion = (
       force = false
     }
     queueMicrotask(() => setDomForce(force))
-  }, [ref])
+  }, [ref, surfaceOverridesMotion])
 
   if (surface?.inputMode === 'static' || surface?.motion === 'reduced')
     return true
@@ -57,10 +63,12 @@ export const useShouldReduceMotion = (
   return domForce !== null ? domForce : preferred
 }
 
-/** Settled demo frames render their target state without timed visual interpolation. */
+/** Large lists and settled demo frames render without timed visual interpolation. */
 export const useShouldSettleMotion = (): boolean => {
   const surface = useSurface()
+  const settleList = useContext(TabListMotionContext)
   return (
+    settleList ||
     surface?.inputMode === 'static' ||
     (surface?.inputMode === 'scripted' && surface.motion === 'reduced')
   )
