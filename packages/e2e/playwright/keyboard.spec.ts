@@ -62,39 +62,15 @@ test('keyboard navigation crosses sections, creates items and acts on the select
   await expect(tabs).toHaveCount(initialTabs + 2)
   await expect(tabs.last()).toBeFocused()
   await page.keyboard.press('Tab')
-  await expect(
-    page
-      .locator('[data-notification-card]:not([aria-hidden="true"])')
-      .getByRole('button', { name: 'Dismiss notification' })
-      .first(),
-  ).toBeFocused()
-  while (
-    await page
-      .locator('[data-notification-card]:not([aria-hidden="true"])')
-      .getByRole('button', { name: 'Dismiss notification' })
-      .first()
-      .isVisible()
-  ) {
-    const count = await page.locator('[data-notification-card]').count()
-    await page.keyboard.press('Enter')
-    await expect(page.locator('[data-notification-card]')).toHaveCount(
-      count - 1,
-    )
-  }
   await expect(actions).toBeFocused()
+  await expect(page.locator('[data-notification-card]')).toHaveCount(0)
   await page.keyboard.press('Enter')
   await page.keyboard.press('End')
   await expect(
     page.getByRole('menuitem', { name: 'Keyboard shortcuts' }),
-  ).toBeFocused()
-  await page.keyboard.press('Enter')
-  await expect(
-    page.getByRole('region', { name: 'Keyboard shortcuts' }),
-  ).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(
-    page.getByRole('region', { name: 'Keyboard shortcuts' }),
   ).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(actions).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   await expect(tabs.last()).toBeFocused()
   await page.keyboard.press('Home')

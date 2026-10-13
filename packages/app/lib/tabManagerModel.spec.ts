@@ -370,9 +370,7 @@ describe('Tab Manager controller', () => {
             : { type: 'group', id: 5 },
       })
       expect(backend.getSnapshot().tabs.map((tab) => tab.id)).toEqual([14])
-      expect(view.getState().notifications.items[0]?.message).toBe(
-        '2 tabs closed',
-      )
+      expect(view.getState().notifications.items).toEqual([])
     }
   })
 
@@ -427,9 +425,7 @@ describe('Tab Manager controller', () => {
     expect(
       backend.getSnapshot().tabs.some((tab) => [11, 12].includes(tab.id)),
     ).toBe(false)
-    expect(view.getState().notifications.items[0]?.message).toBe(
-      '2 tabs closed',
-    )
+    expect(view.getState().notifications.items).toEqual([])
   })
 
   it('closes selected windows through the shared window action', async () => {

@@ -92,14 +92,14 @@ export const Options = (props: OptionsProps) => {
           onPreferenceChange={props.onPreferenceChange}
           controlProps={controlProps}
         />
+        <OptionsSidePanelSettings
+          openSidePanelSettings={props.openSidePanelSettings}
+        />
         <OptionsShortcuts
           isMac={props.isMac}
           shortcutRows={props.shortcutRows}
           shortcutsLoading={props.shortcutsLoading}
           openShortcutsSettings={props.openShortcutsSettings}
-        />
-        <OptionsSidePanelSettings
-          openSidePanelSettings={props.openSidePanelSettings}
         />
         <OptionsReset resetPreferences={props.resetPreferences} />
       </div>
