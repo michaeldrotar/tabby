@@ -55,10 +55,17 @@
       "url": "https://mail.google.com"
     },
     {
+      "id": 9,
+      "windowId": 2,
+      "title": "Tabby · Pull requests",
+      "url": "https://github.com/michaeldrotar/tabby/pulls",
+      "pinned": true
+    },
+    {
       "id": 7,
       "windowId": 2,
-      "title": "Weekend reading",
-      "url": "https://example.com/reading",
+      "title": "Tabby · Pull requests",
+      "url": "https://github.com/michaeldrotar/tabby/pulls",
       "active": true
     },
     {

@@ -11,6 +11,31 @@ import type {
   CommandOutcome,
 } from './browser.js'
 
+const getTabIdsByUrl = (tabs: readonly BrowserTab[]) => {
+  const tabIdsByUrl = new Map<string, number[]>()
+  for (const tab of tabs) {
+    if (!tab.url) continue
+    const ids = tabIdsByUrl.get(tab.url) ?? []
+    ids.push(tab.id)
+    tabIdsByUrl.set(tab.url, ids)
+  }
+  return tabIdsByUrl
+}
+
+export const getDuplicateTabIds = (tabs: readonly BrowserTab[]): number[] =>
+  [...getTabIdsByUrl(tabs).values()].filter((ids) => ids.length > 1).flat()
+
+export const getOtherTabIdsWithSameUrl = (
+  tabs: readonly BrowserTab[],
+  tabId: number,
+): number[] => {
+  const target = tabs.find((tab) => tab.id === tabId)
+  if (!target?.url) return []
+  return (getTabIdsByUrl(tabs).get(target.url) ?? []).filter(
+    (id) => id !== target.id,
+  )
+}
+
 export const getCommandTargetIds = (
   command: BrowserCommand,
   snapshot?: BrowserSnapshot,
@@ -28,6 +53,8 @@ export const getCommandTargetIds = (
     case 'close-relative-tabs': {
       const target = snapshot?.tabs.find((tab) => tab.id === command.tabId)
       if (!target || !snapshot) return [command.tabId]
+      if (command.direction === 'duplicates')
+        return getOtherTabIdsWithSameUrl(snapshot.tabs, target.id)
       return snapshot.tabs
         .filter(
           (tab) =>

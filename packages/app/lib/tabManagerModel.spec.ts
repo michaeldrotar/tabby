@@ -221,6 +221,88 @@ describe('Tab Manager controller', () => {
     expect(view.getState().selection.selection.mode).toBe('default')
   })
 
+  it('closes exact URL duplicates across windows from the tab context menu', async () => {
+    const resources = setup()
+    const fixtures = createFixtureBuilder()
+    const duplicateUrl =
+      'https://localhost:3000/workspace?project=alpha#overview'
+    resources.backend.restoreSnapshot(
+      fixtures.generateScene({
+        windows: [
+          fixtures.generateWindow({
+            id: 1,
+            focused: true,
+            tabs: [
+              fixtures.generateTab({
+                id: 11,
+                title: 'Workspace',
+                url: duplicateUrl,
+                active: true,
+              }),
+              fixtures.generateTab({
+                id: 12,
+                title: 'Other view',
+                url: duplicateUrl.replace('#overview', '#settings'),
+                active: false,
+              }),
+            ],
+          }),
+          fixtures.generateWindow({
+            id: 2,
+            tabs: [
+              fixtures.generateTab({
+                id: 21,
+                title: 'Workspace',
+                url: duplicateUrl,
+                active: true,
+                pinned: true,
+              }),
+              fixtures.generateTab({
+                id: 22,
+                title: 'Workspace',
+                url: duplicateUrl,
+                active: false,
+              }),
+            ],
+          }),
+        ],
+      }),
+    )
+    const { backend, controller, view } = resources
+    controller.dispatch({
+      type: 'open-action-menu',
+      target: { type: 'tab', id: 11 },
+    })
+
+    const model = projectTabManager(
+      backend.getSnapshot(),
+      view.getState(),
+      1700000000000,
+    )
+    expect(model.duplicateTabIds).toEqual([11, 21, 22])
+    expect(
+      model.actions?.find((action) => action.id === 'close-duplicate-tabs')
+        ?.label,
+    ).toBe('Close 2 duplicates')
+
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'close-duplicate-tabs',
+    })
+
+    expect(backend.getSnapshot().tabs.map((tab) => tab.id)).toEqual([11, 12])
+    const updatedModel = projectTabManager(
+      backend.getSnapshot(),
+      view.getState(),
+      1700000000000,
+    )
+    expect(
+      updatedModel.actions?.some(
+        (action) => action.id === 'close-duplicate-tabs',
+      ),
+    ).toBe(false)
+  })
+
   it('closes the full represented selection from a row and only the unselected target otherwise', async () => {
     for (const selectedTargetType of ['tab', 'group'] as const) {
       const resources = setup()

@@ -273,7 +273,7 @@ describe('sample Chrome interactions', () => {
       (await chrome.tabs.query({ groupId: -1, windowId: 2 })).map(
         (tab) => tab.id,
       ),
-    ).toEqual([7, 8, 2, 3, 4])
+    ).toEqual([9, 7, 8, 2, 3, 4])
     expect(await chrome.tabGroups.query()).toEqual([])
     expect(removedGroups).toEqual([10])
   })
