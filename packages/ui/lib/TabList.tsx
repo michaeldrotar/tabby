@@ -1,7 +1,9 @@
-import { forwardRef } from 'react'
+import { createContext, forwardRef, useContext } from 'react'
 import { getGroupColorClasses } from './tab-group/tabGroupColors'
 import { cn } from './utils/cn'
 import type { BrowserTabGroupColor } from '@extension/core'
+
+export const TabListMotionContext = createContext(false)
 
 /**
  * A container for a list of tabs.
@@ -15,16 +17,21 @@ export const TabList = ({
   children: React.ReactNode
   className?: string
   deferOffscreen?: boolean
-}) => (
-  <ol
-    className={cn('flex flex-col gap-1', className)}
-    role="listbox"
-    aria-multiselectable="true"
-    data-defer-offscreen={deferOffscreen || undefined}
-  >
-    {children}
-  </ol>
-)
+}) => {
+  const settleMotion = useContext(TabListMotionContext) || deferOffscreen
+  return (
+    <TabListMotionContext.Provider value={settleMotion}>
+      <ol
+        className={cn('flex flex-col gap-1', className)}
+        role="listbox"
+        aria-multiselectable="true"
+        data-defer-offscreen={deferOffscreen || undefined}
+      >
+        {children}
+      </ol>
+    </TabListMotionContext.Provider>
+  )
+}
 
 /**
  * A list item for a tab or a group of tabs.

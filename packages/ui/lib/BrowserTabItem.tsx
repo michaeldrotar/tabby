@@ -201,7 +201,7 @@ export const BrowserTabItem = memo(
       return (
         <motion.div
           ref={setRef}
-          layout={!shouldReduceMotion}
+          layout={!shouldReduceMotion && !shouldSettleMotion}
           initial={
             shouldSettleMotion
               ? false

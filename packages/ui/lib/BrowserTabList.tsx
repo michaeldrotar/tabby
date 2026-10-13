@@ -15,6 +15,7 @@ export type BrowserTabListTab = {
   title?: string
   url?: string
   favicon?: ReactNode
+  faviconUrl?: string
   active?: boolean
   loading?: boolean
   blurred?: boolean
@@ -42,6 +43,8 @@ type BrowserTabRenderArgs = {
   tab: BrowserTabListTab
   selected: boolean
   duplicate: boolean
+  focused: boolean
+  hovered: boolean
   isMultiSelectMode: boolean
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   onClose?: () => void
@@ -77,6 +80,8 @@ export type BrowserTabListProps = {
   selectedGroupIds?: Set<BrowserTabListID>
   duplicateTabIds?: Set<BrowserTabListID>
   isMultiSelectMode?: boolean
+  focusedTabId?: BrowserTabListID
+  hoveredTabId?: BrowserTabListID
   renamingGroupId?: BrowserTabListID | null
   renamingGroupTitle?: string
   onTabClick?: (
@@ -96,6 +101,77 @@ export type BrowserTabListProps = {
 
 const emptySelection = new Set<BrowserTabListID>()
 
+const shallowEqual = <T extends object>(previous: T, next: T) =>
+  Object.keys(previous).length === Object.keys(next).length &&
+  Object.keys(previous).every(
+    (key) =>
+      Object.hasOwn(next, key) &&
+      Object.is(previous[key as keyof T], next[key as keyof T]),
+  )
+
+const renderDefaultTab = ({
+  tab,
+  selected,
+  duplicate,
+  focused,
+  hovered,
+  isMultiSelectMode,
+  onClick,
+  onClose,
+}: BrowserTabRenderArgs) => (
+  <BrowserTabItem
+    tabId={tab.id}
+    title={tab.title || 'Untitled'}
+    url={tab.url}
+    active={tab.active}
+    loading={tab.loading}
+    blurred={tab.blurred}
+    pinned={tab.pinned}
+    discarded={tab.discarded}
+    audio={tab.audio}
+    ageLabel={tab.ageLabel}
+    lastAccessed={tab.lastAccessed}
+    favicon={
+      tab.favicon ??
+      (tab.faviconUrl ? (
+        <img src={tab.faviconUrl} width={20} height={20} alt="" />
+      ) : undefined)
+    }
+    selected={selected}
+    duplicate={duplicate}
+    isMultiSelectMode={isMultiSelectMode}
+    onClick={onClick}
+    onClose={onClose}
+    data-focus={focused || undefined}
+    data-hover={hovered || undefined}
+  />
+)
+
+const TabRow = memo(
+  ({
+    tab,
+    onTabClick,
+    onTabClose,
+    renderTabItem,
+    ...state
+  }: Omit<BrowserTabRenderArgs, 'onClick' | 'onClose'> &
+    Pick<BrowserTabListProps, 'onTabClick' | 'onTabClose' | 'renderTabItem'>) =>
+    (renderTabItem ?? renderDefaultTab)({
+      ...state,
+      tab,
+      onClick: (event) => onTabClick?.(tab, event),
+      onClose: onTabClose ? () => onTabClose(tab) : undefined,
+    }),
+  (previous, next) => {
+    const { tab: previousTab, ...previousState } = previous
+    const { tab: nextTab, ...nextState } = next
+    return (
+      shallowEqual(previousState, nextState) &&
+      shallowEqual(previousTab, nextTab)
+    )
+  },
+)
+
 export const BrowserTabList = memo(
   ({
     items,
@@ -104,6 +180,8 @@ export const BrowserTabList = memo(
     selectedGroupIds = emptySelection,
     duplicateTabIds = emptySelection,
     isMultiSelectMode = false,
+    focusedTabId,
+    hoveredTabId,
     renamingGroupId,
     renamingGroupTitle,
     onTabClick,
@@ -117,35 +195,6 @@ export const BrowserTabList = memo(
     renderTabItem,
     renderGroupItem,
   }: BrowserTabListProps) => {
-    const defaultRenderTabItem = ({
-      tab,
-      selected,
-      duplicate,
-      isMultiSelectMode: tabIsMultiSelectMode,
-      onClick,
-      onClose,
-    }: BrowserTabRenderArgs) => (
-      <BrowserTabItem
-        tabId={tab.id}
-        title={tab.title || 'Untitled'}
-        url={tab.url}
-        favicon={tab.favicon}
-        active={tab.active}
-        selected={selected}
-        loading={tab.loading}
-        blurred={tab.blurred}
-        pinned={tab.pinned}
-        discarded={tab.discarded}
-        audio={tab.audio}
-        lastAccessed={tab.lastAccessed}
-        ageLabel={tab.ageLabel}
-        duplicate={duplicate}
-        isMultiSelectMode={tabIsMultiSelectMode}
-        onClick={onClick}
-        onClose={onClose}
-      />
-    )
-
     const defaultRenderGroupItem = ({
       group,
       selected,
@@ -197,16 +246,17 @@ export const BrowserTabList = memo(
             if (item.type === 'tab') {
               return (
                 <TabListItem key={`tab-${item.tab.renderKey ?? item.tab.id}`}>
-                  {(renderTabItem || defaultRenderTabItem)({
-                    tab: item.tab,
-                    selected: selectedTabIds.has(item.tab.id),
-                    duplicate: duplicateTabIds.has(item.tab.id),
-                    isMultiSelectMode,
-                    onClick: (event) => onTabClick?.(item.tab, event),
-                    onClose: onTabClose
-                      ? () => onTabClose(item.tab)
-                      : undefined,
-                  })}
+                  <TabRow
+                    tab={item.tab}
+                    selected={selectedTabIds.has(item.tab.id)}
+                    duplicate={duplicateTabIds.has(item.tab.id)}
+                    focused={focusedTabId === item.tab.id}
+                    hovered={hoveredTabId === item.tab.id}
+                    isMultiSelectMode={isMultiSelectMode}
+                    onTabClick={onTabClick}
+                    onTabClose={onTabClose}
+                    renderTabItem={renderTabItem}
+                  />
                 </TabListItem>
               )
             }
@@ -226,16 +276,17 @@ export const BrowserTabList = memo(
                     <TabList className="gap-0.5 pl-2">
                       {item.tabs.map((tab) => (
                         <TabListItem key={tab.renderKey ?? tab.id}>
-                          {(renderTabItem || defaultRenderTabItem)({
-                            tab,
-                            selected: selectedTabIds.has(tab.id),
-                            duplicate: duplicateTabIds.has(tab.id),
-                            isMultiSelectMode,
-                            onClick: (event) => onTabClick?.(tab, event),
-                            onClose: onTabClose
-                              ? () => onTabClose(tab)
-                              : undefined,
-                          })}
+                          <TabRow
+                            tab={tab}
+                            selected={selectedTabIds.has(tab.id)}
+                            duplicate={duplicateTabIds.has(tab.id)}
+                            focused={focusedTabId === tab.id}
+                            hovered={hoveredTabId === tab.id}
+                            isMultiSelectMode={isMultiSelectMode}
+                            onTabClick={onTabClick}
+                            onTabClose={onTabClose}
+                            renderTabItem={renderTabItem}
+                          />
                         </TabListItem>
                       ))}
                     </TabList>

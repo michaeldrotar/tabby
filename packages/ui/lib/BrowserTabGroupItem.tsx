@@ -345,31 +345,38 @@ export const BrowserTabGroupItem = memo(
             </button>
           </div>
 
-          <AnimatePresence initial={false}>
-            {!collapsed && children && (
-              <motion.div
+          {shouldSettleMotion ? (
+            !collapsed && children ? (
+              <div
                 id={groupId !== undefined ? contentId : undefined}
-                initial={
-                  prefersReducedMotion ? false : { height: 0, opacity: 0 }
-                }
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={
-                  prefersReducedMotion ? undefined : { height: 0, opacity: 0 }
-                }
-                transition={
-                  shouldSettleMotion
-                    ? { duration: 0 }
-                    : {
-                        height: { type: 'spring', stiffness: 400, damping: 30 },
-                        opacity: { duration: 0.15 },
-                      }
-                }
                 className="overflow-hidden"
               >
                 {children}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            ) : null
+          ) : (
+            <AnimatePresence initial={false}>
+              {!collapsed && children && (
+                <motion.div
+                  id={groupId !== undefined ? contentId : undefined}
+                  initial={
+                    prefersReducedMotion ? false : { height: 0, opacity: 0 }
+                  }
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={
+                    prefersReducedMotion ? undefined : { height: 0, opacity: 0 }
+                  }
+                  transition={{
+                    height: { type: 'spring', stiffness: 400, damping: 30 },
+                    opacity: { duration: 0.15 },
+                  }}
+                  className="overflow-hidden"
+                >
+                  {children}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       )
     },
