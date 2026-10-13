@@ -3,6 +3,7 @@ import {
   getGroupActionBlockReason,
   getMoveBlockReason,
   getNewWindowMoveBlockReason,
+  getOtherTabIdsWithSameUrl,
   getSingleGroupRenameState,
   getTabDiscardSelectionCounts,
   resolveSelectedTabIds,
@@ -375,7 +376,24 @@ const buildTabManagerActions = (
     ids.length === 1 && !groupIds.size && !selection.windowIds.size
       ? tabs[0]
       : undefined
+  const duplicateTabIds = single
+    ? getOtherTabIdsWithSameUrl(snapshot.tabs, single.id)
+    : []
   if (single) {
+    if (duplicateTabIds.length)
+      command(
+        'close-duplicate-tabs',
+        tt('tabContextMenu_closeDuplicates', duplicateTabIds.length),
+        'Trash2',
+        {
+          type: 'close-relative-tabs',
+          tabId: single.id,
+          direction: 'duplicates',
+        },
+        'secondary',
+        undefined,
+        true,
+      )
     for (const direction of ['other', 'below'] as const) {
       const relatives = snapshot.tabs.filter(
         (tab) =>

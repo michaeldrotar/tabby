@@ -79,7 +79,11 @@ export type BrowserCommand =
   | { type: 'group-tabs'; tabIds: readonly number[]; groupId?: number }
   | { type: 'group-action'; action: GroupAction; groupIds: readonly number[] }
   | { type: 'move-tab'; tabId: number; direction: 'backward' | 'forward' }
-  | { type: 'close-relative-tabs'; tabId: number; direction: 'other' | 'below' }
+  | {
+      type: 'close-relative-tabs'
+      tabId: number
+      direction: 'other' | 'below' | 'duplicates'
+    }
   | { type: 'close-tabs'; tabIds: readonly number[] }
   | { type: 'close-window'; windowId: number }
   | {

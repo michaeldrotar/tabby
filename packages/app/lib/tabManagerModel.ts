@@ -1,3 +1,4 @@
+import { getDuplicateTabIds } from '@extension/core'
 import {
   isSelectionItemRepresented,
   resolveSelectedTabIds,
@@ -164,16 +165,10 @@ export const projectTabManagerWindows = (
   )
   const tabsByWindow = new Map<number, BrowserSnapshot['tabs'][number][]>()
   const groupsByWindow = new Map<number, BrowserSnapshot['groups'][number][]>()
-  const urls = new Map<string, number[]>()
   for (const tab of snapshot.tabs) {
     const list = tabsByWindow.get(tab.windowId) ?? []
     list.push(tab)
     tabsByWindow.set(tab.windowId, list)
-    if (tab.url) {
-      const matching = urls.get(tab.url) ?? []
-      matching.push(tab.id)
-      urls.set(tab.url, matching)
-    }
   }
   for (const group of snapshot.groups) {
     const list = groupsByWindow.get(group.windowId) ?? []
@@ -218,7 +213,7 @@ export const projectTabManagerWindows = (
   const value = {
     clockKey,
     windows,
-    duplicateTabIds: [...urls.values()].filter((ids) => ids.length > 1).flat(),
+    duplicateTabIds: getDuplicateTabIds(snapshot.tabs),
   }
   projectedWindows.set(snapshot, value)
   return value

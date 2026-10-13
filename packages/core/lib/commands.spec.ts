@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { getCommandTargetIds, planGroupMove, planTabMove } from './commands'
+import {
+  getCommandTargetIds,
+  getDuplicateTabIds,
+  planGroupMove,
+  planTabMove,
+} from './commands'
 import type { BrowserSnapshot } from './browser'
 
 const snapshot: BrowserSnapshot = {
@@ -59,5 +64,63 @@ describe('shared browser command planning', () => {
         snapshot,
       ),
     ).toEqual([3, 2])
+  })
+
+  it('resolves every exact URL duplicate across windows regardless of tab status', () => {
+    const url = 'https://example.com/project?name=alpha#overview'
+    const duplicateSnapshot: BrowserSnapshot = {
+      ...snapshot,
+      windows: [{ id: 1 }, { id: 2 }],
+      groups: [],
+      tabs: [
+        {
+          id: 11,
+          windowId: 1,
+          index: 0,
+          title: 'Project',
+          url,
+          active: true,
+        },
+        {
+          id: 12,
+          windowId: 1,
+          index: 1,
+          title: 'Pinned project',
+          url,
+          pinned: true,
+        },
+        {
+          id: 21,
+          windowId: 2,
+          index: 0,
+          title: 'Active project',
+          url,
+          active: true,
+        },
+        {
+          id: 22,
+          windowId: 2,
+          index: 1,
+          title: 'Other query',
+          url: 'https://example.com/project?name=beta#overview',
+        },
+        {
+          id: 23,
+          windowId: 2,
+          index: 2,
+          title: 'Other fragment',
+          url: 'https://example.com/project?name=alpha#settings',
+        },
+        { id: 24, windowId: 2, index: 3, title: 'No URL' },
+      ],
+    }
+
+    expect(getDuplicateTabIds(duplicateSnapshot.tabs)).toEqual([11, 12, 21])
+    expect(
+      getCommandTargetIds(
+        { type: 'close-relative-tabs', tabId: 11, direction: 'duplicates' },
+        duplicateSnapshot,
+      ),
+    ).toEqual([12, 21])
   })
 })
