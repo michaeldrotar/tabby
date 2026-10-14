@@ -6,67 +6,82 @@ import {
 } from './seasonalIcons'
 
 describe('seasonal icon dates', () => {
-  it('uses the selected icon from 21 days before through the holiday date', () => {
-    expect(
+  it.each([
+    ['valentines', new Date(2026, 1, 1), new Date(2026, 1, 14), 13],
+    ['st-patricks', new Date(2026, 2, 10), new Date(2026, 2, 17), 7],
+    ['easter', new Date(2026, 2, 22), new Date(2026, 3, 5), 14],
+    ['thanksgiving', new Date(2026, 10, 19), new Date(2026, 10, 26), 7],
+    ['halloween', new Date(2026, 9, 15), new Date(2026, 9, 31), 16],
+    ['christmas', new Date(2026, 11, 1), new Date(2026, 11, 25), 24],
+  ] as const)(
+    'shows %s only during its seasonal window',
+    (holidayId, start, holiday, leadDays) => {
+      const before = new Date(start)
+      before.setDate(before.getDate() - 1)
+      const end = holidayId === 'christmas' ? new Date(2027, 0, 1) : holiday
+      const after = new Date(end)
+      after.setDate(after.getDate() + 1)
+      const getIcon = (date: Date) =>
+        getUpcomingSeasonalIcon(defaultPreferences, date, 'en-US')
+
+      expect(getIcon(before)).toBeUndefined()
+      expect(getIcon(start)).toEqual({
+        holidayId,
+        iconId: defaultPreferences.seasonalIconSelections[holidayId],
+        daysUntil: leadDays,
+      })
+      expect(getIcon(holiday)?.daysUntil).toBe(0)
+      expect(getIcon(end)?.holidayId).toBe(holidayId)
+      expect(getIcon(after)).toBeUndefined()
+    },
+  )
+
+  it('hands overlapping windows from St. Patrick’s Day to Easter after March 17', () => {
+    const getIcon = (day: number) =>
       getUpcomingSeasonalIcon(
         defaultPreferences,
-        new Date(2026, 0, 24, 12),
+        new Date(2008, 2, day, 12),
         'en-US',
-      ),
-    ).toEqual({
-      holidayId: 'valentines',
-      iconId: 'valentines-heart-hoodie',
-      daysUntil: 21,
-    })
+      )
+
+    expect(getIcon(9)?.holidayId).toBe('easter')
+    expect(getIcon(10)?.holidayId).toBe('st-patricks')
+    expect(getIcon(17)?.holidayId).toBe('st-patricks')
+    expect(getIcon(18)?.holidayId).toBe('easter')
+    expect(getIcon(23)?.daysUntil).toBe(0)
+    expect(getIcon(24)).toBeUndefined()
     expect(
       getUpcomingSeasonalIcon(
-        defaultPreferences,
-        new Date(2026, 0, 23, 12),
+        {
+          ...defaultPreferences,
+          seasonalIconSelections: {
+            ...defaultPreferences.seasonalIconSelections,
+            'st-patricks': 'off',
+          },
+        },
+        new Date(2008, 2, 17, 12),
         'en-US',
-      ),
-    ).toBeUndefined()
-    expect(
-      getUpcomingSeasonalIcon(
-        defaultPreferences,
-        new Date(2026, 1, 14, 12),
-        'en-US',
-      )?.daysUntil,
-    ).toBe(0)
-    expect(
-      getUpcomingSeasonalIcon(
-        defaultPreferences,
-        new Date(2026, 1, 15, 12),
-        'en-US',
-      ),
-    ).toBeUndefined()
+      )?.holidayId,
+    ).toBe('easter')
   })
 
-  it('prefers the closest holiday when seasonal windows overlap', () => {
-    expect(
-      getUpcomingSeasonalIcon(
-        defaultPreferences,
-        new Date(2026, 2, 17, 12),
-        'en-US',
-      ),
-    ).toEqual({
-      holidayId: 'st-patricks',
-      iconId: 'st-patricks-shamrock-hoodie',
-      daysUntil: 0,
-    })
-  })
+  it('uses the selected Easter calendar and Thanksgiving region for display windows', () => {
+    const preferences = {
+      ...defaultPreferences,
+      seasonalEasterCalendar: 'orthodox',
+      seasonalThanksgivingRegion: 'canada',
+    } as const
+    const getIcon = (date: Date) =>
+      getUpcomingSeasonalIcon(preferences, date, 'en-US')
 
-  it('shows the selected Halloween look three weeks ahead', () => {
-    expect(
-      getUpcomingSeasonalIcon(
-        defaultPreferences,
-        new Date(2026, 9, 14, 12),
-        'en-US',
-      ),
-    ).toEqual({
-      holidayId: 'halloween',
-      iconId: 'halloween-frankenstein-hoodie',
-      daysUntil: 17,
-    })
+    expect(getIcon(new Date(2026, 2, 28))).toBeUndefined()
+    expect(getIcon(new Date(2026, 2, 29))?.holidayId).toBe('easter')
+    expect(getIcon(new Date(2026, 3, 12))?.daysUntil).toBe(0)
+    expect(getIcon(new Date(2026, 3, 13))).toBeUndefined()
+    expect(getIcon(new Date(2026, 9, 4))).toBeUndefined()
+    expect(getIcon(new Date(2026, 9, 5))?.holidayId).toBe('thanksgiving')
+    expect(getIcon(new Date(2026, 9, 12))?.daysUntil).toBe(0)
+    expect(getIcon(new Date(2026, 9, 13))).toBeUndefined()
   })
 
   it('follows selected Easter calendars and browser-region defaults', () => {

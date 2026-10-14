@@ -37,6 +37,7 @@ const ChoiceCard = ({
   <label className="group cursor-pointer">
     <input
       type="radio"
+      aria-label={label}
       name={`${groupName}-${holidayId}`}
       value={iconId}
       checked={selected === iconId}
@@ -81,9 +82,6 @@ const ChoiceCard = ({
         `}
       />
       <span className="text-foreground text-sm font-medium">{label}</span>
-      {iconId === 'off' && (
-        <span className="text-muted text-xs">Use Tabby’s regular icon</span>
-      )}
     </span>
   </label>
 )
@@ -265,9 +263,6 @@ export const OptionsSeasonalIcons = ({
       <h2 className="text-foreground mb-2 text-lg font-semibold">
         Seasonal icons
       </h2>
-      <p className="text-muted mb-4 text-sm">
-        Pick a favorite seasonal look for each holiday.
-      </p>
       <div className="space-y-4">
         {SEASONAL_HOLIDAYS.map((holiday) => {
           const dateLabel =

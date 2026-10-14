@@ -24,7 +24,7 @@ export const SEASONAL_HOLIDAYS = [
     name: 'Easter',
     iconOptions: [
       { id: 'easter-bunny-ears', name: 'Bunny ears' },
-      { id: 'easter-chick-hoodie', name: 'Chick hoodie' },
+      { id: 'easter-chick-hoodie', name: 'Peep hoodie' },
       { id: 'easter-painted-egg', name: 'Painted egg' },
     ],
   },
@@ -44,7 +44,7 @@ export const SEASONAL_HOLIDAYS = [
     iconOptions: [
       { id: 'halloween-witch-hat', name: 'Witch hat' },
       { id: 'halloween-fangs', name: 'Vampire fangs' },
-      { id: 'halloween-frankenstein-hoodie', name: 'Frankenstein hoodie' },
+      { id: 'halloween-frankenstein-hoodie', name: 'Frankencat' },
     ],
   },
   {
@@ -54,7 +54,7 @@ export const SEASONAL_HOLIDAYS = [
     iconOptions: [
       { id: 'christmas-santa-hat', name: 'Santa hat' },
       { id: 'christmas-candy-cane-scarf', name: 'Candy cane scarf' },
-      { id: 'christmas-reindeer', name: 'Reindeer Tabby' },
+      { id: 'christmas-reindeer', name: 'Reindeer' },
     ],
   },
 ] as const
@@ -87,7 +87,14 @@ export type SeasonalIconPreferences = {
 }
 
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
-const SEASONAL_ICON_LEAD_DAYS = 21
+const SEASONAL_ICON_LEAD_DAYS: Record<SeasonalHolidayId, number> = {
+  valentines: 13,
+  'st-patricks': 7,
+  easter: 14,
+  thanksgiving: 7,
+  halloween: 16,
+  christmas: 24,
+}
 const ORTHODOX_EASTER_REGIONS = new Set([
   'BG',
   'BY',
@@ -289,24 +296,20 @@ export const getUpcomingSeasonalIcon = (
     const iconId = preferences.seasonalIconSelections[holiday.id]
     if (iconId === 'off') continue
 
-    let holidayDate = getSeasonalHolidayDate(
+    const holidayYear =
+      today.getFullYear() -
+      (holiday.id === 'christmas' && today.getMonth() === 0 ? 1 : 0)
+    const holidayDate = getSeasonalHolidayDate(
       holiday.id,
-      today.getFullYear(),
+      holidayYear,
       preferences,
       locale,
     )
-    if (getLocalDayNumber(holidayDate) < todayNumber)
-      holidayDate = getSeasonalHolidayDate(
-        holiday.id,
-        today.getFullYear() + 1,
-        preferences,
-        locale,
-      )
-
     const daysUntil = getLocalDayNumber(holidayDate) - todayNumber
+    const trailingDays = holiday.id === 'christmas' ? 7 : 0
     if (
-      daysUntil >= 0 &&
-      daysUntil <= SEASONAL_ICON_LEAD_DAYS &&
+      daysUntil >= -trailingDays &&
+      daysUntil <= SEASONAL_ICON_LEAD_DAYS[holiday.id] &&
       (!closest || daysUntil < closest.daysUntil)
     ) {
       closest = { holidayId: holiday.id, iconId, daysUntil }
