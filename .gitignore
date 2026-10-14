@@ -22,6 +22,7 @@ tsconfig.tsbuildinfo
 .DS_Store
 .idea
 **/.turbo
+**/.vercel
 *.af
 *.af~lock~
 

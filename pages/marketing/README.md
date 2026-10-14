@@ -10,12 +10,12 @@ All designs share [feature content](src/content.ts), checked-in promotional scre
 
 Use `pnpm test:marketing` for the headless browser workflows, `pnpm -F @extension/marketing type-check` for types, and `pnpm -F @extension/marketing build` for the standalone production app in `build/`.
 
-## Domain hosting
+## Hosting
 
-Build with `pnpm -F @extension/marketing build --base /projects/tabby/` and copy the contents of `build/` into `public/projects/tabby/` in [the personal website repository](https://github.com/michaeldrotar/michaeldrotar.com). Replace the complete exported directory when updating it. Vite scopes scripts, images, fonts, and media to this base path. The website serves the same export at `/projects/tabby`, `/projects/tabby/companion`, `/projects/tabby/focus`, and `/projects/tabby/playground`; the pathname selects the design.
+The [Tabby marketing project](https://vercel.com/michael-drotars-projects/tabby-marketing) hosts the standalone app on Vercel. Its root directory is `pages/marketing`, with files outside that directory included so the shared workspace packages and promotional assets are available. Use Node.js 22.x. [vercel.json](vercel.json) defines the frozen dependency install, preparation of the marketing app's dependencies, Vite build, output directory, and design routes. The root URL opens Companion; `/companion`, `/focus`, and `/playground` select each design.
 
 For a manual check, open each design at desktop and phone widths. Try a window in the rail, select multiple tabs and use More actions, search for “design,” switch themes and accents, and play/pause/seek the tour. Reset restores the demo. Check the video controls and captions and the Chrome Web Store links.
 
 The [capture view](http://localhost:5182/?capture) provides the shared product tour at 960 × 720. Run `TABBY_CAPTURE_MARKETING=1 pnpm -F @extension/e2e exec playwright test --config marketing.config.ts tour.spec.ts` to record the checked tour and update [the video](public/media/tabby-tour.webm) and [its poster](public/media/tour-poster.png). [Captions](public/media/tabby-tour.vtt) describe its steps. Fonts are served locally with their licenses in [public/fonts](public/fonts).
 
-Run the same browser workflows against a hosted export with `TABBY_MARKETING_BASE_URL=http://localhost:5183/projects/tabby/ pnpm test:marketing`. Set that URL to the public `/projects/tabby/` location to verify a deployment.
+Run the same browser workflows against a deployment with `TABBY_MARKETING_BASE_URL=https://your-deployment.vercel.app/ pnpm test:marketing`. The URL must end with a slash. Use `pnpm -F @extension/marketing exec vite preview --host 127.0.0.1 --port 5184` to serve the production build locally, then run the workflows with `TABBY_MARKETING_BASE_URL=http://127.0.0.1:5184/`.
