@@ -11,7 +11,7 @@ import type {
 
 export type ChromePreferencesApi = Pick<typeof chrome, 'storage'>
 
-const storageKey = 'preference-storage-key'
+export const CHROME_PREFERENCES_STORAGE_KEY = 'preference-storage-key'
 
 export const createChromePreferences = (
   api: ChromePreferencesApi,
@@ -45,24 +45,28 @@ export const createChromePreferences = (
         !running ||
         generation !== currentGeneration ||
         area !== 'local' ||
-        !changes[storageKey]
+        !changes[CHROME_PREFERENCES_STORAGE_KEY]
       ) {
         return
       }
       changeRevision += 1
-      publish(normalizePreferences(changes[storageKey]?.newValue))
+      publish(
+        normalizePreferences(changes[CHROME_PREFERENCES_STORAGE_KEY]?.newValue),
+      )
     }
     api.storage.onChanged.addListener(onChanged)
     removeListener = () => api.storage.onChanged.removeListener(onChanged)
     const task = (async () => {
       try {
-        const values = await api.storage.local.get(storageKey)
+        const values = await api.storage.local.get(
+          CHROME_PREFERENCES_STORAGE_KEY,
+        )
         if (
           running &&
           generation === currentGeneration &&
           currentRevision === changeRevision
         ) {
-          publish(normalizePreferences(values[storageKey]))
+          publish(normalizePreferences(values[CHROME_PREFERENCES_STORAGE_KEY]))
         }
       } catch (error: unknown) {
         if (generation === currentGeneration) {
@@ -92,8 +96,11 @@ export const createChromePreferences = (
         ? applyPreferencePatch(snapshot, patch)
         : { ...defaultPreferences }
       const beforeWriteRevision = changeRevision
-      if (patch) await api.storage.local.set({ [storageKey]: next })
-      else await api.storage.local.remove(storageKey)
+      if (patch)
+        await api.storage.local.set({
+          [CHROME_PREFERENCES_STORAGE_KEY]: next,
+        })
+      else await api.storage.local.remove(CHROME_PREFERENCES_STORAGE_KEY)
       if (
         running &&
         generation === currentGeneration &&

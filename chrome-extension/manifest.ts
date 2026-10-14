@@ -26,6 +26,7 @@ const manifest = {
     extension_pages: "script-src 'self'; object-src 'none'; base-uri 'none'",
   },
   permissions: [
+    'alarms',
     'favicon',
     'storage',
     'tabs',

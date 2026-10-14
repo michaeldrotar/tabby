@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14
 
 ## Store listing
 
@@ -22,6 +22,8 @@ Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Wind
 
 Choose a light or dark theme, adjust your colors, and use the keyboard to navigate sections, create windows and tabs, select, and reorder tabs. Options lists side panel position, global Chrome shortcuts, and Tab manager shortcuts in one column, with unassigned shortcuts clearly marked. Search announces the selected result for assistive technology, and controls follow your reduced-motion preference.
 
+Choose a seasonal toolbar look for each holiday. Tabby uses the selected look for the week before the holiday and on the day itself; pause all seasonal icons or turn off individual holidays at any time.
+
 Your tabs, bookmarks, and history are searched on your device. The developer receives none of your browsing data or saved preferences. If you choose Search Google, Google receives the query you send.
 
 For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
@@ -37,12 +39,14 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 | Asset                  | Dimensions    | Status | File                                                                       |
 | ---------------------- | ------------- | ------ | -------------------------------------------------------------------------- |
 | Store icon             | 128 × 128 PNG | Ready  | [tabby-face-128.png](chrome-extension/public/tabby-face-128.png)           |
+| Seasonal toolbar icons | 16–128 PNG    | Ready  | [seasonal-icons](chrome-extension/public/seasonal-icons)                   |
 | Tab manager screenshot | 1280 × 800    | Ready  | [Current asset](product/promotional-assets/tab-manager-1280-800.jpg)       |
 | Search screenshot      | 1280 × 800    | Ready  | [Search screenshot](product/promotional-assets/omnibar-1280-800.png)       |
 | Small promo tile       | 440 × 280     | Ready  | [Small promo tile](product/promotional-assets/cws-small-promo-440-280.jpg) |
 | Marquee promo tile     | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/cws-marquee-1400-560.jpg)  |
 
 Screenshots show the current product with realistic sample tabs. Capture the tab manager and search separately, with readable labels and no development controls.
+The current listing screenshots show tab management and search; the seasonal choices appear in Options and the toolbar.
 
 ## Permissions justification
 
@@ -50,8 +54,9 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 | Permission  | Type        | Justification                                                                                                                               |
 | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alarms`    | permissions | Refresh the selected holiday toolbar icon at the next local day so seasonal dates stay current.                                             |
 | `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
-| `storage`   | permissions | Save local appearance and tab manager preferences and preserve an unfinished search query between popup sessions.                           |
+| `storage`   | permissions | Save local appearance, seasonal icon, and tab manager preferences and preserve an unfinished search query between popup sessions.           |
 | `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
 | `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
 | `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
@@ -79,7 +84,7 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences and an unfinished search query stay in local browser storage. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance and tab manager defaults. Uninstalling removes the extension’s saved data.
+Appearance and seasonal icon preferences and an unfinished search query stay in local browser storage. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance, seasonal icon, and tab manager defaults. Uninstalling removes the extension’s saved data.
 
 ### Data use certification
 
@@ -111,10 +116,10 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 ## Version history
 
-| Version | Date                     | Changes                                                                                                                                                                                                                                                                                                                                                                                             | Status    |
-| ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1.4.0   | Not submitted            | Improve accessible controls and search, navigate manager sections and creation actions with the keyboard, distinguish global and Tab manager shortcuts in Options, use More actions for selected-tab operations and keyboard controls for reordering, and improve large-list rendering and group responsiveness. [Release notes](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md). | Draft     |
-| 1.3.0   | Store updated 2026-10-08 | Batch actions, tab group search, numbered window shortcuts, manual tab discard, keyboard reordering, and a standard search popup. [Release notes](product/releases/v1.3.0-batch-actions-and-smarter-search.md).                                                                                                                                                                                     | Published |
+| Version | Date                     | Changes                                                                                                                                                                                                                                                                                                                                                                                                                            | Status    |
+| ------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1.4.0   | Not submitted            | Improve accessible controls and search, navigate manager sections and creation actions with the keyboard, distinguish global and Tab manager shortcuts in Options, choose seasonal toolbar looks, use More actions for selected-tab operations and keyboard controls for reordering, and improve large-list rendering and group responsiveness. [Release notes](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md). | Draft     |
+| 1.3.0   | Store updated 2026-10-08 | Batch actions, tab group search, numbered window shortcuts, manual tab discard, keyboard reordering, and a standard search popup. [Release notes](product/releases/v1.3.0-batch-actions-and-smarter-search.md).                                                                                                                                                                                                                    | Published |
 
 The published listing identifies version 1.3.0 and its update date. Record submission dates when submitting a version; do not substitute a GitHub release date for a store submission date.
 

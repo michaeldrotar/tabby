@@ -8,6 +8,7 @@ import {
   OptionsSidePanelSettings,
 } from './OptionsHostSections'
 import { OptionsManagerPreferences } from './OptionsManagerPreferences'
+import { OptionsSeasonalIcons } from './OptionsSeasonalIcons'
 import { OptionsShortcuts } from './OptionsShortcuts'
 import type { PreferenceState } from '@extension/core'
 
@@ -80,6 +81,10 @@ export const Options = (props: OptionsProps) => {
           </p>
         )}
         <OptionsHeader logoUrl={props.logoUrl} />
+        <OptionsSeasonalIcons
+          preferences={props.preferences}
+          onPreferenceChange={props.onPreferenceChange}
+        />
         <OptionsAppearance
           preferences={props.preferences}
           activeThemeMode={props.activeThemeMode}

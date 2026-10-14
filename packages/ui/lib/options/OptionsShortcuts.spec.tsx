@@ -57,6 +57,7 @@ it('lists side panel position, global shortcuts, and Tab manager shortcuts in or
       .getAllByRole('heading', { level: 2 })
       .map((heading) => heading.textContent?.trim()),
   ).toEqual([
+    'Seasonal icons',
     'Appearance',
     'Tab manager',
     'Side panel position',
