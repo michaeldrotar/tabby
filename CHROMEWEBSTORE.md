@@ -12,7 +12,7 @@ Publishing reference for Tabby's store listing, images, permissions explanations
 
 **Short description:** Search tabs, bookmarks, and history, then organize tabs and groups across Chrome windows.
 
-**Detailed description — current branch draft:**
+**Detailed description — 1.4.0 submission:**
 
 Find the page you need and organize your open browser windows with Tabby.
 
@@ -115,7 +115,7 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 **Visibility:** The listing is publicly accessible.
 
-**Regions:** Not recorded in the repository; confirm the configured dashboard regions before submission.
+**Regions:** All regions.
 
 ## Developer information
 
@@ -129,22 +129,22 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 ## Version history
 
-| Version                                                                      | Submission date | Summary                                   | Store status |
-| ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | ------------ |
-| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Draft        |
-| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published    |
-| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization. | Not recorded |
-| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.              | Not recorded |
-| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.           | Not recorded |
-| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                          | Not recorded |
+| Version                                                                      | Submission date | Summary                                   | Store status   |
+| ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | -------------- |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Pending review |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published      |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization. | Not recorded   |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.              | Not recorded   |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.           | Not recorded   |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                          | Not recorded   |
 
 Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 
 ## Review notes
 
-### Submission readiness
+### Current submission
 
-Version 1.4.0 has not been submitted. Confirm dashboard regions and disclosure fields, and complete the [pre-publish checklist](.agents/skills/chrome-extensions/references/webstore/review-checklist.md) before a requested submission.
+Version 1.4.0 was submitted on 2026-10-14 and is pending review with automatic publishing enabled. The listing includes five screenshots and both promotional tiles. Distribution regions, permission justifications, and privacy disclosures were checked against the [pre-publish checklist](.agents/skills/chrome-extensions/references/webstore/review-checklist.md). Track review status in the [developer dashboard](https://chrome.google.com/webstore/devconsole/671ad32f-f7c3-4765-93ce-bd218ed23ab9/jjkakicjobpalhifpeaggabpgdllmmob/edit/status).
 
 ### Known limitations
 
