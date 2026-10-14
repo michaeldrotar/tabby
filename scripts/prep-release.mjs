@@ -148,17 +148,11 @@ function main() {
       **Version:** ${newVersion}
       **Release Date:** TBD
 
-      ## Highlights
+      ## What's New
 
-      - Add your highlights here
+      ### Change title
 
-      ## Improvements
-
-      - List improvements here
-
-      ## Fixes
-
-      - List bug fixes here
+      Describe the user benefit or fix in a concise sentence.
     `)
 
     writeFileSync(filepath, template + '\n')

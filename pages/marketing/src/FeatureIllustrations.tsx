@@ -1,14 +1,13 @@
 import {
   OmnibarExperience,
-  OptionsExperience,
   TabbySurface,
   TabManagerExperience,
 } from '@extension/app'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useState } from 'react'
-import { assets } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
 import { ScaledIllustration } from './ScaledIllustration'
+import { SeasonalStylePlayground } from './SeasonalStylePlayground'
 import type { HomeFeatureId } from './content'
 
 const illustrationSearch = { results: searchExamples }
@@ -25,23 +24,13 @@ const dimensions = {
     label:
       'Tabby’s real search finding pages across open windows, bookmarks, history, and recently closed pages',
   },
-  customize: {
-    width: 740,
-    height: 560,
-    label:
-      'Tabby’s real appearance settings in a dark theme, with theme, palette, accent, and accent strength controls',
-  },
 }
 
-export const FeatureIllustration = ({
-  feature,
-}: {
-  feature: HomeFeatureId
-}) => {
+const CustomizeIllustration = () => <SeasonalStylePlayground />
+
+const ProductIllustration = ({ feature }: { feature: 'manage' | 'find' }) => {
   const [demo] = useState(() => {
-    const instance = createMarketingDemo(
-      feature === 'customize' ? 'dark' : 'light',
-    )
+    const instance = createMarketingDemo('light')
     if (feature === 'manage') {
       instance.restore(instance.frames[1]!.state)
       instance.views.tabManager.setState({
@@ -49,8 +38,6 @@ export const FeatureIllustration = ({
         scrollTop: 0,
       })
     }
-    if (feature === 'customize')
-      instance.views.options.setState({ scrollTop: 150 })
     return instance
   })
   return (
@@ -65,7 +52,6 @@ export const FeatureIllustration = ({
         resources={{ backend: demo.backend, preferences: demo.preferences }}
         views={demo.views}
         omnibar={illustrationSearch}
-        optionsMetadata={{ logoUrl: assets.face }}
       >
         <TabbySurface
           inputMode="static"
@@ -74,13 +60,18 @@ export const FeatureIllustration = ({
         >
           {feature === 'manage' ? (
             <TabManagerExperience focusOnMount={false} />
-          ) : feature === 'find' ? (
-            <OmnibarExperience onDismiss={() => {}} />
           ) : (
-            <OptionsExperience />
+            <OmnibarExperience onDismiss={() => {}} />
           )}
         </TabbySurface>
       </MemoryTabbyProvider>
     </ScaledIllustration>
   )
 }
+
+export const FeatureIllustration = ({ feature }: { feature: HomeFeatureId }) =>
+  feature === 'customize' ? (
+    <CustomizeIllustration />
+  ) : (
+    <ProductIllustration feature={feature} />
+  )

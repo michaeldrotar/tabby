@@ -24,7 +24,36 @@ test('homepage separates the live demo and switches to a video without losing de
     'Find anything',
     'Make it yours',
   ])
-  await expect(featureSections.getByRole('img')).toHaveCount(3)
+  await expect(featureSections.getByRole('img')).toHaveCount(2)
+  const seasonalBoard = featureSections.getByRole('group', {
+    name: 'Tabby’s seasonal looks, neutral tones, and accent colors',
+  })
+  await expect(seasonalBoard).toBeVisible()
+  await expect(
+    seasonalBoard.getByRole('button', { name: /sticker$/ }).first(),
+  ).toBeVisible()
+  await expect(
+    seasonalBoard.getByRole('button', { name: /accent paint swatch$/ }).first(),
+  ).toBeVisible()
+  await expect(
+    seasonalBoard.getByRole('button', {
+      name: /background and foreground tone stone$/,
+    }),
+  ).toHaveCount(5)
+  await seasonalBoard.scrollIntoViewIfNeeded()
+  await expect(
+    seasonalBoard.locator('.playground-piece__arrival.is-entered').first(),
+  ).toBeAttached()
+  for (const selector of ['.playground-paint-swatch', '.playground-pebble']) {
+    await expect
+      .poll(() =>
+        seasonalBoard
+          .locator(selector)
+          .first()
+          .evaluate((element) => element.getBoundingClientRect().width),
+      )
+      .toBeGreaterThan(40)
+  }
   await expect(featureSections.locator('img[src$=".jpg"]')).toHaveCount(0)
   await expect(featureSections.locator('.feature-copy a')).toHaveCount(0)
   await expect(
@@ -41,13 +70,6 @@ test('homepage separates the live demo and switches to a video without losing de
     page.locator('#manage [data-selection-summary]'),
   ).toHaveAttribute('aria-label', '0 windows, 0 tab groups, 3 tabs')
   await expect(page.locator('#find [data-omnibar] input')).toHaveValue('design')
-  await expect(page.locator('#customize [data-options]')).toContainText(
-    'Accent strength',
-  )
-  await expect(page.locator('#customize [data-surface]')).toHaveAttribute(
-    'data-theme',
-    'dark',
-  )
   await expect(page.locator('.site-footer')).toContainText(
     'Made for tab-aholics like me.',
   )
@@ -121,21 +143,6 @@ test('homepage separates the live demo and switches to a video without losing de
     .getByRole('group', { name: 'Demo experience' })
     .getByRole('button', { name: 'Settings', exact: true })
     .click()
-  const nativeHeading = demo.getByRole('heading', {
-    name: 'Appearance',
-    exact: true,
-  })
-  const illustratedHeading = page
-    .locator('#customize [data-options] h2')
-    .filter({ hasText: /^Appearance$/ })
-  for (const property of ['font-size', 'margin-bottom']) {
-    const value = await nativeHeading.evaluate(
-      (element, property) =>
-        getComputedStyle(element).getPropertyValue(property),
-      property,
-    )
-    await expect(illustratedHeading).toHaveCSS(property, value)
-  }
   await demo.getByRole('button', { name: 'Tabs', exact: true }).click()
   await demo.getByRole('button', { name: 'Dark mode', exact: true }).click()
   await expect(

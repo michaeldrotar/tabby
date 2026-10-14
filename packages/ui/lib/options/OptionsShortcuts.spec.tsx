@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import { defaultPreferences } from '@extension/core'
 import * as matchers from '@testing-library/jest-dom/matchers'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react'
 import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { Options } from './Options'
 import type { OptionsProps } from './Options'
@@ -33,9 +39,11 @@ const shortcutRows: OptionsProps['shortcutRows'] = [
   },
 ]
 
-const renderOptions = () =>
-  render(
+const renderOptions = (hash = '') => {
+  window.history.replaceState(null, '', `/${hash}`)
+  return render(
     <Options
+      urlSeasonalIcons
       preferences={defaultPreferences}
       activeThemeMode="light"
       isMac={false}
@@ -48,9 +56,10 @@ const renderOptions = () =>
       openSidePanelSettings={vi.fn()}
     />,
   )
+}
 
-it('lists side panel position, global shortcuts, and Tab manager shortcuts in order', () => {
-  const { container } = renderOptions()
+it('keeps settings in a flat list with seasonal icons before reset', () => {
+  renderOptions()
 
   expect(
     screen
@@ -62,9 +71,34 @@ it('lists side panel position, global shortcuts, and Tab manager shortcuts in or
     'Side panel position',
     'Global shortcuts',
     'Tab manager shortcuts',
+    'Seasonal icons',
     'Reset',
   ])
-  expect(container.querySelectorAll('details')).toHaveLength(0)
+  expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
+  expect(
+    screen.getByRole('switch', { name: 'Show seasonal icons' }),
+  ).toBeChecked()
+})
+
+it('opens seasonal choices at a direct link and returns to the main list', () => {
+  renderOptions()
+  fireEvent.click(screen.getByRole('button', { name: 'Choose seasonal icons' }))
+
+  expect(window.location.hash).toBe('#seasonal-icons')
+  expect(screen.getByRole('group', { name: "Valentine's Day" })).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Back to settings' }))
+
+  expect(window.location.hash).toBe('')
+  expect(screen.getByRole('heading', { name: 'Appearance' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Reset' })).toBeVisible()
+  expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
+})
+
+it('opens directly to the seasonal choices from a shared link', () => {
+  renderOptions('#seasonal-icons')
+
+  expect(screen.getByRole('group', { name: 'Halloween' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Back to settings' })).toBeVisible()
 })
 
 it('groups shared modifiers and distinguishes unassigned global shortcuts', () => {

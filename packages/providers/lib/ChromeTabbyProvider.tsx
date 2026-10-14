@@ -78,6 +78,7 @@ export const ChromeTabbyProvider = ({
   const environment = useMemo<TabbyResources['environment']>(
     () => ({
       now: Date.now,
+      locale: api.i18n.getUILanguage(),
       systemTheme,
       platform: navigator.userAgent.includes('Mac') ? 'mac' : 'other',
       schedule: (callback, delay) => {
@@ -85,7 +86,7 @@ export const ChromeTabbyProvider = ({
         return () => window.clearTimeout(timer)
       },
     }),
-    [systemTheme],
+    [api, systemTheme],
   )
   useEffect(() => {
     let live = true

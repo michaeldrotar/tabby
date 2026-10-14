@@ -1,13 +1,15 @@
 import {
+  getUpcomingSeasonalIcon,
   THEME_ACCENT_PALETTES,
   THEME_ACCENT_STRENGTH_OPTIONS,
   THEME_NEUTRAL_PALETTES,
 } from '@extension/core'
 import { Options } from '@extension/ui/options/Options'
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { useTabbyResources } from './TabbyProvider'
+import { useExperienceClock } from './useExperienceClock'
 import type { PreferenceResource, PreferenceState } from '@extension/core'
 import type { OptionsResource } from '@extension/core/options'
 import type { OptionsControl } from '@extension/ui/options/Options'
@@ -93,7 +95,11 @@ export const createOptionsController = (
   }
 }
 
-export const OptionsExperience = () => {
+export const OptionsExperience = ({
+  urlSeasonalIcons = false,
+}: {
+  urlSeasonalIcons?: boolean
+}) => {
   const resources = useTabbyResources()
   const resource = resources.options
   const view = resources.views.options
@@ -103,6 +109,16 @@ export const OptionsExperience = () => {
     resources.preferences.getSnapshot,
     resources.preferences.getSnapshot,
   )
+  const locale =
+    resources.environment.locale ??
+    (typeof navigator === 'undefined' ? 'en-US' : navigator.language)
+  const selectSeasonalIcon = useCallback(
+    (time: number) =>
+      getUpcomingSeasonalIcon(preferences, new Date(time), locale)?.iconId,
+    [locale, preferences],
+  )
+  const now = useExperienceClock(resources.environment, selectSeasonalIcon)
+  const seasonalIconId = selectSeasonalIcon(now)
   const state = useStore(view)
   const metadata = useSyncExternalStore(
     resource.subscribe,
@@ -145,8 +161,14 @@ export const OptionsExperience = () => {
         ],
     })),
   ]
+  const logoUrl =
+    seasonalIconId && metadata.logoUrl
+      ? new URL(`seasonal-icons/${seasonalIconId}-128.png`, metadata.logoUrl)
+          .href
+      : metadata.logoUrl
   return (
     <Options
+      urlSeasonalIcons={urlSeasonalIcons}
       preferences={preferences}
       activeThemeMode={
         preferences.theme === 'system'
@@ -154,7 +176,7 @@ export const OptionsExperience = () => {
           : preferences.theme
       }
       isMac={metadata.isMac}
-      logoUrl={metadata.logoUrl}
+      logoUrl={logoUrl}
       shortcutRows={shortcutRows}
       shortcutsLoading={metadata.status === 'loading'}
       error={state.error ?? metadata.error}

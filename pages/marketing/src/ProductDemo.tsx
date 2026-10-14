@@ -9,7 +9,6 @@ import {
 import { createDemoPlayer } from '@extension/demo/player'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { assets } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
 import type { ThemeAccentPalette } from '@extension/core'
 
@@ -143,7 +142,9 @@ export const ProductDemo = ({
       <MemoryTabbyProvider
         resources={{ backend: demo.backend, preferences: demo.preferences }}
         views={demo.views}
-        optionsMetadata={{ logoUrl: assets.face }}
+        optionsMetadata={{
+          logoUrl: new URL('/tabby-face-128.png', window.location.origin).href,
+        }}
         optionsHost={{
           openShortcutsSettings: async () =>
             setNotice('Customize Chrome shortcuts after installing Tabby.'),

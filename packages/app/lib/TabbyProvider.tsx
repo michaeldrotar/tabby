@@ -16,6 +16,7 @@ import type { PropsWithChildren } from 'react'
 export type TabbyEnvironment = {
   now: () => number
   schedule?: (callback: () => void, delay: number) => () => void
+  locale?: string
   systemTheme: 'light' | 'dark'
   platform?: 'mac' | 'other'
   random?: () => number

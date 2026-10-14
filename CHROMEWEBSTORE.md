@@ -68,6 +68,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 | Permission  | Type        | Justification                                                                                                                               |
 | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                     |
 | `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
 | `storage`   | permissions | Save local appearance and tab manager preferences and preserve an unfinished search query between popup sessions.                           |
 | `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
@@ -131,6 +132,7 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 | Version                                                                      | Submission date | Summary                                   | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | -------------- |
+| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | —               | Seasonal icons.                           | Draft          |
 | [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Pending review |
 | [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published      |
 | [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization. | Not recorded   |

@@ -35,4 +35,32 @@ describe('preferences', () => {
       ),
     ).toThrow('Invalid preference')
   })
+
+  it('keeps valid seasonal choices and defaults invalid holidays independently', () => {
+    expect(
+      normalizePreferences({
+        seasonalIconsEnabled: false,
+        seasonalIconSelections: {
+          valentines: 'off',
+          halloween: 'not-a-halloween-icon',
+        },
+        seasonalEasterCalendar: 'orthodox',
+      }),
+    ).toMatchObject({
+      seasonalIconsEnabled: false,
+      seasonalIconSelections: {
+        ...defaultPreferences.seasonalIconSelections,
+        valentines: 'off',
+      },
+      seasonalEasterCalendar: 'orthodox',
+    })
+    expect(() =>
+      applyPreferencePatch(defaultPreferences, {
+        seasonalIconSelections: {
+          ...defaultPreferences.seasonalIconSelections,
+          halloween: 'not-a-halloween-icon',
+        } as never,
+      }),
+    ).toThrow('Invalid preference')
+  })
 })
