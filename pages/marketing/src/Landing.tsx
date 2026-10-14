@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { assets, features, storeUrl } from './content'
 import { ProductDemo } from './DemoLoader'
 import type { Design } from './content'
+import type { RefObject } from 'react'
 
 const ChromeIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -47,7 +48,99 @@ const Header = () => (
   </header>
 )
 
-const CompanionHero = () => (
+const TourVideo = ({
+  videoRef,
+}: {
+  videoRef?: RefObject<HTMLVideoElement | null>
+}) => (
+  <video
+    ref={videoRef}
+    controls
+    muted
+    playsInline
+    preload="none"
+    poster={`${import.meta.env.BASE_URL}media/tour-poster.png`}
+    aria-label="Tabby product tour with sample tabs"
+  >
+    <source
+      src={`${import.meta.env.BASE_URL}media/tabby-tour.webm`}
+      type="video/webm"
+    />
+    <track
+      kind="captions"
+      src={`${import.meta.env.BASE_URL}media/tabby-tour.vtt`}
+      srcLang="en"
+      label="English"
+      default
+    />
+  </video>
+)
+
+const HeroShowcase = () => {
+  const [watching, setWatching] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  return (
+    <div className="hero-showcase" data-watching={watching}>
+      <div id="hero-showcase-content" className="showcase-rotor">
+        {[false, true].map((video) => (
+          <div
+            key={String(video)}
+            className={`
+              showcase-face
+              ${video ? 'showcase-back' : ''}
+            `}
+            aria-hidden={watching !== video}
+            inert={watching !== video}
+          >
+            <div className="showcase-sign">
+              <h2>{video ? 'Watch it' : 'Try it'}</h2>
+              <svg viewBox="0 0 80 130" fill="none" aria-hidden="true">
+                <path
+                  d="M8 12C72 2 73 68 35 113M31 90l4 23 24-6"
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="showcase-content">
+              {video ? (
+                <div className="showcase-video">
+                  <TourVideo videoRef={videoRef} />
+                  <p>A quick tour with music. Captions available.</p>
+                </div>
+              ) : (
+                <ProductDemo separated showTour={false} />
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button
+        className="showcase-toggle text-link"
+        type="button"
+        aria-controls="hero-showcase-content"
+        aria-label={watching ? 'Or try our demo' : 'Or watch our video'}
+        onClick={() => {
+          videoRef.current?.pause()
+          setWatching((value) => !value)
+        }}
+      >
+        <span className="showcase-rotor" aria-hidden="true">
+          <span className="showcase-face" aria-hidden={watching}>
+            Or watch our video <span>▷</span>
+          </span>
+          <span className="showcase-face showcase-back" aria-hidden={!watching}>
+            Or try our demo <span>↩</span>
+          </span>
+        </span>
+      </button>
+    </div>
+  )
+}
+
+const CompanionHero = ({ homepage = false }: { homepage?: boolean }) => (
   <section className="hero companion-hero" aria-labelledby="hero-title">
     <div className="hero-copy">
       <p className="intro-note">
@@ -72,15 +165,19 @@ const CompanionHero = () => (
         Made for Chrome. Your browsing data stays with you.
       </p>
     </div>
-    <div className="hero-product">
-      <div className="tab-sticker sticker-work">
-        Design project <span>3 tabs</span>
+    {homepage ? (
+      <HeroShowcase />
+    ) : (
+      <div className="hero-product">
+        <div className="tab-sticker sticker-work">
+          Design project <span>3 tabs</span>
+        </div>
+        <ProductDemo />
+        <div className="tab-sticker sticker-life">
+          Weekend plans <span>3 tabs</span>
+        </div>
       </div>
-      <ProductDemo />
-      <div className="tab-sticker sticker-life">
-        Weekend plans <span>3 tabs</span>
-      </div>
-    </div>
+    )}
   </section>
 )
 
@@ -275,7 +372,13 @@ const FeatureExplorer = ({ design }: { design: Design }) => {
   )
 }
 
-const TrySection = ({ design }: { design: Design }) => (
+const TrySection = ({
+  design,
+  homepage,
+}: {
+  design: Design
+  homepage: boolean
+}) => (
   <section
     id="try"
     className="try-section section-wrap"
@@ -300,11 +403,14 @@ const TrySection = ({ design }: { design: Design }) => (
         This demo uses sample data. Your browser tabs stay untouched.
       </p>
     </div>
-    <ProductDemo theme={design === 'focus' ? 'dark' : 'light'} />
+    <ProductDemo
+      theme={design === 'focus' ? 'dark' : 'light'}
+      showTour={!homepage}
+    />
   </section>
 )
 
-const WatchSection = () => (
+const WatchSection = ({ homepage }: { homepage: boolean }) => (
   <section
     id="watch"
     className="watch-section section-wrap"
@@ -316,32 +422,14 @@ const WatchSection = () => (
         <h2 id="watch-title">From scattered to sorted.</h2>
       </div>
       <p>
-        See a few tabs become a project, find a page, and change the mood. Or
-        play the guided tour in the demo above.
+        See a few tabs become a project, find a page, and change the mood.
+        {!homepage && ' Or play the guided tour in the demo above.'}
       </p>
     </div>
     <figure className="video-showcase">
-      <video
-        controls
-        playsInline
-        preload="none"
-        poster={`${import.meta.env.BASE_URL}media/tour-poster.png`}
-        aria-label="Tabby product tour with sample tabs"
-      >
-        <source
-          src={`${import.meta.env.BASE_URL}media/tabby-tour.webm`}
-          type="video/webm"
-        />
-        <track
-          kind="captions"
-          src={`${import.meta.env.BASE_URL}media/tabby-tour.vtt`}
-          srcLang="en"
-          label="English"
-          default
-        />
-      </video>
+      <TourVideo />
       <figcaption>
-        A short tour, using sample browser data. No sound needed.
+        A tour with music, using sample browser data. Captions available.
       </figcaption>
     </figure>
   </section>
@@ -369,7 +457,13 @@ const Privacy = () => (
   </section>
 )
 
-const Footer = ({ design }: { design: Design }) => (
+const Footer = ({
+  design,
+  homepage,
+}: {
+  design: Design
+  homepage: boolean
+}) => (
   <>
     <section className="closing section-wrap">
       <img src={assets.face} width="80" height="80" alt="" />
@@ -416,7 +510,7 @@ const Footer = ({ design }: { design: Design }) => (
         <a
           key={item}
           href={`${import.meta.env.BASE_URL}${item}`}
-          aria-current={design === item ? 'page' : undefined}
+          aria-current={!homepage && design === item ? 'page' : undefined}
         >
           {item.charAt(0).toUpperCase() + item.slice(1)}
         </a>
@@ -425,12 +519,19 @@ const Footer = ({ design }: { design: Design }) => (
   </>
 )
 
-export const Landing = ({ design }: { design: Design }) => (
+export const Landing = ({
+  design,
+  homepage = false,
+}: {
+  design: Design
+  homepage?: boolean
+}) => (
   <div
     id="top"
     className={`
       site
       site--${design}
+      ${homepage ? 'site--home' : ''}
     `}
   >
     <a className="skip-link" href="#features">
@@ -439,7 +540,7 @@ export const Landing = ({ design }: { design: Design }) => (
     <Header />
     <main>
       {design === 'companion' ? (
-        <CompanionHero />
+        <CompanionHero homepage={homepage} />
       ) : design === 'focus' ? (
         <FocusHero />
       ) : (
@@ -454,10 +555,10 @@ export const Landing = ({ design }: { design: Design }) => (
         </div>
       )}
       <FeatureExplorer design={design} />
-      <TrySection design={design} />
-      <WatchSection />
+      <TrySection design={design} homepage={homepage} />
+      <WatchSection homepage={homepage} />
       <Privacy />
     </main>
-    <Footer design={design} />
+    <Footer design={design} homepage={homepage} />
   </div>
 )

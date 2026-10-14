@@ -13,6 +13,7 @@ const requested = ['companion', 'focus', 'playground'].includes(
   : query.get('design')
 const design: Design =
   requested === 'focus' || requested === 'playground' ? requested : 'companion'
+const homepage = !['companion', 'focus', 'playground'].includes(requested ?? '')
 
 createRoot(document.getElementById('root')!).render(
   query.has('capture') ? (
@@ -20,6 +21,6 @@ createRoot(document.getElementById('root')!).render(
       <ProductDemo capture />
     </div>
   ) : (
-    <Landing design={design} />
+    <Landing design={design} homepage={homepage} />
   ),
 )

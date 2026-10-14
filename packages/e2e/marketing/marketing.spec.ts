@@ -1,5 +1,114 @@
 import { expect, test } from '@playwright/test'
 
+test('homepage separates the live demo and switches to a video without losing demo changes', async ({
+  page,
+}) => {
+  await page.goto('./')
+  await expect(page.locator('.site')).toHaveClass(/site--home/)
+  const showcase = page.locator('.hero-showcase')
+  const demo = showcase.locator('[data-demo]')
+  await expect(
+    showcase.getByRole('heading', { name: 'Try it', exact: true }),
+  ).toBeVisible()
+  await expect(page.locator('.hero .tab-sticker')).toHaveCount(0)
+  await demo.getByRole('button', { name: 'Dark mode', exact: true }).click()
+  await expect(
+    page.getByRole('button', { name: 'Play tour', exact: true }),
+  ).toHaveCount(0)
+  await demo.getByRole('button', { name: 'Search', exact: true }).click()
+  await demo.getByRole('combobox').fill('Copenhagen')
+  const switchToVideo = showcase.getByRole('button', {
+    name: 'Or watch our video',
+    exact: true,
+  })
+  const [rotationFrames] = await Promise.all([
+    showcase.locator('#hero-showcase-content').evaluate(async (element) => {
+      const frames: string[] = []
+      const start = performance.now()
+      await new Promise<void>((resolve) => {
+        const sample = () => {
+          frames.push(getComputedStyle(element).transform)
+          if (performance.now() - start < 1000) requestAnimationFrame(sample)
+          else resolve()
+        }
+        requestAnimationFrame(sample)
+      })
+      return [...new Set(frames)]
+    }),
+    switchToVideo.click(),
+  ])
+  expect(rotationFrames.length).toBeGreaterThan(2)
+  await expect(
+    showcase.getByRole('button', { name: 'Or try our demo', exact: true }),
+  ).toBeFocused()
+  await expect(
+    showcase.getByRole('heading', { name: 'Watch it', exact: true }),
+  ).toBeVisible()
+  await expect(demo).toBeHidden()
+  const video = showcase.locator('video')
+  await expect(video).toBeVisible()
+  await expect(video).toHaveJSProperty('muted', true)
+  await expect(video).toHaveJSProperty('controls', true)
+  await expect(video.locator('track')).toHaveAttribute('kind', 'captions')
+  await video.evaluate(async (element: HTMLVideoElement) => {
+    await element.play()
+  })
+  await expect
+    .poll(() =>
+      video.evaluate((element: HTMLVideoElement) => element.currentTime),
+    )
+    .toBeGreaterThan(0)
+  await expect
+    .poll(() =>
+      video.evaluate((element) => {
+        const media = element as HTMLVideoElement & {
+          captureStream(): MediaStream
+        }
+        return media.captureStream().getAudioTracks().length
+      }),
+    )
+    .toBe(1)
+  await video.evaluate((element: HTMLVideoElement) => {
+    element.muted = false
+  })
+  await expect(video).toHaveJSProperty('muted', false)
+  await showcase
+    .getByRole('button', { name: 'Or try our demo', exact: true })
+    .click()
+  await expect(video).toBeHidden()
+  await expect
+    .poll(() => video.evaluate((element: HTMLVideoElement) => element.paused))
+    .toBe(true)
+  await expect(demo.getByRole('combobox')).toHaveValue('Copenhagen')
+  await expect(demo.locator('[data-surface]')).toHaveAttribute(
+    'data-theme',
+    'dark',
+  )
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await showcase.scrollIntoViewIfNeeded()
+  await expect(
+    demo.getByRole('button', { name: 'Tabs', exact: true }),
+  ).toBeVisible()
+  const app = demo.locator('.demo-screen')
+  await expect
+    .poll(() =>
+      app.evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect()
+        return left >= 0 && right <= innerWidth
+      }),
+    )
+    .toBe(true)
+  await showcase
+    .getByRole('button', { name: 'Or watch our video', exact: true })
+    .click()
+  await expect(
+    showcase.getByRole('heading', { name: 'Watch it', exact: true }),
+  ).toBeVisible()
+  await expect(showcase.locator('video')).toBeVisible()
+  await expect(video).toHaveJSProperty('muted', false)
+})
+
 test('sample tabs support batch work, local search, appearance, playback, and reset', async ({
   page,
 }) => {
