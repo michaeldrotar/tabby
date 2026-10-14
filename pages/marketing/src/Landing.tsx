@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { ClosingCat } from './ClosingCat'
 import { assets, homeFeatures, storeUrl } from './content'
 import {
   BrowserIllustration,
@@ -36,7 +37,11 @@ const Brand = ({ linked = true }: { linked?: boolean }) => {
   const content = (
     <>
       <img src={assets.face} width="45" height="45" alt="" />
-      <span>Tabby</span>
+      <span className="brand-word">
+        {'Tabby'.split('').map((letter, index) => (
+          <span key={index}>{letter}</span>
+        ))}
+      </span>
     </>
   )
   return linked ? (
@@ -281,43 +286,48 @@ const Privacy = () => (
   </section>
 )
 
-const Footer = () => (
-  <>
-    <section className="closing section-wrap">
-      <img src={assets.face} width="80" height="80" alt="" />
-      <h2>Your tabs have a new companion.</h2>
-      <p>Give Tabby a try. I’d love to hear what you think.</p>
-      <Install />
-    </section>
-    <footer className="site-footer">
-      <Brand linked={false} />
-      <div>
-        <a
-          href="https://github.com/michaeldrotar/tabby"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open source
-        </a>
-        <a
-          href="https://github.com/michaeldrotar/tabby/issues"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Help & feedback
-        </a>
-        <a
-          href="https://github.com/michaeldrotar/tabby/blob/main/PRIVACY.md"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Privacy
-        </a>
-      </div>
-      <span>Made for tab-aholics like me.</span>
-    </footer>
-  </>
-)
+const Footer = () => {
+  const companionRef = useRef<HTMLDivElement>(null)
+  return (
+    <>
+      <section className="closing section-wrap">
+        <div ref={companionRef} className="closing-companion">
+          <ClosingCat visibilityRef={companionRef} />
+          <h2>Your tabs have a new companion.</h2>
+        </div>
+        <p>Give Tabby a try. I’d love to hear what you think.</p>
+        <Install />
+      </section>
+      <footer className="site-footer">
+        <Brand linked={false} />
+        <div>
+          <a
+            href="https://github.com/michaeldrotar/tabby"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open source
+          </a>
+          <a
+            href="https://github.com/michaeldrotar/tabby/issues"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Help & feedback
+          </a>
+          <a
+            href="https://github.com/michaeldrotar/tabby/blob/main/PRIVACY.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Privacy
+          </a>
+        </div>
+        <span>Made for tab-aholics like me.</span>
+      </footer>
+    </>
+  )
+}
 
 export const Landing = () => {
   const [watching, setWatching] = useState(false)

@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useScrollEntrance } from './MotionReveal'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
 import type {
   CSSProperties,
@@ -318,6 +319,7 @@ const clampPosition = (value: number, radius: number) =>
 export const SeasonalStylePlayground = () => {
   const [scenePieces] = useState(createScenePieces)
   const containerRef = useRef<HTMLDivElement>(null)
+  const hasEntered = useScrollEntrance(containerRef)
   const pieceElements = useRef(new Map<string, HTMLButtonElement>())
   const positions = useRef(positionsForScene(scenePieces))
   const topZIndex = useRef(scenePieces.length)
@@ -325,33 +327,12 @@ export const SeasonalStylePlayground = () => {
   const animationFrame = useRef<number | null>(null)
   const lastPhysicsAt = useRef<number | null>(null)
   const reducedMotion = useRef(false)
-  const [hasEntered, setHasEntered] = useState(false)
 
   const bringToFront = useCallback((pieceId: string) => {
     const element = pieceElements.current.get(pieceId)
     if (!element) return
     topZIndex.current += 1
     element.style.zIndex = String(topZIndex.current)
-  }, [])
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    if (typeof IntersectionObserver === 'undefined') {
-      setHasEntered(true)
-      return
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setHasEntered(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.18 },
-    )
-    observer.observe(container)
-    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
