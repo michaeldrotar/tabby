@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
@@ -5,7 +6,7 @@ test.use({ viewport: { width: 960, height: 720 }, video: 'on' })
 
 test('the guided tour reaches its final project and can replay', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto('./?capture')
   const demo = page.locator('[data-demo]')
   await expect(demo).toHaveClass(/product-demo/)
@@ -45,9 +46,28 @@ test('the guided tour reaches its final project and can replay', async ({
   ).toBeVisible({ timeout: 5000 })
   if (capture) {
     const recording = page.video()!
-    await page.waitForTimeout(1000)
+    await expect(
+      demo.getByRole('button', { name: 'Replay tour' }),
+    ).toBeVisible()
+    // Hold the final scene through the last caption and music fade.
+    await page.waitForTimeout(3500)
     await page.close()
-    await recording.saveAs(resolve(media, 'tabby-tour.webm'))
+    const silentVideo = testInfo.outputPath('tour-recording.webm')
+    await recording.saveAs(silentVideo)
+    execFileSync(process.env.FFMPEG_PATH ?? 'ffmpeg', [
+      '-y',
+      '-i',
+      silentVideo,
+      '-i',
+      resolve(media, 'tabby-tour-audio.ogg'),
+      '-map',
+      '0:v:0',
+      '-map',
+      '1:a:0',
+      '-c',
+      'copy',
+      resolve(media, 'tabby-tour.webm'),
+    ])
     return
   }
   await demo.getByRole('button', { name: 'Replay tour' }).click()

@@ -1,11 +1,311 @@
 import { expect, test } from '@playwright/test'
 
-test('sample tabs support batch work, local search, appearance, playback, and reset', async ({
+test('homepage separates the live demo and switches to a video without losing demo changes', async ({
   page,
 }) => {
-  await page.goto('./?design=companion')
-  const demo = page.locator('#try [data-demo]')
-  const hero = page.locator('.hero [data-demo]')
+  await page.goto('./')
+  await expect(page.locator('.site')).toHaveClass(/site--home/)
+  const showcase = page.locator('.hero-showcase')
+  const demo = showcase.locator('[data-demo]')
+  await expect(
+    showcase.getByRole('heading', { name: 'Try it', exact: true }),
+  ).toBeVisible()
+  await expect(page.locator('[data-demo]')).toHaveCount(1)
+  await expect(page.locator('video')).toHaveCount(1)
+  await expect(page.locator('.hero-copy')).toContainText(
+    'I made Tabby to help you keep every Chrome window in view',
+  )
+  await expect(page.locator('.privacy-note')).toContainText(
+    'Tabby doesn’t send any of your data to anyone, not even me.',
+  )
+  const featureSections = page.locator('#features > section')
+  await expect(featureSections.getByRole('heading', { level: 2 })).toHaveText([
+    'Manage tabs',
+    'Find anything',
+    'Make it yours',
+  ])
+  await expect(featureSections.getByRole('img')).toHaveCount(3)
+  await expect(featureSections.locator('img[src$=".jpg"]')).toHaveCount(0)
+  await expect(featureSections.locator('.feature-copy a')).toHaveCount(0)
+  await expect(
+    page.getByRole('navigation', { name: 'Design previews' }),
+  ).toHaveCount(0)
+  await expect(page.locator('.site-footer a[href="#top"]')).toHaveCount(0)
+  await expect(page.locator('#find .feature-copy')).toContainText(
+    'A page shouldn’t be hard to find just because it’s in another window.',
+  )
+  await expect(page.locator('#manage [data-tab-manager]')).toContainText(
+    'Design system',
+  )
+  await expect(
+    page.locator('#manage [data-selection-summary]'),
+  ).toHaveAttribute('aria-label', '0 windows, 0 tab groups, 3 tabs')
+  await expect(page.locator('#find [data-omnibar] input')).toHaveValue('design')
+  await expect(page.locator('#customize [data-options]')).toContainText(
+    'Accent strength',
+  )
+  await expect(page.locator('#customize [data-surface]')).toHaveAttribute(
+    'data-theme',
+    'dark',
+  )
+  await expect(page.locator('.site-footer')).toContainText(
+    'Made for tab-aholics like me.',
+  )
+  await expect(page.locator('.privacy-section')).toContainText(
+    'If you choose Search Google, that query goes to Google.',
+  )
+  const browser = page.getByRole('img', {
+    name: /Chrome showing Tabby’s tab manager on the left and search/,
+  })
+  await expect(browser).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
+  await expect
+    .poll(() =>
+      browser.evaluate((element) => {
+        const frame = element.getBoundingClientRect()
+        const heading = document
+          .querySelector('#browser-title')!
+          .getBoundingClientRect()
+        return Math.abs(
+          (frame.left + frame.right) / 2 - (heading.left + heading.right) / 2,
+        )
+      }),
+    )
+    .toBeLessThan(1)
+  await expect
+    .poll(() =>
+      browser.evaluate((element) => {
+        const frame = element.getBoundingClientRect()
+        const sidebar = element
+          .querySelector('.browser-side-panel')!
+          .getBoundingClientRect()
+        const webpage = element
+          .querySelector('.browser-page')!
+          .getBoundingClientRect()
+        const popup = element
+          .querySelector('.browser-search-popup')!
+          .getBoundingClientRect()
+        return (
+          Math.abs(frame.width - 900) < 1 &&
+          Math.abs(frame.height - 600) < 1 &&
+          sidebar.right <= webpage.left + 1 &&
+          sidebar.right < popup.left
+        )
+      }),
+    )
+    .toBe(true)
+  await expect
+    .poll(() =>
+      browser.evaluate((element) => {
+        const icon = element
+          .querySelector('.browser-extension-icon')!
+          .getBoundingClientRect()
+        const popup = element
+          .querySelector('.browser-search-popup')!
+          .getBoundingClientRect()
+        const frame = element.getBoundingClientRect()
+        return (
+          popup.top >= icon.bottom &&
+          popup.left >= frame.left &&
+          popup.right <= frame.right
+        )
+      }),
+    )
+    .toBe(true)
+  await page
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Try Tabby', exact: true })
+    .click()
+  await expect(page.locator('.hero .tab-sticker')).toHaveCount(0)
+  await demo
+    .getByRole('group', { name: 'Demo experience' })
+    .getByRole('button', { name: 'Settings', exact: true })
+    .click()
+  const nativeHeading = demo.getByRole('heading', {
+    name: 'Appearance',
+    exact: true,
+  })
+  const illustratedHeading = page
+    .locator('#customize [data-options] h2')
+    .filter({ hasText: /^Appearance$/ })
+  for (const property of ['font-size', 'margin-bottom']) {
+    const value = await nativeHeading.evaluate(
+      (element, property) =>
+        getComputedStyle(element).getPropertyValue(property),
+      property,
+    )
+    await expect(illustratedHeading).toHaveCSS(property, value)
+  }
+  await demo.getByRole('button', { name: 'Tabs', exact: true }).click()
+  await demo.getByRole('button', { name: 'Dark mode', exact: true }).click()
+  await expect(
+    page.getByRole('button', { name: 'Play tour', exact: true }),
+  ).toHaveCount(0)
+  await demo.getByRole('button', { name: 'Search', exact: true }).click()
+  await demo.getByRole('combobox').fill('Copenhagen')
+  const switchToVideo = showcase.getByRole('button', {
+    name: 'Or watch my video',
+    exact: true,
+  })
+  const [rotationFrames] = await Promise.all([
+    showcase.locator('#hero-showcase-content').evaluate(async (element) => {
+      const frames: string[] = []
+      const start = performance.now()
+      await new Promise<void>((resolve) => {
+        const sample = () => {
+          frames.push(getComputedStyle(element).transform)
+          if (performance.now() - start < 1000) requestAnimationFrame(sample)
+          else resolve()
+        }
+        requestAnimationFrame(sample)
+      })
+      return [...new Set(frames)]
+    }),
+    switchToVideo.click(),
+  ])
+  expect(rotationFrames.length).toBeGreaterThan(2)
+  await expect(
+    showcase.getByRole('button', { name: 'Or try the demo', exact: true }),
+  ).toBeFocused()
+  await expect(
+    showcase.getByRole('heading', { name: 'Watch it', exact: true }),
+  ).toBeVisible()
+  await expect(demo).toBeHidden()
+  const video = showcase.locator('video')
+  await expect(video).toBeVisible()
+  await expect(video).toHaveJSProperty('muted', true)
+  await expect(video).toHaveJSProperty('controls', true)
+  await expect(video.locator('track')).toHaveAttribute('kind', 'captions')
+  await video.evaluate(async (element: HTMLVideoElement) => {
+    await element.play()
+  })
+  await expect
+    .poll(() =>
+      video.evaluate((element: HTMLVideoElement) => element.currentTime),
+    )
+    .toBeGreaterThan(0)
+  await expect
+    .poll(() =>
+      video.evaluate((element) => {
+        const media = element as HTMLVideoElement & {
+          captureStream(): MediaStream
+        }
+        return media.captureStream().getAudioTracks().length
+      }),
+    )
+    .toBe(1)
+  await video.evaluate((element: HTMLVideoElement) => {
+    element.muted = false
+  })
+  await expect(video).toHaveJSProperty('muted', false)
+  await page
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Try Tabby', exact: true })
+    .click()
+  await expect(video).toBeHidden()
+  await expect
+    .poll(() => video.evaluate((element: HTMLVideoElement) => element.paused))
+    .toBe(true)
+  await expect(demo.getByRole('combobox')).toHaveValue('Copenhagen')
+  await expect(demo.locator('[data-surface]')).toHaveAttribute(
+    'data-theme',
+    'dark',
+  )
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await browser.scrollIntoViewIfNeeded()
+  await expect
+    .poll(() =>
+      browser.evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect()
+        return (
+          left >= 0 &&
+          right <= innerWidth &&
+          Math.abs(
+            element.getBoundingClientRect().width /
+              element.getBoundingClientRect().height -
+              1.5,
+          ) < 0.01
+        )
+      }),
+    )
+    .toBe(true)
+  await expect
+    .poll(() =>
+      browser.locator('.browser-search-popup').evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect()
+        return left >= 0 && right <= innerWidth
+      }),
+    )
+    .toBe(true)
+  for (const width of [375, 761, 320]) {
+    await page.setViewportSize({ width, height: 812 })
+    await expect
+      .poll(() =>
+        featureSections.evaluateAll((sections) =>
+          sections.every((section) => {
+            const frame = section
+              .querySelector('.feature-art')!
+              .getBoundingClientRect()
+            const rows = section.querySelectorAll('.feature-product-surface')
+            return [...rows].every((row) => {
+              const bounds = row.getBoundingClientRect()
+              return (
+                bounds.left >= frame.left &&
+                bounds.right <= frame.right &&
+                bounds.top >= frame.top &&
+                bounds.bottom <= frame.bottom
+              )
+            })
+          }),
+        ),
+      )
+      .toBe(true)
+  }
+  await page.setViewportSize({ width: 375, height: 812 })
+  await showcase.scrollIntoViewIfNeeded()
+  await expect(
+    demo.getByRole('button', { name: 'Tabs', exact: true }),
+  ).toBeVisible()
+  const app = demo.locator('.demo-screen')
+  await expect
+    .poll(() =>
+      app.evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect()
+        return left >= 0 && right <= innerWidth
+      }),
+    )
+    .toBe(true)
+  await showcase
+    .getByRole('button', { name: 'Or watch my video', exact: true })
+    .click()
+  await expect(
+    showcase.getByRole('heading', { name: 'Watch it', exact: true }),
+  ).toBeVisible()
+  await expect(showcase.locator('video')).toBeVisible()
+  await expect(video).toHaveJSProperty('muted', false)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Try Tabby', exact: true })
+    .click()
+  await expect(
+    showcase.getByRole('heading', { name: 'Try it', exact: true }),
+  ).toBeVisible()
+  await page
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Watch it work', exact: true })
+    .click()
+  await expect(
+    showcase.getByRole('heading', { name: 'Watch it', exact: true }),
+  ).toBeVisible()
+})
+
+test('sample tabs support batch work, local search, appearance, and reset', async ({
+  page,
+}) => {
+  await page.goto('./')
+  const demo = page.locator('.hero [data-demo]')
   await demo.scrollIntoViewIfNeeded()
   await demo
     .getByRole('option', { name: 'Tab: Team inbox', exact: true })
@@ -22,7 +322,7 @@ test('sample tabs support batch work, local search, appearance, playback, and re
     demo.getByRole('option', { name: 'Tab: Team inbox (pinned)', exact: true }),
   ).toBeVisible()
   await expect(
-    hero.getByRole('option', { name: 'Tab: Team inbox', exact: true }),
+    page.locator('#manage [role="option"][aria-label="Tab: Team inbox"]'),
   ).toBeVisible()
   await demo.getByRole('button', { name: 'Search', exact: true }).click()
   const input = demo.getByRole('combobox')
@@ -47,24 +347,10 @@ test('sample tabs support batch work, local search, appearance, playback, and re
     'data-theme-accent',
     'violet',
   )
-  await expect(hero.locator('[data-surface]')).toHaveAttribute(
+  await expect(page.locator('#manage [data-surface]')).toHaveAttribute(
     'data-theme',
     'light',
   )
-  await demo.getByRole('button', { name: 'Play tour' }).click()
-  await expect(
-    demo.getByText('All your windows, in one place', { exact: true }),
-  ).toBeVisible()
-  await expect(demo.locator('[data-surface]')).toHaveAttribute(
-    'data-theme',
-    'light',
-  )
-  await expect(
-    demo.getByRole('option', { name: 'Tab: Team inbox', exact: true }),
-  ).toBeVisible()
-  await demo.getByRole('button', { name: 'Pause tour' }).click()
-  await demo.getByLabel('Tour progress').fill('5200')
-  await expect(demo.getByText('Launch', { exact: true })).toBeVisible()
   await demo.getByRole('button', { name: 'Reset', exact: true }).click()
   await expect(
     demo.getByRole('option', { name: 'Tab: Team inbox', exact: true }),
@@ -88,6 +374,10 @@ test('sample tabs support batch work, local search, appearance, playback, and re
     ),
   ).toBeVisible()
   const video = page.locator('video')
+  await page
+    .locator('.hero-showcase')
+    .getByRole('button', { name: 'Or watch my video', exact: true })
+    .click()
   await video.scrollIntoViewIfNeeded()
   await video.evaluate(async (element: HTMLVideoElement) => {
     element.muted = true
@@ -104,41 +394,33 @@ test('sample tabs support batch work, local search, appearance, playback, and re
   )
 })
 
-test('three designs keep their content and controls usable on narrow screens', async ({
-  page,
-  baseURL,
-}) => {
+test('the homepage stays readable on narrow screens', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
-  for (const design of ['companion', 'focus', 'playground']) {
-    await page.goto(design)
-    await expect(page.locator('.site')).toHaveClass(
-      new RegExp(`site--${design}`),
+  await page.goto('./')
+  await expect(
+    page.getByRole('heading', {
+      name: 'Big tab energy. Little tab chaos.',
+      exact: true,
+    }),
+  ).toBeVisible()
+  await expect(page.locator('.intro-note')).toHaveText(
+    'A little order for all your tabs',
+  )
+  await expect(page.locator('.intro-note span')).toHaveCount(0)
+  await expect(page.locator('.site-header .install')).toBeVisible()
+  await page.locator('.closing').scrollIntoViewIfNeeded()
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
     )
-    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
-    await expect(page.locator('.site-header .install')).toBeVisible()
-    const previews = page.getByRole('navigation', { name: 'Design previews' })
-    await expect(
-      previews.getByRole('link', { name: 'Focus', exact: true }),
-    ).toHaveAttribute('href', new URL('focus', baseURL).pathname)
-    const demo = page.locator('#try [data-demo]')
-    await demo.scrollIntoViewIfNeeded()
-    await expect(demo.getByRole('button', { name: 'Play tour' })).toBeVisible()
-    await demo.getByRole('button', { name: 'Search', exact: true }).click()
-    await expect(demo.getByRole('combobox')).toBeVisible()
-    await page.locator('.closing').scrollIntoViewIfNeeded()
-    await expect
-      .poll(() =>
-        page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-      )
-      .toBe(true)
-    await expect
-      .poll(() =>
-        page
-          .locator('img')
-          .evaluateAll((images: HTMLImageElement[]) =>
-            images.every((image) => !image.complete || image.naturalWidth > 0),
-          ),
-      )
-      .toBe(true)
-  }
+    .toBe(true)
+  await expect
+    .poll(() =>
+      page
+        .locator('img')
+        .evaluateAll((images: HTMLImageElement[]) =>
+          images.every((image) => !image.complete || image.naturalWidth > 0),
+        ),
+    )
+    .toBe(true)
 })

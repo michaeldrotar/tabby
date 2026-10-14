@@ -3,11 +3,5 @@
   "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm exec turbo ready --filter=@extension/marketing... && pnpm build",
-  "outputDirectory": "build",
-  "rewrites": [
-    {
-      "source": "/:design(companion|focus|playground)",
-      "destination": "/index.html"
-    }
-  ]
+  "outputDirectory": "build"
 }
