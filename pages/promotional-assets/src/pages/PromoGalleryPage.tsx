@@ -4,7 +4,11 @@ import tabbyFace from '../../../../product/brand/tabby-face.png'
 import { promoTileAssets, screenshotAssets } from '../data/promoAssets'
 import type { PromoAsset } from '../data/promoAssets'
 
-const assetUrl = (id: string) => `/?asset=${encodeURIComponent(id)}&embedded=1`
+const assetUrl = (id: string) => {
+  const url = new URL(window.location.href)
+  url.search = new URLSearchParams({ asset: id, embedded: '1' }).toString()
+  return url.toString()
+}
 
 const IframePreview = ({ asset }: { asset: PromoAsset }) => {
   const frameRef = useRef<HTMLDivElement>(null)

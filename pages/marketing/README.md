@@ -6,6 +6,11 @@ Run `pnpm marketing` from the workspace root. The local app serves three single-
 - [Focus](http://localhost:5182/focus): a search-first workspace with a dark palette and keyboard shortcuts.
 - [Playground](http://localhost:5182/playground): a colorful tour through projects, search, batch actions, and personalization.
 
+Two unlinked feedback pages are available by direct path:
+
+- [Promotional assets](http://localhost:5182/promotional-assets): the Web Store screenshots and promo tiles.
+- [Seasonal icons](http://localhost:5182/seasonal-icons): the holiday icon gallery.
+
 All designs share [feature content](src/content.ts), checked-in promotional screenshots, and the real [product experiences](../../packages/app/lib/index.ts). [Demo resources](src/demo.ts) provide deterministic sample windows, tabs, bookmarks, history, and recently closed pages. Each demo owns its browser data, views, preferences, and playback. Refresh or Reset restores the samples; the app needs no Chrome permissions.
 
 Use `pnpm test:marketing` for the headless browser workflows, `pnpm -F @extension/marketing type-check` for types, and `pnpm -F @extension/marketing build` for the standalone production app in `build/`.
