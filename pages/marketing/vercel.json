@@ -6,7 +6,7 @@
   "outputDirectory": "build",
   "rewrites": [
     {
-      "source": "/:design(companion|focus|playground)",
+      "source": "/:design(companion|focus|playground|promotional-assets|seasonal-icons)",
       "destination": "/index.html"
     }
   ]

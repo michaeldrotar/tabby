@@ -5,7 +5,10 @@ import { Landing } from './Landing'
 import type { Design } from './content'
 
 const query = new URLSearchParams(location.search)
-const pathDesign = location.pathname.split('/').filter(Boolean).at(-1)
+const path = location.pathname.split('/').filter(Boolean).at(-1)
+const reviewPage =
+  path === 'promotional-assets' || path === 'seasonal-icons' ? path : undefined
+const pathDesign = path
 const requested = ['companion', 'focus', 'playground'].includes(
   pathDesign ?? '',
 )
@@ -14,12 +17,35 @@ const requested = ['companion', 'focus', 'playground'].includes(
 const design: Design =
   requested === 'focus' || requested === 'playground' ? requested : 'companion'
 
-createRoot(document.getElementById('root')!).render(
-  query.has('capture') ? (
-    <div className="capture-stage">
-      <ProductDemo capture />
-    </div>
-  ) : (
-    <Landing design={design} />
-  ),
-)
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('Missing marketing app root element.')
+
+const root = createRoot(rootElement)
+
+if (reviewPage) {
+  document.body.dataset.promoView =
+    reviewPage === 'seasonal-icons'
+      ? 'seasonal'
+      : query.has('asset')
+        ? 'asset'
+        : 'gallery'
+  document.title =
+    reviewPage === 'seasonal-icons'
+      ? 'Tabby seasonal icons'
+      : 'Tabby promotional assets'
+  void import('./PromotionalAssetsRoute').then(({ PromotionalAssetsRoute }) => {
+    root.render(
+      <PromotionalAssetsRoute page={reviewPage} asset={query.get('asset')} />,
+    )
+  })
+} else {
+  root.render(
+    query.has('capture') ? (
+      <div className="capture-stage">
+        <ProductDemo capture />
+      </div>
+    ) : (
+      <Landing design={design} />
+    ),
+  )
+}
