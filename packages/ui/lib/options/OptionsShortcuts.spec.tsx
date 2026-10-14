@@ -82,7 +82,7 @@ it('keeps settings in a flat list with seasonal icons before reset', () => {
 
 it('opens seasonal choices at a direct link and returns to the main list', () => {
   renderOptions()
-  fireEvent.click(screen.getByRole('button', { name: 'Choose holiday icons' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Choose seasonal icons' }))
 
   expect(window.location.hash).toBe('#seasonal-icons')
   expect(screen.getByRole('group', { name: "Valentine's Day" })).toBeVisible()

@@ -9,7 +9,6 @@ import {
 import { createDemoPlayer } from '@extension/demo/player'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { assets } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
 import type { ThemeAccentPalette } from '@extension/core'
 
@@ -27,11 +26,12 @@ const accents = [
   { name: 'rose', color: '#ce5879' },
 ] satisfies { name: ThemeAccentPalette; color: string }[]
 
-const AppearanceControls = () => {
+const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
   const { preferences } = useTabbyResources()
   const appearance = useTabbyPreferences()
   return (
     <div className="appearance-controls">
+      {labelled && <span className="demo-control-label">Demo colors</span>}
       <button
         type="button"
         onClick={() =>
@@ -72,12 +72,16 @@ export type ProductDemoProps = {
   theme?: 'light' | 'dark'
   initialExperience?: 'manager' | 'search'
   capture?: boolean
+  separated?: boolean
+  showTour?: boolean
 }
 
 export const ProductDemo = ({
   theme = 'light',
   initialExperience = 'manager',
   capture = false,
+  separated = false,
+  showTour = true,
 }: ProductDemoProps) => {
   const [demo] = useState(() => createMarketingDemo(theme))
   const [player] = useState(() =>
@@ -126,7 +130,11 @@ export const ProductDemo = ({
   }
   return (
     <div
-      className={['product-demo', capture && 'capture-demo']
+      className={[
+        'product-demo',
+        capture && 'capture-demo',
+        separated && 'product-demo--separated',
+      ]
         .filter(Boolean)
         .join(' ')}
       data-demo
@@ -134,7 +142,9 @@ export const ProductDemo = ({
       <MemoryTabbyProvider
         resources={{ backend: demo.backend, preferences: demo.preferences }}
         views={demo.views}
-        optionsMetadata={{ logoUrl: assets.face }}
+        optionsMetadata={{
+          logoUrl: new URL('/tabby-face-128.png', window.location.origin).href,
+        }}
         optionsHost={{
           openShortcutsSettings: async () =>
             setNotice('Customize Chrome shortcuts after installing Tabby.'),
@@ -210,15 +220,17 @@ export const ProductDemo = ({
           </TabbySurface>
         </div>
         <div className="demo-tools">
-          <AppearanceControls />
-          <button type="button" className="tour-control" onClick={play}>
-            {playback.playing
-              ? 'Pause tour'
-              : playback.time === playback.duration
-                ? 'Replay tour'
-                : 'Play tour'}{' '}
-            <span aria-hidden="true">{playback.playing ? 'Ⅱ' : '▷'}</span>
-          </button>
+          <AppearanceControls labelled={separated} />
+          {showTour && (
+            <button type="button" className="tour-control" onClick={play}>
+              {playback.playing
+                ? 'Pause tour'
+                : playback.time === playback.duration
+                  ? 'Replay tour'
+                  : 'Play tour'}{' '}
+              <span aria-hidden="true">{playback.playing ? 'Ⅱ' : '▷'}</span>
+            </button>
+          )}
         </div>
         <div className="demo-caption" aria-live="polite">
           {notice ||

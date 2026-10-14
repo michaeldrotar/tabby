@@ -103,7 +103,10 @@ const HolidayDateControl = ({
   onPreferenceChange,
 }: HolidayDateControlProps) => {
   const dateClassName = cn(
-    'text-foreground flex h-10 w-full items-center px-3 py-2 text-sm',
+    `
+      text-foreground flex h-10 w-full items-center justify-end px-3 py-2
+      text-right text-sm
+    `,
   )
 
   if (holidayId === 'easter') {
@@ -117,8 +120,8 @@ const HolidayDateControl = ({
           })
         }
       >
-        <SelectTrigger aria-label="Easter date">
-          <SelectValue />
+        <SelectTrigger aria-label="Easter date" className="text-right">
+          <SelectValue className="min-w-0 flex-1 text-right" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="local">Use browser region</SelectItem>
@@ -140,8 +143,8 @@ const HolidayDateControl = ({
           })
         }
       >
-        <SelectTrigger aria-label="Thanksgiving date">
-          <SelectValue />
+        <SelectTrigger aria-label="Thanksgiving date" className="text-right">
+          <SelectValue className="min-w-0 flex-1 text-right" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="local">Use browser region</SelectItem>
@@ -237,7 +240,7 @@ export const OptionsSeasonalIconsOverview = ({
             `,
           )}
         >
-          Choose holiday icons
+          Choose seasonal icons
           <span aria-hidden="true">→</span>
         </button>
       </div>
@@ -263,7 +266,7 @@ export const OptionsSeasonalIcons = ({
         Seasonal icons
       </h2>
       <p className="text-muted mb-4 text-sm">
-        Pick a favorite look for each holiday.
+        Pick a favorite seasonal look for each holiday.
       </p>
       <div className="space-y-4">
         {SEASONAL_HOLIDAYS.map((holiday) => {

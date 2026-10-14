@@ -1,6 +1,6 @@
 {
   "name": "tabby-chrome-extension",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Cat-friendly tab management and search",
   "license": "MIT",
   "private": true,

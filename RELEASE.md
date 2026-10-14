@@ -28,7 +28,7 @@ Start a feature-release cycle on `main` by preparing its version and notes file:
 pnpm prep minor        # or: pnpm prep major, pnpm prep 2.0.0
 ```
 
-Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each user-facing feature pull request adds its line directly to that active file under the appropriate heading. Keep changes concise and user-focused. For internal work, state in the pull request that no release note is needed.
+Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each user-facing feature pull request adds its entry directly to that active file under **What's New**, with a short descriptive subheading and a concise user-focused description. For internal work, state in the pull request that no release note is needed.
 
 Use one versioned release-notes file for each planned release. If parallel pull requests touch nearby lines, resolve conflicts by retaining each distinct line once. Do not use per-pull-request note fragments.
 
@@ -39,7 +39,7 @@ git switch -c hotfix/v1.2.1 v1.2.0
 pnpm prep patch
 ```
 
-Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds a line to that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, preserve `main`'s in-progress version and do not duplicate the line in its release-notes file.
+Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds an entry under **What's New**, with a descriptive subheading and concise description, to that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, preserve `main`'s in-progress version and do not duplicate the entry in its release-notes file.
 
 ## Feature Work and CI
 
@@ -90,7 +90,7 @@ Patch releases contain fixes for the latest published version and may include mo
 ## Writing Release Notes
 
 - Write for extension users. Describe the benefit or problem solved, not implementation details.
-- Put a feature under **Highlights** or **Improvements** and a released-code bug fix under **Fixes**.
+- Use one **What's New** section with a short descriptive subheading and concise description for each user-facing change.
 - Do not report problems that were introduced and fixed before users received the release.
 - Keep patch notes limited to fixes for the released version being patched.
 - Use the submission date, not the date Chrome finishes its review.

@@ -47,7 +47,9 @@ it('shows changing date controls inline with their holidays', () => {
   )
 
   const easter = screen.getByRole('group', { name: 'Easter' })
-  const thanksgiving = screen.getByRole('group', { name: 'Thanksgiving' })
+  const thanksgiving = screen.getByRole('group', {
+    name: 'Thanksgiving',
+  })
   expect(
     within(easter).getByRole('combobox', { name: 'Easter date' }),
   ).toHaveTextContent('Use browser region')
@@ -64,7 +66,7 @@ it('shows changing date controls inline with their holidays', () => {
   expect(screen.queryByText('Date varies')).toBeNull()
 })
 
-it('saves a holiday choice independently', () => {
+it('saves a seasonal icon choice independently', () => {
   const onPreferenceChange = vi.fn()
   render(
     <OptionsSeasonalIcons
@@ -73,7 +75,9 @@ it('saves a holiday choice independently', () => {
     />,
   )
 
-  const valentines = screen.getByRole('group', { name: "Valentine's Day" })
+  const valentines = screen.getByRole('group', {
+    name: "Valentine's Day",
+  })
   fireEvent.click(
     within(valentines).getByRole('radio', {
       name: /OffUse Tabby’s regular icon/,
