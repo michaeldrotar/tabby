@@ -28,7 +28,7 @@ Start a feature-release cycle on `main` by preparing its version and notes file:
 pnpm prep minor        # or: pnpm prep major, pnpm prep 2.0.0
 ```
 
-Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each user-facing feature pull request adds its entry directly to that active file under **What's New**, with a short descriptive subheading and a concise user-focused description. For internal work, state in the pull request that no release note is needed.
+Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each pull request with a user-facing browser-extension change adds its entry directly to that active file under **What's New**, with a short descriptive subheading and a concise user-focused description. For changes with no user-facing impact on the extension, state in the pull request that no extension release note is needed.
 
 Use one versioned release-notes file for each planned release. If parallel pull requests touch nearby lines, resolve conflicts by retaining each distinct line once. Do not use per-pull-request note fragments.
 
@@ -44,7 +44,7 @@ Replace the example versions with the latest published tag and the next patch ve
 ## Feature Work and CI
 
 1. Start from an issue with a clear outcome and acceptance criteria. Use a short-lived issue branch and open a pull request to `main`.
-2. Include the code, relevant tests, and direct update to the active versioned release-notes file. Update `CHROMEWEBSTORE.md` according to the Chrome Extensions skill when store-facing information changes. Update documentation, product demos, and marketing-site content when the change affects them.
+2. Include the code and relevant tests. Update the active versioned release-notes file directly when the change affects browser-extension users. Update `CHROMEWEBSTORE.md` according to the Chrome Extensions skill when store-facing information changes. Update documentation, product demos, and marketing-site content when the change affects them.
 3. CI runs lint, formatting checks, type checking, unit tests, and a production build on pull requests. The E2E workflow runs Chrome-extension and Demo Studio browser tests on pull requests. Both workflow checks must pass before merging. The build is a check only: CI does not upload an artifact. Commits do not run lint or formatting hooks.
 4. A separate agent reviews the issue criteria and diff with fresh context. The implementation agent fixes blocking findings; a new reviewer rechecks the changes. Merge when both workflow checks pass and no blocking findings remain.
 5. Use `Closes #N` in the pull request description to close the issue when the pull request is merged to `main`.
@@ -89,12 +89,13 @@ Patch releases contain fixes for the latest published version and may include mo
 
 ## Writing Release Notes
 
+- Versioned release notes in `product/releases/` cover only user-facing changes to the Tabby browser extension. Changes limited to the marketing site, Demo Studio, tooling, or repository documentation do not belong in these notes.
 - Write for extension users. Describe the benefit or problem solved, not implementation details.
 - Use one **What's New** section with a short descriptive subheading and concise description for each user-facing change.
 - Do not report problems that were introduced and fixed before users received the release.
 - Keep patch notes limited to fixes for the released version being patched.
 - Use the submission date, not the date Chrome finishes its review.
 
-## Future Marketing Site
+## Marketing Site
 
-When the marketing site exists, use pull-request previews for review. Deploy production as an explicit release action after the extension is published, so the site does not announce features that are not yet available in the store.
+Use pull-request previews to review marketing-site changes. Deploy production as an explicit release action after the extension is published, so the site does not announce features that are not yet available in the store.
