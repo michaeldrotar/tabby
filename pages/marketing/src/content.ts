@@ -22,7 +22,7 @@ export const homeFeatures = [
     id: 'customize',
     label: 'Make it yours',
     description:
-      'Pick light and dark tones, dab on an accent, and give Tabby a seasonal look. Grab a piece and give it a flick—much easier than repainting your browser.',
+      'Choose tones, colors, and a little seasonal personality to make Tabby feel like yours.',
   },
 ] as const
 

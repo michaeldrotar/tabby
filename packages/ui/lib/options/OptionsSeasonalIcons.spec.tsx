@@ -32,7 +32,7 @@ it('shows each holiday and its three illustrated choices plus Off', () => {
     expect(within(group).getAllByRole('radio')).toHaveLength(4)
     expect(
       within(group).getByRole('radio', {
-        name: /OffUse Tabby’s regular icon/,
+        name: 'Off',
       }),
     ).toBeInTheDocument()
   }
@@ -80,7 +80,7 @@ it('saves a seasonal icon choice independently', () => {
   })
   fireEvent.click(
     within(valentines).getByRole('radio', {
-      name: /OffUse Tabby’s regular icon/,
+      name: 'Off',
     }),
   )
   expect(onPreferenceChange).toHaveBeenCalledWith({
