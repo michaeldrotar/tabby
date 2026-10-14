@@ -1,5 +1,53 @@
 import { expect, test } from '@playwright/test'
 
+for (const { fragment, target, width } of [
+  { fragment: 'features', target: 'features', width: 1280 },
+  { fragment: 'c%75stomize', target: 'customize', width: 375 },
+]) {
+  test(`homepage opens at #${fragment} on a ${width}px screen`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 812 })
+    await page.goto(`./#${fragment}`)
+    await page.evaluate(() => document.fonts.ready)
+    await expect(page.locator('#manage [data-tab-manager]')).toBeVisible()
+    await expect(page.locator('.browser-illustration')).toBeVisible()
+    const expectAtTarget = async () => {
+      await expect
+        .poll(() =>
+          page
+            .locator(`#${target}`)
+            .evaluate((element) =>
+              Math.abs(
+                element.getBoundingClientRect().top -
+                  parseFloat(
+                    getComputedStyle(document.documentElement).scrollPaddingTop,
+                  ),
+              ),
+            ),
+        )
+        .toBeLessThan(1)
+    }
+    await expectAtTarget()
+    await page.reload()
+    await page.evaluate(() => document.fonts.ready)
+    await expectAtTarget()
+  })
+}
+
+test('homepage ignores unknown and malformed URL fragments', async ({
+  page,
+}) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  for (const fragment of ['missing-section', '%', '']) {
+    await page.goto(`./#${fragment}`)
+    await expect(page.locator('.hero [data-demo]')).toBeVisible()
+    expect(await page.evaluate(() => scrollY)).toBe(0)
+  }
+  expect(errors).toEqual([])
+})
+
 test('homepage separates the live demo and switches to a video without losing demo changes', async ({
   page,
 }) => {

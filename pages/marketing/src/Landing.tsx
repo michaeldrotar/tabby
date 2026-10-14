@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { assets, homeFeatures, storeUrl } from './content'
 import {
   BrowserIllustration,
@@ -322,6 +322,15 @@ const Footer = () => (
 export const Landing = () => {
   const [watching, setWatching] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  useLayoutEffect(() => {
+    let targetId: string
+    try {
+      targetId = decodeURIComponent(location.hash.slice(1))
+    } catch {
+      return
+    }
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'instant' })
+  }, [])
   const onShowcase = (next: boolean) => {
     if (!next) videoRef.current?.pause()
     setWatching(next)
