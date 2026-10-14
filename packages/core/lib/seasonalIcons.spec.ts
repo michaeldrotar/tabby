@@ -6,22 +6,22 @@ import {
 } from './seasonalIcons'
 
 describe('seasonal icon dates', () => {
-  it('uses the selected icon from seven days before through the holiday date', () => {
+  it('uses the selected icon from 21 days before through the holiday date', () => {
     expect(
       getUpcomingSeasonalIcon(
         defaultPreferences,
-        new Date(2026, 1, 7, 12),
+        new Date(2026, 0, 24, 12),
         'en-US',
       ),
     ).toEqual({
       holidayId: 'valentines',
       iconId: 'valentines-heart-hoodie',
-      daysUntil: 7,
+      daysUntil: 21,
     })
     expect(
       getUpcomingSeasonalIcon(
         defaultPreferences,
-        new Date(2026, 1, 6, 12),
+        new Date(2026, 0, 23, 12),
         'en-US',
       ),
     ).toBeUndefined()
@@ -39,6 +39,34 @@ describe('seasonal icon dates', () => {
         'en-US',
       ),
     ).toBeUndefined()
+  })
+
+  it('prefers the closest holiday when seasonal windows overlap', () => {
+    expect(
+      getUpcomingSeasonalIcon(
+        defaultPreferences,
+        new Date(2026, 2, 17, 12),
+        'en-US',
+      ),
+    ).toEqual({
+      holidayId: 'st-patricks',
+      iconId: 'st-patricks-shamrock-hoodie',
+      daysUntil: 0,
+    })
+  })
+
+  it('shows the selected Halloween look three weeks ahead', () => {
+    expect(
+      getUpcomingSeasonalIcon(
+        defaultPreferences,
+        new Date(2026, 9, 14, 12),
+        'en-US',
+      ),
+    ).toEqual({
+      holidayId: 'halloween',
+      iconId: 'halloween-frankenstein-hoodie',
+      daysUntil: 17,
+    })
   })
 
   it('follows selected Easter calendars and browser-region defaults', () => {

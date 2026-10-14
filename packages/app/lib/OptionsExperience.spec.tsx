@@ -39,6 +39,13 @@ describe('Options resources', () => {
     const preferences = createMemoryPreferences({
       theme: 'system',
       tabManagerCompactLayout: 'list',
+      seasonalIconsEnabled: false,
+      seasonalIconSelections: {
+        ...defaultPreferences.seasonalIconSelections,
+        halloween: 'off',
+      },
+      seasonalEasterCalendar: 'orthodox',
+      seasonalThanksgivingRegion: 'canada',
     })
     const view = createOptionsView()
     const shortcuts = vi.fn(async () => {})
@@ -103,6 +110,7 @@ describe('Options resources', () => {
   })
 
   it('keeps radio groups and controlled view state separate while sharing preferences', async () => {
+    window.history.replaceState(null, '', '/')
     const preferences = createMemoryPreferences({ theme: 'light' })
     const resource = createMemoryOptionsResource()
     const left = createOptionsView()
@@ -132,6 +140,17 @@ describe('Options resources', () => {
         true,
       ),
     )
+    const seasonalButtons = screen.getAllByRole('button', {
+      name: 'Choose holiday icons',
+    })
+    fireEvent.click(seasonalButtons[0]!)
+    fireEvent.click(seasonalButtons[1]!)
+    const heartEyes = screen.getAllByRole('radio', { name: 'Heart eyes' })
+    expect(heartEyes).toHaveLength(2)
+    expect(
+      new Set(heartEyes.map((input) => input.getAttribute('name'))).size,
+    ).toBe(2)
+    expect(window.location.hash).toBe('')
     expect(
       Array.from(container.querySelectorAll('[data-surface]')).map((surface) =>
         surface.getAttribute('data-theme'),

@@ -1,4 +1,10 @@
-import { useLayoutEffect, useRef } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useSurface } from '../Surface'
 import { cn } from '../utils/cn'
 import { OptionsAppearance } from './OptionsAppearance'
@@ -8,7 +14,10 @@ import {
   OptionsSidePanelSettings,
 } from './OptionsHostSections'
 import { OptionsManagerPreferences } from './OptionsManagerPreferences'
-import { OptionsSeasonalIcons } from './OptionsSeasonalIcons'
+import {
+  OptionsSeasonalIcons,
+  OptionsSeasonalIconsOverview,
+} from './OptionsSeasonalIcons'
 import { OptionsShortcuts } from './OptionsShortcuts'
 import type { PreferenceState } from '@extension/core'
 
@@ -24,6 +33,7 @@ export type OptionsControl =
   | 'accent'
   | 'window-icon'
 export type OptionsProps = {
+  urlSeasonalIcons?: boolean
   openControl?: OptionsControl | null
   onOpenControlChange?: (control: OptionsControl | null) => void
   scrollTop?: number
@@ -41,6 +51,12 @@ export type OptionsProps = {
   openShortcutsSettings: () => void
   openSidePanelSettings: () => void
 }
+
+const SEASONAL_ICONS_HASH = '#seasonal-icons'
+
+const seasonalIconsViewFromHash = () =>
+  typeof window !== 'undefined' && window.location.hash === SEASONAL_ICONS_HASH
+
 export type OptionsControlBindings = (control: OptionsControl) => {
   open: boolean | undefined
   onOpenChange: (open: boolean) => void
@@ -48,15 +64,52 @@ export type OptionsControlBindings = (control: OptionsControl) => {
 export const Options = (props: OptionsProps) => {
   const { openControl, onOpenControlChange, scrollTop, onScrollChange, error } =
     props
+  const urlSeasonalIcons = props.urlSeasonalIcons ?? false
   const root = useRef<HTMLDivElement>(null)
+  const [showSeasonalIcons, setShowSeasonalIcons] = useState(
+    () => urlSeasonalIcons && seasonalIconsViewFromHash(),
+  )
+  const resetScroll = useCallback(() => {
+    if (root.current) root.current.scrollTop = 0
+    if (window.scrollY > 0) window.scrollTo(0, 0)
+    onScrollChange?.(0)
+  }, [onScrollChange])
   useLayoutEffect(() => {
     if (
       root.current &&
+      !showSeasonalIcons &&
       scrollTop !== undefined &&
       Math.abs(root.current.scrollTop - scrollTop) > 1
     )
       root.current.scrollTop = scrollTop
-  }, [scrollTop])
+  }, [scrollTop, showSeasonalIcons])
+  useEffect(() => {
+    if (!urlSeasonalIcons) return
+    const syncViewFromHash = () => {
+      setShowSeasonalIcons(seasonalIconsViewFromHash())
+      resetScroll()
+    }
+    window.addEventListener('hashchange', syncViewFromHash)
+    return () => window.removeEventListener('hashchange', syncViewFromHash)
+  }, [resetScroll, urlSeasonalIcons])
+
+  const openSeasonalIcons = () => {
+    setShowSeasonalIcons(true)
+    resetScroll()
+    if (urlSeasonalIcons && window.location.hash !== SEASONAL_ICONS_HASH)
+      window.history.replaceState(null, '', SEASONAL_ICONS_HASH)
+  }
+  const backToSettings = () => {
+    setShowSeasonalIcons(false)
+    resetScroll()
+    if (urlSeasonalIcons && window.location.hash === SEASONAL_ICONS_HASH)
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}`,
+      )
+  }
+
   const controlProps: OptionsControlBindings = (control) => ({
     open: openControl === undefined ? undefined : openControl === control,
     onOpenChange: (open) => onOpenControlChange?.(open ? control : null),
@@ -81,32 +134,60 @@ export const Options = (props: OptionsProps) => {
           </p>
         )}
         <OptionsHeader logoUrl={props.logoUrl} />
-        <OptionsSeasonalIcons
-          preferences={props.preferences}
-          onPreferenceChange={props.onPreferenceChange}
-        />
-        <OptionsAppearance
-          preferences={props.preferences}
-          activeThemeMode={props.activeThemeMode}
-          onPreferenceChange={props.onPreferenceChange}
-          randomizeColors={props.randomizeColors}
-          controlProps={controlProps}
-        />
-        <OptionsManagerPreferences
-          preferences={props.preferences}
-          onPreferenceChange={props.onPreferenceChange}
-          controlProps={controlProps}
-        />
-        <OptionsSidePanelSettings
-          openSidePanelSettings={props.openSidePanelSettings}
-        />
-        <OptionsShortcuts
-          isMac={props.isMac}
-          shortcutRows={props.shortcutRows}
-          shortcutsLoading={props.shortcutsLoading}
-          openShortcutsSettings={props.openShortcutsSettings}
-        />
-        <OptionsReset resetPreferences={props.resetPreferences} />
+        {showSeasonalIcons ? (
+          <>
+            <button
+              type="button"
+              onClick={backToSettings}
+              className={cn(
+                `
+                  text-muted mb-4 flex items-center gap-2 text-sm font-medium
+                  transition-colors
+                  hover:text-foreground
+                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                  focus-visible:outline-none focus-visible:ring-2
+                `,
+              )}
+            >
+              <span aria-hidden="true">←</span>
+              Back to settings
+            </button>
+            <OptionsSeasonalIcons
+              preferences={props.preferences}
+              onPreferenceChange={props.onPreferenceChange}
+            />
+          </>
+        ) : (
+          <>
+            <OptionsAppearance
+              preferences={props.preferences}
+              activeThemeMode={props.activeThemeMode}
+              onPreferenceChange={props.onPreferenceChange}
+              randomizeColors={props.randomizeColors}
+              controlProps={controlProps}
+            />
+            <OptionsManagerPreferences
+              preferences={props.preferences}
+              onPreferenceChange={props.onPreferenceChange}
+              controlProps={controlProps}
+            />
+            <OptionsSidePanelSettings
+              openSidePanelSettings={props.openSidePanelSettings}
+            />
+            <OptionsShortcuts
+              isMac={props.isMac}
+              shortcutRows={props.shortcutRows}
+              shortcutsLoading={props.shortcutsLoading}
+              openShortcutsSettings={props.openShortcutsSettings}
+            />
+            <OptionsSeasonalIconsOverview
+              preferences={props.preferences}
+              onPreferenceChange={props.onPreferenceChange}
+              onOpen={openSeasonalIcons}
+            />
+            <OptionsReset resetPreferences={props.resetPreferences} />
+          </>
+        )}
       </div>
     </div>
   )

@@ -22,7 +22,6 @@ export const SEASONAL_HOLIDAYS = [
   {
     id: 'easter',
     name: 'Easter',
-    dateLabel: 'Date varies',
     iconOptions: [
       { id: 'easter-bunny-ears', name: 'Bunny ears' },
       { id: 'easter-chick-hoodie', name: 'Chick hoodie' },
@@ -32,7 +31,6 @@ export const SEASONAL_HOLIDAYS = [
   {
     id: 'thanksgiving',
     name: 'Thanksgiving',
-    dateLabel: 'Date varies by country',
     iconOptions: [
       { id: 'thanksgiving-harvest-leaf', name: 'Harvest leaf' },
       { id: 'thanksgiving-harvest-scarf', name: 'Harvest scarf' },
@@ -89,6 +87,7 @@ export type SeasonalIconPreferences = {
 }
 
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
+const SEASONAL_ICON_LEAD_DAYS = 21
 const ORTHODOX_EASTER_REGIONS = new Set([
   'BG',
   'BY',
@@ -307,7 +306,7 @@ export const getUpcomingSeasonalIcon = (
     const daysUntil = getLocalDayNumber(holidayDate) - todayNumber
     if (
       daysUntil >= 0 &&
-      daysUntil <= 7 &&
+      daysUntil <= SEASONAL_ICON_LEAD_DAYS &&
       (!closest || daysUntil < closest.daysUntil)
     ) {
       closest = { holidayId: holiday.id, iconId, daysUntil }

@@ -66,8 +66,16 @@ describe('seasonal action icon', () => {
 
     await vi.waitFor(() => expect(mock.action.setIcon).toHaveBeenCalledOnce())
     expect(mock.action.setIcon).toHaveBeenCalledWith({
-      path: getSeasonalActionIconPaths('halloween-frankenstein-hoodie'),
+      path: {
+        16: 'seasonal-icons/halloween-frankenstein-hoodie-16.png',
+        32: 'seasonal-icons/halloween-frankenstein-hoodie-32.png',
+        48: 'seasonal-icons/halloween-frankenstein-hoodie-48.png',
+        128: 'seasonal-icons/halloween-frankenstein-hoodie-128.png',
+      },
     })
+    expect(
+      Object.keys(getSeasonalActionIconPaths('halloween-frankenstein-hoodie')),
+    ).toEqual(['16', '32', '48', '128'])
     expect(mock.alarms.create).toHaveBeenCalledWith(SEASONAL_ICON_DATE_ALARM, {
       when: new Date(2026, 9, 25).getTime(),
     })

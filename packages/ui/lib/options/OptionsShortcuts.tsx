@@ -230,7 +230,7 @@ export const OptionsShortcuts = ({
       <section aria-labelledby={globalHeadingId}>
         <h2
           id={globalHeadingId}
-          className="text-foreground mb-2 text-sm font-semibold"
+          className="text-foreground mb-4 text-lg font-semibold"
         >
           Global shortcuts
         </h2>
@@ -241,7 +241,7 @@ export const OptionsShortcuts = ({
       <section aria-labelledby={tabManagerHeadingId}>
         <h2
           id={tabManagerHeadingId}
-          className="text-foreground mb-2 text-sm font-semibold"
+          className="text-foreground mb-4 text-lg font-semibold"
         >
           Tab manager shortcuts
         </h2>
