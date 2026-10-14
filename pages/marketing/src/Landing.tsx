@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react'
-import { assets, features, storeUrl } from './content'
-import { ProductDemo } from './DemoLoader'
-import type { Design } from './content'
-import type { RefObject } from 'react'
+import { assets, homeFeatures, storeUrl } from './content'
+import {
+  BrowserIllustration,
+  FeatureIllustration,
+  ProductDemo,
+} from './DemoLoader'
+import type { ReactNode, RefObject } from 'react'
 
 const ChromeIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -29,20 +32,53 @@ const Install = ({ className = '' }: { className?: string }) => (
     Get Tabby for Chrome
   </a>
 )
-const Brand = () => (
-  <a className="brand" href="#top" aria-label="Tabby home">
-    <img src={assets.face} width="45" height="45" alt="" />
-    <span>Tabby</span>
+const Brand = ({ linked = true }: { linked?: boolean }) => {
+  const content = (
+    <>
+      <img src={assets.face} width="45" height="45" alt="" />
+      <span>Tabby</span>
+    </>
+  )
+  return linked ? (
+    <a className="brand" href="#top" aria-label="Tabby home">
+      {content}
+    </a>
+  ) : (
+    <div className="brand">{content}</div>
+  )
+}
+type ShowcaseControls = {
+  onShowcase: (watching: boolean) => void
+}
+
+const ShowcaseLink = ({
+  onShowcase,
+  watching = false,
+  className,
+  children,
+}: ShowcaseControls & {
+  watching?: boolean
+  className?: string
+  children: ReactNode
+}) => (
+  <a
+    href="#hero-showcase"
+    className={className}
+    onClick={() => onShowcase(watching)}
+  >
+    {children}
   </a>
 )
 
-const Header = () => (
+const Header = ({ onShowcase }: ShowcaseControls) => (
   <header className="site-header">
     <Brand />
     <nav aria-label="Main navigation">
       <a href="#features">What it does</a>
-      <a href="#try">Try Tabby</a>
-      <a href="#watch">Watch it work</a>
+      <ShowcaseLink onShowcase={onShowcase}>Try Tabby</ShowcaseLink>
+      <ShowcaseLink onShowcase={onShowcase} watching>
+        Watch it work
+      </ShowcaseLink>
     </nav>
     <Install />
   </header>
@@ -76,11 +112,19 @@ const TourVideo = ({
   </video>
 )
 
-const HeroShowcase = () => {
-  const [watching, setWatching] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+const showcaseLabels = { video: 'Or watch my video', demo: 'Or try the demo' }
+
+const HeroShowcase = ({
+  watching,
+  onShowcase,
+  videoRef,
+}: {
+  watching: boolean
+  onShowcase: (watching: boolean) => void
+  videoRef: RefObject<HTMLVideoElement | null>
+}) => {
   return (
-    <div className="hero-showcase" data-watching={watching}>
+    <div id="hero-showcase" className="hero-showcase" data-watching={watching}>
       <div id="hero-showcase-content" className="showcase-rotor">
         {[false, true].map((video) => (
           <div
@@ -121,18 +165,15 @@ const HeroShowcase = () => {
         className="showcase-toggle text-link"
         type="button"
         aria-controls="hero-showcase-content"
-        aria-label={watching ? 'Or try our demo' : 'Or watch our video'}
-        onClick={() => {
-          videoRef.current?.pause()
-          setWatching((value) => !value)
-        }}
+        aria-label={watching ? showcaseLabels.demo : showcaseLabels.video}
+        onClick={() => onShowcase(!watching)}
       >
         <span className="showcase-rotor" aria-hidden="true">
           <span className="showcase-face" aria-hidden={watching}>
-            Or watch our video <span>▷</span>
+            {showcaseLabels.video} <span>▷</span>
           </span>
           <span className="showcase-face showcase-back" aria-hidden={!watching}>
-            Or try our demo <span>↩</span>
+            {showcaseLabels.demo} <span>↩</span>
           </span>
         </span>
       </button>
@@ -140,299 +181,82 @@ const HeroShowcase = () => {
   )
 }
 
-const CompanionHero = ({ homepage = false }: { homepage?: boolean }) => (
-  <section className="hero companion-hero" aria-labelledby="hero-title">
+const Hero = ({
+  onShowcase,
+  watching,
+  videoRef,
+}: ShowcaseControls & {
+  watching: boolean
+  videoRef: RefObject<HTMLVideoElement | null>
+}) => (
+  <section className="hero home-hero" aria-labelledby="hero-title">
     <div className="hero-copy">
-      <p className="intro-note">
-        <span aria-hidden="true">✳</span> A little order for all your tabs
-      </p>
+      <p className="intro-note">A little order for all your tabs</p>
       <h1 id="hero-title">
         Big tab energy.
         <br />
         Little tab chaos.
       </h1>
       <p>
-        You have places to be. Tabby brings your tabs together and helps you
-        find your way back to anything.
+        I made Tabby to help you keep every Chrome window in view and find the
+        page you need across tabs, bookmarks, history, and recently closed
+        pages.
       </p>
       <div className="hero-actions">
         <Install />
-        <a className="text-link" href="#watch">
-          <span aria-hidden="true">▷</span> Meet your new tab companion
-        </a>
+        <ShowcaseLink className="text-link" onShowcase={onShowcase} watching>
+          <span aria-hidden="true">▷</span> Watch my quick tour
+        </ShowcaseLink>
       </div>
-      <p className="small-note">
-        Made for Chrome. Your browsing data stays with you.
+      <p className="privacy-note">
+        Tabby doesn’t send any of your data to anyone,{' '}
+        <strong>not even me.</strong>
       </p>
     </div>
-    {homepage ? (
-      <HeroShowcase />
-    ) : (
-      <div className="hero-product">
-        <div className="tab-sticker sticker-work">
-          Design project <span>3 tabs</span>
-        </div>
-        <ProductDemo />
-        <div className="tab-sticker sticker-life">
-          Weekend plans <span>3 tabs</span>
-        </div>
-      </div>
-    )}
-  </section>
-)
-
-const FocusHero = () => (
-  <section className="hero focus-hero" aria-labelledby="hero-title">
-    <div className="focus-hero-copy">
-      <p className="intro-note">A shortcut back to what matters</p>
-      <h1 id="hero-title">
-        Less searching.
-        <br />
-        More doing.
-      </h1>
-      <p>
-        Your tabs, bookmarks, and history. Your next move.
-        <br className="desktop-break" /> All within reach, with Tabby for
-        Chrome.
-      </p>
-      <div className="hero-actions">
-        <Install />
-        <a className="text-link" href="#try">
-          Try a search below <span aria-hidden="true">↓</span>
-        </a>
-      </div>
-    </div>
-    <div className="focus-search">
-      <ProductDemo theme="dark" initialExperience="search" />
-      <div className="shortcut-tag">
-        <kbd>⌘ E</kbd>
-        <span>Mac</span>
-        <kbd>Alt E</kbd>
-        <span>Windows & Linux</span>
-      </div>
-    </div>
-    <div className="focus-benefits">
-      <p>
-        <span>One place</span>All your open windows
-      </p>
-      <p>
-        <span>One search</span>Five ways to find a page
-      </p>
-      <p>
-        <span>One selection</span>A whole batch of actions
-      </p>
-    </div>
-  </section>
-)
-
-const PlaygroundHero = () => (
-  <section className="hero playground-hero" aria-labelledby="hero-title">
-    <div className="play-hero-top">
-      <div>
-        <p className="intro-note">For the beautifully over-tabbed</p>
-        <h1 id="hero-title">
-          Go on.
-          <br />
-          Open another tab.
-        </h1>
-      </div>
-      <div className="cat-stamp">
-        <img src={assets.face} alt="Tabby's friendly orange cat" />
-        <span>We’ll keep an eye on them.</span>
-      </div>
-    </div>
-    <div className="play-hero-bottom">
-      <p>
-        A project here. A rabbit hole there.
-        <br />
-        Tabby makes room for it all.
-        <br />
-        Find it. Group it. Make it yours.
-      </p>
-      <div className="hero-actions">
-        <Install />
-        <a className="text-link" href="#try">
-          Let’s play with some tabs <span aria-hidden="true">↓</span>
-        </a>
-      </div>
-    </div>
-    <div className="play-tab-strip" aria-hidden="true">
-      <span>
-        Design project <b>×</b>
-      </span>
-      <span>
-        Weekend plans <b>×</b>
-      </span>
-      <span>
-        Reading rabbit hole <b>×</b>
-      </span>
-      <span>
-        Something good <b>＋</b>
-      </span>
-    </div>
-  </section>
-)
-
-const FeatureExplorer = ({ design }: { design: Design }) => {
-  const [active, setActive] = useState(0)
-  const feature = features[active]!
-  if (design === 'playground')
-    return (
-      <section
-        id="features"
-        className="play-features"
-        aria-label="Tabby features"
-      >
-        {features.map((item, index) => (
-          <article
-            className={`
-              play-feature
-              play-feature--${item.id}
-            `}
-            key={item.id}
-          >
-            <div className="feature-copy">
-              <span className="feature-label">{item.label}</span>
-              <h2>{item.title}</h2>
-              <p>{item.description}</p>
-              <a className="text-link" href="#try">
-                Give it a try <span aria-hidden="true">↗</span>
-              </a>
-            </div>
-            <figure>
-              <img
-                src={item.image}
-                alt={item.alt}
-                loading="lazy"
-                width="1280"
-                height="800"
-              />
-              <figcaption>{item.detail}</figcaption>
-            </figure>
-            <span className="play-feature-mark" aria-hidden="true">
-              {['⊞', '⌕', '☷', '✳'][index]}
-            </span>
-          </article>
-        ))}
-      </section>
-    )
-  return (
-    <section
-      id="features"
-      className="feature-section section-wrap"
-      aria-labelledby="features-title"
-    >
-      <div className="section-heading">
-        <h2 id="features-title">
-          {design === 'focus'
-            ? 'Everything you need. Within reach.'
-            : 'A place for every part of your day.'}
-        </h2>
-        <p>
-          {design === 'focus'
-            ? 'Go straight to a page. Put a project together. Keep your browser moving with you.'
-            : 'A busy browser can still feel simple. Here’s how Tabby helps.'}
-        </p>
-      </div>
-      <div className="feature-explorer">
-        <div
-          className="feature-menu"
-          role="group"
-          aria-label="Explore features"
-        >
-          {features.map((item, index) => (
-            <button
-              type="button"
-              key={item.id}
-              aria-pressed={active === index}
-              onClick={() => setActive(index)}
-            >
-              <span>{item.label}</span>
-              <span aria-hidden="true">{active === index ? '−' : '+'}</span>
-              {active === index && (
-                <span className="feature-menu-description">
-                  {item.description}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-        <figure className="feature-image">
-          <img
-            src={feature.image}
-            alt={feature.alt}
-            loading="lazy"
-            width="1280"
-            height="800"
-          />
-          <figcaption>{feature.detail}</figcaption>
-        </figure>
-      </div>
-    </section>
-  )
-}
-
-const TrySection = ({
-  design,
-  homepage,
-}: {
-  design: Design
-  homepage: boolean
-}) => (
-  <section
-    id="try"
-    className="try-section section-wrap"
-    aria-labelledby="try-title"
-  >
-    <div className="try-copy">
-      <span className="feature-label">Take it for a spin</span>
-      <h2 id="try-title">
-        A few tabs.
-        <br />A little possibility.
-      </h2>
-      <p>
-        No installation needed for this bit. Switch windows, select a few tabs,
-        or search for “design.” Then pick a color that feels like home.
-      </p>
-      <ul>
-        <li>Try the window rail to see another part of your day.</li>
-        <li>Select tabs and open More actions to work on a batch.</li>
-        <li>Switch to Search or Settings to explore your way.</li>
-      </ul>
-      <p className="sample-note">
-        This demo uses sample data. Your browser tabs stay untouched.
-      </p>
-    </div>
-    <ProductDemo
-      theme={design === 'focus' ? 'dark' : 'light'}
-      showTour={!homepage}
+    <HeroShowcase
+      watching={watching}
+      onShowcase={onShowcase}
+      videoRef={videoRef}
     />
   </section>
 )
 
-const WatchSection = ({ homepage }: { homepage: boolean }) => (
+const BrowserOverview = () => (
   <section
-    id="watch"
-    className="watch-section section-wrap"
-    aria-labelledby="watch-title"
+    className="browser-overview section-wrap"
+    aria-labelledby="browser-title"
   >
     <div className="section-heading">
-      <div>
-        <span className="feature-label">A quick look</span>
-        <h2 id="watch-title">From scattered to sorted.</h2>
-      </div>
+      <h2 id="browser-title">Here’s Tabby in Chrome.</h2>
       <p>
-        See a few tabs become a project, find a page, and change the mood.
-        {!homepage && ' Or play the guided tour in the demo above.'}
+        Keep your tabs beside the page you’re on. Search is right there in
+        Chrome’s toolbar.
       </p>
     </div>
-    <figure className="video-showcase">
-      <TourVideo />
-      <figcaption>
-        A tour with music, using sample browser data. Captions available.
-      </figcaption>
-    </figure>
+    <BrowserIllustration />
   </section>
+)
+
+const HomeFeatures = () => (
+  <div id="features" className="home-features section-wrap">
+    {homeFeatures.map((item) => (
+      <section
+        key={item.id}
+        id={item.id}
+        className={`
+          home-feature
+          home-feature--${item.id}
+        `}
+        aria-labelledby={`${item.id}-title`}
+      >
+        <div className="feature-copy">
+          <h2 id={`${item.id}-title`}>{item.label}</h2>
+          <p>{item.description}</p>
+        </div>
+        <FeatureIllustration feature={item.id} />
+      </section>
+    ))}
+  </div>
 )
 
 const Privacy = () => (
@@ -441,9 +265,8 @@ const Privacy = () => (
     <div>
       <h2>Your browser is your business.</h2>
       <p>
-        Searches across your tabs, bookmarks, and history happen on your device.
-        The developer receives none of your browsing data or saved preferences.
-        Choosing Search Google sends that query to Google.
+        I don’t receive any of your data. Tabby searches right in your browser.
+        If you choose Search Google, that query goes to Google.
       </p>
       <a
         className="text-link"
@@ -451,34 +274,23 @@ const Privacy = () => (
         target="_blank"
         rel="noreferrer"
       >
-        Read the privacy policy <span aria-hidden="true">↗</span>
+        Read my privacy policy
+        <span aria-hidden="true">↗</span>
       </a>
     </div>
   </section>
 )
 
-const Footer = ({
-  design,
-  homepage,
-}: {
-  design: Design
-  homepage: boolean
-}) => (
+const Footer = () => (
   <>
     <section className="closing section-wrap">
       <img src={assets.face} width="80" height="80" alt="" />
-      <h2>
-        {design === 'playground'
-          ? 'A good home for your tabs.'
-          : design === 'focus'
-            ? 'Find your focus. Keep your tabs.'
-            : 'Your tabs have a new companion.'}
-      </h2>
-      <p>Add Tabby to Chrome and make a little room for your day.</p>
+      <h2>Your tabs have a new companion.</h2>
+      <p>Give Tabby a try. I’d love to hear what you think.</p>
       <Install />
     </section>
     <footer className="site-footer">
-      <Brand />
+      <Brand linked={false} />
       <div>
         <a
           href="https://github.com/michaeldrotar/tabby"
@@ -502,63 +314,37 @@ const Footer = ({
           Privacy
         </a>
       </div>
-      <span>Made for curious people.</span>
+      <span>Made for tab-aholics like me.</span>
     </footer>
-    <nav className="design-switch" aria-label="Design previews">
-      <span>Explore the designs</span>
-      {(['companion', 'focus', 'playground'] as const).map((item) => (
-        <a
-          key={item}
-          href={`${import.meta.env.BASE_URL}${item}`}
-          aria-current={!homepage && design === item ? 'page' : undefined}
-        >
-          {item.charAt(0).toUpperCase() + item.slice(1)}
-        </a>
-      ))}
-    </nav>
   </>
 )
 
-export const Landing = ({
-  design,
-  homepage = false,
-}: {
-  design: Design
-  homepage?: boolean
-}) => (
-  <div
-    id="top"
-    className={`
-      site
-      site--${design}
-      ${homepage ? 'site--home' : ''}
-    `}
-  >
-    <a className="skip-link" href="#features">
-      Skip to features
-    </a>
-    <Header />
-    <main>
-      {design === 'companion' ? (
-        <CompanionHero homepage={homepage} />
-      ) : design === 'focus' ? (
-        <FocusHero />
-      ) : (
-        <PlaygroundHero />
-      )}
-      {design === 'companion' && (
+export const Landing = () => {
+  const [watching, setWatching] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const onShowcase = (next: boolean) => {
+    if (!next) videoRef.current?.pause()
+    setWatching(next)
+  }
+  return (
+    <div id="top" className="site site--home">
+      <a className="skip-link" href="#features">
+        Skip to features
+      </a>
+      <Header onShowcase={onShowcase} />
+      <main>
+        <Hero onShowcase={onShowcase} watching={watching} videoRef={videoRef} />
         <div className="promise-strip">
           <span>Find that page.</span>
           <span>Gather your projects.</span>
           <span>Make yourself at home.</span>
           <img src={assets.face} alt="" width="38" height="38" />
         </div>
-      )}
-      <FeatureExplorer design={design} />
-      <TrySection design={design} homepage={homepage} />
-      <WatchSection homepage={homepage} />
-      <Privacy />
-    </main>
-    <Footer design={design} homepage={homepage} />
-  </div>
-)
+        <BrowserOverview />
+        <HomeFeatures />
+        <Privacy />
+      </main>
+      <Footer />
+    </div>
+  )
+}
