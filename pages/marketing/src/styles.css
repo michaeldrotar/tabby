@@ -114,6 +114,40 @@ button {
 .brand img {
   object-fit: contain;
 }
+.brand-word > span {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .site-header .brand img {
+    transition: transform 260ms ease;
+  }
+  .site-header .brand:is(:hover, :focus-visible) img {
+    transform: rotate(-9deg) translateY(-2px);
+  }
+  .site-header .brand:is(:hover, :focus-visible) .brand-word > span {
+    animation: brand-hop 480ms ease-in-out;
+  }
+  .brand-word > span:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  .brand-word > span:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  .brand-word > span:nth-child(4) {
+    animation-delay: 135ms;
+  }
+  .brand-word > span:nth-child(5) {
+    animation-delay: 180ms;
+  }
+}
+@keyframes brand-hop {
+  40% {
+    transform: translateY(-5px) rotate(-6deg);
+  }
+  70% {
+    transform: translateY(1px) rotate(2deg);
+  }
+}
 .site-header nav {
   display: flex;
   gap: 30px;
@@ -355,6 +389,11 @@ button {
   align-items: center;
   gap: 10px;
 }
+.hero-showcase:not(:has([data-demo])) .showcase-toggle,
+.hero-showcase:not(:has([data-demo])) .showcase-toggle .showcase-face {
+  visibility: hidden;
+  animation: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .showcase-rotor,
   .showcase-face {
@@ -402,7 +441,7 @@ button {
   grid-column: 2;
   grid-row: 1;
 }
-.home-feature--find .feature-art {
+.home-feature--find .feature-arrival {
   grid-column: 1;
   grid-row: 1;
 }
@@ -422,6 +461,9 @@ button {
   overflow: hidden;
   background: #eee5db;
   aspect-ratio: 560 / 500;
+}
+.feature-arrival {
+  min-width: 0;
 }
 .feature-art--find {
   background: #e8e9e1;
@@ -648,7 +690,7 @@ button {
     padding-block: 40px;
   }
   .home-feature--find .feature-copy,
-  .home-feature--find .feature-art {
+  .home-feature--find .feature-arrival {
     grid-column: auto;
     grid-row: auto;
   }
@@ -1069,9 +1111,28 @@ button {
   text-align: center;
   padding-block: 90px;
 }
-.closing img {
-  display: block;
+.closing-cat {
+  --wink-duration: 1440ms;
+  width: 80px;
+  height: 80px;
   margin: 0 auto 25px;
+}
+.closing-cat svg {
+  display: block;
+}
+.cat-lid {
+  transform-box: fill-box;
+  transform: scaleY(0);
+}
+.cat-lid--upper {
+  transform-origin: center top;
+}
+.cat-lid--lower {
+  transform-origin: center bottom;
+}
+.cat-closed-eye,
+.cat-smirk {
+  opacity: 0;
 }
 .closing h2 {
   margin-bottom: 17px;
@@ -1134,13 +1195,13 @@ button {
 }
 
 .product-placeholder {
-  display: grid;
-  place-items: center;
   min-height: 525px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  font-size: 13px;
-  color: var(--muted);
+}
+.hero-showcase .product-placeholder {
+  min-height: 510px;
+}
+.closing-companion {
+  display: flow-root;
 }
 
 @media (max-width: 1050px) {
@@ -1315,5 +1376,161 @@ button {
   }
   .install {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .demo-arrival[data-entered='false'] .demo-screen,
+  .demo-arrival[data-entered='false'] .demo-bar,
+  .demo-arrival[data-entered='false'] .demo-tools,
+  .demo-arrival[data-entered='false'] .demo-caption,
+  .feature-arrival[data-entered='false'] .feature-product-surface {
+    opacity: 0;
+  }
+  .demo-arrival[data-entered='true'] .demo-screen {
+    transform-origin: 50% 80%;
+    animation: demo-settle 1100ms cubic-bezier(0.16, 0.75, 0.24, 1) both;
+  }
+  .demo-arrival[data-entered='true'] .demo-bar,
+  .demo-arrival[data-entered='true'] .demo-tools {
+    animation: demo-controls-arrive 650ms ease-out 380ms both;
+  }
+  .demo-arrival[data-entered='true'] .demo-tools {
+    animation-delay: 580ms;
+  }
+  .demo-arrival[data-entered='true'] .demo-caption {
+    animation: demo-controls-arrive 650ms ease-out 750ms both;
+  }
+  .showcase-sign h2 {
+    animation: showcase-sign-arrive 900ms ease-out both;
+  }
+  .showcase-sign path {
+    stroke-dasharray: 220;
+    animation: showcase-arrow-draw 900ms ease-out 180ms both;
+  }
+  .showcase-toggle {
+    animation: demo-controls-arrive 650ms ease-out 750ms both;
+  }
+  .feature-arrival[data-entered='true']
+    .feature-art--manage
+    .feature-product-surface {
+    animation: manager-arrive 1000ms cubic-bezier(0.16, 0.75, 0.24, 1) both;
+  }
+  .feature-arrival[data-entered='true']
+    .feature-art--find
+    .feature-product-surface {
+    animation: search-focus 900ms cubic-bezier(0.16, 0.75, 0.24, 1) both;
+  }
+  .closing-cat[data-winking='true'] {
+    animation: cat-nod var(--wink-duration) ease-in-out;
+  }
+  .closing-cat[data-winking='true'] .cat-lid {
+    animation: cat-wink var(--wink-duration) ease-in-out;
+  }
+  .closing-cat[data-winking='true'] .cat-closed-eye,
+  .closing-cat[data-winking='true'] .cat-smirk {
+    animation: cat-expression var(--wink-duration) ease-in-out;
+  }
+}
+@keyframes demo-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(55px) rotate(-4deg) scale(0.92);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-5px) rotate(0.8deg) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes demo-controls-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes showcase-sign-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-5deg);
+  }
+}
+@keyframes showcase-arrow-draw {
+  from {
+    stroke-dashoffset: 220;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes manager-arrive {
+  0% {
+    opacity: 0;
+    transform: translateX(-85px) rotate(-4deg) scale(0.94);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(5px) rotate(0.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes search-focus {
+  from {
+    opacity: 0;
+    filter: blur(7px);
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+@keyframes cat-nod {
+  0%,
+  100% {
+    transform: none;
+  }
+  45%,
+  60% {
+    transform: translateY(3px) rotate(-3deg);
+  }
+}
+@keyframes cat-wink {
+  0%,
+  15%,
+  90%,
+  100% {
+    transform: scaleY(0);
+  }
+  45%,
+  60% {
+    transform: scaleY(1);
+  }
+}
+@keyframes cat-expression {
+  0%,
+  35%,
+  75%,
+  100% {
+    opacity: 0;
+  }
+  45%,
+  60% {
+    opacity: 1;
   }
 }

@@ -6,6 +6,7 @@ import {
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useState } from 'react'
 import { createMarketingDemo, searchExamples } from './demo'
+import { MotionReveal } from './MotionReveal'
 import { ScaledIllustration } from './ScaledIllustration'
 import { SeasonalStylePlayground } from './SeasonalStylePlayground'
 import type { HomeFeatureId } from './content'
@@ -41,31 +42,33 @@ const ProductIllustration = ({ feature }: { feature: 'manage' | 'find' }) => {
     return instance
   })
   return (
-    <ScaledIllustration
-      {...dimensions[feature]}
-      className={`
-        feature-art
-        feature-art--${feature}
-      `}
-    >
-      <MemoryTabbyProvider
-        resources={{ backend: demo.backend, preferences: demo.preferences }}
-        views={demo.views}
-        omnibar={illustrationSearch}
+    <MotionReveal className="feature-arrival">
+      <ScaledIllustration
+        {...dimensions[feature]}
+        className={`
+          feature-art
+          feature-art--${feature}
+        `}
       >
-        <TabbySurface
-          inputMode="static"
-          motion="reduced"
-          className="feature-product-surface"
+        <MemoryTabbyProvider
+          resources={{ backend: demo.backend, preferences: demo.preferences }}
+          views={demo.views}
+          omnibar={illustrationSearch}
         >
-          {feature === 'manage' ? (
-            <TabManagerExperience focusOnMount={false} />
-          ) : (
-            <OmnibarExperience onDismiss={() => {}} />
-          )}
-        </TabbySurface>
-      </MemoryTabbyProvider>
-    </ScaledIllustration>
+          <TabbySurface
+            inputMode="static"
+            motion="reduced"
+            className="feature-product-surface"
+          >
+            {feature === 'manage' ? (
+              <TabManagerExperience focusOnMount={false} />
+            ) : (
+              <OmnibarExperience onDismiss={() => {}} />
+            )}
+          </TabbySurface>
+        </MemoryTabbyProvider>
+      </ScaledIllustration>
+    </MotionReveal>
   )
 }
 

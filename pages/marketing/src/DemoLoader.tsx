@@ -1,10 +1,12 @@
 import { lazy, Suspense } from 'react'
+import { MotionReveal } from './MotionReveal'
 import type { HomeFeatureId } from './content'
 import type { ProductDemoProps } from './ProductDemo'
 
-const Demo = lazy(() =>
-  import('./ProductDemo').then((module) => ({ default: module.ProductDemo })),
-)
+const demoModule = import('./ProductDemo').then((module) => ({
+  default: module.ProductDemo,
+}))
+const Demo = lazy(() => demoModule)
 
 const Illustration = lazy(() =>
   import('./BrowserIllustration').then((module) => ({
@@ -22,9 +24,15 @@ export const BrowserIllustration = () => (
 
 export const ProductDemo = (props: ProductDemoProps) => (
   <Suspense
-    fallback={<div className="product-placeholder">Loading Tabby…</div>}
+    fallback={<div className="product-placeholder" aria-hidden="true" />}
   >
-    <Demo {...props} />
+    {props.separated ? (
+      <MotionReveal className="demo-arrival" threshold={0.18}>
+        <Demo {...props} />
+      </MotionReveal>
+    ) : (
+      <Demo {...props} />
+    )}
   </Suspense>
 )
 
