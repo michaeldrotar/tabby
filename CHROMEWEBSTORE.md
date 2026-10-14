@@ -1,6 +1,8 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14
+
+Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
 ## Store listing
 
@@ -14,13 +16,29 @@ Last updated: 2026-10-13
 
 Find the page you need and organize your open browser windows with Tabby.
 
-Search open tabs, tab groups, bookmarks, browsing history, and recently closed pages in one place. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window.
+Find a page
 
-The tab manager keeps your windows and groups within reach in a side panel. Click a tab row to select it, and click its favicon, double-click the row, or press Enter to go to it. Active tabs stand out across the full row. Keep selections while viewing other windows, see selected window, group, and tab counts, and press Escape to clear the full selection. Selecting a window or group includes its children; deselecting a child keeps the other children selected. Select several tabs, groups, or windows to move, group, pin, duplicate, reload, discard, close, or copy them together.
+Search open tabs, tab groups, bookmarks, browsing history, and recently closed pages in one place. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window. If a destination cannot be opened, Tabby explains the problem and keeps your query so you can try again.
+
+Select across windows
+
+The tab manager keeps your windows and groups within reach in a side panel. Click a tab row to select it without leaving your current page. Click its icon, double-click the row, or press Enter to go to it. Browse other windows while keeping your selected tabs. Select a window or group, then deselect individual tabs while keeping the rest selected. Press Escape to clear the full selection.
+
+Organize and clean up
+
+Select several tabs, groups, or windows and use More actions to move, group, pin, duplicate, reload, discard, close, or copy them together. Close duplicate tabs across all windows from a tab's action menu while keeping the tab you chose. Large tab lists stay responsive as you scroll and navigate, and groups expand and collapse promptly.
+
+Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Choose a light or dark theme, adjust your colors, and use the keyboard to navigate sections, create windows and tabs, select, and reorder tabs. Options lists side panel position, global Chrome shortcuts, and Tab manager shortcuts in one column, with unassigned shortcuts clearly marked. Search announces the selected result for assistive technology, and controls follow your reduced-motion preference.
+Jump between parts of the tab manager with Tab, and use arrow keys to reach tabs, groups, New tab, and New window. Reorder tabs and groups with Alt+Up/Down. In narrow panels, the sidebar moves out of the way when you navigate into the tab list. Find a guide to Tab manager keyboard shortcuts in Options.
+
+Make Tabby comfortable to use
+
+Choose a light or dark theme and adjust your colors. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
+
+Keep your browsing data local
 
 Your tabs, bookmarks, and history are searched on your device. The developer receives none of your browsing data or saved preferences. If you choose Search Google, Google receives the query you send.
 
@@ -111,12 +129,16 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 ## Version history
 
-| Version | Date                     | Changes                                                                                                                                                                                                                                                                                                                                                                                             | Status    |
-| ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1.4.0   | Not submitted            | Improve accessible controls and search, navigate manager sections and creation actions with the keyboard, distinguish global and Tab manager shortcuts in Options, use More actions for selected-tab operations and keyboard controls for reordering, and improve large-list rendering and group responsiveness. [Release notes](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md). | Draft     |
-| 1.3.0   | Store updated 2026-10-08 | Batch actions, tab group search, numbered window shortcuts, manual tab discard, keyboard reordering, and a standard search popup. [Release notes](product/releases/v1.3.0-batch-actions-and-smarter-search.md).                                                                                                                                                                                     | Published |
+| Version                                                                      | Submission date | Summary                                   | Store status |
+| ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | ------------ |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Draft        |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published    |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization. | Not recorded |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.              | Not recorded |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.           | Not recorded |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                          | Not recorded |
 
-The published listing identifies version 1.3.0 and its update date. Record submission dates when submitting a version; do not substitute a GitHub release date for a store submission date.
+Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 
 ## Review notes
 
