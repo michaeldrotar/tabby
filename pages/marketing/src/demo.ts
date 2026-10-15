@@ -174,7 +174,28 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
   const scene = createMarketingScene()
   const backend = new MemoryBackend(scene)
   const views = createTabbyViews()
-  views.tabManager.setState({ viewedWindowId: 1, sidebarExpanded: false })
+  const selectTabs = (ids: number[]) =>
+    ids.reduce(
+      (selection, id, index) =>
+        reduceSelectionIntent(
+          selection,
+          {
+            type: 'click',
+            item: { type: 'tab', id },
+            pane: 'tab',
+            shift: false,
+            toggle: index > 0,
+            orderedItems: [],
+          },
+          scene,
+        ),
+      views.tabManager.getState().selection,
+    )
+  views.tabManager.setState({
+    viewedWindowId: 1,
+    sidebarExpanded: false,
+    selection: selectTabs([scene.tabs[0]!.id]),
+  })
   const preferences = createMemoryPreferences({
     theme,
     themeLightAccent: 'orange',
@@ -197,20 +218,7 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
   views.omnibar.setState(initial.search)
   const selected = structuredClone(initial)
   selected.manager.scrollTop = 190
-  for (const id of [14, 15, 16]) {
-    selected.manager.selection = reduceSelectionIntent(
-      selected.manager.selection,
-      {
-        type: 'click',
-        item: { type: 'tab', id },
-        pane: 'tab',
-        shift: false,
-        toggle: true,
-        orderedItems: [],
-      },
-      scene,
-    )
-  }
+  selected.manager.selection = selectTabs([14, 15, 16])
   const grouped = structuredClone(initial)
   grouped.manager.scrollTop = 180
   grouped.browser = {

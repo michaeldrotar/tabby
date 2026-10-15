@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react'
 import { useScrollEntrance } from './MotionReveal'
+import { useIdleCue } from './useIdleCue'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
 import type {
   CSSProperties,
@@ -62,6 +63,7 @@ type ActiveDrag = {
   lastX: number
   lastY: number
   lastAt: number
+  startedAt: number
   vx: number
   vy: number
   moved: boolean
@@ -83,6 +85,7 @@ type PieceStyle = CSSProperties & {
   '--cursor-x': string
   '--cursor-y': string
   '--cursor-rotation': string
+  '--idle-duration'?: string
 }
 
 const accentSwatches: Record<
@@ -172,6 +175,7 @@ const randomBetween = (minimum: number, maximum: number) =>
   minimum + Math.random() * (maximum - minimum)
 
 const sceneScale = 1.2
+const playgroundVisibility = 0.38
 
 const shuffled = <T,>(values: readonly T[]) => {
   const result = [...values]
@@ -202,7 +206,7 @@ const createPiece = (
   >,
 ): ScenePiece => {
   const entryAngle = randomBetween(0, Math.PI * 2)
-  const entryDistance = randomBetween(115, 285)
+  const entryDistance = randomBetween(172.5, 427.5)
 
   return {
     ...piece,
@@ -319,7 +323,13 @@ const clampPosition = (value: number, radius: number) =>
 export const SeasonalStylePlayground = () => {
   const [scenePieces] = useState(createScenePieces)
   const containerRef = useRef<HTMLDivElement>(null)
-  const hasEntered = useScrollEntrance(containerRef)
+  const hasEntered = useScrollEntrance(containerRef, playgroundVisibility)
+  const [arrived, setArrived] = useState(false)
+  const lastArrival = scenePieces.reduce((last, piece) =>
+    piece.delay + piece.entryDuration > last.delay + last.entryDuration
+      ? piece
+      : last,
+  )
   const pieceElements = useRef(new Map<string, HTMLButtonElement>())
   const positions = useRef(positionsForScene(scenePieces))
   const topZIndex = useRef(scenePieces.length)
@@ -327,6 +337,50 @@ export const SeasonalStylePlayground = () => {
   const animationFrame = useRef<number | null>(null)
   const lastPhysicsAt = useRef<number | null>(null)
   const reducedMotion = useRef(false)
+  const [idlePieces, setIdlePieces] = useState<
+    {
+      id: string
+      motion: 'bounce' | 'shake' | 'spin' | 'whirl'
+      duration: number
+    }[]
+  >([])
+  const nextMotion = useRef(0)
+  const burstRemaining = useRef(0)
+  const nextIdleDelay = useCallback(
+    () =>
+      burstRemaining.current
+        ? randomBetween(650, 1050)
+        : randomBetween(2600, 3800),
+    [],
+  )
+  useIdleCue(containerRef, {
+    enabled: arrived,
+    delay: 1000,
+    threshold: playgroundVisibility,
+    interval: nextIdleDelay,
+    onCue: () => {
+      if (activeDrag.current || animationFrame.current !== null) return
+      const piece = shuffled(scenePieces).find(
+        (piece) => !idlePieces.some((idle) => idle.id === piece.id),
+      )
+      if (!piece) return
+      if (!burstRemaining.current)
+        burstRemaining.current = Math.floor(randomBetween(3, 6))
+      burstRemaining.current -= 1
+      const motions = ['bounce', 'shake', 'spin', 'whirl'] as const
+      const motion = motions[nextMotion.current++ % motions.length]!
+      const duration =
+        motion === 'whirl' ? randomBetween(600, 800) : randomBetween(850, 1250)
+      setIdlePieces((current) => [
+        ...current,
+        { id: piece.id, motion, duration },
+      ])
+    },
+    onCancel: () => {
+      burstRemaining.current = 0
+      setIdlePieces((current) => (current.length ? [] : current))
+    },
+  })
 
   const bringToFront = useCallback((pieceId: string) => {
     const element = pieceElements.current.get(pieceId)
@@ -455,7 +509,7 @@ export const SeasonalStylePlayground = () => {
   }, [runPhysics])
 
   const tossPiece = useCallback(
-    (piece: ScenePiece) => {
+    (piece: ScenePiece, charge = 1) => {
       const element = pieceElements.current.get(piece.id)
       const position = positions.current.get(piece.id)
       if (!element) return
@@ -468,10 +522,10 @@ export const SeasonalStylePlayground = () => {
         return
 
       const angle = randomBetween(0, Math.PI * 2)
-      const strength = randomBetween(1.2, 2.6)
+      const strength = randomBetween(1.8, 3.9) * charge
       position.vx = Math.cos(angle) * strength
       position.vy = Math.sin(angle) * strength
-      position.spin = randomBetween(-1.8, 1.8)
+      position.spin = randomBetween(-2.7, 2.7) * charge
       element.dataset.moving = 'true'
       startPhysics()
     },
@@ -571,6 +625,7 @@ export const SeasonalStylePlayground = () => {
         lastX: event.clientX,
         lastY: event.clientY,
         lastAt: now,
+        startedAt: now,
         vx: 0,
         vy: 0,
         moved: false,
@@ -625,10 +680,13 @@ export const SeasonalStylePlayground = () => {
       if (element.hasPointerCapture(event.pointerId))
         element.releasePointerCapture(event.pointerId)
       delete element.dataset.grabbed
+      const charge =
+        1 + Math.min(1, (performance.now() - drag.startedAt) / 1000)
       if (position && drag.moved && !cancelled && !reducedMotion.current) {
-        position.vx = drag.vx
-        position.vy = drag.vy
-        position.spin = Math.max(-3.5, Math.min(3.5, drag.vx * 0.72))
+        position.vx = drag.vx * 1.5 * charge
+        position.vy = drag.vy * 1.5 * charge
+        position.spin =
+          Math.max(-3.5, Math.min(3.5, drag.vx * 0.72)) * 1.5 * charge
         element.dataset.moving = 'true'
         startPhysics()
       } else if (position) {
@@ -638,8 +696,12 @@ export const SeasonalStylePlayground = () => {
         element.dataset.moving = 'false'
       }
       activeDrag.current = null
+      if (!drag.moved && !cancelled) {
+        const piece = scenePieces.find((item) => item.id === drag.id)
+        if (piece) tossPiece(piece, charge)
+      }
     },
-    [startPhysics],
+    [startPhysics, scenePieces, tossPiece],
   )
 
   const handleKeyDown = useCallback(
@@ -690,10 +752,15 @@ export const SeasonalStylePlayground = () => {
       onPointerLeave={handlePointerLeave}
     >
       <p id="seasonal-playground-help" className="playground-sr-only">
-        Drag a piece to move it, or click it for a little toss. Focus a piece
-        and use the arrow keys to nudge it.
+        Drag a piece to move it, or click it for a little toss. Hold up to a
+        second for a stronger throw. Focus a piece and use the arrow keys to
+        nudge it.
+      </p>
+      <p className="playground-hint" aria-hidden="true">
+        Drag or tap pieces to move them
       </p>
       {scenePieces.map((piece, index) => {
+        const idle = idlePieces.find((idle) => idle.id === piece.id)
         const pieceStyle: PieceStyle = {
           left: `${piece.x}%`,
           top: `${piece.y}%`,
@@ -709,6 +776,7 @@ export const SeasonalStylePlayground = () => {
           '--cursor-x': '0px',
           '--cursor-y': '0px',
           '--cursor-rotation': '0deg',
+          ...(idle ? { '--idle-duration': `${idle.duration}ms` } : {}),
           ...(piece.color ? { '--piece-color': piece.color } : {}),
           ...(piece.labelColor
             ? { '--piece-label-color': piece.labelColor }
@@ -732,12 +800,26 @@ export const SeasonalStylePlayground = () => {
             aria-label={`Move or toss ${piece.label}`}
             aria-describedby="seasonal-playground-help"
             aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
+            data-idle-motion={idle?.motion}
+            onAnimationEnd={(event) => {
+              if (
+                event.animationName === 'playground-toss' &&
+                piece.id === lastArrival.id
+              )
+                setArrived(true)
+              if (event.animationName.startsWith('playground-idle-'))
+                setIdlePieces((current) =>
+                  current.filter((idle) => idle.id !== piece.id),
+                )
+            }}
             onPointerEnter={() => bringToFront(piece.id)}
             onFocus={() => bringToFront(piece.id)}
             onPointerDown={(event) => beginDrag(piece, event)}
             onPointerUp={(event) => endDrag(event)}
             onPointerCancel={(event) => endDrag(event, true)}
-            onClick={() => tossPiece(piece)}
+            onClick={(event) => {
+              if (event.detail === 0) tossPiece(piece)
+            }}
             onKeyDown={(event) => handleKeyDown(piece, event)}
           >
             <span

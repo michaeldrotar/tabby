@@ -4,7 +4,7 @@ import {
   TabManagerExperience,
 } from '@extension/app'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { assets } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
 import { ScaledIllustration } from './ScaledIllustration'
@@ -13,6 +13,33 @@ const illustrationSearch = { results: searchExamples }
 
 export const BrowserIllustration = () => {
   const [demo] = useState(() => createMarketingDemo('light'))
+  const iconRef = useRef<HTMLSpanElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    let mounted = true
+    const align = () => {
+      const icon = iconRef.current
+      const popup = popupRef.current
+      if (!mounted || !icon || !popup) return
+      const iconBounds = icon.getBoundingClientRect()
+      const popupBounds = popup.getBoundingClientRect()
+      if (!popupBounds.width) return
+      const x =
+        (((iconBounds.left + iconBounds.right) / 2 - popupBounds.left) *
+          popup.offsetWidth) /
+          popupBounds.width -
+        popup.clientLeft
+      popup.style.setProperty('--pointer-x', `${x}px`)
+    }
+    align()
+    void document.fonts.ready.then(align)
+    const observer = new ResizeObserver(align)
+    if (popupRef.current) observer.observe(popupRef.current)
+    return () => {
+      mounted = false
+      observer.disconnect()
+    }
+  }, [])
   return (
     <ScaledIllustration
       width={900}
@@ -41,7 +68,11 @@ export const BrowserIllustration = () => {
         </div>
         <div className="browser-extensions">
           <span className="browser-other-extension">✓</span>
-          <span className="browser-extension-icon" data-active="true">
+          <span
+            ref={iconRef}
+            className="browser-extension-icon"
+            data-active="true"
+          >
             <img src={assets.face} alt="" width="22" height="22" />
           </span>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -91,7 +122,8 @@ export const BrowserIllustration = () => {
               <TabManagerExperience focusOnMount={false} />
             </TabbySurface>
           </div>
-          <div className="browser-search-popup">
+          <div ref={popupRef} className="browser-search-popup">
+            <span className="browser-search-pointer" aria-hidden="true" />
             <TabbySurface
               inputMode="static"
               motion="reduced"

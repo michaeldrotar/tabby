@@ -174,10 +174,16 @@ test('homepage separates the live demo and switches to a video without losing de
           .querySelector('.browser-search-popup')!
           .getBoundingClientRect()
         const frame = element.getBoundingClientRect()
+        const pointer = element
+          .querySelector('.browser-search-pointer')!
+          .getBoundingClientRect()
         return (
           popup.top >= icon.bottom &&
           popup.left >= frame.left &&
-          popup.right <= frame.right
+          popup.right <= frame.right &&
+          Math.abs(
+            (pointer.left + pointer.right) / 2 - (icon.left + icon.right) / 2,
+          ) < 1
         )
       }),
     )
@@ -192,7 +198,7 @@ test('homepage separates the live demo and switches to a video without losing de
     .getByRole('button', { name: 'Settings', exact: true })
     .click()
   await demo.getByRole('button', { name: 'Tabs', exact: true }).click()
-  await demo.getByRole('button', { name: 'Dark mode', exact: true }).click()
+  await demo.getByRole('switch', { name: 'Dark mode', exact: true }).click()
   await expect(
     page.getByRole('button', { name: 'Play tour', exact: true }),
   ).toHaveCount(0)
@@ -202,23 +208,31 @@ test('homepage separates the live demo and switches to a video without losing de
     name: 'Or watch my video',
     exact: true,
   })
+  const switchWidth = (await switchToVideo.boundingBox())!.width
   const [rotationFrames] = await Promise.all([
     showcase.locator('#hero-showcase-content').evaluate(async (element) => {
       const frames: string[] = []
+      const buttonFrames: string[] = []
+      const button = element.parentElement!.querySelector('.showcase-toggle')!
       const start = performance.now()
       await new Promise<void>((resolve) => {
         const sample = () => {
           frames.push(getComputedStyle(element).transform)
+          buttonFrames.push(getComputedStyle(button).transform)
           if (performance.now() - start < 1000) requestAnimationFrame(sample)
           else resolve()
         }
         requestAnimationFrame(sample)
       })
-      return [...new Set(frames)]
+      return {
+        content: new Set(frames).size,
+        button: new Set(buttonFrames).size,
+      }
     }),
     switchToVideo.click(),
   ])
-  expect(rotationFrames.length).toBeGreaterThan(2)
+  expect(rotationFrames.content).toBeGreaterThan(2)
+  expect(rotationFrames.button).toBeGreaterThan(2)
   await expect(
     showcase.getByRole('button', { name: 'Or try the demo', exact: true }),
   ).toBeFocused()
@@ -228,6 +242,9 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(demo).toBeHidden()
   const video = showcase.locator('video')
   await expect(video).toBeVisible()
+  expect(
+    (await showcase.locator('.showcase-toggle').boundingBox())!.width,
+  ).toBeLessThan(switchWidth)
   await expect(video).toHaveJSProperty('muted', true)
   await expect(video).toHaveJSProperty('controls', true)
   await expect(video.locator('track')).toHaveAttribute('kind', 'captions')
@@ -362,6 +379,44 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await page.goto('./')
   const demo = page.locator('.hero [data-demo]')
   await demo.scrollIntoViewIfNeeded()
+  const firstTab = demo.locator('[data-tab-item]').first()
+  await expect(firstTab.getByRole('option')).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await expect(
+    demo.locator('[data-tab-item][data-selected="true"]'),
+  ).toHaveCount(1)
+  const selectedColor = () =>
+    firstTab
+      .locator(':scope > div')
+      .evaluate((element) => getComputedStyle(element).backgroundColor)
+  const initialColor = await selectedColor()
+  await demo.getByRole('button', { name: 'violet accent', exact: true }).click()
+  await expect.poll(selectedColor).not.toBe(initialColor)
+  await expect(firstTab.getByRole('option')).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  const themeToggle = demo.getByRole('switch', {
+    name: 'Dark mode',
+    exact: true,
+  })
+  await expect(themeToggle).not.toBeChecked()
+  await themeToggle.focus()
+  await page.keyboard.press('Space')
+  await expect(themeToggle).toBeChecked()
+  await expect(demo.locator('[data-surface]')).toHaveAttribute(
+    'data-theme',
+    'dark',
+  )
+  await page.keyboard.press('Enter')
+  await expect(themeToggle).not.toBeChecked()
+  await expect(demo.locator('[data-surface]')).toHaveAttribute(
+    'data-theme',
+    'light',
+  )
+
   await demo
     .getByRole('option', { name: 'Tab: Team inbox', exact: true })
     .click()
@@ -392,7 +447,7 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await expect(
     demo.getByText('Design references', { exact: true }),
   ).toHaveCount(0)
-  await demo.getByRole('button', { name: 'Dark mode', exact: true }).click()
+  await demo.getByRole('switch', { name: 'Dark mode', exact: true }).click()
   await demo.getByRole('button', { name: 'violet accent', exact: true }).click()
   await expect(demo.locator('[data-surface]')).toHaveAttribute(
     'data-theme',
@@ -407,6 +462,12 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     'light',
   )
   await demo.getByRole('button', { name: 'Reset', exact: true }).click()
+  await expect(firstTab.getByRole('option')).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await expect(themeToggle).not.toBeChecked()
+
   await expect(
     demo.getByRole('option', { name: 'Tab: Team inbox', exact: true }),
   ).toBeVisible()
