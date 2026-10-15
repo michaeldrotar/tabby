@@ -5,7 +5,6 @@ import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
 import { BrowserTabList } from '../BrowserTabList'
 import { Skeleton } from '../components/Skeleton'
 import { TabListSkeleton } from '../components/TabListSkeleton'
-import { ScrollToActiveIcon } from '../icons'
 import { useSurface } from '../Surface'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
 import { creationItemFocusClass, SidebarAction } from './ui/SidebarAction'
@@ -729,12 +728,6 @@ export const TabManager = ({
             }
             actions={
               <>
-                <SidebarAction
-                  icon={<ScrollToActiveIcon size={20} />}
-                  label="Scroll to active"
-                  isExpanded={model.sidebarExpanded}
-                  onClick={() => send({ type: 'scroll-to-active' })}
-                />
                 <SidebarAction
                   icon={<Search size={20} />}
                   label="Search everything"
