@@ -1,6 +1,9 @@
 import { useEffect, useId, useState } from 'react'
 import { assets } from './content'
-import type { RefObject } from 'react'
+import { useIdleCue } from './useIdleCue'
+import type { CSSProperties, RefObject } from 'react'
+
+const winkDuration = 1440
 
 export const ClosingCat = ({
   visibilityRef,
@@ -8,60 +11,41 @@ export const ClosingCat = ({
   visibilityRef: RefObject<HTMLDivElement | null>
 }) => {
   const eyeClip = useId()
-  const [winking, setWinking] = useState(false)
+  const [wink, setWink] = useState<'idle' | 'clicked' | null>(null)
+  const [clicked, setClicked] = useState(false)
+  const winking = wink !== null
 
   useEffect(() => {
-    const element = visibilityRef.current
-    if (!element || typeof IntersectionObserver === 'undefined') return
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let timer: number | undefined
-    let visible = false
-    let played = false
-    const cancel = () => window.clearTimeout(timer)
-    const waitForStillness = () => {
-      cancel()
-      if (!visible || played || reducedMotion.matches || document.hidden) return
-      timer = window.setTimeout(() => {
-        played = true
-        setWinking(true)
-      }, 2000)
-    }
-    const onMotionChange = () => {
-      if (reducedMotion.matches) setWinking(false)
-      waitForStillness()
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        visible = !!entry && entry.intersectionRatio === 1
-        waitForStillness()
-      },
-      { threshold: 1 },
-    )
-    observer.observe(element)
-    window.addEventListener('scroll', waitForStillness, { passive: true })
-    window.addEventListener('resize', waitForStillness)
-    document.addEventListener('visibilitychange', waitForStillness)
-    reducedMotion.addEventListener('change', onMotionChange)
-    return () => {
-      cancel()
-      observer.disconnect()
-      window.removeEventListener('scroll', waitForStillness)
-      window.removeEventListener('resize', waitForStillness)
-      document.removeEventListener('visibilitychange', waitForStillness)
-      reducedMotion.removeEventListener('change', onMotionChange)
-    }
-  }, [visibilityRef])
+    if (!winking) return
+    const timer = window.setTimeout(() => setWink(null), winkDuration)
+    return () => window.clearTimeout(timer)
+  }, [winking])
+
+  useIdleCue(visibilityRef, {
+    delay: 2000,
+    threshold: 1,
+    enabled: !clicked,
+    onCue: () => setWink('idle'),
+    onCancel: () => setWink((current) => (current === 'idle' ? null : current)),
+  })
 
   return (
-    <div
+    <button
+      type="button"
       className="closing-cat"
+      style={{ '--wink-duration': `${winkDuration}ms` } as CSSProperties}
       data-winking={winking}
-      aria-hidden="true"
+      aria-label="Make Tabby wink"
+      onClick={() => {
+        setClicked(true)
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+          setWink('clicked')
+      }}
       onAnimationEnd={(event) => {
-        if (event.target === event.currentTarget) setWinking(false)
+        if (event.target === event.currentTarget) setWink(null)
       }}
     >
-      <svg viewBox="0 0 128 128" width="80" height="80">
+      <svg viewBox="0 0 128 128" width="80" height="80" aria-hidden="true">
         <defs>
           <clipPath id={eyeClip}>
             <ellipse cx="38" cy="74" rx="15" ry="14" />
@@ -91,6 +75,6 @@ export const ClosingCat = ({
           />
         </g>
       </svg>
-    </div>
+    </button>
   )
 }

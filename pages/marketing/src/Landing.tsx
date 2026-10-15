@@ -6,6 +6,8 @@ import {
   FeatureIllustration,
   ProductDemo,
 } from './DemoLoader'
+import { BannerCat, WalkingPaws } from './ScrollDecorations'
+import { useIdleCue } from './useIdleCue'
 import type { ReactNode, RefObject } from 'react'
 
 const ChromeIcon = () => (
@@ -19,21 +21,51 @@ const ChromeIcon = () => (
     />
   </svg>
 )
-const Install = ({ className = '' }: { className?: string }) => (
-  <a
-    className={`
-      install
-      ${className}
-    `}
-    href={storeUrl}
-    target="_blank"
-    rel="noreferrer"
-  >
-    <ChromeIcon />
-    Get Tabby for Chrome
-  </a>
-)
+const Install = ({
+  className = '',
+  playful = false,
+}: {
+  className?: string
+  playful?: boolean
+}) => {
+  const installRef = useRef<HTMLAnchorElement>(null)
+  const [shaking, setShaking] = useState(false)
+  useIdleCue(installRef, {
+    enabled: playful,
+    delay: 4000,
+    interval: Math.round(10000 / 1.5),
+    onCue: () => setShaking(true),
+    onCancel: () => setShaking(false),
+  })
+  return (
+    <a
+      ref={installRef}
+      data-shaking={shaking}
+      onAnimationEnd={() => setShaking(false)}
+      className={`
+        install
+        ${className}
+      `}
+      href={storeUrl}
+      target="_blank"
+      rel="noreferrer"
+    >
+      <ChromeIcon />
+      Get Tabby for Chrome
+    </a>
+  )
+}
 const Brand = ({ linked = true }: { linked?: boolean }) => {
+  const brandRef = useRef<HTMLAnchorElement>(null)
+  const [hopping, setHopping] = useState(false)
+  useIdleCue(brandRef, {
+    delay: 4000,
+    interval: 6000,
+    group: 'hero',
+    duration: 650,
+    onCue: () => setHopping(true),
+    onCancel: () => setHopping(false),
+  })
   const content = (
     <>
       <img src={assets.face} width="45" height="45" alt="" />
@@ -45,7 +77,16 @@ const Brand = ({ linked = true }: { linked?: boolean }) => {
     </>
   )
   return linked ? (
-    <a className="brand" href="#top" aria-label="Tabby home">
+    <a
+      ref={brandRef}
+      className="brand"
+      href="#top"
+      aria-label="Tabby home"
+      data-hopping={hopping}
+      onAnimationEnd={(event) => {
+        if ((event.target as HTMLElement).tagName === 'IMG') setHopping(false)
+      }}
+    >
       {content}
     </a>
   ) : (
@@ -119,6 +160,33 @@ const TourVideo = ({
 
 const showcaseLabels = { video: 'Or watch my video', demo: 'Or try the demo' }
 
+const ShowcaseIcon = ({ video = true }: { video?: boolean }) => (
+  <svg
+    className="showcase-icon"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    {video ? (
+      <path
+        d="m9 5 11 7-11 7V5Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    ) : (
+      <path
+        d="m9 5-5 5 5 5m-5-5h10a6 6 0 0 1 6 6v3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )}
+  </svg>
+)
+
 const HeroShowcase = ({
   watching,
   onShowcase,
@@ -128,8 +196,31 @@ const HeroShowcase = ({
   onShowcase: (watching: boolean) => void
   videoRef: RefObject<HTMLVideoElement | null>
 }) => {
+  const showcaseRef = useRef<HTMLDivElement>(null)
+  const [shaking, setShaking] = useState(false)
+  const previousWatching = useRef(watching)
+  const requestShake = useIdleCue(showcaseRef, {
+    delay: 7000,
+    interval: 6000,
+    group: 'hero',
+    duration: 650,
+    pauseOnFocus: false,
+    onCue: () => setShaking(true),
+    onCancel: () => setShaking(false),
+  })
+  useLayoutEffect(() => {
+    if (previousWatching.current === watching) return
+    previousWatching.current = watching
+    requestShake(820)
+  }, [watching, requestShake])
   return (
-    <div id="hero-showcase" className="hero-showcase" data-watching={watching}>
+    <div
+      ref={showcaseRef}
+      id="hero-showcase"
+      className="hero-showcase"
+      data-watching={watching}
+      data-shaking={shaking}
+    >
       <div id="hero-showcase-content" className="showcase-rotor">
         {[false, true].map((video) => (
           <div
@@ -142,7 +233,14 @@ const HeroShowcase = ({
             inert={watching !== video}
           >
             <div className="showcase-sign">
-              <h2>{video ? 'Watch it' : 'Try it'}</h2>
+              <h2>
+                <span
+                  className="showcase-sign-label"
+                  onAnimationEnd={() => setShaking(false)}
+                >
+                  {video ? 'Watch it' : 'Try it'}
+                </span>
+              </h2>
               <svg viewBox="0 0 80 130" fill="none" aria-hidden="true">
                 <path
                   d="M8 12C72 2 73 68 35 113M31 90l4 23 24-6"
@@ -166,22 +264,30 @@ const HeroShowcase = ({
           </div>
         ))}
       </div>
-      <button
-        className="showcase-toggle text-link"
-        type="button"
-        aria-controls="hero-showcase-content"
-        aria-label={watching ? showcaseLabels.demo : showcaseLabels.video}
-        onClick={() => onShowcase(!watching)}
-      >
-        <span className="showcase-rotor" aria-hidden="true">
-          <span className="showcase-face" aria-hidden={watching}>
-            {showcaseLabels.video} <span>▷</span>
+      <div className="showcase-toggle-entry">
+        <button
+          className="showcase-toggle showcase-rotor"
+          type="button"
+          aria-controls="hero-showcase-content"
+          aria-label={watching ? showcaseLabels.demo : showcaseLabels.video}
+          onClick={() => onShowcase(!watching)}
+        >
+          <span
+            className="showcase-face showcase-action"
+            aria-hidden={watching}
+          >
+            <ShowcaseIcon />
+            {showcaseLabels.video}
           </span>
-          <span className="showcase-face showcase-back" aria-hidden={!watching}>
-            {showcaseLabels.demo} <span>↩</span>
+          <span
+            className="showcase-face showcase-back showcase-action"
+            aria-hidden={!watching}
+          >
+            <ShowcaseIcon video={false} />
+            {showcaseLabels.demo}
           </span>
-        </span>
-      </button>
+        </button>
+      </div>
     </div>
   )
 }
@@ -209,9 +315,6 @@ const Hero = ({
       </p>
       <div className="hero-actions">
         <Install />
-        <ShowcaseLink className="text-link" onShowcase={onShowcase} watching>
-          <span aria-hidden="true">▷</span> Watch my quick tour
-        </ShowcaseLink>
       </div>
       <p className="privacy-note">
         Tabby doesn’t send any of your data to anyone,{' '}
@@ -266,7 +369,7 @@ const HomeFeatures = () => (
 
 const Privacy = () => (
   <section className="privacy-section section-wrap">
-    <img src={assets.paws} alt="" width="100" height="100" loading="lazy" />
+    <WalkingPaws />
     <div>
       <h2>Your browser is your business.</h2>
       <p>
@@ -296,7 +399,7 @@ const Footer = () => {
           <h2>Your tabs have a new companion.</h2>
         </div>
         <p>Give Tabby a try. I’d love to hear what you think.</p>
-        <Install />
+        <Install playful />
       </section>
       <footer className="site-footer">
         <Brand linked={false} />
@@ -357,7 +460,7 @@ export const Landing = () => {
           <span>Find that page.</span>
           <span>Gather your projects.</span>
           <span>Make yourself at home.</span>
-          <img src={assets.face} alt="" width="38" height="38" />
+          <BannerCat />
         </div>
         <BrowserOverview />
         <HomeFeatures />

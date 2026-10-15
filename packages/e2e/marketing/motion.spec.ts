@@ -159,6 +159,22 @@ test('the homepage welcomes visitors and the companion winks once after a quiet 
     .toBe(0)
   await expect(cat.locator('.cat-closed-eye')).toHaveCSS('opacity', '0')
   await expect(cat).toHaveCSS('transform', 'none')
+  await cat.click()
+  await expect(cat).toHaveAttribute('data-winking', 'true')
+  await cat.evaluate((element) =>
+    element
+      .getAnimations({ subtree: true })
+      .forEach((animation) => animation.finish()),
+  )
+  await expect(cat).toHaveAttribute('data-winking', 'false')
+  await cat.focus()
+  await page.keyboard.press('Enter')
+  await expect(cat).toHaveAttribute('data-winking', 'true')
+  await cat.evaluate((element) =>
+    element
+      .getAnimations({ subtree: true })
+      .forEach((animation) => animation.finish()),
+  )
   await expect(cat).toHaveAttribute('data-winking', 'false')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.emulateMedia({ reducedMotion: 'no-preference' })
@@ -213,10 +229,161 @@ test('reduced motion keeps the demo and illustrations visible and the companion 
   await expect(cat).toHaveCSS('animation-name', 'none')
 })
 
+test('idle cues repeat in view and pause for interaction and reduced motion', async ({
+  page,
+}) => {
+  await page.clock.install()
+  await page.goto('./')
+  await expect(page.locator('.hero .demo-screen')).toBeVisible()
+  await expect(
+    page.getByRole('link', { name: 'Watch my quick tour' }),
+  ).toHaveCount(0)
+  const brand = page.getByRole('link', { name: 'Tabby home' })
+  await page.locator('.site').evaluate((element) => {
+    element.addEventListener('animationstart', (event) => {
+      const target = event.target as HTMLElement
+      if (
+        target.matches(
+          '.brand img, .showcase-sign-label, .playground-piece__arrival > span',
+        )
+      )
+        target.getAnimations().forEach((animation) => animation.pause())
+    })
+  })
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 60_000)
+  await page.setViewportSize({ width: 1279, height: 900 })
+  await page.clock.runFor(100)
+  const finishAnimations = (target: Locator) =>
+    target.evaluate((element) =>
+      element
+        .getAnimations({ subtree: true })
+        .forEach((animation) => animation.finish()),
+    )
+  await page.clock.fastForward(4000)
+  await expect(brand).toHaveAttribute('data-hopping', 'true')
+  await finishAnimations(brand)
+  await expect(brand).toHaveAttribute('data-hopping', 'false')
+  const sign = page.locator(
+    '.showcase-face[aria-hidden="false"] .showcase-sign-label',
+  )
+  await page.clock.fastForward(3000)
+  await expect(page.locator('.hero-showcase')).toHaveAttribute(
+    'data-shaking',
+    'true',
+  )
+  await expect(brand).toHaveAttribute('data-hopping', 'false')
+  await finishAnimations(sign)
+  await expect(page.locator('.hero-showcase')).toHaveAttribute(
+    'data-shaking',
+    'false',
+  )
+  await page.clock.fastForward(3000)
+  await expect(brand).toHaveAttribute('data-hopping', 'true')
+
+  const board = page.locator('.seasonal-playground')
+  await board.evaluate((element) =>
+    element.scrollIntoView({ behavior: 'instant', block: 'center' }),
+  )
+  await page.clock.runFor(100)
+  await expect(brand).toHaveAttribute('data-hopping', 'false')
+  await expect(board.getByText('Drag or tap pieces to move them')).toBeVisible()
+  const layers = await board
+    .getByRole('button')
+    .evaluateAll((pieces) =>
+      pieces.map((piece) => (piece as HTMLElement).style.zIndex),
+    )
+  await page.evaluate(() => {
+    Math.random = () => 0.5
+  })
+  const bouncing = board.locator('[data-idle-motion]')
+  await expect(bouncing).toHaveCount(0)
+  await expect(
+    board.locator('.playground-piece__arrival.is-entered'),
+  ).toHaveCount(await board.getByRole('button').count())
+  await finishAnimations(board)
+  await page.clock.runFor(100)
+  await page.clock.fastForward(850)
+  await expect(bouncing).toHaveCount(0)
+  await expect
+    .poll(
+      async () => {
+        await page.clock.runFor(25)
+        return bouncing.count()
+      },
+      { timeout: 3000, intervals: [25] },
+    )
+    .toBe(1)
+  const durations: string[] = []
+  for (const [index, motion] of [
+    'bounce',
+    'shake',
+    'spin',
+    'whirl',
+  ].entries()) {
+    await expect(bouncing).toHaveCount(1)
+    const animated = bouncing.locator('.playground-piece__arrival > span')
+    await expect(animated).toHaveCSS(
+      'animation-name',
+      `playground-idle-${motion}`,
+    )
+    durations.push(
+      await animated.evaluate(
+        (element) => getComputedStyle(element).animationDuration,
+      ),
+    )
+    if (motion === 'whirl') {
+      await expect(animated).toHaveCSS('animation-timing-function', 'linear')
+      const rotation = await animated.evaluate((element) => {
+        const frames = (
+          element.getAnimations()[0]!.effect as KeyframeEffect
+        ).getKeyframes()
+        return frames.at(-1)!.transform
+      })
+      expect(rotation).toBe('rotate(1080deg)')
+    }
+    await finishAnimations(board)
+    await expect(bouncing).toHaveCount(0)
+    if (index < 3) {
+      await page.evaluate((value) => {
+        Math.random = () => value
+      }, [0.1, 0.9, 0.5][index]!)
+      await page.clock.fastForward([850, 690, 1010][index]!)
+    }
+  }
+  expect(new Set(durations).size).toBe(4)
+  expect(
+    await board
+      .getByRole('button')
+      .evaluateAll((pieces) =>
+        pieces.map((piece) => (piece as HTMLElement).style.zIndex),
+      ),
+  ).toEqual(layers)
+  await page.clock.fastForward(2500)
+  await expect(bouncing).toHaveCount(0)
+  await page.clock.fastForward(700)
+  await expect(bouncing).toHaveCount(1)
+  await board.dispatchEvent('pointermove')
+  await expect(bouncing).toHaveCount(0)
+  await page.clock.runFor(999)
+  await expect(bouncing).toHaveCount(0)
+  await page.clock.runFor(1)
+  await expect(bouncing).toHaveCount(1)
+  await board.getByRole('button').first().focus()
+  await page.clock.fastForward(15000)
+  await expect(bouncing).toHaveCount(0)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur())
+  await page.clock.fastForward(15000)
+  await expect(bouncing).toHaveCount(0)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.clock.fastForward(1000)
+  await expect(bouncing).toHaveCount(1)
+})
+
 test('the showcase sign starts while the demo loads, then reveals the demo and video switch', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 375, height: 812 })
+  await page.setViewportSize({ width: 1280, height: 900 })
   let releaseDemo!: () => void
   const loading = new Promise<void>((resolve) => {
     releaseDemo = resolve
@@ -239,8 +406,8 @@ test('the showcase sign starts while the demo loads, then reveals the demo and v
     page.locator('.showcase-toggle .showcase-face[aria-hidden="false"]'),
   ).toBeHidden()
   await page
-    .locator('.hero-actions')
-    .getByRole('link', { name: /Watch my quick tour/ })
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Watch it work', exact: true })
     .click()
   await expect
     .poll(() =>
@@ -276,9 +443,11 @@ test('the showcase sign starts while the demo loads, then reveals the demo and v
     expect(
       await switcher.evaluate((element) => ({
         opacity: getComputedStyle(element).opacity,
-        settled: new DOMMatrix(getComputedStyle(element).transform).isIdentity,
+        facing: Math.round(
+          new DOMMatrix(getComputedStyle(element).transform).m11,
+        ),
       })),
-    ).toEqual({ opacity: '1', settled: true })
+    ).toEqual({ opacity: '1', facing: label === 'Or watch my video' ? 1 : -1 })
     if (label === 'Or watch my video') await switcher.click()
   }
 })
