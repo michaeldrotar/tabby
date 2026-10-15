@@ -68,7 +68,10 @@ describe('TabManager presentation', () => {
       '[data-nav-type="window"]',
     )!
     const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
-    const tools = screen.getByRole('button', { name: 'Scroll to active' })
+    const tools = screen.getByRole('button', { name: 'Search everything' })
+    expect(
+      screen.queryByRole('button', { name: 'Scroll to active' }),
+    ).not.toBeInTheDocument()
     const sidebar = screen.getByRole('button', { name: 'Collapse sidebar' })
     const actions = screen.getByRole('button', { name: 'More actions' })
     window.focus()

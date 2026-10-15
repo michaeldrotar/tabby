@@ -13,7 +13,10 @@ test('keyboard navigation crosses sections, creates items and acts on the select
     exact: true,
   })
   const newTab = page.getByRole('button', { name: 'New tab', exact: true })
-  const tools = page.getByRole('button', { name: 'Scroll to active' })
+  const tools = page.getByRole('button', { name: 'Search everything' })
+  await expect(
+    page.getByRole('button', { name: 'Scroll to active' }),
+  ).toHaveCount(0)
   const actions = page.getByRole('button', { name: 'More actions' })
   const sidebar = page.getByRole('button', { name: 'Expand sidebar' })
   await expect(windows.first()).toBeFocused()
@@ -39,7 +42,7 @@ test('keyboard navigation crosses sections, creates items and acts on the select
   await expect(tools).toBeFocused()
   await page.keyboard.press('ArrowDown')
   await expect(
-    page.getByRole('button', { name: 'Search everything' }),
+    page.getByRole('button', { name: 'Settings', exact: true }),
   ).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(tabs.first()).toBeFocused()
