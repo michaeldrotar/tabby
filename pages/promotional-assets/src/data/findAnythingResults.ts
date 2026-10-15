@@ -12,6 +12,15 @@ export const findAnythingResults: OmnibarSearchResult[] = [
     execute,
   },
   {
+    id: 'inbox-window',
+    type: 'window',
+    title: 'Customer inbox',
+    description: 'Window 2 · 8 tabs',
+    windowIcon: 'briefcase',
+    windowIconColor: 'green',
+    execute,
+  },
+  {
     id: 'support-inbox-tab',
     type: 'tab',
     title: 'Customer inbox',

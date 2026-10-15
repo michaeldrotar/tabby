@@ -98,7 +98,7 @@ const anatomyParts: {
     title: 'Action bar',
     product: 'manager',
     description:
-      'Selection actions show how many eligible tabs they affect and include a clear-selection control.',
+      'Search and Settings sit at the left; tab actions sit at the right.',
   },
   {
     id: 'search-field',

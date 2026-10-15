@@ -66,7 +66,12 @@ export const promoWindow = (
 export const promoManagerModel = ({
   windows,
   viewedWindowId,
-  selectedTabIds = [],
+  selectedTabIds = [
+    windows
+      .find((window) => window.id === viewedWindowId)
+      ?.tabs.find((tab) => tab.active)?.id ??
+      windows.find((window) => window.id === viewedWindowId)?.tabs[0]?.id,
+  ].filter((id): id is number => id !== undefined),
   selectionMode = 'default',
   actions = [],
   contextActions = actions,

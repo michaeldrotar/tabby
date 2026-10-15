@@ -220,6 +220,7 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
   const selected = structuredClone(initial)
   selected.manager.scrollTop = 190
   selected.manager.selection = selectTabs([14, 15, 16])
+  selected.manager.actionMenu = {}
   const grouped = structuredClone(initial)
   grouped.manager.scrollTop = 180
   grouped.browser = {
@@ -244,7 +245,7 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
     { at: 5200, title: 'Give that project a home', state: grouped },
     {
       at: 7800,
-      title: 'Find tabs, bookmarks, and history',
+      title: 'Find windows, tabs, and saved pages',
       state: { ...grouped, experience: 'search' },
     },
     {

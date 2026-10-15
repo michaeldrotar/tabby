@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BulkActionsPage } from './pages/BulkActionsPage'
 import { FindAnythingPage } from './pages/FindAnythingPage'
 import { OverviewPage } from './pages/OverviewPage'
+import { ProjectWindowsPage } from './pages/ProjectWindowsPage'
 import { PromoGalleryPage } from './pages/PromoGalleryPage'
 import { MarqueePromoPage, SmallPromoPage } from './pages/PromoTilesPage'
-import { ScalePage } from './pages/ScalePage'
 import { ThemesPage } from './pages/ThemesPage'
 
 const root = document.getElementById('root')
@@ -16,7 +16,7 @@ const pages = {
   overview: OverviewPage,
   'find-anything': FindAnythingPage,
   themes: ThemesPage,
-  scale: ScalePage,
+  'project-windows': ProjectWindowsPage,
   'bulk-actions': BulkActionsPage,
   'small-promo': SmallPromoPage,
   'marquee-promo': MarqueePromoPage,

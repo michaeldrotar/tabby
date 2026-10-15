@@ -13,5 +13,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["playwright", "demo-studio", "marketing", "*.config.ts"]
+  "include": [
+    "playwright",
+    "demo-studio",
+    "marketing",
+    "promotional-assets",
+    "*.config.ts"
+  ]
 }

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { MotionReveal } from './MotionReveal'
+import type { BrowserIllustrationProps } from './BrowserIllustration'
 import type { HomeFeatureId } from './content'
 import type { ProductDemoProps } from './ProductDemo'
 
@@ -14,11 +15,15 @@ const Illustration = lazy(() =>
   })),
 )
 
-export const BrowserIllustration = () => (
+export const BrowserIllustration = (props: BrowserIllustrationProps) => (
   <Suspense
-    fallback={<div className="browser-placeholder">Loading browser view…</div>}
+    fallback={
+      <div className="browser-demo">
+        <div className="browser-placeholder">Loading browser view…</div>
+      </div>
+    }
   >
-    <Illustration />
+    <Illustration {...props} />
   </Suspense>
 )
 

@@ -258,7 +258,7 @@ const HeroShowcase = ({
                   <p>A quick tour with music. Captions available.</p>
                 </div>
               ) : (
-                <ProductDemo separated showTour={false} />
+                <ProductDemo separated />
               )}
             </div>
           </div>

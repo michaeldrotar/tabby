@@ -52,15 +52,20 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 ## Graphics and assets
 
-| Asset                  | Dimensions    | Status | File                                                                       |
-| ---------------------- | ------------- | ------ | -------------------------------------------------------------------------- |
-| Store icon             | 128 × 128 PNG | Ready  | [tabby-face-128.png](chrome-extension/public/tabby-face-128.png)           |
-| Tab manager screenshot | 1280 × 800    | Ready  | [Current asset](product/promotional-assets/tab-manager-1280-800.jpg)       |
-| Search screenshot      | 1280 × 800    | Ready  | [Search screenshot](product/promotional-assets/omnibar-1280-800.png)       |
-| Small promo tile       | 440 × 280     | Ready  | [Small promo tile](product/promotional-assets/cws-small-promo-440-280.jpg) |
-| Marquee promo tile     | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/cws-marquee-1400-560.jpg)  |
+| Asset                      | Dimensions    | Status | File                                                                              |
+| -------------------------- | ------------- | ------ | --------------------------------------------------------------------------------- |
+| Store icon                 | 128 × 128 PNG | Ready  | [Store icon](chrome-extension/public/tabby-face-128.png)                          |
+| Overview screenshot        | 1280 × 800    | Ready  | [Overview](product/promotional-assets/screenshots/01-overview.jpg)                |
+| Search screenshot          | 1280 × 800    | Ready  | [Find anything](product/promotional-assets/screenshots/02-find-anything.jpg)      |
+| Themes screenshot          | 1280 × 800    | Ready  | [Themes](product/promotional-assets/screenshots/03-themes.jpg)                    |
+| Project windows screenshot | 1280 × 800    | Ready  | [Project windows](product/promotional-assets/screenshots/04-project-windows.jpg)  |
+| Bulk actions screenshot    | 1280 × 800    | Ready  | [Bulk actions](product/promotional-assets/screenshots/05-bulk-actions.jpg)        |
+| Small promo tile           | 440 × 280     | Ready  | [Small promo tile](product/promotional-assets/promo-tiles/small-440-280.jpg)      |
+| Marquee promo tile         | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/promo-tiles/marquee-1400-560.jpg) |
 
-Screenshots show the current product with realistic sample tabs. Capture the tab manager and search separately, with readable labels and no development controls.
+Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
+
+Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
 
 ## Permissions justification
 

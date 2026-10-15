@@ -29,8 +29,8 @@ export const screenshotAssets: PromoAsset[] = [
     screenshotNumber: 3,
   },
   {
-    id: 'scale',
-    title: 'Scale to fit',
+    id: 'project-windows',
+    title: 'Project windows',
     width: 1280,
     height: 800,
     screenshotNumber: 4,
