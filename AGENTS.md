@@ -2,6 +2,8 @@
 
 This is the approved workflow for the repository. `main` is the integration branch for accepted work. Apply the branch and release rules below.
 
+In a worktree, if any tool or server's default port is already in use, use a different available port without asking for confirmation.
+
 ## Skill guidance
 
 - Use the [Chrome Extensions skill](./.agents/skills/chrome-extensions/SKILL.md) and its references for Chrome extension implementation and Chrome Web Store publishing guidance. Its guidance takes precedence over conflicting project, React, and security guidance on those subjects.
