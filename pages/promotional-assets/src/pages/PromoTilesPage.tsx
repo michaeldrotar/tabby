@@ -38,13 +38,11 @@ const tileWindows = [
 ]
 
 const tileManagerModel = promoManagerModel({
-  sidebarExpanded: true,
   viewedWindowId: 1,
   windows: tileWindows,
 })
 
 const smallTileManagerModel = promoManagerModel({
-  sidebarExpanded: false,
   viewedWindowId: 1,
   windows: tileWindows,
 })

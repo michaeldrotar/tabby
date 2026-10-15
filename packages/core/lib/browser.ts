@@ -1,16 +1,21 @@
-export type BrowserTabGroupColor =
-  | 'grey'
-  | 'blue'
-  | 'red'
-  | 'yellow'
-  | 'green'
-  | 'pink'
-  | 'purple'
-  | 'cyan'
-  | 'orange'
+export const BROWSER_TAB_GROUP_COLORS = [
+  'grey',
+  'blue',
+  'red',
+  'yellow',
+  'green',
+  'pink',
+  'purple',
+  'cyan',
+  'orange',
+] as const
+export type BrowserTabGroupColor = (typeof BROWSER_TAB_GROUP_COLORS)[number]
 
 export interface BrowserWindow {
   id: number
+  name?: string
+  icon?: string
+  iconColor?: BrowserTabGroupColor
   type?: string
   incognito?: boolean
   focused?: boolean
@@ -70,6 +75,13 @@ export type GroupAction =
   | { type: 'move-forward' }
 
 export type BrowserCommand =
+  | {
+      type: 'name-window'
+      windowId: number
+      name: string
+      icon?: string
+      iconColor?: BrowserTabGroupColor
+    }
   | { type: 'create-window'; url?: string; sourceWindowId?: number }
   | { type: 'create-tab'; windowId?: number; url?: string; groupId?: number }
   | { type: 'navigate-tab'; tabId: number; url: string }
@@ -121,5 +133,4 @@ export interface HostCapabilities {
   openSearch?: () => void | Promise<void>
   openOptions?: () => void | Promise<void>
   writeClipboardText?: (text: string) => Promise<void>
-  onSidebarExpandedChange?: (expanded: boolean) => void | Promise<void>
 }

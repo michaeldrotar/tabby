@@ -38,6 +38,8 @@ export const createMarketingScene = () => {
     windows: [
       f.generateWindow({
         id: 1,
+        name: 'Design studio',
+        icon: 'palette',
         focused: true,
         groups: [
           f.generateGroup({
@@ -193,7 +195,6 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
     )
   views.tabManager.setState({
     viewedWindowId: 1,
-    sidebarExpanded: false,
     selection: selectTabs([scene.tabs[0]!.id]),
   })
   const preferences = createMemoryPreferences({

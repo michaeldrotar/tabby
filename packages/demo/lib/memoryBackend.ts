@@ -2,6 +2,7 @@ import {
   createCommandOutcome,
   getCommandBlockReason,
   getCommandTargetIds,
+  getTabMoveUnits,
   insertTabs,
   planGroupMove,
   planTabMove,
@@ -120,6 +121,24 @@ export class MemoryBackend implements BrowserBackend {
       return exists
     }
     switch (command.type) {
+      case 'name-window':
+        if (
+          requireId(
+            command.windowId,
+            snapshot.windows.some((window) => window.id === command.windowId),
+          )
+        )
+          snapshot.windows = snapshot.windows.map((window) =>
+            window.id === command.windowId
+              ? {
+                  ...window,
+                  name: command.name.trim().slice(0, 120),
+                  icon: command.icon,
+                  iconColor: command.iconColor,
+                }
+              : window,
+          )
+        break
       case 'create-tab': {
         const windowId =
           command.windowId ??
@@ -195,17 +214,14 @@ export class MemoryBackend implements BrowserBackend {
         if (windowId === undefined) {
           windowId = this.nextWindowId++
           snapshot.windows = [
-            ...snapshot.windows.map((window) => ({
-              ...window,
-              focused: false,
-            })),
+            ...snapshot.windows,
             {
               id: windowId,
               type: 'normal',
               incognito:
                 snapshot.windows.find((window) => window.id === group.windowId)
                   ?.incognito ?? false,
-              focused: true,
+              focused: false,
             },
           ]
           createdWindowIds = [windowId]
@@ -341,19 +357,21 @@ export class MemoryBackend implements BrowserBackend {
               snapshot.tabs.find((tab) => tab.id === ids[0])?.windowId,
           )
           snapshot.windows = [
-            ...snapshot.windows.map((window) => ({
-              ...window,
-              focused: false,
-            })),
+            ...snapshot.windows,
             {
               id: windowId,
               type: 'normal',
               incognito: source?.incognito ?? false,
-              focused: true,
+              focused: false,
             },
           ]
           createdWindowIds = [windowId]
         }
+        const retainedGroups = new Set(
+          getTabMoveUnits(ids, snapshot).flatMap((unit) =>
+            unit.groupId === undefined ? [] : [unit.groupId],
+          ),
+        )
         for (const id of ids) {
           const tab = snapshot.tabs.find((tab) => tab.id === id)
           if (!requireId(id, Boolean(tab)) || !tab) continue
@@ -373,7 +391,9 @@ export class MemoryBackend implements BrowserBackend {
               {
                 ...tab,
                 windowId,
-                groupId: undefined,
+                groupId: retainedGroups.has(tab.groupId ?? -1)
+                  ? tab.groupId
+                  : undefined,
                 active: !targetHasActive,
               },
             ],
@@ -381,6 +401,11 @@ export class MemoryBackend implements BrowserBackend {
             pinIndex,
           )
         }
+        snapshot.groups = snapshot.groups.map((group) =>
+          retainedGroups.has(group.id)
+            ? { ...group, windowId: windowId! }
+            : group,
+        )
         snapshot.windows = snapshot.windows.filter((window) =>
           snapshot.tabs.some((tab) => tab.windowId === window.id),
         )

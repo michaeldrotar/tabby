@@ -11,7 +11,6 @@ export const createChromeTabManagerHost = (
   options: {
     writeClipboardText: (text: string) => Promise<void>
     onWindowActivated: (windowId: number) => void
-    onSidebarExpandedChange?: (expanded: boolean) => void | Promise<void>
   },
 ) => {
   let currentWindowId: number | undefined
@@ -36,8 +35,25 @@ export const createChromeTabManagerHost = (
       typeof message.windowId === 'number' &&
       Number.isSafeInteger(message.windowId) &&
       message.windowId >= 0
-    )
-      options.onWindowActivated(message.windowId)
+    ) {
+      const operation = generation
+      void (async () => {
+        try {
+          const window = await api.windows.getCurrent({})
+          if (
+            running &&
+            operation === generation &&
+            window.id !== undefined &&
+            window.id === message.windowId
+          ) {
+            currentWindowId = window.id
+            options.onWindowActivated(window.id)
+          }
+        } catch {
+          /* The originating window may already be closed. */
+        }
+      })()
+    }
   }
   const onFocused = (windowId: number) => {
     if (running && windowId === currentWindowId)
@@ -47,12 +63,6 @@ export const createChromeTabManagerHost = (
     if (!running) throw new Error('The browser host is not running.')
   }
   const capabilities: HostCapabilities = {
-    onSidebarExpandedChange: options.onSidebarExpandedChange
-      ? async (expanded) => {
-          requireRunning()
-          await options.onSidebarExpandedChange?.(expanded)
-        }
-      : undefined,
     getCurrentWindowId: () => currentWindowId,
     openWindowTabManager: async (windowId) => {
       const operation = generation

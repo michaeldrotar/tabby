@@ -1,5 +1,6 @@
 import { isNavigableUrl } from './navigation.js'
 import { rankOmnibarResults } from './omnibarRanking.js'
+import { getWindowIdentity } from './windowIdentity.js'
 import type { BrowserSnapshot } from './browser.js'
 import type { OmnibarAction, OmnibarResult } from './omnibar.js'
 
@@ -10,9 +11,13 @@ const command = (
   url?: string,
 ): OmnibarResult => ({ id, title, type: 'command', action, url })
 
+const windowNumber = (item: OmnibarResult) =>
+  Number(String(item.id).split('-').at(-1))
+
 export const getOmnibarCommands = (
   snapshot: BrowserSnapshot,
   originalWindowId?: number,
+  windowSource: 'active' | 'first' = 'active',
 ): OmnibarResult[] => {
   const incognito = Boolean(
     snapshot.windows.find((window) => window.id === originalWindowId)
@@ -21,7 +26,6 @@ export const getOmnibarCommands = (
   const windows = [...snapshot.windows]
     .filter((window) => Boolean(window.incognito) === incognito)
     .sort((a, b) => a.id - b.id)
-    .slice(0, 10)
   return [
     command('cmd-side-panel', 'Tabby: Open tab manager', {
       kind: 'tab-manager',
@@ -47,14 +51,29 @@ export const getOmnibarCommands = (
       const active = snapshot.tabs.find(
         (tab) => tab.windowId === window.id && tab.active,
       )
+      const identity = getWindowIdentity(window, snapshot.tabs, windowSource)
+      const name = window.name?.trim()
+      const tabCount = snapshot.tabs.filter(
+        (tab) => tab.windowId === window.id,
+      ).length
       return {
         ...command(
           `cmd-focus-window-${index + 1}`,
-          `Tabby: Focus window ${index + 1}${active?.title ? ` — ${active.title}` : ''}`,
+          `Tabby: Go to window ${index + 1} — ${identity.title}`,
           { kind: 'window', windowId: window.id },
-          active?.url,
+          name ? undefined : active?.url,
         ),
+        ...(name
+          ? {
+              type: 'window' as const,
+              title: name,
+              description: `Window ${index + 1} · ${tabCount} ${tabCount === 1 ? 'tab' : 'tabs'}`,
+            }
+          : {}),
         windowId: window.id,
+        windowIcon: identity.icon ?? (identity.iconUrl ? undefined : 'window'),
+        windowIconUrl: identity.iconUrl,
+        windowIconColor: identity.iconColor,
       }
     }),
   ]
@@ -96,9 +115,11 @@ export const getOmnibarBrowserResults = (
       windowId: group.windowId,
       groupColor: group.color,
       groupTabCount: groupCounts.get(group.id) ?? 0,
-      groupWindowLabel: windows.get(group.windowId)?.window.focused
-        ? 'Current window'
-        : `Window ${(windows.get(group.windowId)?.index ?? -1) + 1}`,
+      groupWindowLabel:
+        snapshot.windows.find((window) => window.id === group.windowId)?.name ||
+        (windows.get(group.windowId)?.window.focused
+          ? 'Current window'
+          : `Window ${(windows.get(group.windowId)?.index ?? -1) + 1}`),
       groupCollapsed: group.collapsed,
       action: { kind: 'group', groupId: group.id },
     })),
@@ -142,17 +163,20 @@ export const getOmnibarResults = (
   originalWindowId: number | undefined,
   externalResults: readonly OmnibarResult[],
   now: number,
+  windowSource: 'active' | 'first' = 'active',
 ): OmnibarResult[] => {
   if (!query) return []
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
   const { tabs, groups } = getOmnibarBrowserResults(snapshot)
   const matching = [
-    ...getOmnibarCommands(snapshot, originalWindowId),
+    ...getOmnibarCommands(snapshot, originalWindowId, windowSource),
     ...tabs,
     ...groups,
   ].filter((item) =>
     terms.every((term) =>
-      `${item.title} ${item.url ?? ''}`.toLowerCase().includes(term),
+      `${item.title} ${item.url ?? ''} ${item.type === 'window' ? `window ${windowNumber(item)}` : ''}`
+        .toLowerCase()
+        .includes(term),
     ),
   )
   const ranked = rankOmnibarResults(
@@ -164,11 +188,7 @@ export const getOmnibarResults = (
     terms[0] === 'window'
       ? ranked
           .filter((item) => String(item.id).startsWith('cmd-focus-window-'))
-          .sort(
-            (a, b) =>
-              Number(String(a.id).split('-').at(-1)) -
-              Number(String(b.id).split('-').at(-1)),
-          )
+          .sort((a, b) => windowNumber(a) - windowNumber(b))
       : []
   const windowIds = new Set(windowCommands.map((item) => item.id))
   return [

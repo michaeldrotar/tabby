@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { useStore } from 'zustand'
-import { useTabbyPreferences, useTabManagerResources } from './TabbyProvider'
+import { useTabManagerResources } from './TabbyProvider'
 import {
   createTabManagerController,
   projectTabManager,
@@ -26,7 +26,6 @@ export const TabManagerExperience = ({
   focusOnMount?: boolean
 }) => {
   const resources = useTabManagerResources()
-  const appearance = useTabbyPreferences()
   const { backend, view, environment, preferences, host } = resources
   const reduceAgePrecision = !!useShouldReduceMotion()
   const surface = useSurface()
@@ -42,6 +41,11 @@ export const TabManagerExperience = ({
     [snapshot, reduceAgePrecision],
   )
   const now = useExperienceClock(environment, selectClock)
+  const preferenceState = useSyncExternalStore(
+    preferences.subscribe,
+    preferences.getSnapshot,
+    preferences.getSnapshot,
+  )
   const state = useStore(view)
   const controller = useMemo(
     () =>
@@ -63,16 +67,10 @@ export const TabManagerExperience = ({
     else controller.cancel()
     return () => controller.cancel()
   }, [controller, live])
-  const model = {
-    ...projectTabManager(snapshot, state, now, {
-      identificationMode: appearance.tabManagerCompactIconMode,
-      compactLayout: appearance.tabManagerCompactLayout,
-      reduceAgePrecision,
-      isMac: environment.platform === 'mac',
-    }),
-    compactIconMode: appearance.tabManagerCompactIconMode,
-    compactLayout: appearance.tabManagerCompactLayout,
-  }
+  const model = projectTabManager(snapshot, state, now, {
+    reduceAgePrecision,
+    windowSource: preferenceState.tabManagerCompactIconMode,
+  })
   return (
     <TabManager
       model={model}

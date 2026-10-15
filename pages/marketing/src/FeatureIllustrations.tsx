@@ -17,7 +17,7 @@ const dimensions = {
     width: 560,
     height: 500,
     label:
-      'Tabby’s real tab manager showing all windows and three selected tabs',
+      'Tabby’s real tab manager showing a named window and three selected tabs',
   },
   find: {
     width: 560,
@@ -35,7 +35,6 @@ const ProductIllustration = ({ feature }: { feature: 'manage' | 'find' }) => {
     if (feature === 'manage') {
       instance.restore(instance.frames[1]!.state)
       instance.views.tabManager.setState({
-        sidebarExpanded: false,
         scrollTop: 0,
       })
     }

@@ -114,4 +114,30 @@ describe('Omnibar modifier actions', () => {
       expect(tabs[2]!.execute).toHaveBeenCalledWith('new-window', 1),
     )
   })
+
+  it('keeps named windows on their focus action for modified clicks and keyboard activation', async () => {
+    const execute = vi.fn().mockResolvedValue(undefined)
+    renderOmnibar([
+      {
+        id: 'window-2',
+        type: 'window',
+        title: 'Project window',
+        windowId: 2,
+        windowIcon: 'book',
+        execute,
+      },
+    ])
+    const input = screen.getByRole('combobox')
+    fireEvent.change(input, { target: { value: 'Project' } })
+    const window = screen.getByRole('option', { name: /Project window/ })
+    fireEvent.mouseMove(window)
+    fireEvent.keyDown(input, { key: 'Shift' })
+    expect(window).toHaveTextContent('Focus')
+    expect(window).not.toHaveTextContent('new window')
+    fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
+    await waitFor(() => expect(execute).toHaveBeenCalledWith(undefined, 1))
+    execute.mockClear()
+    fireEvent.click(window, { ctrlKey: true })
+    await waitFor(() => expect(execute).toHaveBeenCalledWith(undefined, 1))
+  })
 })

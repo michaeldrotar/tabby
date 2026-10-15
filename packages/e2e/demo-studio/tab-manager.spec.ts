@@ -39,15 +39,13 @@ test('a large browser stays responsive through selection and window switching at
   await expect(
     left.getByRole('option', { name: 'Tab: Release checklist', exact: true }),
   ).toBeVisible()
-  const leftWindowTwo = left.locator(
-    '[data-nav-type="window"][data-nav-id="2"]',
+  await left.locator('[data-window-picker-trigger]').click()
+  await left.locator('[data-window-choice="2"]').click()
+  await expect(left.locator('[data-window-picker-trigger]')).toContainText(
+    'Reading list',
   )
-  const rightWindowOne = right.locator(
-    '[data-nav-type="window"][data-nav-id="1"]',
-  )
-  await leftWindowTwo.click()
-  await expect(leftWindowTwo).toHaveAttribute('data-viewing', 'true')
-  await expect(rightWindowOne).toHaveAttribute('data-viewing', 'true')
+  await expect(left.locator('[data-window-picker]')).toHaveCount(0)
+  await expect(right.locator('[data-manager-scroll]')).toHaveCount(1)
 })
 
 test('browser data, view state, and preferences can be shared independently', async ({
@@ -68,28 +66,32 @@ test('browser data, view state, and preferences can be shared independently', as
   await page.keyboard.press('Delete')
   await expect(left.locator('[data-tab-id="11"]')).toHaveCount(0)
   await expect(right.locator('[data-tab-id="11"]')).toHaveCount(0)
-  const leftWindowTwo = left.locator(
-    '[data-nav-type="window"][data-nav-id="2"]',
+  const chooseLeftWindow = async (id: number) => {
+    await left.locator('[data-window-picker-trigger]').click()
+    await left.locator(`[data-window-choice="${id}"]`).click()
+  }
+  await chooseLeftWindow(2)
+  await expect(left.locator('[data-window-picker-trigger]')).toContainText(
+    'Reading list',
   )
-  const rightWindowTwo = right.locator(
-    '[data-nav-type="window"][data-nav-id="2"]',
+  await expect(right.locator('[data-window-picker-trigger]')).toContainText(
+    'Reading list',
   )
-  await leftWindowTwo.click()
-  await expect(leftWindowTwo).toHaveAttribute('data-viewing', 'true')
-  await expect(rightWindowTwo).toHaveAttribute('data-viewing', 'true')
 
   await shareViewState.uncheck()
-  await leftWindowTwo.click()
-  await expect(leftWindowTwo).toHaveAttribute('data-viewing', 'true')
-  await expect(rightWindowTwo).toHaveAttribute('data-viewing', 'false')
-  await expect(
-    right.locator('[data-nav-type="window"][data-nav-id="1"]'),
-  ).toHaveAttribute('data-viewing', 'true')
+  await chooseLeftWindow(2)
+  await expect(left.locator('[data-window-picker-trigger]')).toContainText(
+    'Reading list',
+  )
+  await expect(right.locator('[data-window-picker-trigger]')).toContainText(
+    'Workspace',
+  )
   await shareData.uncheck()
   await expect(shareViewState).toBeDisabled()
   await expect(shareViewState).not.toBeChecked()
 
   await page.getByLabel('Ignore data commands').check()
+  await chooseLeftWindow(1)
   await left.locator('[data-tab-id="11"]').click()
   await page.keyboard.press('Delete')
   await expect(left).toContainText('ignored; data unchanged')

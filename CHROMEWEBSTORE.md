@@ -12,7 +12,7 @@ Publishing reference for Tabby's store listing, images, permissions explanations
 
 **Short description:** Search tabs, bookmarks, and history, then organize tabs and groups across Chrome windows.
 
-**Detailed description — 1.5.0 submission:**
+**Detailed description:**
 
 Find the page you need and organize your open browser windows with Tabby.
 
@@ -20,19 +20,19 @@ Find a page
 
 Search open tabs, tab groups, bookmarks, browsing history, and recently closed pages in one place. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window. If a destination cannot be opened, Tabby explains the problem and keeps your query so you can try again.
 
-Select across windows
+Recognize every window
 
-The tab manager keeps your windows and groups within reach in a side panel. Click a tab row to select it without leaving your current page. Click its icon, double-click the row, or press Enter to go to it. Browse other windows while keeping your selected tabs. Select a window or group, then deselect individual tabs while keeping the rest selected. Press Escape to clear the full selection.
+Choose active-tab or first-tab defaults in Settings, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
 
-Organize and clean up
+Organize one window at a time
 
-Select several tabs, groups, or windows and use More actions to move, group, pin, duplicate, reload, discard, close, or copy them together. Close duplicate tabs across all windows from a tab's action menu while keeping the tab you chose. Large tab lists stay responsive as you scroll and navigate, and groups expand and collapse promptly.
+Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
 Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Jump between parts of the tab manager with Tab, and use arrow keys to reach tabs, groups, New tab, and New window. Reorder tabs and groups with Alt+Up/Down. In narrow panels, the sidebar moves out of the way when you navigate into the tab list. Find a guide to Tab manager keyboard shortcuts in Options.
+Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Settings in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
 
@@ -66,17 +66,17 @@ Screenshots show the current product with realistic sample tabs. Capture the tab
 
 The manifest declares these permissions. It declares no host permissions or production content scripts.
 
-| Permission  | Type        | Justification                                                                                                                               |
-| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                     |
-| `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
-| `storage`   | permissions | Save local appearance and tab manager preferences and preserve an unfinished search query between popup sessions.                           |
-| `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
-| `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
-| `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
-| `bookmarks` | permissions | Search saved bookmarks locally and open the result selected by the user.                                                                    |
-| `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                   |
-| `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                          |
+| Permission  | Type        | Justification                                                                                                                                         |
+| ----------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                               |
+| `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                                     |
+| `storage`   | permissions | Save local appearance preferences, an unfinished search query, Tabby window names and icons, and hashed URL fingerprints for restoring window labels. |
+| `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user.           |
+| `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                                     |
+| `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                                   |
+| `bookmarks` | permissions | Search saved bookmarks locally and open the result selected by the user.                                                                              |
+| `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                             |
+| `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                                    |
 
 ## Privacy and data use
 
@@ -84,21 +84,21 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 Tabby handles browsing data locally. The publisher does not collect it or receive saved preferences. The published listing discloses **Web history**.
 
-| Data type                           | Handled?                 | Transmitted off-device by Tabby? | Purpose                                                                                      | Shared with the publisher? |
-| ----------------------------------- | ------------------------ | -------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------- |
-| Personally identifiable information | No dedicated collection  | No                               | —                                                                                            | No                         |
-| Health information                  | No dedicated collection  | No                               | —                                                                                            | No                         |
-| Financial information               | No dedicated collection  | No                               | —                                                                                            | No                         |
-| Authentication information          | No                       | No                               | —                                                                                            | No                         |
-| Personal communications             | No page-content access   | No                               | —                                                                                            | No                         |
-| Location                            | No                       | No                               | —                                                                                            | No                         |
-| Web history                         | Yes, locally             | No                               | Search titles and addresses of tabs, bookmarks, browsing history, and recently closed pages. | No                         |
-| User activity                       | No tracking or analytics | No                               | —                                                                                            | No                         |
-| Website content                     | No page-content access   | No                               | —                                                                                            | No                         |
+| Data type                           | Handled?                 | Transmitted off-device by Tabby? | Purpose                                                                              | Shared with the publisher? |
+| ----------------------------------- | ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
+| Personally identifiable information | No dedicated collection  | No                               | —                                                                                    | No                         |
+| Health information                  | No dedicated collection  | No                               | —                                                                                    | No                         |
+| Financial information               | No dedicated collection  | No                               | —                                                                                    | No                         |
+| Authentication information          | No                       | No                               | —                                                                                    | No                         |
+| Personal communications             | No page-content access   | No                               | —                                                                                    | No                         |
+| Location                            | No                       | No                               | —                                                                                    | No                         |
+| Web history                         | Yes, locally             | No                               | Search titles and addresses locally; use hashed window URLs to restore Tabby labels. | No                         |
+| User activity                       | No tracking or analytics | No                               | —                                                                                    | No                         |
+| Website content                     | No page-content access   | No                               | —                                                                                    | No                         |
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences and an unfinished search query stay in local browser storage. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance and tab manager defaults. Uninstalling removes the extension’s saved data.
+Appearance preferences, an unfinished search query, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance defaults. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
 
 ### Data use certification
 
@@ -132,6 +132,7 @@ Appearance preferences and an unfinished search query stay in local browser stor
 
 | Version                                                                      | Submission date | Summary                                   | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | -------------- |
+| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | —               | Named windows and a simpler Tab Manager.  | In development |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                           | Pending review |
 | [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Published      |
 | [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published      |

@@ -40,6 +40,7 @@ export type ThemeAccentPalette = (typeof THEME_ACCENT_PALETTES)[number]
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface PreferenceState extends SeasonalIconPreferences {
+  tabManagerCompactIconMode: 'active' | 'first'
   theme: ThemeMode
   themeLightBackground: ThemeNeutralPalette
   themeLightForeground: ThemeNeutralPalette
@@ -49,8 +50,6 @@ export interface PreferenceState extends SeasonalIconPreferences {
   themeDarkForeground: ThemeNeutralPalette
   themeDarkAccent: ThemeAccentPalette
   themeDarkAccentStrength: number
-  tabManagerCompactIconMode: 'active' | 'first'
-  tabManagerCompactLayout: 'icon' | 'list'
 }
 
 export interface PreferenceResource {
@@ -63,6 +62,7 @@ export interface PreferenceResource {
 }
 
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
+  tabManagerCompactIconMode: 'active',
   theme: 'system',
   themeLightBackground: 'stone',
   themeLightForeground: 'neutral',
@@ -72,8 +72,6 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   themeDarkForeground: 'zinc',
   themeDarkAccent: 'blue',
   themeDarkAccentStrength: 15,
-  tabManagerCompactIconMode: 'active',
-  tabManagerCompactLayout: 'icon',
   seasonalIconsEnabled: true,
   seasonalIconSelections: DEFAULT_SEASONAL_ICON_SELECTIONS,
   seasonalEasterCalendar: 'local',
@@ -81,14 +79,12 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
 })
 
 const isValidPreference = (key: string, value: unknown): boolean => {
+  if (key === 'tabManagerCompactIconMode')
+    return value === 'active' || value === 'first'
   if (key === 'theme')
     return (
       typeof value === 'string' && ['system', 'light', 'dark'].includes(value)
     )
-  if (key === 'tabManagerCompactIconMode')
-    return value === 'active' || value === 'first'
-  if (key === 'tabManagerCompactLayout')
-    return value === 'icon' || value === 'list'
   if (key === 'seasonalIconsEnabled') return typeof value === 'boolean'
   if (key === 'seasonalIconSelections') return isSeasonalIconSelections(value)
   if (key === 'seasonalEasterCalendar')

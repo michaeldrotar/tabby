@@ -54,6 +54,8 @@ export const promoWindow = (
 ): TabManagerWindowView => ({
   id,
   title,
+  name: title,
+  icon: 'briefcase',
   iconUrl: tabs[0]?.faviconUrl,
   active: false,
   tabs,
@@ -64,7 +66,6 @@ export const promoWindow = (
 export const promoManagerModel = ({
   windows,
   viewedWindowId,
-  sidebarExpanded,
   selectedTabIds = [],
   selectionMode = 'default',
   actions = [],
@@ -74,7 +75,6 @@ export const promoManagerModel = ({
 }: {
   windows: TabManagerWindowView[]
   viewedWindowId: number
-  sidebarExpanded: boolean
   selectedTabIds?: number[]
   selectionMode?: 'default' | 'multi-select'
   actions?: TabManagerAction[]
@@ -93,12 +93,7 @@ export const promoManagerModel = ({
   viewedWindowId,
   selectedTabIds,
   selectedGroupIds: [],
-  selectedGroupCount: 0,
-  selectedWindowIds: [],
   selectionMode,
-  sidebarExpanded,
-  compactIconMode: 'first',
-  compactLayout: sidebarExpanded ? 'list' : 'icon',
   focusedItem: null,
   hoveredItem,
   notifications: { items: [], expanded: false, paused: false },

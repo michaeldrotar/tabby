@@ -237,6 +237,11 @@ export const createFixtureBuilder = ({
       windows: windows.map((window) => ({
         id: window.id,
         type: window.type,
+        ...(window.name === undefined ? {} : { name: window.name }),
+        ...(window.icon === undefined ? {} : { icon: window.icon }),
+        ...(window.iconColor === undefined
+          ? {}
+          : { iconColor: window.iconColor }),
         incognito: window.incognito,
         focused: window.id === focusedWindow?.id,
       })),

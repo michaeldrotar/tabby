@@ -38,7 +38,7 @@ describe('Options resources', () => {
   it('changes only the requested preferences, randomizes the active palette, and resets shared values', async () => {
     const preferences = createMemoryPreferences({
       theme: 'system',
-      tabManagerCompactLayout: 'list',
+      themeLightForeground: 'gray',
       seasonalIconsEnabled: false,
       seasonalIconSelections: {
         ...defaultPreferences.seasonalIconSelections,
@@ -63,7 +63,7 @@ describe('Options resources', () => {
     await controller.change({ themeDarkAccent: 'rose' })
     expect(preferences.getSnapshot()).toMatchObject({
       themeDarkAccent: 'rose',
-      tabManagerCompactLayout: 'list',
+      themeLightForeground: 'gray',
     })
     await controller.randomize()
     expect(preferences.getSnapshot()).toMatchObject({

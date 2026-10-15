@@ -22,7 +22,7 @@ test('the guided tour reaches its final project and can replay', async ({
     demo.getByText('Select three tabs together', { exact: true }),
   ).toBeVisible({ timeout: 5000 })
   await expect(
-    demo.getByRole('status', { name: '0 windows, 0 tab groups, 3 tabs' }),
+    demo.getByRole('button', { name: 'More actions', exact: true }),
   ).toBeVisible()
   await expect(
     demo.getByText('Give that project a home', { exact: true }),

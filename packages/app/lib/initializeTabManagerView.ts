@@ -1,4 +1,4 @@
-import { reduceSelectionIntent } from '@extension/core'
+import { createDefaultTabSelection } from './view'
 import type { TabManagerView } from './view'
 import type { BrowserSnapshot } from '@extension/core'
 
@@ -9,11 +9,9 @@ export const initializeTabManagerView = (
   currentWindowId?: number,
 ) => {
   const state = view.getState()
-  const selection = state.selection.selection
   if (
-    selection.windowIds.size ||
-    selection.groupIds.size ||
-    selection.tabIds.size ||
+    state.selectionCleared ||
+    state.hasUserInput ||
     state.focusedItem ||
     state.scrollTop
   )
@@ -28,17 +26,8 @@ export const initializeTabManagerView = (
   )
   view.setState({
     viewedWindowId: windowId,
-    focusedItem: { type: 'window', id: windowId },
-    selection: reduceSelectionIntent(
-      state.selection,
-      {
-        type: 'arrow',
-        item: { type: 'window', id: windowId },
-        pane: 'window',
-        forceSingleSelect: true,
-      },
-      snapshot,
-    ),
+    focusedItem: null,
+    selection: createDefaultTabSelection(snapshot, windowId),
     ...(active
       ? {
           scrollToItem: {

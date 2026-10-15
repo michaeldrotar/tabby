@@ -3,6 +3,7 @@ import { Favicon } from '../Favicon'
 import { LayersIcon } from '../icons'
 import { useSurface } from '../Surface'
 import { getGroupColorClasses } from '../tab-group/tabGroupColors'
+import { WindowIcon } from '../tab-manager/ui/WindowNavigation'
 import { cn } from '../utils/cn'
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
@@ -71,9 +72,18 @@ export const OmnibarItem = ({
 
   useEffect(() => {
     if (isSelected && interactive) {
-      itemRef.current?.scrollIntoView({
-        block: 'nearest',
-      })
+      const item = itemRef.current
+      const viewport = item?.closest<HTMLElement>(
+        '[data-radix-scroll-area-viewport]',
+      )
+      if (!item || !viewport) return
+      const bounds = item.getBoundingClientRect()
+      const visible = viewport.getBoundingClientRect()
+      const scale = visible.height / viewport.clientHeight || 1
+      if (bounds.top < visible.top)
+        viewport.scrollTop += (bounds.top - visible.top) / scale
+      else if (bounds.bottom > visible.bottom)
+        viewport.scrollTop += (bounds.bottom - visible.bottom) / scale
     }
   }, [isSelected, interactive])
 
@@ -107,7 +117,20 @@ export const OmnibarItem = ({
         }}
         onMouseMove={onMouseMove}
       >
-        {item.type === 'tab-group' ? (
+        {item.windowIcon || item.windowIconUrl ? (
+          <span
+            className={`
+              bg-input text-muted flex size-8 shrink-0 items-center
+              justify-center rounded
+            `}
+          >
+            <WindowIcon
+              icon={item.windowIcon}
+              iconUrl={item.windowIconUrl}
+              color={item.windowIconColor}
+            />
+          </span>
+        ) : item.type === 'tab-group' ? (
           <div
             className={cn(
               `
@@ -259,7 +282,10 @@ export const OmnibarItem = ({
                 isSelected ? 'text-foreground/70' : 'text-muted',
               )}
             >
-              <HighlightMatch text={item.url} pattern={highlightPattern} />
+              <HighlightMatch
+                text={item.type === 'window' ? item.description : item.url}
+                pattern={highlightPattern}
+              />
             </span>
           </div>
         </div>

@@ -144,19 +144,17 @@ export const getTabDiscardSelectionCounts = (
     { discardableCount: 0, activeCount: 0, alreadyDiscardedCount: 0 },
   )
 
-/** Resolve explicit tabs plus tabs represented by selected groups/windows. */
+/** Resolve explicit tabs plus tabs represented by selected groups. */
 export const resolveSelectedTabIds = (
   selection: SelectionSnapshot,
   snapshot: BatchTabSnapshot,
 ): number[] => {
   const selectedIds = new Set<number>()
-  const selectedWindowIds = selection.windowIds
   const selectedGroupIds = selection.groupIds
 
   for (const tab of snapshot.tabs) {
     if (
       selection.tabIds.has(tab.id) ||
-      selectedWindowIds.has(tab.windowId) ||
       (tab.groupId !== undefined && selectedGroupIds.has(tab.groupId))
     ) {
       selectedIds.add(tab.id)
@@ -291,15 +289,13 @@ const runBatchIdsAction = async (
   return result
 }
 
-/** Resolve the tabs represented by one focused window, group, or tab row. */
+/** Resolve the tabs represented by one focused group or tab row. */
 export const resolveSelectionItemTabIds = (
   item: SelectionItemRef,
   snapshot: BatchTabSnapshot,
 ): number[] =>
   resolveSelectedTabIds(
     {
-      windowIds: item.type === 'window' ? new Set([item.id]) : new Set(),
-      expandedWindowIds: new Set(),
       groupIds: item.type === 'group' ? new Set([item.id]) : new Set(),
       tabIds: item.type === 'tab' ? new Set([item.id]) : new Set(),
     },
@@ -312,16 +308,8 @@ export const isSelectionItemRepresented = (
   selection: SelectionSnapshot,
   snapshot: BatchTabSnapshot,
 ): boolean => {
-  if (item.type === 'window') return selection.windowIds.has(item.id)
-  if (item.type === 'group') {
-    const windowId = snapshot.groups.find(
-      (group) => group.id === item.id,
-    )?.windowId
-    return (
-      selection.groupIds.has(item.id) ||
-      (windowId !== undefined && selection.windowIds.has(windowId))
-    )
-  }
+  if (item.type === 'window') return false
+  if (item.type === 'group') return selection.groupIds.has(item.id)
   return resolveSelectedTabIds(selection, snapshot).includes(item.id)
 }
 
@@ -425,11 +413,7 @@ export const getSingleGroupRenameState = (
   if (selection.groupIds.size === 0) {
     return { visible: false, enabled: false }
   }
-  if (
-    selection.groupIds.size !== 1 ||
-    selection.tabIds.size > 0 ||
-    selection.windowIds.size > 0
-  ) {
+  if (selection.groupIds.size !== 1 || selection.tabIds.size > 0) {
     return {
       visible: true,
       enabled: false,

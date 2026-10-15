@@ -13,7 +13,6 @@ import {
 } from '../components/PromoText'
 
 const smallModel = promoManagerModel({
-  sidebarExpanded: false,
   viewedWindowId: 1,
   windows: [
     promoWindow(
@@ -37,7 +36,6 @@ const smallModel = promoManagerModel({
 })
 
 const fullModel = promoManagerModel({
-  sidebarExpanded: true,
   viewedWindowId: 5,
   windows: [
     promoWindow(1, 'Planning', [

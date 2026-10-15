@@ -10,14 +10,16 @@ describe('preferences', () => {
     expect(
       normalizePreferences({
         theme: 'dark',
+        tabManagerCompactIconMode: 'first',
         themeDarkAccent: 'invalid',
         themeLightAccentStrength: Infinity,
-        tabManagerCompactLayout: 'list',
+        themeLightForeground: 'gray',
       }),
     ).toEqual({
       ...defaultPreferences,
       theme: 'dark',
-      tabManagerCompactLayout: 'list',
+      tabManagerCompactIconMode: 'first',
+      themeLightForeground: 'gray',
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
   })

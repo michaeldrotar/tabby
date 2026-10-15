@@ -22,6 +22,7 @@ export type OmnibarResult = {
   type:
     | 'tab'
     | 'tab-group'
+    | 'window'
     | 'bookmark'
     | 'history'
     | 'command'
@@ -33,6 +34,9 @@ export type OmnibarResult = {
   description?: string
   favIconUrl?: string
   windowId?: number
+  windowIconUrl?: string
+  windowIcon?: string
+  windowIconColor?: BrowserTabGroup['color']
   tabId?: number
   active?: boolean
   lastVisitTime?: number

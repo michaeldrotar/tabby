@@ -31,7 +31,7 @@ import type { SurfaceInputMode } from '@extension/ui/Surface'
 type InstanceSize = 'wide' | 'narrow'
 type StudioPage = 'explore' | 'guided' | 'anatomy'
 type AnatomyPart =
-  | 'window-rail'
+  | 'window-switcher'
   | 'tab-groups'
   | 'tab-rows'
   | 'action-bar'
@@ -74,11 +74,10 @@ const anatomyParts: {
   description: string
 }[] = [
   {
-    id: 'window-rail',
-    title: 'Window rail',
+    id: 'window-switcher',
+    title: 'Window switcher',
     product: 'manager',
-    description:
-      'Switch between browser windows while keeping the rest of your workspace close.',
+    description: 'Name each window and choose it to open its Tab Manager.',
   },
   {
     id: 'tab-groups',
@@ -99,7 +98,7 @@ const anatomyParts: {
     title: 'Action bar',
     product: 'manager',
     description:
-      'The action bar keeps useful actions close and shows how many items you selected.',
+      'Selection actions show how many eligible tabs they affect and include a clear-selection control.',
   },
   {
     id: 'search-field',
@@ -339,7 +338,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
   const [selectedProduct, setSelectedProduct] = useState<Product>('manager')
   const [sizes, setSizes] = useState<InstanceSize[]>(['wide', 'wide'])
   const [studioPage, setStudioPage] = useState<StudioPage>('explore')
-  const [anatomyPart, setAnatomyPart] = useState<AnatomyPart>('window-rail')
+  const [anatomyPart, setAnatomyPart] = useState<AnatomyPart>('window-switcher')
   const [appearanceTarget, setAppearanceTarget] = useState(0)
   const playback = useSyncExternalStore(
     scenario.player.subscribe,
@@ -385,7 +384,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
     setDataset(nextDataset)
     setMode(nextMode)
     setSelectedProduct('manager')
-    setAnatomyPart('window-rail')
+    setAnatomyPart('window-switcher')
     setScenario(next)
   }
 
@@ -403,7 +402,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
     scenario.reset()
     setMode(next)
     setSelectedProduct('manager')
-    setAnatomyPart('window-rail')
+    setAnatomyPart('window-switcher')
     if (next === 'scripted') {
       setStudioPage('guided')
     } else if (studioPage === 'guided') {
@@ -467,7 +466,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
     setComparisonEnabled(false)
     setStudioPage('explore')
     setSizes(['wide', 'wide'])
-    setAnatomyPart('window-rail')
+    setAnatomyPart('window-switcher')
     setAppearanceTarget(0)
   }
 

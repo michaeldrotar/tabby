@@ -1,8 +1,87 @@
 {
   "currentWindowId": 1,
   "windows": [
-    { "id": 1, "focused": true },
-    { "id": 2, "focused": false }
+    {
+      "id": 1,
+      "focused": true,
+      "name": "Tabby",
+      "icon": "code",
+      "iconColor": "blue"
+    },
+    {
+      "id": 2,
+      "focused": false,
+      "name": "Reading room",
+      "icon": "book",
+      "iconColor": "green"
+    },
+    {
+      "id": 3,
+      "focused": false,
+      "name": "Design explorations",
+      "icon": "palette",
+      "iconColor": "pink"
+    },
+    {
+      "id": 4,
+      "focused": false,
+      "name": "Product research and ideas for the next big release",
+      "icon": "flask",
+      "iconColor": "purple"
+    },
+    {
+      "id": 5,
+      "focused": false
+    },
+    {
+      "id": 6,
+      "focused": false,
+      "name": "Personal",
+      "icon": "heart",
+      "iconColor": "red"
+    },
+    {
+      "id": 7,
+      "focused": false,
+      "name": "Engineering",
+      "icon": "code",
+      "iconColor": "orange"
+    },
+    {
+      "id": 8,
+      "focused": false,
+      "name": "Project Atlas",
+      "icon": "globe",
+      "iconColor": "orange"
+    },
+    {
+      "id": 9,
+      "focused": false,
+      "name": "Weekend plans",
+      "icon": "coffee",
+      "iconColor": "orange"
+    },
+    {
+      "id": 10,
+      "focused": false,
+      "name": "Learning",
+      "icon": "book",
+      "iconColor": "orange"
+    },
+    {
+      "id": 11,
+      "focused": false,
+      "name": "Soundtrack",
+      "icon": "music",
+      "iconColor": "orange"
+    },
+    {
+      "id": 12,
+      "focused": false,
+      "name": "Client work",
+      "icon": "briefcase",
+      "iconColor": "orange"
+    }
   ],
   "groups": [
     {
@@ -19,13 +98,14 @@
       "windowId": 1,
       "title": "Project notes",
       "url": "https://docs.google.com/document/project",
-      "active": true
+      "active": true,
+      "pinned": true
     },
     {
       "id": 2,
       "windowId": 1,
       "groupId": 10,
-      "title": "Tabby · Pull requests",
+      "title": "Tabby \u00b7 Pull requests",
       "url": "https://github.com/michaeldrotar/tabby/pulls"
     },
     {
@@ -58,14 +138,14 @@
     {
       "id": 9,
       "windowId": 2,
-      "title": "Tabby · Pull requests",
+      "title": "Tabby \u00b7 Pull requests",
       "url": "https://github.com/michaeldrotar/tabby/pulls",
       "pinned": true
     },
     {
       "id": 7,
       "windowId": 2,
-      "title": "Tabby · Pull requests",
+      "title": "Tabby \u00b7 Pull requests",
       "url": "https://github.com/michaeldrotar/tabby/pulls",
       "active": true
     },
@@ -74,6 +154,76 @@
       "windowId": 2,
       "title": "Music",
       "url": "https://example.com/music"
+    },
+    {
+      "id": 103,
+      "windowId": 3,
+      "title": "Design explorations",
+      "url": "https://example.com/workspace/3",
+      "active": true
+    },
+    {
+      "id": 104,
+      "windowId": 4,
+      "title": "Product research and ideas for the next big release",
+      "url": "https://example.com/workspace/4",
+      "active": true
+    },
+    {
+      "id": 105,
+      "windowId": 5,
+      "title": "Untitled notebook",
+      "url": "https://example.com/workspace/5",
+      "active": true
+    },
+    {
+      "id": 106,
+      "windowId": 6,
+      "title": "Personal",
+      "url": "https://example.com/workspace/6",
+      "active": true
+    },
+    {
+      "id": 107,
+      "windowId": 7,
+      "title": "Engineering",
+      "url": "https://example.com/workspace/7",
+      "active": true
+    },
+    {
+      "id": 108,
+      "windowId": 8,
+      "title": "Project Atlas",
+      "url": "https://example.com/workspace/8",
+      "active": true
+    },
+    {
+      "id": 109,
+      "windowId": 9,
+      "title": "Weekend plans",
+      "url": "https://example.com/workspace/9",
+      "active": true
+    },
+    {
+      "id": 110,
+      "windowId": 10,
+      "title": "Learning",
+      "url": "https://example.com/workspace/10",
+      "active": true
+    },
+    {
+      "id": 111,
+      "windowId": 11,
+      "title": "Soundtrack",
+      "url": "https://example.com/workspace/11",
+      "active": true
+    },
+    {
+      "id": 112,
+      "windowId": 12,
+      "title": "Client work",
+      "url": "https://example.com/workspace/12",
+      "active": true
     }
   ],
   "preferences": {
@@ -85,8 +235,6 @@
     "themeDarkBackground": "neutral",
     "themeDarkForeground": "zinc",
     "themeDarkAccent": "blue",
-    "themeDarkAccentStrength": 15,
-    "tabManagerCompactIconMode": "active",
-    "tabManagerCompactLayout": "icon"
+    "themeDarkAccentStrength": 15
   }
 }

@@ -66,13 +66,13 @@ describe('Chrome preferences', () => {
     expect(preferences.getSnapshot().theme).toBe('dark')
     await Promise.all([
       preferences.set({ theme: 'light' }),
-      preferences.set({ tabManagerCompactLayout: 'list' }),
+      preferences.set({ themeLightForeground: 'gray' }),
     ])
     expect(mock.storage.local.set).toHaveBeenLastCalledWith({
       [storageKey]: {
         ...defaultPreferences,
         theme: 'light',
-        tabManagerCompactLayout: 'list',
+        themeLightForeground: 'gray',
       },
     })
     emit({ theme: 'dark' }, 'sync')
@@ -103,14 +103,14 @@ describe('Chrome preferences', () => {
     )
     const preferences = createChromePreferences(api)
     const loading = preferences.start()
-    const editing = preferences.set({ tabManagerCompactLayout: 'list' })
+    const editing = preferences.set({ themeLightForeground: 'gray' })
     await Promise.resolve()
     expect(mock.storage.local.set).not.toHaveBeenCalled()
     finish({ [storageKey]: { ...defaultPreferences, theme: 'dark' } })
     await Promise.all([loading, editing])
     expect(preferences.getSnapshot()).toMatchObject({
       theme: 'dark',
-      tabManagerCompactLayout: 'list',
+      themeLightForeground: 'gray',
     })
     mock.storage.local.set.mockRejectedValueOnce(
       new Error('Storage unavailable.'),

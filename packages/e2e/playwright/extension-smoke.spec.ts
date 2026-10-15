@@ -21,8 +21,25 @@ test('the built extension shares preferences and receives live tab changes', asy
     'data-theme',
     'dark',
   )
+  await page.getByRole('combobox', { name: 'Window identification' }).click()
+  await page.getByRole('option', { name: 'First tab', exact: true }).click()
   const manager = await context.newPage()
   await manager.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  await manager
+    .getByRole('button', { name: 'Edit window', exact: true })
+    .click()
+  await manager
+    .getByRole('textbox', { name: 'Name', exact: true })
+    .fill('Smoke workspace')
+  await manager.getByRole('button', { name: 'Flask icon', exact: true }).click()
+  await manager.getByRole('button', { name: 'Done', exact: true }).click()
+  await expect(manager.locator('[data-window-picker-trigger]')).toContainText(
+    'Smoke workspace',
+  )
+  await manager.reload()
+  await expect(manager.locator('[data-window-picker-trigger]')).toContainText(
+    'Smoke workspace',
+  )
   const popup = await context.newPage()
   await popup.goto(`chrome-extension://${extensionId}/omnibar/index.html`)
   for (const surface of [manager, popup])
@@ -30,6 +47,12 @@ test('the built extension shares preferences and receives live tab changes', asy
       'data-theme',
       'dark',
     )
+  await popup.getByRole('combobox').fill('Smoke workspace')
+  await expect(
+    popup.getByRole('option', {
+      name: /Smoke workspace.*Window/,
+    }),
+  ).toBeVisible()
   await popup.getByRole('combobox').fill('unfinished search')
   await popup.keyboard.down('Escape')
   await expect.poll(() => popup.isClosed()).toBe(true)
@@ -68,6 +91,9 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(row).toHaveCount(0)
   await expect.poll(() => target.isClosed()).toBe(true)
   await page.reload()
+  await expect(
+    page.getByRole('combobox', { name: 'Window identification' }),
+  ).toHaveText('First tab')
   await expect(
     page.getByRole('radio', { name: 'Dark', exact: true }),
   ).toBeChecked()

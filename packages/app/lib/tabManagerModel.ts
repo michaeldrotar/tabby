@@ -4,6 +4,8 @@ import {
   resolveSelectedTabIds,
   resolveSelectionItemTabIds,
 } from '@extension/core/actions/batchTabActions'
+import { createAsyncQueue } from '@extension/core/asyncQueue'
+import { BROWSER_TAB_GROUP_COLORS } from '@extension/core/browser'
 import {
   createEmptySelectionSnapshot,
   createSelectionInteractionState,
@@ -15,9 +17,11 @@ import {
   remapSelectedTabIds,
 } from '@extension/core/selection/TabIdentity'
 import { formatTimeAgo } from '@extension/core/time'
+import { getWindowIdentity, WINDOW_ICONS } from '@extension/core/windowIdentity'
 import { tt } from '@extension/i18n/catalog'
 import { createNotificationController } from './notifications'
 import { getTabManagerActions } from './tabManagerActions'
+import { createDefaultTabSelection } from './view'
 import type { TabManagerResources } from './TabbyProvider'
 import type { ManagerActionOptions } from './tabManagerActions'
 import type { TabManagerViewState } from './view'
@@ -69,26 +73,41 @@ export const reconcileTabManagerView = (
 ): TabManagerViewState => {
   if (snapshot.state !== 'loaded') return state
   const windowIds = new Set(snapshot.windows.map((window) => window.id))
-  const groupIds = new Set(snapshot.groups.map((group) => group.id))
-  const tabIds = new Set(snapshot.tabs.map((tab) => tab.id))
-  const previous = state.selection.selection
-  const filter = (ids: Set<number>, valid: Set<number>) =>
-    new Set([...ids].filter((id) => valid.has(id)))
-  const selection = {
-    ...previous,
-    windowIds: filter(previous.windowIds, windowIds),
-    expandedWindowIds: filter(previous.expandedWindowIds, windowIds),
-    groupIds: filter(previous.groupIds, groupIds),
-    tabIds: filter(previous.tabIds, tabIds),
-  }
   const selectedWindow = windowIds.has(state.viewedWindowId ?? -1)
     ? state.viewedWindowId
     : (snapshot.windows.find((window) => window.focused)?.id ??
       snapshot.windows[0]?.id ??
       null)
-  const selectionChanged = (
-    ['windowIds', 'expandedWindowIds', 'groupIds', 'tabIds'] as const
-  ).some((key) => selection[key].size !== previous[key].size)
+  const groupIds = new Set(
+    snapshot.groups
+      .filter((group) => group.windowId === selectedWindow)
+      .map((group) => group.id),
+  )
+  const tabIds = new Set(
+    snapshot.tabs
+      .filter((tab) => tab.windowId === selectedWindow)
+      .map((tab) => tab.id),
+  )
+  const previous = state.selection.selection
+  const filter = (ids: Set<number>, valid: Set<number>) =>
+    new Set([...ids].filter((id) => valid.has(id)))
+  const selection = {
+    ...previous,
+    groupIds: filter(previous.groupIds, groupIds),
+    tabIds: filter(previous.tabIds, tabIds),
+  }
+  const defaultSelection =
+    !selection.groupIds.size &&
+    !selection.tabIds.size &&
+    (!state.selectionCleared || selectedWindow !== state.viewedWindowId)
+      ? createDefaultTabSelection(snapshot, selectedWindow)
+      : null
+  if (defaultSelection) Object.assign(selection, defaultSelection.selection)
+  const selectionChanged = (['groupIds', 'tabIds'] as const).some(
+    (key) =>
+      selection[key].size !== previous[key].size ||
+      [...selection[key]].some((id) => !previous[key].has(id)),
+  )
   const order = getTabManagerOrder(snapshot, selectedWindow)
   const removedFocus =
     state.focusedItem &&
@@ -102,10 +121,13 @@ export const reconcileTabManagerView = (
   const invalidBase =
     base &&
     (base.tabIds.size !== filter(base.tabIds, tabIds).size ||
-      base.groupIds.size !== filter(base.groupIds, groupIds).size ||
-      base.windowIds.size !== filter(base.windowIds, windowIds).size)
+      base.groupIds.size !== filter(base.groupIds, groupIds).size)
+  const menuTarget = state.actionMenu?.target
   const invalidMenu =
-    state.actionMenu?.target && !itemExists(snapshot, state.actionMenu.target)
+    menuTarget &&
+    (menuTarget.type === 'window'
+      ? menuTarget.id !== selectedWindow
+      : !(menuTarget.type === 'tab' ? tabIds : groupIds).has(menuTarget.id))
   if (
     !selectionChanged &&
     selectedWindow === state.viewedWindowId &&
@@ -120,6 +142,9 @@ export const reconcileTabManagerView = (
   return {
     ...state,
     viewedWindowId: selectedWindow,
+    selectionCleared:
+      selectedWindow === state.viewedWindowId && state.selectionCleared,
+    scrollTop: selectedWindow === state.viewedWindowId ? state.scrollTop : 0,
     focusedItem,
     actionMenu: invalidMenu ? null : state.actionMenu,
     actionPanel: invalidMenu ? null : state.actionPanel,
@@ -129,10 +154,14 @@ export const reconcileTabManagerView = (
     renamingGroupTitle: groupIds.has(state.renamingGroupId ?? -1)
       ? state.renamingGroupTitle
       : null,
+    editingWindow: windowIds.has(state.editingWindow?.windowId ?? -1)
+      ? state.editingWindow
+      : null,
     selection: {
       selection,
-      interaction:
-        invalidAnchor || invalidBase
+      interaction: defaultSelection
+        ? defaultSelection.interaction
+        : invalidAnchor || invalidBase
           ? createSelectionInteractionState()
           : state.selection.interaction,
     },
@@ -153,11 +182,12 @@ export const projectTabManagerWindows = (
   snapshot: BrowserSnapshot,
   now: number,
   minutePrecision = false,
+  windowSource: 'active' | 'first' = 'active',
 ) => {
   const ageLabels = snapshot.tabs.map((tab) =>
     formatTimeAgo(tab.lastAccessed, now, minutePrecision),
   )
-  const clockKey = ageLabels.join('|')
+  const clockKey = windowSource + ageLabels.join('|')
   const cached = projectedWindows.get(snapshot)
   if (cached?.clockKey === clockKey) return cached
   const ageLabelsById = new Map(
@@ -179,11 +209,10 @@ export const projectTabManagerWindows = (
     const tabs = (tabsByWindow.get(window.id) ?? []).sort(
       (a, b) => a.index - b.index,
     )
-    const active = tabs.find((tab) => tab.active)
     return {
       id: window.id,
-      title: active?.title || `Window ${window.id}`,
-      iconUrl: active?.faviconUrl,
+      ...getWindowIdentity(window, tabs, windowSource),
+      name: window.name,
       incognito: window.incognito,
       active: window.focused,
       tabs: tabs.map((tab) => ({
@@ -224,22 +253,15 @@ export const projectTabManager = (
   now: number,
   options: ManagerActionOptions = {},
 ): TabManagerViewModel => {
+  const current = reconcileTabManagerView(snapshot, state)
   const data = projectTabManagerWindows(
     snapshot,
     now,
     options.reduceAgePrecision,
+    options.windowSource,
   )
-  const catalog = getTabManagerActions(snapshot, state, options)
-  const selectedGroupIds = [
-    ...new Set([
-      ...state.selection.selection.groupIds,
-      ...snapshot.groups
-        .filter((group) =>
-          state.selection.selection.windowIds.has(group.windowId),
-        )
-        .map((group) => group.id),
-    ]),
-  ]
+  const catalog = getTabManagerActions(snapshot, current, options)
+  const selectedGroupIds = [...current.selection.selection.groupIds]
   return {
     status:
       snapshot.state === 'loaded'
@@ -248,26 +270,50 @@ export const projectTabManager = (
           ? 'error'
           : 'loading',
     error: snapshot.error,
-    windows: data.windows,
+    windowSource: options.windowSource ?? 'active',
+    windows: current.editingWindow
+      ? data.windows.map((window) => {
+          const draft = current.editingWindow!
+          if (window.id !== draft.windowId) return window
+          const custom = draft.useCustom !== false
+          return {
+            ...window,
+            ...getWindowIdentity(
+              {
+                id: window.id,
+                incognito: window.incognito,
+                name: custom ? draft.name : undefined,
+                icon: custom ? draft.icon : undefined,
+                iconColor: custom ? draft.iconColor : undefined,
+              },
+              snapshot.tabs,
+              options.windowSource,
+            ),
+            name: custom ? draft.name : undefined,
+          }
+        })
+      : data.windows,
     duplicateTabIds: data.duplicateTabIds,
     actions: catalog.actions,
     contextActions: catalog.actions,
-    actionPanel: state.actionPanel,
-    renamingGroupId: state.renamingGroupId,
-    renamingGroupTitle: state.renamingGroupTitle,
-    scrollToItem: state.scrollToItem,
-    viewedWindowId: state.viewedWindowId,
-    selectedTabIds: resolveSelectedTabIds(state.selection.selection, snapshot),
+    windowPicker: current.windowPicker,
+    editingWindow: current.editingWindow,
+    actionPanel: current.actionPanel,
+    renamingGroupId: current.renamingGroupId,
+    renamingGroupTitle: current.renamingGroupTitle,
+    scrollToItem: current.scrollToItem,
+    viewedWindowId: current.viewedWindowId,
+    selectedTabIds: resolveSelectedTabIds(
+      current.selection.selection,
+      snapshot,
+    ),
     selectedGroupIds,
-    selectedGroupCount: selectedGroupIds.length,
-    selectedWindowIds: [...state.selection.selection.windowIds],
-    selectionMode: state.selection.selection.mode,
-    sidebarExpanded: state.sidebarExpanded ?? options.compactLayout === 'list',
-    focusedItem: state.focusedItem,
-    hoveredItem: state.hoveredItem,
-    actionMenu: state.actionMenu,
-    notifications: state.notifications,
-    scrollTop: state.scrollTop,
+    selectionMode: current.selection.selection.mode,
+    focusedItem: current.focusedItem,
+    hoveredItem: current.hoveredItem,
+    actionMenu: current.actionMenu,
+    notifications: current.notifications,
+    scrollTop: current.scrollTop,
   }
 }
 
@@ -324,9 +370,8 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   let previousSnapshot = backend.getSnapshot()
   const getActions = (snapshot: BrowserSnapshot, state: TabManagerViewState) =>
     getTabManagerActions(snapshot, state, {
-      identificationMode:
+      windowSource:
         resources.preferences.getSnapshot().tabManagerCompactIconMode,
-      isMac: resources.environment.platform === 'mac',
     })
   const reconcile = () => {
     let current = view.getState()
@@ -384,8 +429,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     label: string,
   ) => {
     const operation = ++generation
-    const previous = backend.getSnapshot()
-    const requestedTabIds = 'tabIds' in command ? [...command.tabIds] : []
+    const initiatingState = view.getState()
     view.setState({
       actionMenu: null,
       actionPanel: null,
@@ -412,53 +456,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     if (operation !== generation) return
     reconcile()
     const applied = outcome.status === 'success' || outcome.status === 'partial'
-    const nextSelectedIds =
-      outcome.status === 'ignored'
-        ? undefined
-        : command.type === 'close-tabs'
-          ? outcome.failures.map((failure) => failure.id)
-          : command.type === 'close-relative-tabs'
-            ? [command.tabId, ...outcome.failures.map((failure) => failure.id)]
-            : applied &&
-                (command.type === 'move-tabs' ||
-                  command.type === 'group-tabs' ||
-                  (command.type === 'tab-action' &&
-                    command.action === 'ungroup'))
-              ? requestedTabIds
-              : undefined
-    if (nextSelectedIds) {
-      const current = backend.getSnapshot()
-      const survivingIds = new Set(current.tabs.map((tab) => tab.id))
-      const remappedIds = remapSelectedTabIds(
-        new Set(nextSelectedIds),
-        findTabIdReplacements(previous.tabs, current.tabs),
-      )
-      const tabIds = new Set(
-        [...remappedIds].filter((id) => survivingIds.has(id)),
-      )
-      view.setState({
-        selection: {
-          selection: {
-            ...createEmptySelectionSnapshot(),
-            tabIds,
-            mode: tabIds.size > 1 ? 'multi-select' : 'default',
-          },
-          interaction: createSelectionInteractionState(),
-        },
-      })
-    }
-    if (
-      command.type === 'move-tabs' &&
-      outcome.succeededIds.length &&
-      applied
-    ) {
-      const destination = command.windowId ?? outcome.createdWindowIds?.[0]
-      if (destination !== undefined) {
-        view.setState({ viewedWindowId: destination, scrollTop: 0 })
-        reconcile()
-      }
-    }
-    if (command.type === 'create-tab') {
+    const sameInteraction =
+      view.getState().viewedWindowId === initiatingState.viewedWindowId &&
+      view.getState().selection.interaction ===
+        initiatingState.selection.interaction
+    if (command.type === 'create-tab' && sameInteraction) {
       const id = outcome.createdTabIds?.[0]
       const tab = backend.getSnapshot().tabs.find((tab) => tab.id === id)
       if (tab) {
@@ -466,6 +468,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         const item = { type: 'tab' as const, id: tab.id }
         view.setState({
           viewedWindowId: tab.windowId,
+          selectionCleared: false,
           focusedItem: item,
           selection: reduceSelectionIntent(
             state.selection,
@@ -487,29 +490,35 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     if (
       command.type === 'group-action' &&
       command.action.type === 'rename' &&
-      outcome.status !== 'failed'
+      outcome.status !== 'failed' &&
+      view.getState().renamingGroupId === initiatingState.renamingGroupId &&
+      view.getState().renamingGroupTitle === initiatingState.renamingGroupTitle
     ) {
       view.setState({ renamingGroupId: null, renamingGroupTitle: null })
     }
     const created = outcome.createdWindowIds?.[0]
-    if (created !== undefined) {
-      const item = { type: 'window' as const, id: created }
+    if (
+      created !== undefined &&
+      command.type === 'create-window' &&
+      sameInteraction &&
+      resources.host?.getCurrentWindowId?.() === undefined
+    ) {
+      const item = getTabManagerOrder(backend.getSnapshot(), created)[0] ?? null
       view.setState({
         viewedWindowId: created,
+        selectionCleared: false,
         scrollTop: 0,
         ...(command.type === 'create-window'
           ? {
               focusedItem: item,
-              selection: reduceSelectionIntent(
-                view.getState().selection,
-                {
-                  type: 'arrow',
-                  item,
-                  pane: 'window',
-                  forceSingleSelect: true,
+              selection: {
+                selection: {
+                  ...createEmptySelectionSnapshot(),
+                  mode: 'default',
                 },
-                backend.getSnapshot(),
-              ),
+                interaction: createSelectionInteractionState(),
+              },
+              windowPicker: false,
             }
           : {}),
       })
@@ -522,6 +531,14 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           ? created
           : undefined
     if (openWindowId !== undefined) {
+      if (
+        sameInteraction &&
+        command.type === 'activate-window' &&
+        (resources.host?.getCurrentWindowId?.() === undefined ||
+          resources.host.getCurrentWindowId() === openWindowId)
+      )
+        dispatch({ type: 'view-window', windowId: openWindowId })
+      const beforeHost = view.getState()
       try {
         await resources.host?.openWindowTabManager?.(openWindowId)
       } catch (error) {
@@ -539,17 +556,21 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       const active = backend
         .getSnapshot()
         .tabs.find((tab) => tab.windowId === openWindowId && tab.active)
-      view.setState({
-        viewedWindowId: openWindowId,
-        ...(active
-          ? {
-              scrollToItem: {
-                id: active.id,
-                revision: (view.getState().scrollToItem?.revision ?? 0) + 1,
-              },
-            }
-          : {}),
-      })
+      if (
+        view.getState().viewedWindowId === openWindowId &&
+        view.getState().selection.interaction ===
+          beforeHost.selection.interaction
+      )
+        view.setState({
+          ...(active
+            ? {
+                scrollToItem: {
+                  id: active.id,
+                  revision: (view.getState().scrollToItem?.revision ?? 0) + 1,
+                },
+              }
+            : {}),
+        })
     }
     const message = describeOutcome(outcome, label, command)
     if (message)
@@ -565,7 +586,13 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         'Close window',
       )
     const snapshot = backend.getSnapshot()
-    const selection = view.getState().selection.selection
+    const state = view.getState()
+    const record =
+      item.type === 'tab'
+        ? snapshot.tabs.find((tab) => tab.id === item.id)
+        : snapshot.groups.find((group) => group.id === item.id)
+    if (record?.windowId !== state.viewedWindowId) return
+    const selection = state.selection.selection
     const ids = isSelectionItemRepresented(item, selection, snapshot)
       ? resolveSelectedTabIds(selection, snapshot)
       : resolveSelectionItemTabIds(item, snapshot)
@@ -587,11 +614,102 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         })
     }
   }
+  const identityWrites = createAsyncQueue()
+  const persistWindow = (
+    draft: NonNullable<TabManagerViewState['editingWindow']>,
+    onSaved?: () => void,
+  ) =>
+    identityWrites.run(async () => {
+      try {
+        const result = await backend.execute({
+          type: 'name-window',
+          windowId: draft.windowId,
+          name: draft.useCustom === false ? '' : draft.name,
+          icon: draft.useCustom === false ? undefined : draft.icon,
+          iconColor: draft.useCustom === false ? undefined : draft.iconColor,
+        })
+        if (result.status === 'failed' || result.status === 'partial') {
+          setNotice({
+            message: result.failures[0]?.message ?? 'Could not save window.',
+            kind: 'error',
+          })
+          return
+        }
+        onSaved?.()
+      } catch (error) {
+        setNotice({
+          message:
+            error instanceof Error ? error.message : 'Could not save window.',
+          kind: 'error',
+        })
+      }
+    })
   const dispatch = (intent: TabManagerIntent): void | Promise<void> => {
     reconcile()
     const snapshot = backend.getSnapshot()
+    if (intent.type !== 'view-window' && !view.getState().hasUserInput)
+      view.setState({ hasUserInput: true })
     const state = view.getState()
-    if (intent.type === 'run-action') {
+    if (intent.type === 'open-window-picker') {
+      view.setState({
+        windowPicker: true,
+        editingWindow: null,
+        actionMenu: null,
+        actionPanel: null,
+      })
+    } else if (intent.type === 'dismiss-window-picker') {
+      view.setState({ windowPicker: false, actionPanel: null })
+    } else if (intent.type === 'edit-window') {
+      if (state.editingWindow) return dispatch({ type: 'save-window' })
+      const window = snapshot.windows.find(
+        (window) => window.id === state.viewedWindowId,
+      )
+      if (!window) return
+      const random = resources.environment.random ?? Math.random
+      const name = getWindowIdentity(
+        { ...window, name: undefined, icon: undefined },
+        snapshot.tabs,
+        resources.preferences.getSnapshot().tabManagerCompactIconMode,
+      ).title
+      const draft = {
+        windowId: window.id,
+        useCustom: true,
+        name: window.name || name,
+        icon:
+          window.icon ??
+          WINDOW_ICONS[Math.floor(random() * WINDOW_ICONS.length)]!,
+        iconColor:
+          window.iconColor ??
+          BROWSER_TAB_GROUP_COLORS[
+            Math.floor(random() * BROWSER_TAB_GROUP_COLORS.length)
+          ]!,
+      }
+      view.setState({
+        windowPicker: false,
+        editingWindow: draft,
+        actionMenu: null,
+        actionPanel: null,
+      })
+      return persistWindow(draft)
+    } else if (intent.type === 'change-window-draft') {
+      if (!state.editingWindow) return
+      const draft = { ...state.editingWindow, ...intent.value, useCustom: true }
+      view.setState({ editingWindow: draft })
+      return persistWindow(draft)
+    } else if (intent.type === 'reset-window') {
+      if (!state.editingWindow) return
+      const draft = { ...state.editingWindow, useCustom: false }
+      view.setState({ editingWindow: draft })
+      return persistWindow(draft, () => {
+        if (view.getState().editingWindow === draft)
+          view.setState({ editingWindow: null })
+      })
+    } else if (
+      intent.type === 'cancel-window-edit' ||
+      intent.type === 'save-window'
+    ) {
+      view.setState({ editingWindow: null })
+    } else if (intent.type === 'run-action') {
       const catalog = getActions(snapshot, state)
       const descriptor = catalog.actions.find(
         (action) => action.id === intent.actionId,
@@ -649,7 +767,9 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         (action) => action.id === intent.actionId,
       )
       if (action?.panel && !action.disabled)
-        view.setState({ actionPanel: { actionId: intent.actionId } })
+        view.setState({
+          actionPanel: { actionId: intent.actionId },
+        })
     } else if (intent.type === 'dismiss-action-panel') {
       view.setState({ actionPanel: null })
     } else if (intent.type === 'start-group-rename') {
@@ -699,34 +819,6 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           : resources.host?.openOptions
       if (action)
         return runHostAction(action, 'Could not open the requested page.')
-    } else if (intent.type === 'scroll-to-active') {
-      const active = snapshot.tabs.find(
-        (tab) =>
-          tab.windowId ===
-            (resources.host?.getCurrentWindowId?.() ?? state.viewedWindowId) &&
-          tab.active,
-      )
-      if (active) {
-        view.setState({ viewedWindowId: active.windowId })
-        view.setState({
-          scrollToItem: {
-            id: active.id,
-            revision: (state.scrollToItem?.revision ?? 0) + 1,
-          },
-        })
-        const group = snapshot.groups.find(
-          (group) => group.id === active.groupId,
-        )
-        if (group?.collapsed)
-          return execute(
-            {
-              type: 'set-group-collapsed',
-              groupId: group.id,
-              collapsed: false,
-            },
-            'Expand group',
-          )
-      }
     } else if (intent.type === 'clear-selection') {
       clearSelection()
     } else if (intent.type === 'toggle-selection-mode') {
@@ -743,68 +835,71 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         },
       })
     } else if (intent.type === 'view-window') {
+      if (!snapshot.windows.some((window) => window.id === intent.windowId))
+        return
+      if (state.viewedWindowId === intent.windowId) return
       view.setState({
         viewedWindowId: intent.windowId,
-        focusedItem: { type: 'window', id: intent.windowId },
-        selection: {
-          ...state.selection,
-          interaction: createSelectionInteractionState(),
-        },
+        editingWindow: null,
+        windowPicker: false,
+        focusedItem: getTabManagerOrder(snapshot, intent.windowId)[0] ?? null,
+        selection: createDefaultTabSelection(snapshot, intent.windowId),
+        selectionCleared: false,
         scrollTop: 0,
         actionMenu: null,
         actionPanel: null,
         renamingGroupId: null,
         renamingGroupTitle: null,
       })
-    } else if (intent.type === 'toggle-sidebar') {
-      const expanded = !(
-        state.sidebarExpanded ??
-        resources.preferences.getSnapshot().tabManagerCompactLayout === 'list'
-      )
-      if (resources.host?.onSidebarExpandedChange) {
-        view.setState({ sidebarExpanded: null })
-        return runHostAction(
-          () => resources.host?.onSidebarExpandedChange?.(expanded),
-          'Could not save sidebar layout.',
-        )
-      }
-      view.setState({ sidebarExpanded: expanded })
     } else if (intent.type === 'scroll') {
       if (state.scrollTop !== intent.top)
         view.setState({ scrollTop: intent.top })
     } else if (intent.type === 'focus-creation') {
-      view.setState({
-        focusedItem: null,
-        selection: reduceSelectionIntent(state.selection, intent, snapshot),
-      })
+      view.setState({ focusedItem: null })
     } else if (intent.type === 'focus-item') {
       if (itemExists(snapshot, intent.item))
         view.setState({ focusedItem: intent.item })
     } else if (intent.type === 'select-item') {
       const item = intent.item
-      const order =
-        item.type === 'window'
-          ? snapshot.windows.map((window) => ({
-              type: 'window' as const,
-              id: window.id,
-            }))
-          : getTabManagerOrder(snapshot, state.viewedWindowId)
+      if (
+        item.type === 'window' ||
+        !getTabManagerOrder(snapshot, state.viewedWindowId).some((candidate) =>
+          sameItem(candidate, item),
+        )
+      )
+        return
+      const order = getTabManagerOrder(snapshot, state.viewedWindowId)
+      const selection = reduceSelectionIntent(
+        state.selection,
+        {
+          type: 'click',
+          item,
+          pane: 'tab',
+          orderedItems: order,
+          shift: intent.shift ?? false,
+          toggle: intent.toggle ?? false,
+        },
+        snapshot,
+      )
+      const empty =
+        !selection.selection.tabIds.size && !selection.selection.groupIds.size
+      const explicitlyCleared = !!intent.toggle && item.type === 'tab' && empty
       view.setState({
-        selection: reduceSelectionIntent(
-          state.selection,
-          {
-            type: 'click',
-            item,
-            pane: item.type === 'window' ? 'window' : 'tab',
-            orderedItems: order,
-            shift: intent.shift ?? false,
-            toggle: intent.toggle ?? false,
-          },
-          backend.getSnapshot(),
-        ),
+        selection:
+          empty && !explicitlyCleared
+            ? createDefaultTabSelection(snapshot, state.viewedWindowId)
+            : selection,
+        selectionCleared: explicitlyCleared,
         focusedItem: item,
       })
     } else if (intent.type === 'navigate') {
+      if (intent.key === 'Escape') {
+        if (state.actionMenu || state.actionPanel)
+          view.setState({ actionMenu: null, actionPanel: null })
+        else if (state.windowPicker) view.setState({ windowPicker: false })
+        else clearSelection()
+        return
+      }
       if (intent.alt) {
         const item = state.focusedItem
         if (item && (intent.key === 'ArrowUp' || intent.key === 'ArrowDown')) {
@@ -866,55 +961,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         !(intent.toggle && intent.key.toLowerCase() === 'a')
       )
         return
-      const pane: PaneContext =
-        (intent.item ?? state.focusedItem)?.type === 'window' ||
-        (!intent.item &&
-          !state.focusedItem &&
-          state.selection.interaction.currentPane === 'window')
-          ? 'window'
-          : 'tab'
+      const pane: PaneContext = 'tab'
       if (intent.key === 'ArrowLeft' || intent.key === 'ArrowRight') {
-        const targetPane = intent.key === 'ArrowLeft' ? 'window' : 'tab'
-        if (targetPane === pane) return
-        const visibleOrder = getTabManagerOrder(snapshot, state.viewedWindowId)
-        const target =
-          targetPane === 'window'
-            ? snapshot.windows.find(
-                (window) => window.id === state.viewedWindowId,
-              )
-            : snapshot.tabs.find(
-                (tab) =>
-                  tab.windowId === state.viewedWindowId &&
-                  tab.active &&
-                  visibleOrder.some(
-                    (item) => item.type === 'tab' && item.id === tab.id,
-                  ),
-              )
-        const item = target
-          ? { type: targetPane as 'window' | 'tab', id: target.id }
-          : visibleOrder[0]
-        if (!item) return
-        view.setState({
-          selection: reduceSelectionIntent(
-            state.selection,
-            {
-              type: 'arrow',
-              item,
-              pane: targetPane,
-            },
-            backend.getSnapshot(),
-          ),
-          focusedItem: item,
-        })
         return
       }
-      const order =
-        pane === 'window'
-          ? snapshot.windows.map((window) => ({
-              type: 'window' as const,
-              id: window.id,
-            }))
-          : getTabManagerOrder(snapshot, state.viewedWindowId)
+      const order = getTabManagerOrder(snapshot, state.viewedWindowId)
       const index = order.findIndex((item) => sameItem(item, state.focusedItem))
       const delta = intent.key === 'ArrowUp' ? -1 : 1
       const item =
@@ -933,13 +984,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         )
           return dispatch({
             type: 'run-action',
-            actionId:
-              item.type === 'window' &&
-              getActions(snapshot, state).actions.some(
-                (action) => action.id === 'close-selected-windows',
-              )
-                ? 'close-selected-windows'
-                : 'close-selected-tabs',
+            actionId: 'close-selected-tabs',
           })
         return closeItem(item)
       }
@@ -949,14 +994,6 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         if (item.type === 'window') {
           return dispatch({ type: 'activate-window', windowId: item.id })
         }
-        return
-      }
-      if (intent.key === 'Escape' && state.actionMenu) {
-        view.setState({ actionMenu: null, actionPanel: null })
-        return
-      }
-      if (intent.key === 'Escape') {
-        clearSelection()
         return
       }
       const modelIntent =
@@ -973,14 +1010,18 @@ export const createTabManagerController = (resources: TabManagerResources) => {
                   orderedItems: order,
                 }
               : { type: 'arrow' as const, item, pane }
+      const selection = reduceSelectionIntent(
+        state.selection,
+        modelIntent,
+        snapshot,
+      )
       view.setState({
-        selection: reduceSelectionIntent(
-          state.selection,
-          modelIntent,
-          backend.getSnapshot(),
-        ),
+        selection:
+          !selection.selection.tabIds.size && !selection.selection.groupIds.size
+            ? createDefaultTabSelection(snapshot, state.viewedWindowId)
+            : selection,
+        selectionCleared: false,
         focusedItem: item,
-        ...(item.type === 'window' ? { viewedWindowId: item.id } : {}),
       })
     } else if (intent.type === 'create-window') {
       return execute(
@@ -997,14 +1038,23 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       return closeItem(intent.item)
     } else if (intent.type === 'close-tabs') {
       return execute(
-        { type: 'close-tabs', tabIds: intent.tabIds },
+        {
+          type: 'close-tabs',
+          tabIds: intent.tabIds.filter((id) =>
+            snapshot.tabs.some(
+              (tab) => tab.id === id && tab.windowId === state.viewedWindowId,
+            ),
+          ),
+        },
         'Close tabs',
       )
     } else if (intent.type === 'close-window') {
       return execute(intent, 'Close window')
     } else if (intent.type === 'activate-tab') {
+      dispatch({ type: 'select-item', item: { type: 'tab', id: intent.tabId } })
       return execute(intent, 'Activate tab')
     } else if (intent.type === 'activate-window') {
+      view.setState({ windowPicker: false })
       return execute(intent, 'Activate window')
     } else if (intent.type === 'set-group-collapsed') {
       return execute(intent, 'Change group')
@@ -1016,21 +1066,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     } else if (intent.type === 'open-action-menu') {
       if (intent.target) {
         const target = intent.target
-        if (target.type === 'window') {
-          view.setState({
-            selection: reduceSelectionIntent(
-              state.selection,
-              {
-                type: 'window-context-menu',
-                windowId: target.id,
-              },
-              backend.getSnapshot(),
-            ),
-            focusedItem: target,
-          })
-          view.setState({ actionMenu: { target }, actionPanel: null })
-          return
-        }
+        if (target.type === 'window') return
         const represented = isSelectionItemRepresented(
           target,
           state.selection.selection,
@@ -1054,13 +1090,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   }
   const clearSelection = () => {
     view.setState({
-      selection: reduceSelectionIntent(
-        view.getState().selection,
-        {
-          type: 'escape',
-        },
+      selection: createDefaultTabSelection(
         backend.getSnapshot(),
+        view.getState().viewedWindowId,
       ),
+      selectionCleared: false,
       actionMenu: null,
       actionPanel: null,
     })

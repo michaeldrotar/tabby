@@ -115,8 +115,8 @@ test('homepage separates the live demo and switches to a video without losing de
     'Design system',
   )
   await expect(
-    page.locator('#manage [data-selection-summary]'),
-  ).toHaveAttribute('aria-label', '0 windows, 0 tab groups, 3 tabs')
+    page.locator('#manage [data-tab-option][aria-selected="true"]'),
+  ).toHaveCount(3)
   await expect(page.locator('#find [data-omnibar] input')).toHaveValue('design')
   await expect(page.locator('.site-footer')).toContainText(
     'Made for tab-aholics like me.',
@@ -424,7 +424,7 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     .getByRole('option', { name: 'Tab: Launch checklist', exact: true })
     .click({ modifiers: ['ControlOrMeta'] })
   await expect(
-    demo.getByRole('status', { name: '0 windows, 0 tab groups, 2 tabs' }),
+    demo.getByRole('button', { name: 'More actions', exact: true }),
   ).toBeVisible()
   await demo.getByRole('button', { name: 'More actions', exact: true }).click()
   await demo.getByRole('menuitem', { name: 'Pin 2 tabs', exact: true }).click()

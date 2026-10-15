@@ -15,7 +15,7 @@ export const OptionsManagerPreferences = ({
 }: Pick<OptionsProps, 'preferences' | 'onPreferenceChange'> & {
   controlProps: OptionsControlBindings
 }) => {
-  const { tabManagerCompactIconMode, tabManagerCompactLayout } = preferences
+  const { tabManagerCompactIconMode } = preferences
   return (
     <section className="mb-6">
       <h2 className="text-foreground mb-4 text-lg font-semibold">
@@ -73,59 +73,6 @@ export const OptionsManagerPreferences = ({
                 <SelectItem value="first">First tab</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
-
-        <div
-          className={`
-            border-border flex flex-col gap-3 border-t pt-4
-            group-data-[wide=true]/options:flex-row
-            group-data-[wide=true]/options:items-center
-            group-data-[wide=true]/options:justify-between
-          `}
-        >
-          <div>
-            <h3 className="text-foreground font-medium">Sidebar layout</h3>
-            <p className="text-muted text-sm">
-              Toggle between collapsed (icon only) and expanded (list) views
-            </p>
-          </div>
-          <div className="flex items-center">
-            <label
-              className={`relative inline-flex cursor-pointer items-center`}
-            >
-              <input
-                type="checkbox"
-                name="sidebar-layout"
-                aria-label="Expanded sidebar"
-                className="peer sr-only"
-                checked={tabManagerCompactLayout === 'list'}
-                onChange={(e) =>
-                  onPreferenceChange({
-                    tabManagerCompactLayout: e.target.checked ? 'list' : 'icon',
-                  })
-                }
-              />
-              <div
-                className={`
-                  border-border bg-input peer h-6 w-11 rounded-full border
-                  after:border-border after:bg-background after:absolute
-                  after:left-[2px] after:top-[2px] after:h-5 after:w-5
-                  after:rounded-full after:border after:transition-transform
-                  after:content-['']
-                  peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
-                  peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)]
-                  peer-checked:after:translate-x-full
-                  peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-                  peer-checked:hover:after:border-accent/[calc((var(--accent-strength)+5)*1%)]
-                  peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                  peer-focus-visible:outline-none peer-focus-visible:ring-4
-                `}
-              ></div>
-              <span className="text-foreground ml-3 text-sm font-medium">
-                {tabManagerCompactLayout === 'list' ? 'Expanded' : 'Collapsed'}
-              </span>
-            </label>
           </div>
         </div>
       </div>

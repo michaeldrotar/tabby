@@ -486,7 +486,7 @@ body[data-promo-view='gallery'] #root {
 .bulk-states {
   display: grid;
   position: absolute;
-  inset: 262px 38px 44px;
+  inset: 242px 38px 44px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
@@ -523,7 +523,7 @@ body[data-promo-view='gallery'] #root {
 
 .bulk-manager {
   width: 100%;
-  height: 430px;
+  height: 475px;
   overflow: hidden;
   border-radius: 14px;
   box-shadow: 0 12px 32px #30263119;

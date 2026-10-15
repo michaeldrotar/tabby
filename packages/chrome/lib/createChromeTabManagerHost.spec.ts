@@ -77,7 +77,14 @@ describe('Chrome Tab Manager host', () => {
       { type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: NaN },
       { id: api.runtime.id },
     )
-    expect(activate.mock.calls).toEqual([[5], [9]])
+    await Promise.resolve()
+    expect(activate.mock.calls).toEqual([[5]])
+    onMessage.emit(
+      { type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 5 },
+      { id: api.runtime.id },
+    )
+    await Promise.resolve()
+    expect(activate.mock.calls).toEqual([[5], [5]])
     host.dispose()
     onMessage.emit({ type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId: 2 })
     expect(onMessage.size()).toBe(0)

@@ -11,6 +11,7 @@ export const getOmnibarTypeColor = (type: OmnibarSearchResult['type']) => {
     case 'history':
       return 'text-teal-600 dark:text-teal-400'
     case 'command':
+    case 'window':
       return 'text-purple-600 dark:text-purple-400'
     case 'url':
       return 'text-green-600 dark:text-green-400'

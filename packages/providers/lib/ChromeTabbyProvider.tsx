@@ -33,29 +33,13 @@ export const ChromeTabbyProvider = ({
     const views = createTabbyViews()
     const host = createChromeTabManagerHost(api, {
       writeClipboardText: (text) => navigator.clipboard.writeText(text),
-      onSidebarExpandedChange: (expanded) =>
-        preferences.set({
-          tabManagerCompactLayout: expanded ? 'list' : 'icon',
-        }),
       onWindowActivated: (windowId) => {
-        const snapshot = backend.getSnapshot()
-        if (!snapshot.windows.some((window) => window.id === windowId)) return
-        const active = snapshot.tabs.find(
-          (tab) => tab.windowId === windowId && tab.active,
-        )
-        views.tabManager.setState({
-          viewedWindowId: windowId,
-          ...(active
-            ? {
-                scrollToItem: {
-                  id: active.id,
-                  revision:
-                    (views.tabManager.getState().scrollToItem?.revision ?? 0) +
-                    1,
-                },
-              }
-            : {}),
-        })
+        createTabManagerController({
+          backend,
+          view: views.tabManager,
+          preferences,
+          environment: { now: Date.now, systemTheme: 'light' },
+        }).dispatch({ type: 'view-window', windowId })
       },
     })
     return {

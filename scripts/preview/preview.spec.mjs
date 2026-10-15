@@ -238,11 +238,11 @@ describe('sample Chrome interactions', () => {
     expect(attached).toEqual([[6, { newWindowId: window.id, newPosition: 0 }]])
     expect((await chrome.windows.get(window.id)).focused).toBe(true)
     await chrome.windows.remove(window.id)
-    expect(await chrome.windows.getAll()).toHaveLength(2)
+    expect(await chrome.windows.getAll()).toHaveLength(browser.windows.length)
     await expect(chrome.tabs.get(6)).rejects.toThrow('No sample browser item')
     const emptyWindow = await chrome.windows.create()
     await chrome.tabs.remove(emptyWindow.tabs[0].id)
-    expect(await chrome.windows.getAll()).toHaveLength(2)
+    expect(await chrome.windows.getAll()).toHaveLength(browser.windows.length)
   })
 
   it('ungroups tabs moved across windows and removes groups after their last tab moves', async () => {
@@ -276,6 +276,28 @@ describe('sample Chrome interactions', () => {
     ).toEqual([9, 7, 8, 2, 3, 4])
     expect(await chrome.tabGroups.query()).toEqual([])
     expect(removedGroups).toEqual([10])
+  })
+
+  it('moves an entire group between windows with its identity and order intact', async () => {
+    const chrome = loadMock()
+    const group = await chrome.tabGroups.get(10)
+    expect(await chrome.tabGroups.move(10, { windowId: 2, index: -1 })).toEqual(
+      { ...group, windowId: 2 },
+    )
+    expect(
+      (await chrome.tabs.query({ groupId: 10 })).map((tab) => ({
+        id: tab.id,
+        windowId: tab.windowId,
+      })),
+    ).toEqual([
+      { id: 2, windowId: 2 },
+      { id: 3, windowId: 2 },
+      { id: 4, windowId: 2 },
+    ])
+    expect(
+      (await chrome.tabs.query({ windowId: 2 })).map((tab) => tab.id),
+    ).toEqual([9, 7, 8, 2, 3, 4])
+    expect((await chrome.windows.getLastFocused()).id).toBe(1)
   })
 
   it('isolates preferences from the fixture and emits storage changes', async () => {

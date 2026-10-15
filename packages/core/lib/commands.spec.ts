@@ -66,7 +66,7 @@ describe('shared browser command planning', () => {
     ).toEqual([3, 2])
   })
 
-  it('resolves every exact URL duplicate across windows regardless of tab status', () => {
+  it('resolves exact URL duplicates across windows regardless of tab status', () => {
     const url = 'https://example.com/project?name=alpha#overview'
     const duplicateSnapshot: BrowserSnapshot = {
       ...snapshot,

@@ -1111,7 +1111,7 @@ summary:focus-visible {
   font-size: 10px;
 }
 
-.product-frame[data-anatomy='window-rail'] [data-nav-type='window'],
+.product-frame[data-anatomy='window-switcher'] [data-window-picker-trigger],
 .product-frame[data-anatomy='tab-groups'] [data-nav-type='group'],
 .product-frame[data-anatomy='tab-rows'] [data-nav-type='tab'],
 .product-frame[data-anatomy='action-bar'] [data-action-bar-root],
@@ -1126,7 +1126,7 @@ summary:focus-visible {
   box-shadow: 0 0 0 5px rgb(128 105 204 / 15%) !important;
 }
 
-.product-frame[data-anatomy='window-rail'] [data-nav-type='window'],
+.product-frame[data-anatomy='window-switcher'] [data-window-picker-trigger],
 .product-frame[data-anatomy='tab-groups'] [data-nav-type='group'],
 .product-frame[data-anatomy='tab-rows'] [data-nav-type='tab'],
 .product-frame[data-anatomy='action-bar'] [data-action-bar-root],

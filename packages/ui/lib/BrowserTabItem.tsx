@@ -1,14 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import {
-  ArrowUpRight,
-  Check,
-  Layers,
-  Pin,
-  Volume2,
-  VolumeOff,
-  X,
-} from 'lucide-react'
+import { Check, Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
+import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
 import {
   useShouldReduceMotion,
@@ -197,30 +190,16 @@ export const BrowserTabItem = memo(
         }
       }
 
-      const handleCloseClick = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        onClose?.()
-      }
-
       const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         // Prevent text selection when using shift+click for multi-select
         if (e.shiftKey || e.metaKey || e.ctrlKey) {
           e.preventDefault()
         }
-      }
-
-      const handleActivateClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.stopPropagation()
-        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+        if ((e.target as Element).closest('[data-tab-favicon]')) {
           rootRef.current
             ?.querySelector<HTMLElement>('[data-tab-option]')
             ?.focus({ preventScroll: true })
-          onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>)
-        } else onActivate?.()
-      }
-
-      const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!(e.shiftKey || e.metaKey || e.ctrlKey)) onActivate?.()
+        }
       }
 
       const faviconContent = (
@@ -299,7 +278,10 @@ export const BrowserTabItem = memo(
           }
           transition={transition}
           className={cn(
-            `group/tab-row relative overflow-hidden rounded-lg`,
+            `
+              group/tab-row group/closable-row relative cursor-pointer
+              overflow-hidden rounded-lg
+            `,
             // Transition for smooth mode changes
             'transition-shadow duration-150',
             `
@@ -325,6 +307,8 @@ export const BrowserTabItem = memo(
           data-discarded={discarded || undefined}
           data-audio={audio || undefined}
           data-duplicate={duplicate || undefined}
+          onClick={onClick}
+          onMouseDown={handleMouseDown}
           {...(props as Record<string, unknown>)}
         >
           <div
@@ -357,56 +341,13 @@ export const BrowserTabItem = memo(
             )}
           >
             <div
+              data-tab-favicon
               className={`
                 relative ml-2 flex size-9 flex-shrink-0 items-center
                 justify-center
               `}
             >
-              {onActivate ? (
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  data-tab-activate
-                  aria-label={`Go to tab: ${title || 'Tab'}${active ? ' (active in this window)' : ''}`}
-                  title={
-                    active
-                      ? 'Active in this window · Go to tab · Enter'
-                      : 'Go to tab · Enter'
-                  }
-                  onClick={handleActivateClick}
-                  onDoubleClick={(event) => event.stopPropagation()}
-                  onMouseDown={(event) => {
-                    if (event.shiftKey || event.metaKey || event.ctrlKey)
-                      event.preventDefault()
-                  }}
-                  className={`
-                    group/activate relative flex size-9 items-center
-                    justify-center rounded-lg transition-colors
-                    hover:bg-highlighted/70
-                    focus-visible:outline-none
-                  `}
-                >
-                  <span
-                    className={`
-                      relative flex items-center justify-center
-                      group-hover/activate:opacity-20
-                      group-focus-visible/activate:opacity-20
-                    `}
-                  >
-                    {faviconContent}
-                  </span>
-                  <ArrowUpRight
-                    aria-hidden
-                    className={`
-                      text-foreground absolute size-5 opacity-0
-                      group-hover/activate:opacity-100
-                      group-focus-visible/activate:opacity-100
-                    `}
-                  />
-                </button>
-              ) : (
-                faviconContent
-              )}
+              {faviconContent}
             </div>
             <div
               role="option"
@@ -423,9 +364,6 @@ export const BrowserTabItem = memo(
                   focus-visible:outline-none
                 `,
               )}
-              onClick={onClick}
-              onDoubleClick={handleDoubleClick}
-              onMouseDown={handleMouseDown}
               onKeyDown={handleKeyDown}
               aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
               aria-current={active ? 'page' : undefined}
@@ -528,36 +466,11 @@ export const BrowserTabItem = memo(
               </div>
             </div>
             {onClose && (
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={handleCloseClick}
-                className={cn(
-                  `
-                    text-muted flex h-11 min-h-[44px] w-11 min-w-[44px]
-                    flex-shrink-0 items-center justify-center rounded
-                    transition-opacity
-                    hover:text-foreground
-                    focus:outline-none focus:ring-0
-                    focus-visible:outline-none
-                  `,
-                  active
-                    ? 'opacity-100'
-                    : cn(
-                        'opacity-0',
-                        'group-hover/tab-row:opacity-100',
-                        'group-data-[hover=true]/tab-row:opacity-100',
-                        `
-                          group-has-[[data-tab-option]:focus-visible]/tab-row:opacity-100
-                        `,
-                        'group-has-[button:focus-visible]/tab-row:opacity-100',
-                      ),
-                )}
-                aria-label="Close tab"
-                title="Close tab"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <RowCloseButton
+                label="Close tab"
+                active={active}
+                onClose={onClose}
+              />
             )}
           </div>
         </motion.div>

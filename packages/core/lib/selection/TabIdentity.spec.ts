@@ -25,8 +25,6 @@ describe('tab replacement selection sync', () => {
         ...createSelectionInteractionState(),
         anchorItem: { type: 'tab', id: 10 },
         baseSelection: {
-          windowIds: new Set(),
-          expandedWindowIds: new Set(),
           groupIds: new Set(),
           tabIds: new Set([10, 20]),
         },
@@ -36,8 +34,6 @@ describe('tab replacement selection sync', () => {
     const result = reduceSelectionIntent(
       {
         selection: {
-          windowIds: new Set(),
-          expandedWindowIds: new Set(),
           groupIds: new Set(),
           tabIds: new Set([11, 20]),
           mode: 'default',

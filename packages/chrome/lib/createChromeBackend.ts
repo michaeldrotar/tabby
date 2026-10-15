@@ -3,10 +3,13 @@ import {
   createCommandOutcome,
   getCommandBlockReason,
   getCommandTargetIds,
+  getTabMoveUnits,
   planGroupMove,
   planTabMove,
 } from '@extension/core/commands'
 import { getChromeFaviconUrl } from './favicon.js'
+import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
+import type { WindowIdentityAssignment } from './registerWindowIdentities.js'
 import type {
   BrowserBackend,
   BrowserCommand,
@@ -18,7 +21,9 @@ import type {
 } from '@extension/core/browser'
 
 export type ChromeBackendApi = Pick<typeof chrome, 'windows' | 'tabs'> & {
-  runtime?: Pick<typeof chrome.runtime, 'getURL'>
+  runtime?: Pick<typeof chrome.runtime, 'getURL'> &
+    Partial<Pick<typeof chrome.runtime, 'sendMessage'>>
+  storage?: typeof chrome.storage
   tabGroups?: typeof chrome.tabGroups
 }
 
@@ -128,25 +133,43 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
       do {
         observedRevision = eventRevision
         try {
-          const [windows, tabs, groups] = await Promise.all([
+          const [windows, tabs, groups, identities] = await Promise.all([
             api.windows.getAll({ windowTypes: ['normal'] }),
             api.tabs.query({}),
             api.tabGroups?.query({}) ?? Promise.resolve([]),
+            api.storage?.session.get(WINDOW_IDENTITIES_KEY) ??
+              Promise.resolve({} as Record<string, unknown>),
           ])
           if (!running || generation !== currentGeneration) return
           // An event during a query may make its records stale. Requery before
           // publishing so removed records cannot be resurrected on initial load.
           if (observedRevision !== eventRevision) continue
+          const data = normalizeSnapshot(
+            windows,
+            tabs,
+            groups,
+            snapshot.tabs,
+            replacementKeys,
+            api.runtime,
+          )
+          const assigned = (identities[WINDOW_IDENTITIES_KEY] ?? {}) as Record<
+            string,
+            WindowIdentityAssignment
+          >
           publish({
             state: 'loaded',
-            ...normalizeSnapshot(
-              windows,
-              tabs,
-              groups,
-              snapshot.tabs,
-              replacementKeys,
-              api.runtime,
-            ),
+            ...data,
+            windows: data.windows.map((window) => {
+              const identity = assigned[window.id]
+              return identity?.provisional
+                ? window
+                : {
+                    ...window,
+                    name: identity?.name,
+                    icon: identity?.icon,
+                    iconColor: identity?.iconColor,
+                  }
+            }),
           })
         } catch (error) {
           if (!running || generation !== currentGeneration) return
@@ -199,6 +222,18 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
       api.tabGroups?.onUpdated,
       api.tabGroups?.onMoved,
     ]
+    if (api.storage) {
+      const onStorage = (
+        changes: Record<string, chrome.storage.StorageChange>,
+        area: string,
+      ) => {
+        if (area === 'session' && changes[WINDOW_IDENTITIES_KEY]) onChange()
+      }
+      api.storage.onChanged.addListener(onStorage)
+      removeListeners.push(() =>
+        api.storage?.onChanged.removeListener(onStorage),
+      )
+    }
     const onReplaced = (addedTabId: number, removedTabId: number) => {
       if (!running || generation !== currentGeneration) return
       replacementKeys.set(
@@ -268,6 +303,18 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
         })),
       )
     switch (command.type) {
+      case 'name-window':
+        await attempt(command.windowId, async () => {
+          if (!api.runtime?.sendMessage)
+            throw new Error('Window naming is unavailable.')
+          const response = await api.runtime.sendMessage({
+            ...command,
+            type: 'tabby-name-window',
+          })
+          if (!response?.success)
+            throw new Error(response?.error ?? 'Could not save window name.')
+        })
+        break
       case 'create-tab':
         try {
           const lastGroupTab =
@@ -354,38 +401,70 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
         break
       case 'move-tabs': {
         let windowId = command.windowId
-        for (const id of requestedIds) {
+        let blankTabId: number | undefined
+        for (const unit of getTabMoveUnits(requestedIds, snapshot)) {
+          const id = unit.tabIds[0]!
+          const failureStart = failures.length
           await attempt(id, async () => {
+            const source = snapshot.tabs.find((tab) => tab.id === id)
             if (windowId === undefined) {
-              const source = snapshot.windows.find(
-                (window) =>
-                  window.id ===
-                  snapshot.tabs.find((tab) => tab.id === id)?.windowId,
-              )
               const window = await api.windows.create({
-                tabId: id,
+                ...(unit.groupId === undefined ? { tabId: id } : {}),
                 type: 'normal',
-                incognito: source?.incognito,
+                incognito: snapshot.windows.find(
+                  (window) => window.id === source?.windowId,
+                )?.incognito,
+                focused: false,
               })
               if (!window || !hasId(window))
                 throw new Error('Chrome did not return the created window.')
               windowId = window.id
               createdWindowIds = [window.id]
-            } else if (
-              snapshot.tabs.find((tab) => tab.id === id)?.windowId !== windowId
-            )
-              await api.tabs.move(id, { windowId, index: -1 })
+              if (unit.groupId !== undefined) blankTabId = window.tabs?.[0]?.id
+              else return
+            }
+            if (source?.windowId === windowId) return
+            if (unit.groupId !== undefined)
+              await requireGroups().move(unit.groupId, { windowId, index: -1 })
+            else
+              await api.tabs.move(id, {
+                windowId,
+                index: source?.pinned
+                  ? (await api.tabs.query({ windowId, pinned: true })).length
+                  : -1,
+              })
           })
+          if (failures.length === failureStart)
+            succeededIds.push(...unit.tabIds.slice(1))
+          else
+            failures.push(
+              ...unit.tabIds.slice(1).map((id) => ({
+                id,
+                message: failures[failureStart]!.message,
+              })),
+            )
           if (windowId === undefined) {
             failures.push(
               ...requestedIds
-                .filter((other) => other !== id)
+                .filter((id) => !failures.some((failure) => failure.id === id))
                 .map((id) => ({
                   id,
                   message: 'The destination window could not be created.',
                 })),
             )
             break
+          }
+        }
+        if (
+          blankTabId !== undefined &&
+          succeededIds.length &&
+          running &&
+          generation === commandGeneration
+        ) {
+          try {
+            await api.tabs.remove(blankTabId)
+          } catch {
+            /* Keep Chrome's blank tab if cleanup is unavailable. */
           }
         }
         break
@@ -453,6 +532,7 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
             const window = await api.windows.create({
               type: 'normal',
               incognito: source?.incognito,
+              focused: false,
             })
             if (!window || !hasId(window))
               throw new Error('Chrome did not return the created window.')

@@ -27,7 +27,7 @@ const actions: TabManagerAction[] = [
     destructive: true,
   },
   {
-    id: 'move',
+    id: 'move-selected-tabs',
     label: 'Move 5 tabs to window',
     icon: 'MonitorUp',
     kind: 'secondary',
@@ -62,15 +62,14 @@ const actions: TabManagerAction[] = [
 ]
 
 const firstModel = promoManagerModel({
-  sidebarExpanded: false,
   viewedWindowId: 1,
   windows: [promoWindow(1, 'Product work', batchTabs, { active: true })],
   selectedTabIds: batchTabIds,
   selectionMode: 'multi-select',
+  actions,
 })
 
 const menuModel = promoManagerModel({
-  sidebarExpanded: false,
   viewedWindowId: 1,
   windows: [promoWindow(1, 'Product work', batchTabs, { active: true })],
   selectedTabIds: batchTabIds,
@@ -81,7 +80,6 @@ const menuModel = promoManagerModel({
 })
 
 const discardedModel = promoManagerModel({
-  sidebarExpanded: false,
   viewedWindowId: 1,
   windows: [
     promoWindow(

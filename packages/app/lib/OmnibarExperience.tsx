@@ -51,7 +51,13 @@ export const OmnibarExperience = ({
     backend: browser,
     views,
     environment,
+    preferences,
   } = useTabbyResources()
+  const preferenceState = useSyncExternalStore(
+    preferences.subscribe,
+    preferences.getSnapshot,
+    preferences.getSnapshot,
+  )
   const view = views.omnibar
   const now = environment.now()
   const metadata = useSyncExternalStore(
@@ -128,9 +134,11 @@ export const OmnibarExperience = ({
       metadata.originalWindowId,
       state.resultsQuery === state.query ? state.externalResults : [],
       now,
+      preferenceState.tabManagerCompactIconMode,
     ).map(present)
   }, [
     resource,
+    preferenceState.tabManagerCompactIconMode,
     execute,
     snapshot,
     metadata.originalWindowId,

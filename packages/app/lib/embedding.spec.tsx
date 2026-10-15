@@ -51,7 +51,7 @@ describe('ordinary web embedding', () => {
       </TabbyProvider>,
     )
     expect(html).toContain('Server tab')
-    expect(html).toContain('Search tabs, groups, bookmarks, history')
+    expect(html).toContain('Search tabs, windows, groups, bookmarks, history')
     expect(html).toContain('Appearance')
     expect(globalThis).not.toHaveProperty('chrome')
   })
