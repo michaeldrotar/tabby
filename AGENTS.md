@@ -30,6 +30,12 @@ In a worktree, if any tool or server's default port is already in use, use a dif
 - For changes affecting the Chrome Web Store listing, permissions, privacy, screenshots, or version history, maintain `CHROMEWEBSTORE.md` according to the Chrome Extensions skill and [RELEASE.md](./RELEASE.md).
 - Do not build or upload release artifacts during ordinary feature work. Use `pnpm zip` for a requested release.
 
+## Browser selection
+
+- **User browser** means the user's regular browser profile connected through the [ChatGPT browser extension](https://learn.chatgpt.com/docs/chrome-extension). Use it for websites requiring sign-in, including the [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole), so existing sessions are available. Discover available browsers and tabs with the browser-use tools (such as `mcp__cua_repl`) and explicitly select the connected browser or tab.
+- **T3 Code preview browser** means the harness's collaborative browser controlled by `preview_*` tools. Use it for local development previews, UI inspection, screenshots, and recordings. Select the browser for each part of a task; continue using T3 Code for previews when another part needs the user browser.
+- Before asking the user to sign in, check the site in the user browser. If that browser connection is unavailable, ask for help connecting it. Request sign-in only when the selected user profile actually needs it.
+
 ## Local UI Previews
 
 - Install dependencies in the worktree with `pnpm install --frozen-lockfile`. Run `pnpm preview` inside the agent thread/harness and leave it running for the user. It builds the current branch, serves the full Tab Manager with sample Chrome data, and prints the preview URL. The default port is automatically chosen; use `pnpm preview --port 5175` for a specific port.
