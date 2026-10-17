@@ -15,6 +15,7 @@ import {
   Plus,
 } from 'lucide-react'
 import { useLayoutEffect, useRef } from 'react'
+import { DragReveal } from '../../components/DragReveal'
 import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
 import {
@@ -27,6 +28,7 @@ import type { BrowserTabGroupColor } from '@extension/core'
 
 export const windowControlClass =
   'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-highlighted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70'
+const windowDropClass = 'bg-highlighted/30 text-foreground'
 const icons = {
   window: Monitor,
   briefcase: Briefcase,
@@ -65,9 +67,11 @@ export const WindowIcon = ({
 export const WindowHeader = ({
   model,
   onIntent,
+  revealing,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
+  revealing?: boolean
 }) => {
   const window = model.windows.find(
     (window) => window.id === model.viewedWindowId,
@@ -119,14 +123,16 @@ export const WindowHeader = ({
               : 'Choose a window'}
           </span>
         </span>
-        <ChevronDown
-          size={16}
-          aria-hidden="true"
-          className={cn(
-            'shrink-0 transition-transform',
-            model.windowPicker && 'rotate-180',
-          )}
-        />
+        <DragReveal active={revealing}>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={cn(
+              'shrink-0 transition-transform',
+              model.windowPicker && 'rotate-180',
+            )}
+          />
+        </DragReveal>
       </button>
       <button
         data-window-edit-trigger
@@ -146,21 +152,25 @@ export const WindowHeader = ({
 export const WindowPicker = ({
   model,
   onIntent,
+  dragging = false,
+  dropWindowId,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
+  dragging?: boolean
+  dropWindowId?: number | 'new' | null
 }) => {
   const root = useRef<HTMLDivElement>(null)
   const { canFocusInput } = useSurfaceInputOwner()
   useLayoutEffect(() => {
-    if (canFocusInput())
+    if (!dragging && canFocusInput())
       (
         root.current?.querySelector<HTMLButtonElement>(
           '[aria-current="true"]',
         ) ??
         root.current?.querySelector<HTMLButtonElement>('[data-window-choice]')
       )?.focus()
-  }, [canFocusInput])
+  }, [canFocusInput, dragging])
   return (
     <div
       ref={root}
@@ -222,6 +232,7 @@ export const WindowPicker = ({
                 'min-h-16 w-full justify-start gap-3 py-3 pr-12 text-left',
                 window.id === model.viewedWindowId &&
                   'bg-accent/[calc(var(--accent-strength)*1%)]',
+                dropWindowId === window.id && windowDropClass,
               )}
               onClick={() =>
                 onIntent({ type: 'activate-window', windowId: window.id })
@@ -251,22 +262,29 @@ export const WindowPicker = ({
                 </span>
               </span>
             </button>
-            <RowCloseButton
-              label={`Close window: ${window.title}`}
-              title="Close window"
-              active={window.id === model.viewedWindowId}
-              className="absolute right-1"
-              onClose={() =>
-                onIntent({ type: 'close-window', windowId: window.id })
-              }
-            />
+            {!dragging && (
+              <RowCloseButton
+                label={`Close window: ${window.title}`}
+                title="Close window"
+                active={window.id === model.viewedWindowId}
+                className="absolute right-1"
+                onClose={() =>
+                  onIntent({ type: 'close-window', windowId: window.id })
+                }
+              />
+            )}
           </div>
         ))}
       </div>
       <button
         type="button"
         aria-label="New window"
-        className={cn(windowControlClass, 'mt-2 w-full justify-start gap-3')}
+        data-new-window
+        className={cn(
+          windowControlClass,
+          'mt-2 w-full justify-start gap-3',
+          dropWindowId === 'new' && windowDropClass,
+        )}
         onClick={() => onIntent({ type: 'create-window' })}
       >
         <Plus size={20} />

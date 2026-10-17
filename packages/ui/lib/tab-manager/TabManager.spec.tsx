@@ -55,6 +55,39 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('keeps the requested tab revealed when mounting loaded data', async () => {
+    const original = HTMLElement.prototype.scrollIntoView
+    HTMLElement.prototype.scrollIntoView = function () {
+      const viewport = this.closest<HTMLElement>(
+        '[data-radix-scroll-area-viewport]',
+      )
+      if (viewport) viewport.scrollTop = 600
+    }
+    try {
+      const { container } = render(
+        <Surface>
+          <TabManager
+            model={{
+              ...model,
+              scrollTop: 0,
+              scrollToItem: { id: 10, revision: 1, focus: true },
+            }}
+            onIntent={vi.fn()}
+          />
+        </Surface>,
+      )
+      await waitFor(() =>
+        expect(
+          container.querySelector('[data-radix-scroll-area-viewport]')
+            ?.scrollTop,
+        ).toBe(600),
+      )
+      expect(screen.getByRole('option', { name: 'Tab: Tabby' })).toHaveFocus()
+    } finally {
+      HTMLElement.prototype.scrollIntoView = original
+    }
+  })
+
   it('keeps the window header and tools reachable with no selection actions', () => {
     const onIntent = vi.fn()
     const { container } = render(

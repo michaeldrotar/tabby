@@ -74,6 +74,12 @@ export type GroupAction =
   | { type: 'move-backward' }
   | { type: 'move-forward' }
 
+export type TabPlacement = {
+  windowId: number
+  beforeTabId?: number
+  groupId?: number
+}
+
 export type BrowserCommand =
   | {
       type: 'name-window'
@@ -88,6 +94,7 @@ export type BrowserCommand =
   | { type: 'move-group'; groupId: number; windowId?: number }
   | { type: 'tab-action'; action: TabAction; tabIds: readonly number[] }
   | { type: 'move-tabs'; tabIds: readonly number[]; windowId?: number }
+  | { type: 'place-tabs'; tabIds: readonly number[]; destination: TabPlacement }
   | { type: 'group-tabs'; tabIds: readonly number[]; groupId?: number }
   | { type: 'group-action'; action: GroupAction; groupIds: readonly number[] }
   | { type: 'move-tab'; tabId: number; direction: 'backward' | 'forward' }
@@ -129,7 +136,10 @@ export interface BrowserBackend {
 
 export interface HostCapabilities {
   getCurrentWindowId?: () => number | undefined
-  openWindowTabManager?: (windowId: number) => Promise<void>
+  openWindowTabManager?: (
+    windowId: number,
+    tabIds?: readonly number[],
+  ) => Promise<void>
   openSearch?: () => void | Promise<void>
   openOptions?: () => void | Promise<void>
   writeClipboardText?: (text: string) => Promise<void>

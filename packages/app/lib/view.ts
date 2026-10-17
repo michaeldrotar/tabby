@@ -31,7 +31,7 @@ export type TabManagerViewState = {
   actionPanel: TabManagerViewModel['actionPanel']
   renamingGroupId: number | null
   renamingGroupTitle: string | null
-  scrollToItem: { id: number; revision: number } | null
+  scrollToItem: { id: number; revision: number; focus?: boolean } | null
 }
 
 export const createTabManagerView = (

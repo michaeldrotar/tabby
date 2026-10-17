@@ -18,7 +18,11 @@ const setup = () => {
   const onMessage = event(),
     onFocusChanged = event()
   const api = {
-    windows: { getCurrent: vi.fn(async () => ({ id: 5 })), onFocusChanged },
+    windows: {
+      getCurrent: vi.fn(async () => ({ id: 5 })),
+      update: vi.fn(async () => ({ id: 9, focused: true })),
+      onFocusChanged,
+    },
     sidePanel: { open: vi.fn(async () => {}) },
     action: { openPopup: vi.fn(async () => {}) },
     runtime: {
@@ -56,6 +60,10 @@ describe('Chrome Tab Manager host', () => {
       windowId: 9,
     })
     expect(api.sidePanel.open).toHaveBeenCalledWith({ windowId: 9 })
+    expect(api.windows.update).toHaveBeenCalledWith(9, { focused: true })
+    expect(api.windows.update.mock.invocationCallOrder[0]).toBeGreaterThan(
+      api.sidePanel.open.mock.invocationCallOrder[0]!,
+    )
     onFocusChanged.emit(9)
     onFocusChanged.emit(5)
     onMessage.emit(
@@ -112,4 +120,37 @@ describe('Chrome Tab Manager host', () => {
     expect(host.capabilities.getCurrentWindowId!()).toBe(5)
     host.dispose()
   })
+})
+
+it('retains a moved selection until the destination is ready, then consumes it once', async () => {
+  const { api } = setup()
+  const stored: Record<string, unknown> = { 'tabby-moved-tabs-5': [11, 12] }
+  const session = {
+    get: async (key: string) => ({ [key]: stored[key] }),
+    remove: async (key: string) => {
+      delete stored[key]
+    },
+  }
+  let ready = false
+  const received: number[][] = []
+  const host = createChromeTabManagerHost(
+    { ...api, storage: { session } } as unknown as ChromeTabManagerHostApi,
+    {
+      writeClipboardText: async () => {},
+      onWindowActivated: (_, ids) => {
+        if (!ready) return false
+        if (ids) received.push([...ids])
+        return true
+      },
+    },
+  )
+  await host.start()
+  await host.restoreMovedTabs()
+  expect(stored).toEqual({ 'tabby-moved-tabs-5': [11, 12] })
+  ready = true
+  await host.restoreMovedTabs()
+  await host.restoreMovedTabs()
+  expect(received).toEqual([[11, 12]])
+  expect(stored).toEqual({})
+  host.dispose()
 })

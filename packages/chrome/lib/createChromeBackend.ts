@@ -7,6 +7,7 @@ import {
   planGroupMove,
   planTabMove,
 } from '@extension/core/commands'
+import { planTabPlacement } from '@extension/core/tabPlacement'
 import { getChromeFaviconUrl } from './favicon.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
 import type { WindowIdentityAssignment } from './registerWindowIdentities.js'
@@ -101,7 +102,10 @@ const normalizeSnapshot = (
   return { windows: browserWindows, tabs: browserTabs, groups: browserGroups }
 }
 
-export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
+export const createChromeBackend = (
+  api: ChromeBackendApi,
+  options: { delegateClosingWindowMoves?: boolean } = {},
+): BrowserBackend => {
   let snapshot: BrowserSnapshot = {
     state: 'loading',
     revision: 0,
@@ -204,7 +208,10 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
     const onChange = () => {
       if (running && generation === currentGeneration) void invalidate()
     }
-    const events = [
+    const events: (
+      | Pick<chrome.events.Event<() => void>, 'addListener' | 'removeListener'>
+      | undefined
+    )[] = [
       api.windows.onCreated,
       api.windows.onRemoved,
       api.windows.onFocusChanged,
@@ -302,6 +309,42 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
           message: blocked,
         })),
       )
+    if (
+      options.delegateClosingWindowMoves &&
+      api.runtime?.sendMessage &&
+      (command.type === 'move-tabs' ||
+        command.type === 'move-group' ||
+        command.type === 'place-tabs')
+    ) {
+      const ids =
+        command.type === 'move-group'
+          ? snapshot.tabs
+              .filter((tab) => tab.groupId === command.groupId)
+              .map((tab) => tab.id)
+          : command.tabIds
+      const destination =
+        command.type === 'place-tabs'
+          ? command.destination.windowId
+          : command.windowId
+      const closesSource = snapshot.windows.some((window) => {
+        const tabs = snapshot.tabs.filter((tab) => tab.windowId === window.id)
+        return (
+          window.id !== destination &&
+          tabs.length > 0 &&
+          tabs.every((tab) => ids.includes(tab.id))
+        )
+      })
+      if (closesSource) {
+        const response = await api.runtime.sendMessage({
+          type: 'tabby-move-from-closing-window',
+          command,
+        })
+        if (response?.outcome) {
+          if (running && generation === commandGeneration) await invalidate()
+          return response.outcome as CommandOutcome
+        }
+      }
+    }
     switch (command.type) {
       case 'name-window':
         await attempt(command.windowId, async () => {
@@ -399,6 +442,72 @@ export const createChromeBackend = (api: ChromeBackendApi): BrowserBackend => {
           })
         }
         break
+      case 'place-tabs': {
+        const destination = command.destination
+        const plan = planTabPlacement(snapshot, command.tabIds, destination)
+        let anchor = plan.beforeTabId
+        for (const unit of plan.units.toReversed()) {
+          const first = unit.tabIds[0]!
+          const failureStart = failures.length
+          await attempt(first, async () => {
+            const wholeGroup =
+              unit.groupId !== undefined && destination.groupId === undefined
+            if (!wholeGroup) {
+              for (const id of unit.tabIds) {
+                const tab = await api.tabs.get(id)
+                if (tab.windowId !== destination.windowId)
+                  await api.tabs.move(id, {
+                    windowId: destination.windowId,
+                    index: -1,
+                  })
+                if (destination.groupId !== undefined) {
+                  if (
+                    tab.groupId !== destination.groupId ||
+                    tab.windowId !== destination.windowId
+                  )
+                    await api.tabs.group({
+                      tabIds: id,
+                      groupId: destination.groupId,
+                    })
+                } else if (tab.groupId >= 0) await api.tabs.ungroup(id)
+              }
+            }
+            const current = (
+              await api.tabs.query({ windowId: destination.windowId })
+            )
+              .filter((tab) => !unit.tabIds.includes(tab.id!))
+              .sort((a, b) => a.index - b.index)
+            const index =
+              anchor === undefined
+                ? -1
+                : current.findIndex((tab) => tab.id === anchor)
+            if (anchor !== undefined && index < 0)
+              throw new Error('The insertion position is no longer available.')
+            if (wholeGroup)
+              await requireGroups().move(unit.groupId!, {
+                windowId: destination.windowId,
+                index,
+              })
+            else
+              await api.tabs.move(unit.tabIds, {
+                windowId: destination.windowId,
+                index,
+              })
+          })
+          if (failures.length === failureStart) {
+            succeededIds.push(...unit.tabIds.slice(1))
+            anchor = first
+          } else {
+            failures.push(
+              ...unit.tabIds.slice(1).map((id) => ({
+                id,
+                message: failures[failureStart]!.message,
+              })),
+            )
+          }
+        }
+        break
+      }
       case 'move-tabs': {
         let windowId = command.windowId
         let blankTabId: number | undefined
