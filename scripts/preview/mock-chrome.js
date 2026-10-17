@@ -138,7 +138,28 @@
         path.startsWith('_favicon/')
           ? `chrome-extension://preview/${path}`
           : new URL(`/${path}`, globalThis.location.origin).href,
-      sendMessage: async () => undefined,
+      sendMessage: async (message) => {
+        if (message.type === 'TAB_MANAGER_WINDOW_ACTIVATED') {
+          api.runtime.onMessage.emit(message, { id: api.runtime.id })
+          return
+        }
+        if (message.type !== 'tabby-name-window') return
+        find(windows, message.windowId)
+        const key = 'tabby-window-identities'
+        const values = await api.storage.session.get(key)
+        await api.storage.session.set({
+          [key]: {
+            ...values[key],
+            [message.windowId]: {
+              key: `sample-${message.windowId}`,
+              name: message.name.trim(),
+              icon: message.icon,
+              iconColor: message.iconColor,
+            },
+          },
+        })
+        return { success: true }
+      },
       openOptionsPage: async () => undefined,
       onMessage: event(),
     },
@@ -168,12 +189,34 @@
         { 'preference-storage-key': browser.preferences ?? {} },
         'local',
       ),
-      session: storageArea({}, 'session'),
+      session: storageArea(
+        {
+          'tabby-window-identities': Object.fromEntries(
+            windows
+              .filter((window) => window.name || window.icon)
+              .map((window) => [
+                window.id,
+                {
+                  key: `sample-${window.id}`,
+                  name: window.name ?? '',
+                  icon: window.icon,
+                  iconColor: window.iconColor,
+                },
+              ]),
+          ),
+        },
+        'session',
+      ),
       onChanged: storageChanged,
     },
     commands: { getAll: async () => [] },
     action: { openPopup: async () => undefined },
-    sidePanel: { open: async () => undefined },
+    sidePanel: {
+      open: async ({ windowId }) => {
+        find(windows, windowId)
+        browser.currentWindowId = windowId
+      },
+    },
     bookmarks: { search: async () => [] },
     history: { search: async () => [] },
     sessions: { getRecentlyClosed: async () => [] },
@@ -242,6 +285,67 @@
       },
     },
     tabGroups: {
+      move: async (id, { windowId, index }) => {
+        const group = find(groups, id)
+        const oldWindowId = group.windowId
+        const targetId = windowId ?? oldWindowId
+        const targetWindow = find(windows, targetId)
+        const sourceWindow = find(windows, oldWindowId)
+        if (targetWindow.incognito !== sourceWindow.incognito)
+          throw new Error('Regular and incognito tabs cannot share a window.')
+        const members = windowTabs(oldWindowId).filter(
+          (tab) => tab.groupId === id,
+        )
+        const ids = new Set(members.map((tab) => tab.id))
+        const target = windowTabs(targetId).filter((tab) => !ids.has(tab.id))
+        const firstUnpinned = target.filter((tab) => tab.pinned).length
+        const at = Math.max(
+          firstUnpinned,
+          index < 0 ? target.length : Math.min(index, target.length),
+        )
+        const targetHasActive = target.some((tab) => tab.active)
+        const changes = members.map((tab) => ({
+          id: tab.id,
+          oldPosition: tab.index,
+        }))
+        members.forEach((tab, position) => {
+          tab.windowId = targetId
+          if (oldWindowId !== targetId)
+            tab.active = !targetHasActive && position === 0
+        })
+        target.splice(at, 0, ...members)
+        orderTabs(target)
+        group.windowId = targetId
+        if (oldWindowId === targetId) {
+          changes.forEach(({ id, oldPosition }) =>
+            api.tabs.onMoved.emit(id, {
+              windowId: targetId,
+              fromIndex: oldPosition,
+              toIndex: find(tabs, id).index,
+            }),
+          )
+          api.tabGroups.onMoved.emit(clone(group))
+        } else {
+          orderTabs(windowTabs(oldWindowId))
+          api.tabGroups.onRemoved.emit({
+            ...clone(group),
+            windowId: oldWindowId,
+          })
+          api.tabGroups.onCreated.emit(clone(group))
+          changes.forEach(({ id, oldPosition }) => {
+            api.tabs.onDetached.emit(id, { oldWindowId, oldPosition })
+            api.tabs.onAttached.emit(id, {
+              newWindowId: targetId,
+              newPosition: find(tabs, id).index,
+            })
+          })
+          const remaining = windowTabs(oldWindowId)
+          if (!remaining.length) await api.windows.remove(oldWindowId)
+          else if (!remaining.some((tab) => tab.active))
+            await api.tabs.update(remaining[0].id, { active: true })
+        }
+        return clone(group)
+      },
       ...events(['onCreated', 'onUpdated', 'onRemoved', 'onMoved']),
       query: async (query = {}) =>
         clone(groups.filter((group) => matches(group, query))),

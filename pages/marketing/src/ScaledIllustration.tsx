@@ -8,6 +8,7 @@ export const ScaledIllustration = ({
   className,
   stageClassName,
   children,
+  interactive = false,
 }: {
   width: number
   height: number
@@ -15,6 +16,7 @@ export const ScaledIllustration = ({
   className: string
   stageClassName?: string
   children: ReactNode
+  interactive?: boolean
 }) => {
   const frameRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -31,7 +33,7 @@ export const ScaledIllustration = ({
       ref={frameRef}
       className={className}
       style={{ aspectRatio: `${width} / ${height}` }}
-      role="img"
+      role={interactive ? 'group' : 'img'}
       aria-label={label}
     >
       <div
@@ -40,8 +42,8 @@ export const ScaledIllustration = ({
           ${stageClassName ?? ''}
         `}
         style={{ width, height, transform: `scale(${scale})` }}
-        inert
-        aria-hidden="true"
+        inert={!interactive}
+        aria-hidden={!interactive}
       >
         {children}
       </div>

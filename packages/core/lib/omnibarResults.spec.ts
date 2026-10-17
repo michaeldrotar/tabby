@@ -72,4 +72,53 @@ describe('Omnibar result composition', () => {
       ),
     ).toEqual(['url-go', 'search-google', 'cmd-focus-window-2', 2])
   })
+  it('finds a named window beyond the numbered shortcut slots without a tab-title match', () => {
+    const windows = Array.from({ length: 12 }, (_, index) => ({
+      id: index + 1,
+      type: 'normal',
+      name: index === 11 ? 'Project Atlas' : 'Inbox',
+      icon: index === 11 ? 'globe' : undefined,
+    }))
+    const tabs = windows.map((window) => ({
+      id: window.id,
+      windowId: window.id,
+      index: 0,
+      title: 'Untitled note',
+      active: true,
+    }))
+    tabs.push(
+      ...Array.from({ length: 11 }, (_, index) => ({
+        id: index + 13,
+        windowId: 1,
+        index: index + 1,
+        title: 'Untitled note',
+        active: false,
+      })),
+    )
+    const results = getOmnibarResults(
+      'Atlas',
+      { ...snapshot, windows, tabs, groups: [] },
+      1,
+      [],
+      0,
+    )
+    expect(results.find((result) => result.windowId === 12)).toMatchObject({
+      type: 'window',
+      title: 'Project Atlas',
+      description: 'Window 12 · 1 tab',
+      windowIcon: 'globe',
+      action: { kind: 'window', windowId: 12 },
+    })
+    expect(
+      getOmnibarResults(
+        'window 12',
+        { ...snapshot, windows, tabs, groups: [] },
+        1,
+        [],
+        0,
+      )
+        .filter((result) => result.type === 'window')
+        .map((result) => result.action),
+    ).toEqual([{ kind: 'window', windowId: 12 }])
+  })
 })

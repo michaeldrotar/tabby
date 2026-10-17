@@ -1,25 +1,20 @@
 export type SelectionMode = 'default' | 'multi-select'
 
 export type SelectionState = {
-  windowIds: Set<number>
-  expandedWindowIds: Set<number>
   groupIds: Set<number>
   tabIds: Set<number>
   mode: SelectionMode
 }
 
 export type SelectionItemType = 'window' | 'group' | 'tab'
-export type PaneContext = 'window' | 'tab' | 'tree'
+export type PaneContext = 'tab' | 'tree'
 
 export type SelectionItemRef = {
   type: SelectionItemType
   id: number
 }
 
-export type SelectionSnapshot = Pick<
-  SelectionState,
-  'windowIds' | 'expandedWindowIds' | 'groupIds' | 'tabIds'
->
+export type SelectionSnapshot = Pick<SelectionState, 'groupIds' | 'tabIds'>
 
 export type SelectionInteractionState = {
   anchorItem: SelectionItemRef | null
@@ -46,7 +41,6 @@ export type SelectionIntent =
       toggle: boolean
       orderedItems: readonly SelectionItemRef[]
     }
-  | { type: 'window-context-menu'; windowId: number }
   | { type: 'space'; item: SelectionItemRef; pane: PaneContext }
   | { type: 'escape' }
   | { type: 'focus-creation'; pane: PaneContext }
@@ -83,8 +77,6 @@ export const createSelectionInteractionState =
   })
 
 export const createEmptySelectionSnapshot = (): SelectionSnapshot => ({
-  windowIds: new Set(),
-  expandedWindowIds: new Set(),
   groupIds: new Set(),
   tabIds: new Set(),
 })
@@ -94,6 +86,7 @@ export const reduceSelectionIntent = (
   intent: SelectionIntent,
   hierarchy: SelectionHierarchy = { tabs: [], groups: [] },
 ): SelectionModelContext => {
+  if ('item' in intent && intent.item.type === 'window') return context
   const selection = cloneSelection(context.selection)
   const interaction = { ...context.interaction }
   materializeChildren(selection, hierarchy)
@@ -109,29 +102,11 @@ export const reduceSelectionIntent = (
     }
   }
 
-  if (intent.type === 'window-context-menu') {
-    const item: SelectionItemRef = { type: 'window', id: intent.windowId }
-    interaction.currentPane = 'window'
-    interaction.shiftArrowAnchor = null
-
-    if (!selection.windowIds.has(intent.windowId)) {
-      selectOnly(selection, item, hierarchy)
-      selection.mode = 'default'
-      interaction.anchorItem = item
-    }
-
-    selection.expandedWindowIds.add(intent.windowId)
-    interaction.baseSelection = cloneSnapshot(selection)
-    return { selection, interaction }
-  }
-
   if (intent.type === 'click') {
     const isCrossPane =
       interaction.currentPane !== null &&
       interaction.currentPane !== intent.pane
 
-    // Command/control-click can add a window and tabs to the same selection.
-    // Plain and range clicks keep the existing single-pane behavior.
     if (isCrossPane && !intent.toggle) {
       clearSelection(selection)
       interaction.anchorItem = null
@@ -169,8 +144,6 @@ export const reduceSelectionIntent = (
       selection.mode = 'default'
     }
 
-    if (intent.item.type === 'window') expandSelectedWindows(selection)
-
     return { selection, interaction }
   }
 
@@ -190,7 +163,6 @@ export const reduceSelectionIntent = (
     }
     selection.mode = 'multi-select'
     interaction.baseSelection = cloneSnapshot(selection)
-    if (intent.item.type === 'window') expandSelectedWindows(selection)
     return { selection, interaction }
   }
 
@@ -229,7 +201,6 @@ export const reduceSelectionIntent = (
         interaction.anchorItem = intent.item
         interaction.baseSelection = createEmptySelectionSnapshot()
         selectOnly(selection, intent.item, hierarchy)
-        if (intent.pane === 'window') expandSelectedWindows(selection)
         return { selection, interaction }
       }
       anchor = interaction.anchorItem
@@ -240,7 +211,6 @@ export const reduceSelectionIntent = (
       selectOnly(selection, intent.item, hierarchy)
       interaction.anchorItem = intent.item
       interaction.baseSelection = createEmptySelectionSnapshot()
-      if (intent.pane === 'window') expandSelectedWindows(selection)
       return { selection, interaction }
     }
 
@@ -249,7 +219,6 @@ export const reduceSelectionIntent = (
     )
     for (const item of range) addItem(next, item, hierarchy)
     replaceSelection(selection, next)
-    if (intent.pane === 'window') expandSelectedWindows(selection)
     return { selection, interaction }
   }
 
@@ -260,7 +229,6 @@ export const reduceSelectionIntent = (
   const next = createEmptySelectionSnapshot()
   for (const item of intent.orderedItems) addItem(next, item, hierarchy)
   replaceSelection(selection, next)
-  if (intent.pane === 'window') expandSelectedWindows(selection)
   interaction.anchorItem = intent.orderedItems[0] ?? null
   interaction.baseSelection = cloneSnapshot(next)
   return { selection, interaction }
@@ -334,15 +302,11 @@ const cloneSelection = (
 })
 
 const cloneSnapshot = (snapshot: SelectionSnapshot): SelectionSnapshot => ({
-  windowIds: new Set(snapshot.windowIds),
-  expandedWindowIds: new Set(snapshot.expandedWindowIds),
   groupIds: new Set(snapshot.groupIds),
   tabIds: new Set(snapshot.tabIds),
 })
 
 const clearSelection = (selection: SelectionModelState): void => {
-  selection.windowIds.clear()
-  selection.expandedWindowIds.clear()
   selection.groupIds.clear()
   selection.tabIds.clear()
 }
@@ -351,8 +315,6 @@ const replaceSelection = (
   selection: SelectionModelState,
   next: SelectionSnapshot,
 ): void => {
-  selection.windowIds = new Set(next.windowIds)
-  selection.expandedWindowIds = new Set(next.expandedWindowIds)
   selection.groupIds = new Set(next.groupIds)
   selection.tabIds = new Set(next.tabIds)
 }
@@ -384,10 +346,9 @@ const hasSelectedParent = (
   const child = getParents(item, hierarchy)
   return Boolean(
     child &&
-    (selection.windowIds.has(child.windowId) ||
-      (item.type === 'tab' &&
-        child.groupId !== undefined &&
-        selection.groupIds.has(child.groupId))),
+    item.type === 'tab' &&
+    child.groupId !== undefined &&
+    selection.groupIds.has(child.groupId),
   )
 }
 
@@ -401,23 +362,12 @@ const toggleItem = (
     return
   }
   removeItem(selection, item)
-  if (item.type === 'window') {
-    for (const group of hierarchy.groups)
-      if (group.windowId === item.id) selection.groupIds.delete(group.id)
+  const child = getParents(item, hierarchy)
+  if (item.type === 'tab' && child?.groupId !== undefined)
+    selection.groupIds.delete(child.groupId)
+  if (item.type === 'group')
     for (const tab of hierarchy.tabs)
-      if (tab.windowId === item.id) selection.tabIds.delete(tab.id)
-  } else {
-    const child = getParents(item, hierarchy)
-    if (child) {
-      selection.windowIds.delete(child.windowId)
-      selection.expandedWindowIds.delete(child.windowId)
-      if (item.type === 'tab' && child.groupId !== undefined)
-        selection.groupIds.delete(child.groupId)
-    }
-    if (item.type === 'group')
-      for (const tab of hierarchy.tabs)
-        if (tab.groupId === item.id) selection.tabIds.delete(tab.id)
-  }
+      if (tab.groupId === item.id) selection.tabIds.delete(tab.id)
 }
 
 const materializeChildren = (
@@ -425,21 +375,12 @@ const materializeChildren = (
   hierarchy: SelectionHierarchy,
   parent?: SelectionItemRef,
 ): void => {
-  const includesWindow = (id: number) =>
-    parent
-      ? parent.type === 'window' && parent.id === id
-      : selection.windowIds.has(id)
   const includesGroup = (id: number) =>
     parent
       ? parent.type === 'group' && parent.id === id
       : selection.groupIds.has(id)
-  for (const group of hierarchy.groups)
-    if (includesWindow(group.windowId)) selection.groupIds.add(group.id)
   for (const tab of hierarchy.tabs)
-    if (
-      includesWindow(tab.windowId) ||
-      (tab.groupId !== undefined && includesGroup(tab.groupId))
-    )
+    if (tab.groupId !== undefined && includesGroup(tab.groupId))
       selection.tabIds.add(tab.id)
 }
 
@@ -457,20 +398,14 @@ const removeItem = (
   item: SelectionItemRef,
 ): void => {
   getItemSet(selection, item.type).delete(item.id)
-  if (item.type === 'window') selection.expandedWindowIds.delete(item.id)
 }
 
 const getItemSet = (
   selection: SelectionSnapshot,
   type: SelectionItemType,
 ): Set<number> => {
-  if (type === 'window') return selection.windowIds
   if (type === 'group') return selection.groupIds
   return selection.tabIds
-}
-
-const expandSelectedWindows = (selection: SelectionSnapshot): void => {
-  selection.expandedWindowIds = new Set(selection.windowIds)
 }
 
 const sameItem = (

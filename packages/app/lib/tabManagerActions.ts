@@ -6,8 +6,10 @@ import {
   getOtherTabIdsWithSameUrl,
   getSingleGroupRenameState,
   getTabDiscardSelectionCounts,
+  getTabMoveUnits,
   resolveSelectedTabIds,
 } from '@extension/core'
+import { getWindowIdentity } from '@extension/core/windowIdentity'
 import { t, tt } from '@extension/i18n/catalog'
 import type { TabManagerViewState } from './view'
 import type {
@@ -26,10 +28,8 @@ export type ManagerActionOperation =
   | { type: 'rename'; groupId: number }
 
 export type ManagerActionOptions = {
-  identificationMode?: 'active' | 'first'
-  compactLayout?: 'icon' | 'list'
+  windowSource?: 'active' | 'first'
   reduceAgePrecision?: boolean
-  isMac?: boolean
 }
 export type ManagerActionCatalog = {
   actions: TabManagerAction[]
@@ -55,15 +55,23 @@ const buildTabManagerActions = (
   options: ManagerActionOptions = {},
 ): ManagerActionCatalog => {
   const selection = state.selection.selection
-  const ids = resolveSelectedTabIds(selection, snapshot)
+  const ids = resolveSelectedTabIds(selection, snapshot).filter((id) =>
+    snapshot.tabs.some(
+      (tab) => tab.id === id && tab.windowId === state.viewedWindowId,
+    ),
+  )
   const tabsById = new Map(snapshot.tabs.map((tab) => [tab.id, tab]))
   const tabs = ids.flatMap((id) => {
     const tab = tabsById.get(id)
     return tab ? [tab] : []
   })
-  const groupIds = new Set(selection.groupIds)
-  for (const group of snapshot.groups)
-    if (selection.windowIds.has(group.windowId)) groupIds.add(group.id)
+  const groupIds = new Set(
+    [...selection.groupIds].filter((id) =>
+      snapshot.groups.some(
+        (group) => group.id === id && group.windowId === state.viewedWindowId,
+      ),
+    ),
+  )
   const groups = snapshot.groups.filter((group) => groupIds.has(group.id))
   const actions: TabManagerAction[] = [],
     operations = new Map<string, ManagerActionOperation>()
@@ -105,8 +113,7 @@ const buildTabManagerActions = (
     operations.set(`${actionId}:${id}`, operation)
     return { id, label, ...extras }
   }
-  if (ids.length === 0 && groupIds.size === 0 && selection.windowIds.size === 0)
-    return { actions, operations }
+  if (ids.length === 0 && groupIds.size === 0) return { actions, operations }
   command(
     'close-selected-tabs',
     `Close ${count(ids.length)}`,
@@ -116,54 +123,75 @@ const buildTabManagerActions = (
     ids.length ? undefined : 'The selection contains no tabs.',
     true,
   )
+  const wholeGroup =
+    tabs.length > 0 &&
+    tabs[0]?.groupId !== undefined &&
+    tabs.every((tab) => tab.groupId === tabs[0]!.groupId) &&
+    snapshot.tabs.filter((tab) => tab.groupId === tabs[0]!.groupId).length ===
+      tabs.length
+      ? snapshot.groups.find((group) => group.id === tabs[0]!.groupId)
+      : undefined
+  const preservesGroups = getTabMoveUnits(ids, snapshot).some(
+    (unit) => unit.groupId !== undefined,
+  )
+  const moveCommand = (windowId?: number): BrowserCommand =>
+    wholeGroup
+      ? { type: 'move-group', groupId: wholeGroup.id, windowId }
+      : { type: 'move-tabs', tabIds: ids, windowId }
   const newWindowReason = getNewWindowMoveBlockReason(ids, snapshot)
-  const moveOptions = [
-    option(
+  const onlyGroupInWindow =
+    !!wholeGroup &&
+    snapshot.tabs.filter((tab) => tab.windowId === state.viewedWindowId)
+      .length === ids.length
+  const moveOptions = snapshot.windows.map((window) => {
+    const windowTabs = snapshot.tabs
+      .filter((tab) => tab.windowId === window.id)
+      .sort((a, b) => a.index - b.index)
+    const identity = getWindowIdentity(window, windowTabs, options.windowSource)
+    const reason = ids.every(
+      (id) => tabs.find((tab) => tab.id === id)?.windowId === window.id,
+    )
+      ? 'All selected tabs are already in this window.'
+      : getMoveBlockReason(ids, snapshot, window.id)
+    return option(
       'move-selected-tabs',
-      'new',
-      `${t('tabContextMenu_newWindow')} · ${ids.length}`,
+      String(window.id),
+      identity.title,
       {
         type: 'command',
-        command: { type: 'move-tabs', tabIds: ids },
+        command: moveCommand(window.id),
         label: 'Move tabs',
       },
       {
-        icon: 'ExternalLink',
-        disabled: Boolean(newWindowReason),
-        disabledReason: newWindowReason,
+        icon: identity.icon,
+        iconUrl: identity.iconUrl,
+        windowIconColor: identity.iconColor,
+        subtitle: `${windowTabs.length} ${windowTabs.length === 1 ? 'tab' : 'tabs'}`,
+        dividerBefore: window.id === snapshot.windows[0]?.id,
+        disabled: Boolean(reason),
+        disabledReason: reason,
       },
-    ),
-    ...snapshot.windows.map((window) => {
-      const windowTabs = snapshot.tabs
-        .filter((tab) => tab.windowId === window.id)
-        .sort((a, b) => a.index - b.index)
-      const active =
-        options.identificationMode === 'first'
-          ? windowTabs[0]
-          : (windowTabs.find((tab) => tab.active) ?? windowTabs[0])
-      const reason = ids.every(
-        (id) => tabs.find((tab) => tab.id === id)?.windowId === window.id,
-      )
-        ? 'All selected tabs are already in this window.'
-        : getMoveBlockReason(ids, snapshot, window.id)
-      return option(
+    )
+  })
+  if (!onlyGroupInWindow)
+    moveOptions.push(
+      option(
         'move-selected-tabs',
-        String(window.id),
-        `${active?.title || (window.incognito ? (options.isMac ? 'Private window' : 'Incognito window') : `Window ${window.id}`)} · ${ids.length}`,
+        'new',
+        t('tabContextMenu_newWindow'),
         {
           type: 'command',
-          command: { type: 'move-tabs', tabIds: ids, windowId: window.id },
+          command: moveCommand(),
           label: 'Move tabs',
         },
         {
-          iconUrl: active?.faviconUrl,
-          dividerBefore: window.id === snapshot.windows[0]?.id,
-          disabled: Boolean(reason),
-          disabledReason: reason,
+          icon: 'Plus',
+          dividerBefore: true,
+          disabled: Boolean(newWindowReason),
+          disabledReason: newWindowReason,
         },
-      )
-    }),
-  ]
+      ),
+    )
   const moveReason = moveOptions.every((option) => option.disabled)
     ? (newWindowReason ?? 'No available destination window.')
     : undefined
@@ -178,66 +206,67 @@ const buildTabManagerActions = (
     disabledReason: moveReason,
   })
   const groupReason = getGroupActionBlockReason(ids, snapshot)
-  add({
-    id: 'group-selected-tabs',
-    label: `Group ${count(ids.length)}`,
-    icon: 'FolderPlus',
-    kind: 'primary',
-    panel: 'groups',
-    disabled: Boolean(groupReason),
-    disabledReason: groupReason,
-    options: [
-      option(
-        'group-selected-tabs',
-        'new',
-        `${t('tabContextMenu_newGroup')} · ${ids.length}`,
-        {
-          type: 'command',
-          command: { type: 'group-tabs', tabIds: ids },
-          label: 'Group tabs',
-        },
-        {
-          icon: 'Plus',
-          disabled: Boolean(groupReason),
-          disabledReason: groupReason,
-        },
-      ),
-      ...snapshot.groups
-        .filter((group) => !groupIds.has(group.id))
-        .map((group) =>
-          option(
-            'group-selected-tabs',
-            String(group.id),
-            group.title || t('tabContextMenu_untitledGroup'),
-            {
-              type: 'command',
-              command: { type: 'group-tabs', tabIds: ids, groupId: group.id },
-              label: 'Group tabs',
-            },
-            {
-              color: group.color,
-              subtitle: String(ids.length),
-              dividerBefore:
-                group.id ===
-                snapshot.groups.filter((group) => !groupIds.has(group.id))[0]
-                  ?.id,
-              disabled:
-                Boolean(groupReason) || group.windowId !== tabs[0]?.windowId,
-              disabledReason:
-                groupReason ??
-                (group.windowId !== tabs[0]?.windowId
-                  ? 'Selected tabs must be in the target group’s window.'
-                  : undefined),
-            },
+  if (!preservesGroups)
+    add({
+      id: 'group-selected-tabs',
+      label: `Group ${count(ids.length)}`,
+      icon: 'FolderPlus',
+      kind: 'primary',
+      panel: 'groups',
+      disabled: Boolean(groupReason),
+      disabledReason: groupReason,
+      options: [
+        ...snapshot.groups
+          .filter((group) => !groupIds.has(group.id))
+          .map((group, index) =>
+            option(
+              'group-selected-tabs',
+              String(group.id),
+              group.title || t('tabContextMenu_untitledGroup'),
+              {
+                type: 'command',
+                command: { type: 'group-tabs', tabIds: ids, groupId: group.id },
+                label: 'Group tabs',
+              },
+              {
+                color: group.color,
+                subtitle: String(ids.length),
+                dividerBefore: index === 0,
+                disabled:
+                  Boolean(groupReason) || group.windowId !== tabs[0]?.windowId,
+                disabledReason:
+                  groupReason ??
+                  (group.windowId !== tabs[0]?.windowId
+                    ? 'Selected tabs must be in the target group’s window.'
+                    : undefined),
+              },
+            ),
           ),
+        option(
+          'group-selected-tabs',
+          'new',
+          `${t('tabContextMenu_newGroup')} · ${ids.length}`,
+          {
+            type: 'command',
+            command: { type: 'group-tabs', tabIds: ids },
+            label: 'Group tabs',
+          },
+          {
+            icon: 'Plus',
+            dividerBefore: true,
+            disabled: Boolean(groupReason),
+            disabledReason: groupReason,
+          },
         ),
-    ],
-  })
+      ],
+    })
   if (ids.length) {
     const pinned = tabs.every((tab) => tab.pinned),
       muted = tabs.every((tab) => tab.muted)
     for (const action of [
-      pinned ? 'unpin' : 'pin',
+      ...(!preservesGroups
+        ? [pinned ? ('unpin' as const) : ('pin' as const)]
+        : []),
       'duplicate',
       'reload',
     ] as const)
@@ -379,10 +408,7 @@ const buildTabManagerActions = (
         ),
       ),
     })
-  const single =
-    ids.length === 1 && !groupIds.size && !selection.windowIds.size
-      ? tabs[0]
-      : undefined
+  const single = ids.length === 1 && !groupIds.size ? tabs[0] : undefined
   const duplicateTabIds = single
     ? getOtherTabIdsWithSameUrl(snapshot.tabs, single.id)
     : []
@@ -421,61 +447,6 @@ const buildTabManagerActions = (
         )
     }
   }
-  if (
-    selection.groupIds.size === 1 &&
-    !hasTabsOutsideGroups &&
-    !selection.windowIds.size
-  ) {
-    const groupId = [...selection.groupIds][0]!
-    command(
-      'move-group-new-window',
-      'Move group to new window',
-      'MonitorUp',
-      { type: 'move-group', groupId },
-      'secondary',
-    )
-  }
-  if (
-    selection.windowIds.size &&
-    groups.every((group) => selection.windowIds.has(group.windowId)) &&
-    tabs.every((tab) => selection.windowIds.has(tab.windowId))
-  ) {
-    const windowIds = [...selection.windowIds]
-    if (windowIds.length === 1)
-      add(
-        {
-          id: 'focus-selected-window',
-          label: 'Focus window',
-          icon: 'Focus',
-          kind: 'secondary',
-        },
-        {
-          type: 'command',
-          command: { type: 'activate-window', windowId: windowIds[0]! },
-          label: 'Focus window',
-        },
-      )
-    add(
-      {
-        id: 'close-selected-windows',
-        label:
-          windowIds.length === 1
-            ? 'Close window'
-            : `Close ${windowIds.length} windows`,
-        icon: 'Trash2',
-        kind: 'secondary',
-        destructive: true,
-      },
-      {
-        type: 'command',
-        command: { type: 'window-action', windowIds, action: 'close' },
-        label:
-          windowIds.length === 1
-            ? 'Close window'
-            : `Close ${windowIds.length} windows`,
-      },
-    )
-  }
   const counted = count(ids.length)
   const labels: Record<string, string> = {
     'close-selected-tabs': t('batch_closeTabs', counted),
@@ -508,15 +479,13 @@ const buildTabManagerActions = (
     'copy-selected-tabs': t('batch_copyTabs', counted),
     'close-other-tabs': t('tabContextMenu_closeOtherTabs'),
     'close-tabs-below': t('tabContextMenu_closeTabsBelow'),
-    'move-group-new-window': t('groupContextMenu_moveToNewWindow'),
-    'focus-selected-window': t('windowContextMenu_focusWindow'),
-    'close-selected-windows':
-      selection.windowIds.size === 1
-        ? t('windowContextMenu_closeWindow')
-        : t('batch_closeWindows', String(selection.windowIds.size)),
   }
   for (const action of actions)
-    if (labels[action.id]) action.label = labels[action.id]!
+    if (labels[action.id])
+      action.label =
+        wholeGroup && action.id === 'move-selected-tabs'
+          ? 'Move tab group to window'
+          : labels[action.id]!
   return { actions, operations }
 }
 
@@ -542,7 +511,7 @@ export const getTabManagerActions = (
     variants = new Map()
     selections.set(state.selection.selection, variants)
   }
-  const key = `${options.identificationMode ?? 'active'}:${Boolean(options.isMac)}`
+  const key = `${state.viewedWindowId}:${options.windowSource ?? 'active'}`
   const cached = variants.get(key)
   if (cached) return cached
   const catalog = buildTabManagerActions(snapshot, state, options)

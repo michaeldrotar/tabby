@@ -36,6 +36,34 @@ export const getOtherTabIdsWithSameUrl = (
   )
 }
 
+/** Move complete native groups as units; partial selections remain individual tabs. */
+export const getTabMoveUnits = (
+  tabIds: readonly number[],
+  snapshot: BrowserSnapshot,
+) => {
+  const selected = new Set(tabIds)
+  const complete = new Map(
+    snapshot.groups.flatMap((group) => {
+      const members = snapshot.tabs.filter((tab) => tab.groupId === group.id)
+      return members.length && members.every((tab) => selected.has(tab.id))
+        ? [[group.id, members.map((tab) => tab.id)] as const]
+        : []
+    }),
+  )
+  const seen = new Set<number>()
+  return tabIds.flatMap<{ groupId: number | undefined; tabIds: number[] }>(
+    (id) => {
+      const groupId = snapshot.tabs.find((tab) => tab.id === id)?.groupId
+      if (groupId !== undefined && complete.has(groupId)) {
+        if (seen.has(groupId)) return []
+        seen.add(groupId)
+        return [{ groupId, tabIds: [...complete.get(groupId)!] }]
+      }
+      return [{ groupId: undefined, tabIds: [id] }]
+    },
+  )
+}
+
 export const getCommandTargetIds = (
   command: BrowserCommand,
   snapshot?: BrowserSnapshot,
@@ -72,6 +100,7 @@ export const getCommandTargetIds = (
       return [command.tabId]
     case 'close-window':
     case 'activate-window':
+    case 'name-window':
       return [command.windowId]
     case 'move-group':
     case 'set-group-collapsed':

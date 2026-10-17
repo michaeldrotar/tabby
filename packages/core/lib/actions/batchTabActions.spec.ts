@@ -43,13 +43,9 @@ const snapshot: BatchTabSnapshot = {
 }
 
 const selection = (
-  windowIds: number[] = [],
   groupIds: number[] = [],
   tabIds: number[] = [],
-  expandedWindowIds: number[] = [],
 ): SelectionSnapshot => ({
-  windowIds: new Set(windowIds),
-  expandedWindowIds: new Set(expandedWindowIds),
   groupIds: new Set(groupIds),
   tabIds: new Set(tabIds),
 })
@@ -70,19 +66,10 @@ const createPorts = (
 })
 
 describe('batchTabActions', () => {
-  it('resolves selected tabs from windows, groups, and tabs once in stable order', () => {
+  it('resolves tabs and groups once in browser order and recognizes group children', () => {
     expect(
-      resolveSelectedTabIds(selection([10], [100], [3, 1]), snapshot),
+      resolveSelectedTabIds(selection([100], [3, 1, 2]), snapshot),
     ).toEqual([2, 1, 3])
-  })
-
-  it('resolves focused rows and detects rows represented by selected parents', () => {
-    expect(
-      resolveSelectionItemTabIds({ type: 'window', id: 20 }, snapshot),
-    ).toEqual([4, 3])
-    expect(
-      resolveSelectedTabIds(selection([20], [], [], [20]), snapshot),
-    ).toEqual([4, 3])
     expect(
       resolveSelectionItemTabIds({ type: 'group', id: 100 }, snapshot),
     ).toEqual([1])
@@ -91,22 +78,15 @@ describe('batchTabActions', () => {
     ).toEqual([2])
     expect(
       isSelectionItemRepresented(
+        { type: 'tab', id: 1 },
+        selection([100]),
+        snapshot,
+      ),
+    ).toBe(true)
+    expect(
+      isSelectionItemRepresented(
         { type: 'tab', id: 2 },
-        selection([10]),
-        snapshot,
-      ),
-    ).toBe(true)
-    expect(
-      isSelectionItemRepresented(
-        { type: 'group', id: 100 },
-        selection([10]),
-        snapshot,
-      ),
-    ).toBe(true)
-    expect(
-      isSelectionItemRepresented(
-        { type: 'window', id: 10 },
-        selection([], [], [1]),
+        selection([100]),
         snapshot,
       ),
     ).toBe(false)
@@ -136,21 +116,21 @@ describe('batchTabActions', () => {
   })
 
   it('derives group rename visibility and enabled state from selection type and count', () => {
-    expect(getSingleGroupRenameState(selection([], [], [1]))).toEqual({
+    expect(getSingleGroupRenameState(selection([], [1]))).toEqual({
       visible: false,
       enabled: false,
     })
-    expect(getSingleGroupRenameState(selection([], [100]))).toEqual({
+    expect(getSingleGroupRenameState(selection([100]))).toEqual({
       visible: true,
       enabled: true,
     })
 
-    const multipleGroups = getSingleGroupRenameState(selection([], [100, 200]))
+    const multipleGroups = getSingleGroupRenameState(selection([100, 200]))
     expect(multipleGroups.visible).toBe(true)
     expect(multipleGroups.enabled).toBe(false)
     expect(multipleGroups.reason).toContain('exactly one')
 
-    const mixed = getSingleGroupRenameState(selection([], [100], [1]))
+    const mixed = getSingleGroupRenameState(selection([100], [1]))
     expect(mixed.visible).toBe(true)
     expect(mixed.enabled).toBe(false)
   })

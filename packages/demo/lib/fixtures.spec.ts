@@ -37,10 +37,16 @@ describe('fixture builder', () => {
     })
     const window = fixture.generateWindow({
       id: 10,
+      name: 'Research desk',
+      icon: 'flask',
       tabs: [tab],
       groups: [group],
     })
     const scene = fixture.generateScene({ windows: [window] })
+    expect(scene.windows[0]).toMatchObject({
+      name: 'Research desk',
+      icon: 'flask',
+    })
     expect(scene.tabs[0]).toMatchObject({
       id: 200,
       title: 'Tabby',

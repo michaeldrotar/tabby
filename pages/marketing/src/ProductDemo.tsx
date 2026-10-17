@@ -6,19 +6,11 @@ import {
   useTabbyPreferences,
   useTabbyResources,
 } from '@extension/app'
-import { createDemoPlayer } from '@extension/demo/player'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 import { createMarketingDemo, searchExamples } from './demo'
 import type { ThemeAccentPalette } from '@extension/core'
 
-const scheduler = {
-  now: () => performance.now(),
-  schedule: (callback: () => void, delay: number) => {
-    const timer = setTimeout(callback, delay)
-    return () => clearTimeout(timer)
-  },
-}
 const accents = [
   { name: 'orange', color: '#db762e' },
   { name: 'violet', color: '#8764ce' },
@@ -96,70 +88,31 @@ const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
 export type ProductDemoProps = {
   theme?: 'light' | 'dark'
   initialExperience?: 'manager' | 'search'
-  capture?: boolean
   separated?: boolean
-  showTour?: boolean
 }
 
 export const ProductDemo = ({
   theme = 'light',
   initialExperience = 'manager',
-  capture = false,
   separated = false,
-  showTour = true,
 }: ProductDemoProps) => {
   const [demo] = useState(() => createMarketingDemo(theme))
-  const [player] = useState(() =>
-    createDemoPlayer(demo.frames, demo.restore, scheduler, (state) =>
-      structuredClone(state),
-    ),
-  )
-  const playback = useSyncExternalStore(
-    player.subscribe,
-    player.getSnapshot,
-    player.getSnapshot,
-  )
-  const [mode, setMode] = useState<'live' | 'scripted'>('live')
   const [experience, setExperience] = useState<
     'manager' | 'search' | 'options'
   >(initialExperience)
   const [notice, setNotice] = useState('')
-  const shownExperience =
-    mode === 'scripted'
-      ? demo.frames[playback.step]!.state.experience
-      : experience
-  useEffect(() => () => player.dispose(), [player])
+  const shownExperience = experience
   const explore = (next: typeof experience) => {
-    player.pause()
-    setMode('live')
     setExperience(next)
     setNotice('')
   }
-  const play = () => {
-    setNotice('')
-    if (mode === 'live') {
-      player.rewind()
-      setMode('scripted')
-      player.play()
-      return
-    }
-    setMode('scripted')
-    if (playback.playing) player.pause()
-    else player.play()
-  }
   const reset = () => {
-    player.pause()
-    player.rewind()
     demo.restore(demo.initial)
     explore(initialExperience)
   }
   return (
     <div
-      className={[
-        'product-demo',
-        capture && 'capture-demo',
-        separated && 'product-demo--separated',
-      ]
+      className={['product-demo', separated && 'product-demo--separated']
         .filter(Boolean)
         .join(' ')}
       data-demo
@@ -227,7 +180,7 @@ export const ProductDemo = ({
           `}
         >
           <TabbySurface
-            inputMode={mode === 'scripted' ? 'scripted' : 'live'}
+            inputMode="live"
             motion="system"
             className="demo-surface"
           >
@@ -246,36 +199,10 @@ export const ProductDemo = ({
         </div>
         <div className="demo-tools">
           <AppearanceControls labelled={separated} />
-          {showTour && (
-            <button type="button" className="tour-control" onClick={play}>
-              {playback.playing
-                ? 'Pause tour'
-                : playback.time === playback.duration
-                  ? 'Replay tour'
-                  : 'Play tour'}{' '}
-              <span aria-hidden="true">{playback.playing ? 'Ⅱ' : '▷'}</span>
-            </button>
-          )}
         </div>
         <div className="demo-caption" aria-live="polite">
-          {notice ||
-            (mode === 'scripted'
-              ? playback.title
-              : 'Try the tabs, search, and colors. It’s all sample data.')}
+          {notice || 'Try the tabs, search, and colors. It’s all sample data.'}
         </div>
-        {mode === 'scripted' && (
-          <label className="tour-progress">
-            Tour progress
-            <input
-              aria-label="Tour progress"
-              type="range"
-              min="0"
-              max={playback.duration}
-              value={playback.time}
-              onChange={(event) => player.seek(Number(event.target.value))}
-            />
-          </label>
-        )}
       </MemoryTabbyProvider>
     </div>
   )

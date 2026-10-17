@@ -61,6 +61,62 @@ const setup = () => {
 }
 
 describe('Omnibar experience', () => {
+  it('finds a renamed window and focuses it without changing its tabs', async () => {
+    const initial = setup().backend.getSnapshot()
+    const backend = new MemoryBackend({
+      ...initial,
+      windows: [
+        { ...initial.windows[0]!, focused: true },
+        { id: 2, name: 'Project Atlas', icon: 'book', focused: false },
+      ],
+      tabs: [
+        ...initial.tabs,
+        { id: 21, windowId: 2, index: 0, title: 'First page', active: false },
+        { id: 22, windowId: 2, index: 1, title: 'Current page', active: true },
+      ],
+    })
+    const omnibar = createMemoryOmnibarResource(backend, {
+      originalWindowId: 1,
+    })
+    const resources = createTestResources({ backend, omnibar })
+    const view = createOmnibarView({ query: 'Atlas', edited: true })
+    const dismiss = vi.fn()
+    render(
+      <TabbyProvider
+        {...resources}
+        views={{ ...resources.views, omnibar: view }}
+      >
+        <OmnibarExperience onDismiss={dismiss} />
+      </TabbyProvider>,
+    )
+    expect(
+      screen.getByRole('option', { name: /^Project Atlas Window/ }),
+    ).toBeVisible()
+    await act(() =>
+      backend.execute({
+        type: 'name-window',
+        windowId: 2,
+        name: 'Project Aurora',
+        icon: 'book',
+      }),
+    )
+    expect(
+      screen.queryByRole('option', { name: /^Project Atlas Window/ }),
+    ).toBeNull()
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'Aurora' },
+    })
+    const tabs = backend.getSnapshot().tabs
+    fireEvent.click(
+      screen.getByRole('option', { name: /^Project Aurora Window/ }),
+      { shiftKey: true },
+    )
+    await waitFor(() => expect(dismiss).toHaveBeenCalledOnce())
+    expect(
+      backend.getSnapshot().windows.find((window) => window.id === 2)?.focused,
+    ).toBe(true)
+    expect(backend.getSnapshot().tabs).toEqual(tabs)
+  })
   it('shares browser results with separate controlled views and preserves the query on dismissal', async () => {
     const resources = setup()
     const left = createOmnibarView()

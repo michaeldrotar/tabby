@@ -22,26 +22,31 @@ shortcuts shown above are the defaults.
 
 Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open tab manager** inside the search popup to open the side panel.
 
-- **Multi-Window View**: See all your open windows and easily switch between them.
-- **Tab Organization**: View and manage tabs within each window, including support for Tab Groups.
-- **Multi-selection**: Keep selected tabs, groups, and windows while browsing other windows. Selecting a group or window includes its children. Toggling a child off deselects its parents and keeps the other children selected.
+- **Window switcher:** Choose a window to bring it forward and open its Tab Manager. Each window keeps its own selection and editor state.
+- **Window names and icons:** Choose active-tab or first-tab defaults in Settings. Use the header pencil to edit a window's custom name, icon, and color; edits save immediately. Reset returns that window to the global default. Search a custom window name in the omnibar and choose its Window result to focus it while keeping its active tab.
+- **Tab and group selection:** Clicking a tab selects and activates it. Cmd/Ctrl-click toggles selection; Shift-click selects a range without activating. The active tab is selected on load and after Escape. Cmd/Ctrl+A selects all tabs and groups, including collapsed groups.
+- **Window controls:** Create and close windows in the window picker, which opens scrolled to the current window.
+- **Everyday controls:** Search and Settings stay at the bottom left, with More actions at the bottom right. Right-clicking a tab or group opens its actions beside the cursor; click an action to show its options there. New tab stays with the tabs, and New window sits at the end of the window picker.
 
-| Gesture                                     | Selection and keyboard focus                                                                               | Viewed window                                   | Chrome activation                                         |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------- |
-| Click a tab row or group name               | Select only that item and its children; focus it                                                           | Keep the current pane                           | None                                                      |
-| Click a tab favicon                         | Keep selection; focus the tab                                                                              | Keep the current pane                           | Activate the tab                                          |
-| Double-click a tab row                      | Select and focus that tab                                                                                  | Keep the current pane                           | Activate the tab                                          |
-| Click a window                              | Keep selection; focus the window                                                                           | Show that window's tabs                         | None                                                      |
-| Cmd/Ctrl-click an item, including a favicon | Toggle that item and its children; focus it                                                                | Keep the current pane                           | None                                                      |
-| Shift-click an item                         | Select a range in that pane; focus the endpoint                                                            | Keep the current pane                           | None                                                      |
-| Right-click an item                         | Focus its action menu; keep selection if it includes the item, otherwise select that item and its children | Keep the current pane                           | None                                                      |
-| Up/Down                                     | Move focus; replace selection in standard mode or keep it in multi-select mode                             | Show the focused window when navigating windows | None                                                      |
-| Left/Right                                  | Move focus between windows and tabs; use the same selection rules as Up/Down                               | Keep the current pane                           | None                                                      |
-| Space                                       | Enter multi-select mode, then toggle items; a selected parent's child can be deselected directly           | Keep the current pane                           | None                                                      |
-| Enter                                       | Keep selection                                                                                             | Show a focused window's tabs                    | Activate a tab or window; toggle a group's collapse state |
-| Escape                                      | Dismiss open menus first; otherwise clear selection across all windows                                     | Keep the current pane                           | None                                                      |
+| Gesture                          | Result                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Click a tab or press Enter on it | Select and activate that tab                                                                        |
+| Cmd/Ctrl-click a tab             | Toggle selection without activating; toggling the last selected tab leaves no selection             |
+| Shift-click a tab                | Select a range without activating                                                                   |
+| Click a group name               | Select the group and its tabs                                                                       |
+| Choose a window                  | Bring it forward and open its Tab Manager                                                           |
+| Move selected tabs or groups     | Keep managing the source window while it exists; complete groups retain their identity              |
+| Right-click a tab or group       | Preserve selection if it includes the item; otherwise select it, then open More actions             |
+| Up/Down, Home/End                | Move focus; ordinary navigation selects the item, while multi-select navigation preserves selection |
+| Space                            | Toggle selection and enter multi-select mode                                                        |
+| Cmd/Ctrl+A                       | Select all tabs and groups in the current window                                                    |
+| Escape                           | Close the current menu or editor, or restore the active-tab selection                               |
 
-Use `Cmd/Ctrl+A` to select all items in the focused pane and `Shift+Up/Down` to select a range. Arrow navigation to **New tab** or **New window** clears standard selection and preserves multi-selection. Moving keyboard focus into tabs collapses the expanded window sidebar in narrow panels.
+Up and Down connect the window header, tab list, and bottom tools. Left and Right move between header controls or bottom tools. Keyboard context menus open beside the focused item. Closing a menu with Escape restores its opening focus. Tab and Shift+Tab move between sections. Enter toggles a focused group or chooses a window in the picker. Alt/Option+Up/Down reorders a tab or group. F2 edits a group's name.
+
+Tabby names are separate from Chrome's native window names: the [Chrome windows API](https://developer.chrome.com/docs/extensions/reference/api/windows) exposes no supported native-name field or rename method. Names, icon shapes, and icon colors stay on this device. The service worker tracks a live window through its browser session and keeps hashes of its web/file URLs to match a restored window. Restore matching requires a unique, strong match; ambiguous windows stay unnamed. Window position alone never assigns a name. Duplicate cleanup closes exact URL matches across all windows and keeps the chosen tab.
+
+Closed-window fingerprints expire after 90 days, with at most 200 saved identities retained. Private-window labels last for the browser session and are excluded from persistent fingerprints.
 
 ## Privacy and security
 
@@ -121,7 +126,7 @@ The [Demo Studio guide](./pages/demo-studio/README.md) documents resource compos
 
 Run `pnpm exec turbo ready` and `pnpm test` for unit, component, and render-regression tests. The [200-tab render fixture](./packages/app/lib/TabManagerPerformance.spec.tsx) checks which rows update during selection, clock changes, tab updates, and opening and activating a tab.
 
-Run `pnpm e2e` to build and run the headless browser workflows. Tab Manager selection, grouping, movement, keyboard focus, and sidebar animation use sample data through the [shared preview mock](./scripts/preview/mock-chrome.js). One extension smoke test checks packaged pages, shared preferences, saved search, and live tab updates in an isolated profile with one normal browser window. The tests do not open desktop windows or take focus.
+Run `pnpm e2e` to build and run the headless browser workflows. Tab Manager selection, grouping, movement, keyboard focus, and window navigation use sample data through the [shared preview mock](./scripts/preview/mock-chrome.js). One extension smoke test checks packaged pages, shared preferences, saved search, and live tab updates in an isolated profile with one normal browser window. The tests do not open desktop windows or take focus.
 
 Run `pnpm test:demo-studio` for the headless Demo Studio workflows, including the 400-tab fixture. To inspect the Tab Manager manually, run `pnpm preview` and use the sample-data preview.
 

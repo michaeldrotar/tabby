@@ -5,6 +5,8 @@ export const getOmnibarActionLabel = (
   modifier?: 'new-tab' | 'new-window',
 ) => {
   switch (item.type) {
+    case 'window':
+      return 'Focus'
     case 'tab':
       if (modifier === 'new-tab') return 'Open in new tab'
       if (modifier === 'new-window') return 'Open in new window'

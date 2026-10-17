@@ -1,17 +1,23 @@
 import { t } from '@extension/i18n/catalog'
-import { Plus, Search, Settings } from 'lucide-react'
+import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
+import { Plus } from 'lucide-react'
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
 import { BrowserTabList } from '../BrowserTabList'
-import { Skeleton } from '../components/Skeleton'
 import { TabListSkeleton } from '../components/TabListSkeleton'
-import { useSurface } from '../Surface'
+import { useSurface, useSurfaceInputOwner } from '../Surface'
+import {
+  useShouldReduceMotion,
+  useShouldSettleMotion,
+} from '../useShouldReduceMotion'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
-import { creationItemFocusClass, SidebarAction } from './ui/SidebarAction'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
 import { TabManagerShell } from './ui/TabManagerShell'
-import { TabManagerSidebar } from './ui/TabManagerSidebar'
-import { WindowRailItem } from './ui/WindowRailItem'
+import {
+  WindowHeader,
+  WindowIdentityEditor,
+  WindowPicker,
+} from './ui/WindowNavigation'
 import type {
   BrowserTabListItemData,
   BrowserTabListTab,
@@ -44,7 +50,10 @@ export type TabManagerGroupView = {
 export type TabManagerWindowView = {
   id: number
   title: string
+  name?: string
+  icon?: string
   iconUrl?: string
+  iconColor?: BrowserTabGroupColor
   incognito?: boolean
   active?: boolean
   tabs: TabManagerTabView[]
@@ -57,6 +66,7 @@ export type TabManagerActionOption = {
   icon?: string
   iconUrl?: string
   color?: BrowserTabGroupColor
+  windowIconColor?: BrowserTabGroupColor
   disabled?: boolean
   disabledReason?: string
   destructive?: boolean
@@ -76,6 +86,15 @@ export type TabManagerAction = {
 }
 export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
+  windowSource?: 'active' | 'first'
+  windowPicker?: boolean
+  editingWindow?: {
+    windowId: number
+    useCustom?: boolean
+    name: string
+    icon?: string
+    iconColor?: BrowserTabGroupColor
+  } | null
   actions?: TabManagerAction[]
   contextActions?: TabManagerAction[]
   actionPanel?: { actionId: string } | null
@@ -85,12 +104,7 @@ export type TabManagerViewModel = {
   viewedWindowId: number | null
   selectedTabIds: number[]
   selectedGroupIds: number[]
-  selectedGroupCount?: number
-  selectedWindowIds: number[]
   selectionMode: 'default' | 'multi-select'
-  sidebarExpanded: boolean
-  compactIconMode?: 'active' | 'first'
-  compactLayout?: 'icon' | 'list'
   focusedItem?: TabManagerItem | null
   hoveredItem?: TabManagerItem | null
   actionMenu?: { target?: TabManagerItem } | null
@@ -106,6 +120,16 @@ export type TabManagerViewModel = {
 }
 export type TabManagerIntent =
   | { type: 'view-window'; windowId: number }
+  | { type: 'open-window-picker' }
+  | { type: 'dismiss-window-picker' }
+  | { type: 'edit-window' }
+  | {
+      type: 'change-window-draft'
+      value: { name?: string; icon?: string; iconColor?: BrowserTabGroupColor }
+    }
+  | { type: 'save-window' }
+  | { type: 'cancel-window-edit' }
+  | { type: 'reset-window' }
   | {
       type: 'select-item'
       item: TabManagerItem
@@ -122,7 +146,6 @@ export type TabManagerIntent =
     }
   | { type: 'focus-item'; item: TabManagerItem }
   | { type: 'focus-creation'; pane: 'window' | 'tab' }
-  | { type: 'toggle-sidebar' }
   | { type: 'create-window' }
   | { type: 'create-tab'; windowId: number; groupId?: number }
   | { type: 'run-action'; actionId: string; optionId?: string }
@@ -134,7 +157,6 @@ export type TabManagerIntent =
   | { type: 'cancel-group-rename' }
   | { type: 'open-search' }
   | { type: 'open-settings' }
-  | { type: 'scroll-to-active' }
   | { type: 'toggle-selection-mode' }
   | { type: 'clear-selection' }
   | { type: 'close-tabs'; tabIds: number[] }
@@ -159,7 +181,7 @@ export type TabManagerProps = {
 const navigationSelector =
   '[data-nav-type="window"], [data-tab-option], [data-group-option], [data-create-item]'
 const controlSelector = 'button,summary,[data-tab-option],[data-group-option]'
-const sectionOrder = ['sidebar', 'windows', 'tools', 'tabs', 'actions']
+const sectionOrder = ['header', 'tabs', 'actions', 'tools']
 
 const sameItem = (
   a: TabManagerItem | null | undefined,
@@ -177,6 +199,31 @@ const itemAt = (target: EventTarget | null): TabManagerItem | undefined => {
   return undefined
 }
 
+const PaneTransition = ({
+  children,
+  onReady,
+}: {
+  children: React.ReactNode
+  onReady: () => void
+}) => {
+  const present = useIsPresent()
+  const reduced = useShouldReduceMotion()
+  const settleList = useShouldSettleMotion()
+  const settle = reduced || settleList
+  useLayoutEffect(onReady, [onReady])
+  return (
+    <motion.div
+      inert={!present}
+      initial={{ opacity: settle ? 1 : 0, y: settle ? 0 : 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: settle ? 0 : -4 }}
+      transition={{ duration: settle ? 0 : 0.1, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 /** Complete controlled presentation; behavior and external effects are supplied by its host. */
 export const TabManager = ({
   model,
@@ -185,6 +232,7 @@ export const TabManager = ({
   focusOnMount = false,
 }: TabManagerProps) => {
   const surface = useSurface()
+  const { canFocusInput } = useSurfaceInputOwner()
   const rootRef = useRef<HTMLDivElement>(null)
   const initialFocusApplied = useRef(false)
   const pendingKeyboardFocus = useRef(false)
@@ -193,25 +241,106 @@ export const TabManager = ({
     knownIds: Set<number>
   } | null>(null)
   const pendingMenuFocus = useRef(false)
+  const pendingPaneFocus = useRef<string | null>(null)
   const physicalFocusOwner = useRef<HTMLElement | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const menuPosition = useRef<{ x: number; y: number } | null>(null)
+  const menuReturnFocus = useRef<HTMLElement | null>(null)
   const live = !surface || surface.inputMode === 'live'
   const viewedWindow = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
   const selectedTabIds = new Set(model.selectedTabIds)
+  const pickerVisible = !!model.windowPicker
+  const previousPane = useRef({
+    picker: pickerVisible,
+    editing: !!model.editingWindow,
+    windowId: model.viewedWindowId,
+  })
+  const focusPane = useCallback(() => {
+    if (!live || !canFocusInput() || !pendingPaneFocus.current) return
+    const document = rootRef.current?.ownerDocument
+    const active = document?.activeElement
+    if (
+      active !== document?.body &&
+      !rootRef.current?.contains(active ?? null) &&
+      !surface?.portalHost?.contains(active ?? null)
+    ) {
+      pendingPaneFocus.current = null
+      return
+    }
+    const target = rootRef.current?.querySelector<HTMLElement>(
+      pendingPaneFocus.current,
+    )
+    if (target) {
+      target.focus({ preventScroll: true })
+      pendingPaneFocus.current = null
+    }
+  }, [live, canFocusInput, surface?.portalHost])
+  useLayoutEffect(() => {
+    const previous = previousPane.current
+    previousPane.current = {
+      picker: pickerVisible,
+      editing: !!model.editingWindow,
+      windowId: model.viewedWindowId,
+    }
+    if (!live || pickerVisible || model.editingWindow || !canFocusInput())
+      return
+    if (
+      previous.picker ||
+      previous.editing ||
+      previous.windowId !== model.viewedWindowId
+    ) {
+      const item = model.focusedItem
+      pendingPaneFocus.current =
+        previous.windowId !== model.viewedWindowId
+          ? item?.type === 'tab'
+            ? `[data-tab-id="${item.id}"] [data-tab-option]`
+            : item?.type === 'group'
+              ? `[data-group-id="${item.id}"] [data-group-option]`
+              : '[data-window-picker-trigger]'
+          : previous.editing
+            ? '[data-window-edit-trigger]'
+            : '[data-window-picker-trigger]'
+      focusPane()
+    }
+  }, [
+    live,
+    pickerVisible,
+    model.editingWindow,
+    model.viewedWindowId,
+    model.focusedItem,
+    focusPane,
+    canFocusInput,
+  ])
   const send = useCallback(
     (intent: TabManagerIntent) => {
       if (!live) return
       if (
         intent.type === 'open-action-menu' ||
-        intent.type === 'open-action-panel' ||
-        intent.type === 'dismiss-action-panel'
-      )
+        (intent.type === 'navigate' &&
+          (intent.key === 'ContextMenu' ||
+            (intent.shift && ['F10', 'Enter'].includes(intent.key))))
+      ) {
         pendingMenuFocus.current = true
+        const active = rootRef.current?.ownerDocument.activeElement
+        if (
+          active instanceof HTMLElement &&
+          active !== active.ownerDocument.body &&
+          !menuRef.current?.contains(active)
+        )
+          menuReturnFocus.current = active
+      }
       void onIntent(intent)
     },
     [live, onIntent],
+  )
+  const actionBarIntent = useCallback(
+    (intent: TabManagerIntent) => {
+      if (intent.type === 'open-action-menu') menuPosition.current = null
+      send(intent)
+    },
+    [send],
   )
   const cues = (item: TabManagerItem) => ({
     'data-hover': sameItem(model.hoveredItem, item) || undefined,
@@ -232,9 +361,11 @@ export const TabManager = ({
   )
   const onTabClick = useCallback(
     (tab: BrowserTabListTab, event: MouseEvent<HTMLDivElement>) => {
-      select({ type: 'tab', id: Number(tab.id) }, event)
+      if (event.shiftKey || event.metaKey || event.ctrlKey)
+        select({ type: 'tab', id: Number(tab.id) }, event)
+      else send({ type: 'activate-tab', tabId: Number(tab.id) })
     },
-    [select],
+    [select, send],
   )
   const onTabActivate = useCallback(
     (tab: BrowserTabListTab) =>
@@ -261,19 +392,33 @@ export const TabManager = ({
     )
       return
     const currentWindow = rootRef.current?.querySelector<HTMLElement>(
-      `[data-nav-type="window"][data-nav-id="${model.viewedWindowId}"]`,
+      '[data-window-picker-trigger]',
     )
     if (!currentWindow) return
     initialFocusApplied.current = true
     currentWindow.focus({ preventScroll: true })
   }, [focusOnMount, live, model.status, model.viewedWindowId])
-  useLayoutEffect(() => {
+  const syncScroll = useCallback(() => {
     const viewport = rootRef.current?.querySelector<HTMLElement>(
       '[data-manager-scroll] [data-radix-scroll-area-viewport]',
     )
-    if (viewport && viewport.scrollTop !== (model.scrollTop ?? 0))
-      viewport.scrollTop = model.scrollTop ?? 0
-  }, [model.scrollTop, model.viewedWindowId])
+    if (!viewport) return
+    if (pickerVisible) {
+      const current = viewport.querySelector<HTMLElement>(
+        '[data-window-choice][aria-current="true"]',
+      )
+      if (current)
+        viewport.scrollTop +=
+          current.getBoundingClientRect().top -
+          viewport.getBoundingClientRect().top -
+          (viewport.clientHeight - current.clientHeight) / 2
+    } else viewport.scrollTop = model.editingWindow ? 0 : (model.scrollTop ?? 0)
+  }, [model.scrollTop, pickerVisible, model.editingWindow])
+  const paneReady = useCallback(() => {
+    syncScroll()
+    focusPane()
+  }, [syncScroll, focusPane])
+  useLayoutEffect(syncScroll, [syncScroll])
   useLayoutEffect(() => {
     if (!live || !model.scrollToItem) return
     rootRef.current
@@ -287,13 +432,15 @@ export const TabManager = ({
     if (!live) return
     const focusModelItem = () => {
       const item = model.focusedItem
-      const selector = !item
-        ? '[data-nav-type="action"]'
-        : item.type === 'tab'
-          ? `[data-tab-id="${item.id}"] [data-tab-option]`
-          : item.type === 'group'
-            ? `[data-group-id="${item.id}"] [data-group-option]`
-            : `[data-nav-type="window"][data-nav-id="${item.id}"]`
+      const selector = pickerVisible
+        ? '[data-window-choice][aria-current="true"], [data-window-choice]'
+        : !item
+          ? '[data-window-picker-trigger]'
+          : item.type === 'tab'
+            ? `[data-tab-id="${item.id}"] [data-tab-option]`
+            : item.type === 'group'
+              ? `[data-group-id="${item.id}"] [data-group-option]`
+              : `[data-nav-type="window"][data-nav-id="${item.id}"]`
       const target = rootRef.current?.querySelector<HTMLElement>(selector)
       target?.focus({ preventScroll: true })
       if (pendingKeyboardFocus.current)
@@ -332,6 +479,7 @@ export const TabManager = ({
     model.windows,
     model.actionMenu,
     model.actionPanel,
+    pickerVisible,
     live,
     surface?.portalHost,
   ])
@@ -363,15 +511,31 @@ export const TabManager = ({
         !control.closest('[inert],[aria-hidden="true"]') &&
         !control.matches(':disabled,[tabindex="-1"]'),
     )
+  const navigationEntries = (section: Element | null | undefined) =>
+    Array.from(
+      section?.querySelectorAll<HTMLElement>(navigationSelector) ?? [],
+    ).filter(
+      (entry) =>
+        !entry.closest('[inert],[aria-hidden="true"]') &&
+        (entry.matches('[data-group-option]') ||
+          !entry.closest('[data-group-id][data-collapsed="true"]')),
+    )
   const keyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!live) return
-    const target = event.target as HTMLElement
-    if (target.closest('input,textarea,[contenteditable="true"],[role="menu"]'))
+    if (!live || pickerVisible || model.editingWindow || !canFocusInput())
       return
+    const target = event.target as HTMLElement
+    if (target.closest('input,textarea,[contenteditable="true"]')) return
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
+      event.preventDefault()
+      event.stopPropagation()
+      send({ type: 'navigate', key: 'a', toggle: true })
+      return
+    }
+    if (target.closest('[role="menu"]')) return
     const section = target.closest<HTMLElement>('[data-keyboard-section]')
     if (
       event.key === 'Tab' &&
-      section &&
+      section?.dataset.keyboardSection === 'tabs' &&
       !event.altKey &&
       !event.ctrlKey &&
       !event.metaKey
@@ -402,40 +566,89 @@ export const TabManager = ({
     }
     if (
       section &&
-      ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key) &&
+      [
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+      ].includes(event.key) &&
       !event.altKey &&
       !event.shiftKey &&
       !event.ctrlKey &&
       !event.metaKey
     ) {
-      const list =
-        section.dataset.keyboardSection === 'windows' ||
-        section.dataset.keyboardSection === 'tabs'
+      const list = section.dataset.keyboardSection === 'tabs'
+      const horizontal = ['ArrowLeft', 'ArrowRight'].includes(event.key)
       const entries = list
-        ? Array.from(section.querySelectorAll<HTMLElement>(navigationSelector))
+        ? navigationEntries(section)
         : sectionControls(section)
       const current = entries.findIndex(
-        (entry) => entry === target || entry.contains(target),
+        (entry) =>
+          entry === target ||
+          entry.contains(target) ||
+          sameItem(itemAt(entry), itemAt(target)),
       )
+      let crossing: HTMLElement | null | undefined
+      if (list && event.key === 'ArrowUp' && current === 0)
+        crossing = rootRef.current?.querySelector<HTMLElement>(
+          '[data-window-picker-trigger]',
+        )
+      else if (
+        list &&
+        event.key === 'ArrowDown' &&
+        current === entries.length - 1
+      )
+        crossing = rootRef.current?.querySelector<HTMLElement>(
+          '[data-keyboard-section="tools"] button',
+        )
+      else if (!list) {
+        const tabs = navigationEntries(
+          rootRef.current?.querySelector('[data-keyboard-section="tabs"]'),
+        )
+        if (
+          event.key === 'ArrowUp' &&
+          section.dataset.keyboardSection === 'tools'
+        )
+          crossing = tabs.at(-1)
+        else if (
+          event.key === 'ArrowDown' &&
+          section.dataset.keyboardSection === 'header'
+        )
+          crossing = tabs[0]
+      }
+      if (crossing) {
+        event.preventDefault()
+        event.stopPropagation()
+        focusControl(crossing)
+        return
+      }
+      if (list && horizontal) return
+      if (!list && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        event.preventDefault()
+        event.stopPropagation()
+        return
+      }
       const next =
         event.key === 'Home'
           ? 0
           : event.key === 'End'
             ? entries.length - 1
-            : Math.max(
-                0,
-                Math.min(
-                  entries.length - 1,
-                  current + (event.key === 'ArrowUp' ? -1 : 1),
-                ),
-              )
+            : horizontal
+              ? (current +
+                  (event.key === 'ArrowLeft' ? -1 : 1) +
+                  entries.length) %
+                entries.length
+              : Math.max(
+                  0,
+                  Math.min(
+                    entries.length - 1,
+                    current + (event.key === 'ArrowUp' ? -1 : 1),
+                  ),
+                )
       const destination = entries[next]
-      if (
-        destination &&
-        (!list ||
-          destination.matches('[data-create-item]') ||
-          target.matches('[data-create-item]'))
-      ) {
+      if (destination) {
         event.preventDefault()
         event.stopPropagation()
         const item = itemAt(destination)
@@ -482,7 +695,13 @@ export const TabManager = ({
     const leavesCreation =
       target.matches('[data-create-item]') &&
       (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
-    if (!item && event.key !== 'Escape' && !leavesCreation) return
+    if (
+      !item &&
+      event.key !== 'Escape' &&
+      !leavesCreation &&
+      !((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a')
+    )
+      return
     event.preventDefault()
     event.stopPropagation()
     if (item && !sameItem(model.focusedItem, item))
@@ -505,10 +724,12 @@ export const TabManager = ({
       (event.shiftKey && (event.key === 'F10' || event.key === 'Enter'))
     pendingCreatedFocus.current = null
     if (opensMenu) {
+      const bounds = target.getBoundingClientRect()
+      menuPosition.current = { x: bounds.left, y: bounds.bottom }
       pendingMenuFocus.current = true
       pendingKeyboardFocus.current = false
     } else {
-      pendingKeyboardFocus.current = true
+      pendingKeyboardFocus.current = event.key !== 'Escape'
     }
     send({
       type: 'navigate',
@@ -557,7 +778,8 @@ export const TabManager = ({
         text-muted flex min-h-12 w-full items-center gap-3 rounded-md px-3 py-2
         text-sm transition-colors
         hover:text-foreground hover:bg-highlighted/40
-        ${creationItemFocusClass}
+        focus-visible:bg-highlighted/40 focus-visible:ring-accent/70
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset
       `}
       onClick={() => {
         if (!viewedWindow) return
@@ -577,15 +799,7 @@ export const TabManager = ({
   )
   if (model.status === 'loading')
     return (
-      <TabManagerShell
-        sidebar={
-          <div className="flex h-full flex-col gap-2 p-2">
-            {[0, 1, 2].map((id) => (
-              <Skeleton key={id} className="h-10 w-10 rounded-lg" />
-            ))}
-          </div>
-        }
-      >
+      <TabManagerShell>
         <div role="status" aria-label="Loading tabs">
           <TabListSkeleton count={12} />
         </div>
@@ -598,12 +812,17 @@ export const TabManager = ({
       data-tab-manager
       onFocusCapture={(event) => {
         const target = event.target as HTMLElement
-        if (target.matches('[data-create-item]'))
+        if (target.matches('[data-create-item]')) {
+          pendingKeyboardFocus.current = false
+          pendingCreatedFocus.current = null
           send({
             type: 'focus-creation',
             pane: target.dataset.createItem === 'window' ? 'window' : 'tab',
           })
-        physicalFocusOwner.current = target.closest('[data-notification-card]')
+        }
+        physicalFocusOwner.current = target.closest(
+          '[data-notification-card],[data-manager-action-menu]',
+        )
           ? null
           : target
       }}
@@ -622,9 +841,12 @@ export const TabManager = ({
       onKeyDownCapture={keyDown}
       onPointerDownCapture={(event) => {
         if (
+          event.button === 0 &&
           (model.actionMenu || model.actionPanel) &&
           !menuRef.current?.contains(event.target as Node) &&
-          !(event.target as Element).closest('[data-action-bar-menu-trigger]')
+          !(event.target as Element).closest(
+            '[data-action-bar-menu-trigger],[data-window-edit-trigger],[data-window-picker],[data-manager-action-menu]',
+          )
         )
           send({ type: 'dismiss-action-menu' })
       }}
@@ -632,11 +854,25 @@ export const TabManager = ({
         const item = itemAt(event.target)
         if (!item) return
         event.preventDefault()
+        const document = event.currentTarget.ownerDocument
+        if (live && !document.hasFocus()) document.defaultView?.focus()
+        const bounds = (
+          surface?.root ?? event.currentTarget
+        ).getBoundingClientRect()
+        menuPosition.current = {
+          x: Math.min(event.clientX + 20, bounds.right - 8),
+          y: event.clientY,
+        }
         send({ type: 'open-action-menu', target: item })
       }}
       onScrollCapture={(event) => {
         const element = event.target as HTMLElement
-        if (live && element.closest('[data-manager-scroll]'))
+        if (
+          live &&
+          !pickerVisible &&
+          !model.editingWindow &&
+          element.closest('[data-manager-scroll]')
+        )
           send({ type: 'scroll', top: element.scrollTop })
       }}
     >
@@ -648,233 +884,163 @@ export const TabManager = ({
             isMultiSelectMode={model.selectionMode === 'multi-select'}
           />
         }
-        sidebar={
-          <TabManagerSidebar
-            isExpanded={model.sidebarExpanded}
-            onToggleExpand={() => send({ type: 'toggle-sidebar' })}
-            collapseSidebarLabel="Collapse sidebar"
-            expandSidebarLabel="Expand sidebar"
-            windowCount={model.windows.length}
-            windowList={
-              <>
-                {' '}
-                {model.windows.map((window) => (
-                  <WindowRailItem
-                    key={window.id}
-                    id={window.id}
-                    title={
-                      model.compactIconMode === 'first'
-                        ? window.tabs[0]?.title || window.title
-                        : window.title
-                    }
-                    icon={
-                      (
-                        model.compactIconMode === 'first'
-                          ? window.tabs[0]?.faviconUrl
-                          : window.iconUrl
-                      ) ? (
-                        <img
-                          src={
-                            model.compactIconMode === 'first'
-                              ? window.tabs[0]?.faviconUrl
-                              : window.iconUrl
-                          }
-                          width={24}
-                          height={24}
-                          alt=""
-                        />
-                      ) : undefined
-                    }
-                    subtitle={`${window.tabs.length} tabs`}
-                    isActive={window.active ?? false}
-                    isViewing={window.id === model.viewedWindowId}
-                    isExpanded={model.sidebarExpanded}
-                    selected={model.selectedWindowIds.includes(window.id)}
-                    hasSelectedItems={window.tabs.some((tab) =>
-                      selectedTabIds.has(tab.id),
-                    )}
-                    isMultiSelectMode={model.selectionMode === 'multi-select'}
-                    {...cues({ type: 'window', id: window.id })}
-                    onDoubleClick={() =>
-                      send({ type: 'activate-window', windowId: window.id })
-                    }
-                    onClick={(event) => {
-                      if (event.metaKey || event.ctrlKey || event.shiftKey)
-                        select({ type: 'window', id: window.id }, event)
-                      else send({ type: 'view-window', windowId: window.id })
-                    }}
-                    onClose={() =>
-                      send({ type: 'close-window', windowId: window.id })
-                    }
-                  />
-                ))}
-                <SidebarAction
-                  icon={<Plus size={20} />}
-                  label={t('tabContextMenu_newWindow')}
-                  isExpanded={model.sidebarExpanded}
-                  onClick={() => {
-                    pendingKeyboardFocus.current = true
-                    pendingCreatedFocus.current = {
-                      type: 'window',
-                      knownIds: new Set(
-                        model.windows.map((window) => window.id),
-                      ),
-                    }
-                    send({ type: 'create-window' })
-                  }}
-                  createItem="window"
-                />
-              </>
-            }
-            actions={
-              <>
-                <SidebarAction
-                  icon={<Search size={20} />}
-                  label="Search everything"
-                  isExpanded={model.sidebarExpanded}
-                  onClick={() => send({ type: 'open-search' })}
-                />
-                <SidebarAction
-                  icon={<Settings size={20} />}
-                  label="Settings"
-                  isExpanded={model.sidebarExpanded}
-                  onClick={() => send({ type: 'open-settings' })}
-                />
-              </>
-            }
-          />
-        }
+        header={<WindowHeader model={model} onIntent={send} />}
         actionBar={
           <TabManagerActionBar
             model={model}
-            onIntent={send}
+            onIntent={actionBarIntent}
             menuRef={menuRef}
+            menuPosition={menuPosition}
+            returnFocus={menuReturnFocus}
           />
         }
       >
-        <div
-          data-manager-main
-          data-keyboard-section="tabs"
-          className="min-h-full pb-4"
-        >
-          {model.status === 'error' ? (
-            <p role="alert" className="p-4">
-              {model.error ?? 'Unable to load tabs.'}
-            </p>
-          ) : !viewedWindow ? (
-            <p className="text-muted p-4">Create a window to get started.</p>
-          ) : (
+        <AnimatePresence initial={false} mode="wait">
+          <PaneTransition
+            onReady={paneReady}
+            key={
+              model.editingWindow
+                ? 'identity'
+                : pickerVisible
+                  ? 'windows'
+                  : 'tabs'
+            }
+          >
             <div
-              key={`window-tabs-${viewedWindow.id}`}
-              data-tab-pane
-              className="space-y-4 p-2"
+              data-manager-main
+              data-keyboard-section={
+                pickerVisible || model.editingWindow ? undefined : 'tabs'
+              }
+              className="min-h-full pb-4"
             >
-              <BrowserTabList
-                items={items}
-                renamingGroupId={model.renamingGroupId ?? undefined}
-                renamingGroupTitle={model.renamingGroupTitle ?? undefined}
-                onGroupRenameTitleChange={(group, title) =>
-                  send({
-                    type: 'change-group-rename',
-                    groupId: Number(group.id),
-                    title,
-                  })
-                }
-                selectedTabIds={selectedTabIds}
-                selectedGroupIds={new Set(model.selectedGroupIds)}
-                duplicateTabIds={new Set(model.duplicateTabIds)}
-                isMultiSelectMode={model.selectionMode === 'multi-select'}
-                focusedTabId={
-                  model.focusedItem?.type === 'tab'
-                    ? model.focusedItem.id
-                    : undefined
-                }
-                hoveredTabId={
-                  model.hoveredItem?.type === 'tab'
-                    ? model.hoveredItem.id
-                    : undefined
-                }
-                onTabClick={onTabClick}
-                onTabActivate={onTabActivate}
-                onTabClose={onTabClose}
-                onGroupSelect={(group, event) =>
-                  select({ type: 'group', id: Number(group.id) }, event)
-                }
-                onGroupToggleCollapse={(group) =>
-                  send({
-                    type: 'set-group-collapsed',
-                    groupId: Number(group.id),
-                    collapsed: !group.collapsed,
-                  })
-                }
-                renderGroupItem={({
-                  group,
-                  selected,
-                  isMultiSelectMode,
-                  onSelect,
-                  onToggleCollapse,
-                  children,
-                }) => (
-                  <BrowserTabGroupItem
-                    groupId={group.id}
-                    title={group.title}
-                    color={group.color}
-                    collapsed={group.collapsed}
-                    active={viewedWindow.tabs.some(
-                      (tab) => tab.groupId === group.id && tab.active,
-                    )}
-                    isRenaming={model.renamingGroupId === group.id}
-                    renameTitle={
-                      model.renamingGroupId === group.id
-                        ? (model.renamingGroupTitle ?? '')
-                        : undefined
-                    }
-                    onRenameTitleChange={(title) =>
+              {model.editingWindow ? (
+                <WindowIdentityEditor model={model} onIntent={send} />
+              ) : pickerVisible ? (
+                <WindowPicker model={model} onIntent={send} />
+              ) : model.status === 'error' ? (
+                <p role="alert" className="p-4">
+                  {model.error ?? 'Unable to load tabs.'}
+                </p>
+              ) : !viewedWindow ? (
+                <p className="text-muted p-4">
+                  Create a window to get started.
+                </p>
+              ) : (
+                <div
+                  key={`window-tabs-${viewedWindow.id}`}
+                  data-tab-pane
+                  className="space-y-4 p-2"
+                >
+                  <BrowserTabList
+                    items={items}
+                    renamingGroupId={model.renamingGroupId ?? undefined}
+                    renamingGroupTitle={model.renamingGroupTitle ?? undefined}
+                    onGroupRenameTitleChange={(group, title) =>
                       send({
                         type: 'change-group-rename',
                         groupId: Number(group.id),
                         title,
                       })
                     }
-                    onRenameStart={() =>
+                    selectedTabIds={selectedTabIds}
+                    selectedGroupIds={new Set(model.selectedGroupIds)}
+                    duplicateTabIds={new Set(model.duplicateTabIds)}
+                    isMultiSelectMode={model.selectionMode === 'multi-select'}
+                    focusedTabId={
+                      model.focusedItem?.type === 'tab'
+                        ? model.focusedItem.id
+                        : undefined
+                    }
+                    hoveredTabId={
+                      model.hoveredItem?.type === 'tab'
+                        ? model.hoveredItem.id
+                        : undefined
+                    }
+                    onTabClick={onTabClick}
+                    onTabActivate={onTabActivate}
+                    onTabClose={onTabClose}
+                    onGroupSelect={(group, event) =>
+                      select({ type: 'group', id: Number(group.id) }, event)
+                    }
+                    onGroupToggleCollapse={(group) =>
                       send({
-                        type: 'start-group-rename',
+                        type: 'set-group-collapsed',
                         groupId: Number(group.id),
+                        collapsed: !group.collapsed,
                       })
                     }
-                    onRenameCancel={() => send({ type: 'cancel-group-rename' })}
-                    onRenameComplete={(title) =>
-                      send({
-                        type: 'rename-group',
-                        groupId: Number(group.id),
-                        title,
-                      })
-                    }
-                    onClose={() =>
-                      send({
-                        type: 'close-item',
-                        item: { type: 'group', id: Number(group.id) },
-                      })
-                    }
-                    selected={selected}
-                    isMultiSelectMode={isMultiSelectMode}
-                    onSelect={onSelect}
-                    onToggleCollapse={onToggleCollapse}
-                    {...cues({ type: 'group', id: Number(group.id) })}
-                  >
-                    {children}
-                    {!group.collapsed && (
-                      <div className="pl-2">
-                        {createTabAction(Number(group.id))}
-                      </div>
+                    renderGroupItem={({
+                      group,
+                      selected,
+                      isMultiSelectMode,
+                      onSelect,
+                      onToggleCollapse,
+                      children,
+                    }) => (
+                      <BrowserTabGroupItem
+                        groupId={group.id}
+                        title={group.title}
+                        color={group.color}
+                        collapsed={group.collapsed}
+                        active={viewedWindow.tabs.some(
+                          (tab) => tab.groupId === group.id && tab.active,
+                        )}
+                        isRenaming={model.renamingGroupId === group.id}
+                        renameTitle={
+                          model.renamingGroupId === group.id
+                            ? (model.renamingGroupTitle ?? '')
+                            : undefined
+                        }
+                        onRenameTitleChange={(title) =>
+                          send({
+                            type: 'change-group-rename',
+                            groupId: Number(group.id),
+                            title,
+                          })
+                        }
+                        onRenameStart={() =>
+                          send({
+                            type: 'start-group-rename',
+                            groupId: Number(group.id),
+                          })
+                        }
+                        onRenameCancel={() =>
+                          send({ type: 'cancel-group-rename' })
+                        }
+                        onRenameComplete={(title) =>
+                          send({
+                            type: 'rename-group',
+                            groupId: Number(group.id),
+                            title,
+                          })
+                        }
+                        onClose={() =>
+                          send({
+                            type: 'close-item',
+                            item: { type: 'group', id: Number(group.id) },
+                          })
+                        }
+                        selected={selected}
+                        isMultiSelectMode={isMultiSelectMode}
+                        onSelect={onSelect}
+                        onToggleCollapse={onToggleCollapse}
+                        {...cues({ type: 'group', id: Number(group.id) })}
+                      >
+                        {children}
+                        {!group.collapsed && (
+                          <div className="pl-2">
+                            {createTabAction(Number(group.id))}
+                          </div>
+                        )}
+                      </BrowserTabGroupItem>
                     )}
-                  </BrowserTabGroupItem>
-                )}
-              />
-              {createTabAction()}
+                  />
+                  {createTabAction()}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </PaneTransition>
+        </AnimatePresence>
       </TabManagerShell>
     </div>
   )

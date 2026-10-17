@@ -120,7 +120,6 @@ export const createScenario = async (
   resources.forEach((resource, index) => {
     const local = navigation[index]!
     resource.host = {
-      getCurrentWindowId: () => 1,
       openSearch: () => local.setState({ product: 'omnibar' }),
       openOptions: () => local.setState({ product: 'options' }),
       writeClipboardText: async (text) => {

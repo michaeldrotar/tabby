@@ -17,17 +17,20 @@ const tabManagerShortcutGroups = (isMac: boolean) =>
       shortcuts: [
         { keys: 'Tab / Shift+Tab', label: 'Move between sections' },
         { keys: '↑ / ↓ · Home / End', label: 'Navigate items' },
-        { keys: '← / →', label: 'Move between windows and tabs' },
-        { keys: 'Enter', label: 'Open or toggle' },
-        { keys: 'Escape', label: 'Clear selection or dismiss menus' },
+        { keys: '← / →', label: 'Navigate header and tools' },
+        { keys: 'Enter', label: 'Open tab, choose window, or toggle group' },
+        { keys: 'Escape', label: 'Select active tab or dismiss menus' },
       ],
     },
     {
       title: 'Select',
       shortcuts: [
-        { keys: 'Space', label: 'Select or activate' },
+        { keys: 'Space', label: 'Toggle selection' },
         { keys: 'Shift+↑/↓', label: 'Extend selection' },
-        { keys: isMac ? '⌘+A' : 'Ctrl+A', label: 'Select all in this list' },
+        {
+          keys: isMac ? '⌘+A' : 'Ctrl+A',
+          label: 'Select all tabs in this window',
+        },
         { keys: 'Delete / Backspace', label: 'Close selection or item' },
         { keys: 'Menu / Shift+Enter / Shift+F10', label: 'Open actions' },
       ],

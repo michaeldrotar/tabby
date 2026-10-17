@@ -39,6 +39,8 @@ const buildScene = (
     windows: [
       fixture.generateWindow({
         id: 1,
+        name: 'Workspace',
+        icon: 'code',
         focused: true,
         groups: [group],
         tabs: [
@@ -73,6 +75,8 @@ const buildScene = (
       }),
       fixture.generateWindow({
         id: 2,
+        name: 'Reading list',
+        icon: 'book',
         groups: [
           fixture.generateGroup({
             id: 102,

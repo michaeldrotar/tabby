@@ -10,7 +10,6 @@ import { PromoBody, PromoEyebrow, PromoHeadline } from '../components/PromoText'
 import { overviewFeaturedTab, overviewResults } from '../data/overviewResults'
 
 const managerModel = promoManagerModel({
-  sidebarExpanded: true,
   viewedWindowId: 1,
   windows: [
     promoWindow(

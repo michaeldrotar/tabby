@@ -31,7 +31,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           type="text"
           name="query"
           role="combobox"
-          aria-label="Search tabs, groups, bookmarks, and history"
+          aria-label="Search tabs, windows, groups, bookmarks, and history"
           aria-autocomplete="list"
           aria-expanded={hasResults}
           aria-controls={hasResults ? resultsId : undefined}
@@ -42,7 +42,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
             text-foreground flex-1 bg-transparent text-lg outline-none
             placeholder:text-muted
           `}
-          placeholder="Search tabs, groups, bookmarks, history…"
+          placeholder="Search tabs, windows, groups, bookmarks, history…"
           value={query}
           onChange={onChange}
           onKeyDown={onKeyDown}

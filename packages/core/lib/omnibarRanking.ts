@@ -7,6 +7,7 @@ export type OmnibarRankableResult = Pick<
 
 const BASE_WEIGHTS: Record<string, number> = {
   command: 100,
+  window: 90,
   tab: 80,
   'tab-group': 75,
   bookmark: 70,

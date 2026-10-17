@@ -76,6 +76,9 @@ it('keeps settings in a flat list with seasonal icons before reset', () => {
   ])
   expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
   expect(
+    screen.getByRole('combobox', { name: 'Window identification' }),
+  ).toHaveTextContent('Active tab')
+  expect(
     screen.getByRole('switch', { name: 'Show seasonal icons' }),
   ).toBeChecked()
 })

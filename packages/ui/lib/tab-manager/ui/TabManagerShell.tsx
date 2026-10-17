@@ -3,7 +3,7 @@ import { useSurface, useSurfaceId } from '../../Surface'
 import { cn } from '../../utils/cn'
 
 export type TabManagerShellProps = {
-  sidebar: React.ReactNode
+  header?: React.ReactNode
   children: React.ReactNode
   /** Optional overlay content (e.g., animation effects) that should cover the entire shell */
   overlay?: React.ReactNode
@@ -15,7 +15,7 @@ export type TabManagerShellProps = {
 }
 
 export const TabManagerShell = ({
-  sidebar,
+  header,
   children,
   overlay,
   actionBar,
@@ -28,32 +28,16 @@ export const TabManagerShell = ({
     <div
       data-selection-mode={selectionMode}
       className={cn(
-        'bg-background relative flex w-full overflow-hidden',
+        'bg-background relative flex w-full flex-col overflow-hidden',
         surface ? 'h-full min-h-0' : 'h-screen',
         className,
       )}
     >
-      <a
-        href={`#${mainId}`}
-        className={`
-          bg-popover text-popover-foreground sr-only absolute left-2 top-2
-          z-[90] rounded p-2 text-sm
-          focus-visible:outline-accent focus-visible:outline
-          focus-visible:outline-2
-          focus:not-sr-only
-        `}
-        onClick={(event) => {
-          event.preventDefault()
-          event.currentTarget.ownerDocument.getElementById(mainId)?.focus()
-        }}
-      >
-        Skip to tabs
-      </a>
-      <aside className="border-border flex-shrink-0 border-r">{sidebar}</aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+      {header}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ScrollArea
           data-manager-scroll
-          className="flex-1"
+          className="min-h-0 flex-1"
           orientation="vertical"
         >
           <main

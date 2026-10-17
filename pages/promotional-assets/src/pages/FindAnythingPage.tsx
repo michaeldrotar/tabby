@@ -19,9 +19,9 @@ export const FindAnythingPage = () => (
           from one place.
         </PromoHeadline>
         <PromoBody>
-          Search open tabs, bookmarks, recently closed pages, and history in
-          seconds. Jump back to what you need, or open a fresh result just as
-          easily.
+          Search windows, open tabs, bookmarks, recently closed pages, and
+          history in seconds. Jump back to what you need, or open a fresh result
+          just as easily.
         </PromoBody>
         <PromoFootnote>A few keystrokes get you there.</PromoFootnote>
       </section>

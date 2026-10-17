@@ -9,19 +9,23 @@ import {
   within,
 } from '@testing-library/react'
 import { useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Surface } from '../Surface'
 import { TabManager } from './TabManager'
 import type { TabManagerViewModel } from './TabManager'
 
 expect.extend(matchers)
-afterEach(cleanup)
+beforeEach(() => vi.spyOn(window, 'focus').mockImplementation(() => {}))
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 const model: TabManagerViewModel = {
   actions: [
     {
       id: 'close-selected-tabs',
-      label: 'Close 0 selected tabs',
+      label: 'Close 1 tab',
       icon: 'Trash2',
       kind: 'primary',
     },
@@ -45,111 +49,78 @@ const model: TabManagerViewModel = {
     },
   ],
   viewedWindowId: 1,
-  selectedTabIds: [],
+  selectedTabIds: [10],
   selectedGroupIds: [],
-  selectedWindowIds: [],
   selectionMode: 'default',
-  sidebarExpanded: true,
 }
 
 describe('TabManager presentation', () => {
-  it('moves forward and backward between sections without changing selection or trapping focus', () => {
+  it('keeps the window header and tools reachable with no selection actions', () => {
     const onIntent = vi.fn()
-    render(
-      <>
-        <button>Before manager</button>
-        <Surface>
-          <TabManager model={model} onIntent={onIntent} />
-        </Surface>
-        <button>After manager</button>
-      </>,
+    const { container } = render(
+      <Surface>
+        <TabManager
+          model={{ ...model, selectedTabIds: [] }}
+          onIntent={onIntent}
+        />
+      </Surface>,
     )
-    const window = document.querySelector<HTMLElement>(
-      '[data-nav-type="window"]',
-    )!
-    const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
-    const tools = screen.getByRole('button', { name: 'Search everything' })
     expect(
-      screen.queryByRole('button', { name: 'Scroll to active' }),
+      screen.getByRole('button', { name: 'Switch window: Research' }),
+    ).toBeInTheDocument()
+    for (const name of [
+      'Edit window',
+      'Search everything',
+      'Settings',
+      'More actions',
+    ])
+      expect(screen.getByRole('button', { name })).toBeEnabled()
+    expect(
+      screen.queryByRole('button', { name: 'Window actions' }),
     ).not.toBeInTheDocument()
-    const sidebar = screen.getByRole('button', { name: 'Collapse sidebar' })
-    const actions = screen.getByRole('button', { name: 'More actions' })
-    window.focus()
-    fireEvent.keyDown(window, { key: 'Tab' })
-    expect(tools).toHaveFocus()
-    fireEvent.keyDown(tools, { key: 'Tab', shiftKey: true })
-    expect(window).toHaveFocus()
-    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
-    expect(sidebar).toHaveFocus()
-    expect(fireEvent.keyDown(sidebar, { key: 'Tab', shiftKey: true })).toBe(
-      true,
+    expect(container.querySelector('[data-selection-summary]')).toBeNull()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Switch window: Research' }),
     )
-    tab.focus()
-    fireEvent.keyDown(tab, { key: 'Tab', shiftKey: true })
-    expect(tools).toHaveFocus()
-    fireEvent.keyDown(tools, { key: 'Tab' })
-    expect(screen.getByRole('button', { name: 'Reading' })).toHaveFocus()
-    tab.focus()
-    fireEvent.keyDown(tab, { key: 'Tab' })
-    expect(actions).toHaveFocus()
-    expect(fireEvent.keyDown(actions, { key: 'Tab' })).toBe(true)
-    fireEvent.keyDown(actions, { key: 'Tab', shiftKey: true })
-    expect(screen.getByRole('button', { name: 'Reading' })).toHaveFocus()
-    expect(
-      onIntent.mock.calls.every(([intent]) => intent.type === 'focus-item'),
-    ).toBe(true)
+    expect(onIntent).toHaveBeenLastCalledWith({ type: 'open-window-picker' })
   })
 
-  it('reaches creation actions in visual order and returns to list items', () => {
+  it('uses the full pane for keyboard window navigation with no search or back button', () => {
     const onIntent = vi.fn()
     render(
       <Surface>
-        <TabManager model={model} onIntent={onIntent} />
+        <TabManager
+          model={{
+            ...model,
+            windows: [
+              ...model.windows,
+              {
+                id: 2,
+                title: 'Personal',
+                tabs: [{ id: 11, title: 'Notes' }],
+                groups: [],
+              },
+            ],
+            windowPicker: true,
+          }}
+          onIntent={onIntent}
+        />
       </Surface>,
     )
-    const window = document.querySelector<HTMLElement>(
-      '[data-nav-type="window"]',
-    )!
-    const newWindow = screen.getByRole('button', { name: 'New window' })
-    window.focus()
-    fireEvent.keyDown(window, { key: 'ArrowDown' })
-    expect(newWindow).toHaveFocus()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Back to tabs' }),
+    ).not.toBeInTheDocument()
+    const first = screen.getByRole('button', { name: /^Research/ })
+    fireEvent.keyDown(first, { key: 'End' })
+    expect(screen.getByRole('button', { name: /^Personal/ })).toHaveFocus()
+    fireEvent.click(document.activeElement!)
     expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'focus-creation',
-      pane: 'window',
+      type: 'activate-window',
+      windowId: 2,
     })
-    fireEvent.keyDown(newWindow, { key: 'ArrowUp' })
-    expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'navigate',
-      key: 'ArrowUp',
-      item: { type: 'window', id: 1 },
-    })
-    const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
-    const groupNewTab = screen.getByRole('button', {
-      name: 'New tab in Reading',
-    })
-    const newTab = screen.getByRole('button', { name: 'New tab' })
-    tab.focus()
-    fireEvent.keyDown(tab, { key: 'ArrowDown' })
-    expect(groupNewTab).toHaveFocus()
-    expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'focus-creation',
-      pane: 'tab',
-    })
-    fireEvent.keyDown(groupNewTab, { key: 'ArrowDown' })
-    expect(newTab).toHaveFocus()
-    fireEvent.keyDown(newTab, { key: 'ArrowDown' })
-    expect(newTab).toHaveFocus()
-    fireEvent.keyDown(newTab, { key: 'ArrowUp' })
-    expect(groupNewTab).toHaveFocus()
-    fireEvent.keyDown(groupNewTab, { key: 'Home' })
-    expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'navigate',
-      key: 'Home',
-      item: { type: 'group', id: 20 },
-    })
-    fireEvent.keyDown(tab, { key: 'End' })
-    expect(newTab).toHaveFocus()
+    fireEvent.keyDown(first, { key: 'Escape' })
+    expect(onIntent).toHaveBeenLastCalledWith({ type: 'dismiss-window-picker' })
   })
 
   it('keeps rename input keys local and leaves shortcut help in Options', () => {
@@ -175,29 +146,25 @@ describe('TabManager presentation', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('selects rows and activates only from the favicon, double-click, or Enter', () => {
+  it('activates ordinary row clicks and only selects modified clicks', () => {
     const onIntent = vi.fn()
-    render(
+    const { container } = render(
       <Surface>
         <TabManager model={model} onIntent={onIntent} />
       </Surface>,
     )
     const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
     fireEvent.click(tab)
-    expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
-      {
-        type: 'select-item',
-        item: { type: 'tab', id: 10 },
-        shift: false,
-        toggle: false,
-      },
-    ])
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'activate-tab',
+      tabId: 10,
+    })
 
-    const favicon = screen.getByRole('button', { name: 'Go to tab: Tabby' })
-    for (const activate of [
-      () => fireEvent.click(favicon),
-      () => fireEvent.doubleClick(tab),
-    ]) {
+    const favicon = container.querySelector('[data-tab-favicon]')!
+    expect(
+      screen.queryByRole('button', { name: 'Go to tab: Tabby' }),
+    ).toBeNull()
+    for (const activate of [() => fireEvent.click(favicon)]) {
       onIntent.mockClear()
       activate()
       expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
@@ -242,48 +209,25 @@ describe('TabManager presentation', () => {
     ])
   })
 
-  it('shows the three selection counters and marks windows containing selected items while browsing', () => {
+  it('shows selection next to the persistent action menu without a clear button', () => {
     const onIntent = vi.fn()
-    render(
+    const { container } = render(
       <Surface>
         <TabManager
-          model={{
-            ...model,
-            selectedTabIds: [10, 11],
-            selectedWindowIds: [1],
-            selectedGroupIds: [20],
-            windows: [
-              ...model.windows,
-              {
-                id: 2,
-                title: 'Other',
-                tabs: [{ id: 11, title: 'Notes' }],
-                groups: [],
-              },
-            ],
-          }}
+          model={{ ...model, selectedTabIds: [10], selectedGroupIds: [20] }}
           onIntent={onIntent}
         />
       </Surface>,
     )
-    expect(
-      screen.getByRole('status', { name: '1 window, 1 tab group, 2 tabs' }),
-    ).toHaveTextContent('112')
-    expect(screen.getByTitle('1 window')).toHaveTextContent('1')
-    expect(screen.getByTitle('1 tab group')).toHaveTextContent('1')
-    expect(screen.getByTitle('2 tabs')).toHaveTextContent('2')
+    expect(screen.getByRole('option', { name: 'Tab: Tabby' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(container.querySelector('[data-selection-summary]')).toBeNull()
     expect(
       screen.queryByRole('button', { name: 'Clear selection' }),
     ).not.toBeInTheDocument()
-    const other = screen.getByRole('button', {
-      name: /Other, 1 tabs, contains selected items/,
-    })
-    expect(other).toHaveAttribute('data-has-selected-items', 'true')
-    fireEvent.click(other)
-    expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'view-window',
-      windowId: 2,
-    })
+    expect(screen.queryByText('1 selected')).toBeNull()
   })
 
   it('synchronizes native keyboard focus without replacing a modifier selection', () => {
@@ -351,15 +295,14 @@ describe('TabManager presentation', () => {
       type: 'open-action-menu',
       target: { type: 'tab', id: 10 },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'New window' }))
-    expect(onIntent).toHaveBeenLastCalledWith({ type: 'create-window' })
+    fireEvent.click(screen.getByRole('button', { name: 'Edit window' }))
+    expect(onIntent).toHaveBeenLastCalledWith({ type: 'edit-window' })
   })
 
-  it('uses first-tab identification in an expanded rail and renders a controlled rename checkpoint', () => {
+  it('renders a persistent window identity and a controlled rename checkpoint', () => {
     const onIntent = vi.fn()
     const initial: TabManagerViewModel = {
       ...model,
-      compactIconMode: 'first',
       renamingGroupId: 20,
       renamingGroupTitle: 'Review draft',
       windows: [
@@ -376,8 +319,8 @@ describe('TabManager presentation', () => {
       </Surface>,
     )
     expect(
-      container.querySelector('[data-nav-type="window"]'),
-    ).toHaveTextContent('First title')
+      container.querySelector('[data-window-picker-trigger]'),
+    ).toHaveTextContent('Active title')
     expect(screen.getByRole('textbox')).toHaveValue('Review draft')
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'Edited draft' },
@@ -421,7 +364,7 @@ describe('TabManager presentation', () => {
     },
   )
 
-  it('focuses a keyboard-opened menu so arrows navigate menu actions', () => {
+  it('focuses a keyboard-opened menu so arrows navigate menu actions', async () => {
     const onIntent = vi.fn()
     const Harness = () => {
       const [current, setCurrent] = useState({
@@ -434,7 +377,10 @@ describe('TabManager presentation', () => {
             model={current}
             onIntent={(intent) => {
               onIntent(intent)
-              if (intent.type === 'navigate' && intent.key === 'ContextMenu')
+              if (
+                intent.type === 'open-action-menu' ||
+                (intent.type === 'navigate' && intent.key === 'ContextMenu')
+              )
                 setCurrent({ ...current, actionMenu: {} })
               if (
                 intent.type === 'dismiss-action-menu' ||
@@ -451,19 +397,33 @@ describe('TabManager presentation', () => {
     tab.focus()
     fireEvent.keyDown(tab, { key: 'ContextMenu' })
     const close = screen.getByRole('menuitem', {
-      name: 'Close 0 selected tabs',
+      name: 'Close 1 tab',
     })
     expect(close).toHaveFocus()
     fireEvent.keyDown(close, { key: 'ArrowDown' })
     const dismiss = screen.getByRole('menuitem', { name: 'Dismiss menu' })
-    expect(dismiss).toHaveFocus()
+    await waitFor(() => expect(dismiss).toHaveFocus())
     expect(onIntent).toHaveBeenCalledOnce()
-    expect(fireEvent.keyDown(dismiss, { key: 'Enter' })).toBe(true)
-    fireEvent.click(dismiss)
+    fireEvent.keyDown(dismiss, { key: 'Enter' })
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'run-action',
       actionId: 'dismiss',
     })
+    await waitFor(() => expect(tab).toHaveFocus())
+    const origin = screen.getByRole('button', { name: 'Edit window' })
+    origin.focus()
+    vi.spyOn(document, 'hasFocus').mockReturnValue(false)
+    fireEvent.contextMenu(tab, { clientX: 30, clientY: 100 })
+    expect(window.focus).toHaveBeenCalledOnce()
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: 'Close 1 tab' }),
+      ).toHaveFocus(),
+    )
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Close 1 tab' }), {
+      key: 'Escape',
+    })
+    await waitFor(() => expect(origin).toHaveFocus())
   })
 
   it('replaces the whole tab pane when switching windows without retaining exited rows', () => {
@@ -504,13 +464,17 @@ describe('TabManager presentation', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders controlled panels and emits group rename and creation intents', () => {
+  it('renders controlled destination submenus and emits group rename and creation intents', () => {
     const onIntent = vi.fn()
-    render(
+    const { rerender } = render(
       <Surface>
         <TabManager
           model={{
             ...model,
+            windows: [
+              ...model.windows,
+              { id: 2, title: 'Second window', tabs: [], groups: [] },
+            ],
             actionPanel: { actionId: 'move' },
             actions: [
               {
@@ -527,12 +491,21 @@ describe('TabManager presentation', () => {
         />
       </Surface>,
     )
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Second window' }))
-    expect(onIntent).toHaveBeenLastCalledWith({
+    fireEvent.pointerDown(
+      screen.getByRole('menuitem', { name: /Second window/ }),
+    )
+    expect(onIntent).not.toHaveBeenCalledWith({ type: 'dismiss-action-menu' })
+    fireEvent.click(screen.getByRole('menuitem', { name: /Second window/ }))
+    expect(onIntent).toHaveBeenCalledWith({
       type: 'run-action',
       actionId: 'move',
       optionId: '2',
     })
+    rerender(
+      <Surface>
+        <TabManager model={model} onIntent={onIntent} />
+      </Surface>,
+    )
     fireEvent.doubleClick(screen.getByRole('button', { name: 'Reading' }))
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'start-group-rename',
@@ -640,9 +613,7 @@ describe('TabManager presentation', () => {
       fireEvent.click(tab)
       fireEvent.keyDown(tab, { key: 'Delete' })
       fireEvent.contextMenu(tab)
-      fireEvent.click(
-        screen.getByRole('menuitem', { name: 'Close 0 selected tabs' }),
-      )
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Close 1 tab' }))
       expect(fireEvent.wheel(tab, { deltaY: 80, cancelable: true })).toBe(false)
       expect(fireEvent.touchMove(tab, { cancelable: true })).toBe(false)
       expect(onIntent).not.toHaveBeenCalled()
@@ -716,8 +687,7 @@ describe('TabManager presentation', () => {
     expect(onIntent).toHaveBeenLastCalledWith({
       type: 'navigate',
       key: 'ArrowDown',
-      shift: false,
-      toggle: false,
+      item: { type: 'tab', id: 11 },
     })
   })
 

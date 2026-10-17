@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateScore } from './omnibarRanking.js'
+import { calculateScore, rankOmnibarResults } from './omnibarRanking.js'
 import type { OmnibarRankableResult } from './omnibarRanking.js'
 
 const makeItem = (
@@ -12,6 +12,19 @@ const makeItem = (
 })
 
 describe('calculateScore', () => {
+  it('ranks window results below commands and above tabs for equal matches', () => {
+    const items = (['tab', 'window', 'command'] as const).map((type) =>
+      makeItem({
+        id: type === 'command' ? 'z-command' : type,
+        type,
+        title: 'Workspace',
+      }),
+    )
+    expect(
+      rankOmnibarResults(items, 'Workspace', 0).map((item) => item.type),
+    ).toEqual(['command', 'window', 'tab'])
+  })
+
   it('prioritizes much more recent items over slightly better textual matches', () => {
     const now = Date.UTC(2025, 11, 15, 12)
 

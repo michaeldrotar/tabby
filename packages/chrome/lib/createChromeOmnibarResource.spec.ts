@@ -82,6 +82,15 @@ const setup = (originalWindowId?: number) => {
 }
 
 describe('Chrome Omnibar resource', () => {
+  it('focuses a window without changing its active tab or opening a copy', async () => {
+    const { api, resource } = setup(1)
+    await resource.start()
+    await resource.execute({ kind: 'window', windowId: 4 }, 'new-window')
+    expect(api.windows.update).toHaveBeenCalledWith(4, { focused: true })
+    expect(api.tabs.update).not.toHaveBeenCalled()
+    expect(api.tabs.create).not.toHaveBeenCalled()
+    expect(api.windows.create).not.toHaveBeenCalled()
+  })
   it('rejects executable bookmark URLs without changing a browser tab', async () => {
     const { api, resource } = setup()
     await resource.start()

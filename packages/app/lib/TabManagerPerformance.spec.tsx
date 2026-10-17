@@ -141,14 +141,14 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
   expect(
     container.querySelector(`[data-tab-id="${tabs[0]!.id}"]`)?.textContent,
   ).toContain('• 2s')
-  await measure('selectFirst', () => {
+  await measure('activateFirst', () => {
     fireEvent.click(
       container.querySelector(
         `[data-tab-id="${tabs[1]!.id}"] [data-tab-option]`,
       )!,
     )
   })
-  await measure('selectSecond', () => {
+  await measure('activateSecond', () => {
     fireEvent.click(
       container.querySelector(
         `[data-tab-id="${tabs[2]!.id}"] [data-tab-option]`,
@@ -199,8 +199,8 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     idleClock: 0,
     recentAge: 1,
     changingAge: 1,
-    selectFirst: 2,
-    selectSecond: 2,
+    activateFirst: 4,
+    activateSecond: 4,
     openBackgroundTab: 1,
     activateOpenedTab: 2,
   })

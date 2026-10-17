@@ -1,5 +1,54 @@
 import { expect, test } from '@playwright/test'
 
+test('the Chrome demo keeps product controls usable without tour controls', async ({
+  page,
+}) => {
+  await page.goto('./')
+  const demo = page.locator('[data-browser-demo]')
+  await expect(demo).toBeVisible()
+  await expect(
+    demo.getByRole('button', {
+      name: /^(Overview|Zoom to tabs|Zoom to search|Play tour|Reset)$/,
+    }),
+  ).toHaveCount(0)
+  await demo.getByRole('button', { name: 'Search with Tabby' }).click()
+  const manager = demo.locator('[data-tab-manager]')
+  const settings = manager.getByRole('button', {
+    name: 'Settings',
+    exact: true,
+  })
+  await settings.click()
+  await expect(demo.locator('.browser-camera')).toHaveAttribute(
+    'data-zoom',
+    'overview',
+  )
+  await expect(demo.locator('.browser-page--options')).toBeVisible()
+  await demo
+    .locator('.browser-page--options')
+    .getByText('Dark', { exact: true })
+    .click()
+  await expect(demo.locator('.browser-manager-surface')).toHaveAttribute(
+    'data-theme',
+    'dark',
+  )
+  await manager.getByRole('button', { name: 'Search everything' }).click()
+  const search = demo.locator('[data-omnibar]')
+  await search.getByRole('combobox').fill('Design studio')
+  await expect(
+    search.getByRole('option', { name: /Design studio.*Window/ }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(demo.locator('.browser-camera')).toHaveAttribute(
+    'data-zoom',
+    'overview',
+  )
+  await expect(search.getByRole('combobox')).toHaveValue('design')
+  await expect(demo.locator('.browser-manager-surface')).toHaveAttribute(
+    'data-theme',
+    'light',
+  )
+})
+
 for (const { fragment, target, width } of [
   { fragment: 'features', target: 'features', width: 1280 },
   { fragment: 'c%75stomize', target: 'customize', width: 375 },
@@ -55,6 +104,11 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(page.locator('.site')).toHaveClass(/site--home/)
   const showcase = page.locator('.hero-showcase')
   const demo = showcase.locator('[data-demo]')
+  expect(
+    await demo.evaluate(
+      (element) => element.clientWidth / element.parentElement!.clientWidth,
+    ),
+  ).toBeCloseTo(0.8, 2)
   await expect(
     showcase.getByRole('heading', { name: 'Try it', exact: true }),
   ).toBeVisible()
@@ -115,8 +169,8 @@ test('homepage separates the live demo and switches to a video without losing de
     'Design system',
   )
   await expect(
-    page.locator('#manage [data-selection-summary]'),
-  ).toHaveAttribute('aria-label', '0 windows, 0 tab groups, 3 tabs')
+    page.locator('#manage [data-tab-option][aria-selected="true"]'),
+  ).toHaveCount(3)
   await expect(page.locator('#find [data-omnibar] input')).toHaveValue('design')
   await expect(page.locator('.site-footer')).toContainText(
     'Made for tab-aholics like me.',
@@ -124,8 +178,8 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(page.locator('.privacy-section')).toContainText(
     'If you choose Search Google, that query goes to Google.',
   )
-  const browser = page.getByRole('img', {
-    name: /Chrome showing Tabby’s tab manager on the left and search/,
+  const browser = page.getByRole('group', {
+    name: 'Explore Tabby in Chrome',
   })
   await expect(browser).toBeVisible()
   await page.evaluate(() => document.fonts.ready)
@@ -200,7 +254,7 @@ test('homepage separates the live demo and switches to a video without losing de
   await demo.getByRole('button', { name: 'Tabs', exact: true }).click()
   await demo.getByRole('switch', { name: 'Dark mode', exact: true }).click()
   await expect(
-    page.getByRole('button', { name: 'Play tour', exact: true }),
+    demo.getByRole('button', { name: 'Play tour', exact: true }),
   ).toHaveCount(0)
   await demo.getByRole('button', { name: 'Search', exact: true }).click()
   await demo.getByRole('combobox').fill('Copenhagen')
@@ -424,7 +478,7 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     .getByRole('option', { name: 'Tab: Launch checklist', exact: true })
     .click({ modifiers: ['ControlOrMeta'] })
   await expect(
-    demo.getByRole('status', { name: '0 windows, 0 tab groups, 2 tabs' }),
+    demo.getByRole('button', { name: 'More actions', exact: true }),
   ).toBeVisible()
   await demo.getByRole('button', { name: 'More actions', exact: true }).click()
   await demo.getByRole('menuitem', { name: 'Pin 2 tabs', exact: true }).click()

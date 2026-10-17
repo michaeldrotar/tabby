@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createChromeBackend } from './createChromeBackend.js'
+import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
 import type { ChromeBackendApi } from './createChromeBackend.js'
 
 const event = () => {
@@ -128,6 +129,45 @@ const mockBrowser = () => {
 }
 
 describe('Chrome browser backend', () => {
+  it('keeps provisional restored names and icons hidden until the match is confirmed', async () => {
+    const { api } = mockBrowser()
+    const identity = {
+      key: 'saved-window',
+      name: 'Work',
+      icon: 'briefcase',
+      iconColor: 'blue',
+      provisional: true,
+    }
+    const onChanged = event()
+    const storage = {
+      session: {
+        get: async () => ({ [WINDOW_IDENTITIES_KEY]: { 1: { ...identity } } }),
+      },
+      onChanged,
+    } as unknown as typeof chrome.storage
+    const backend = createChromeBackend({ ...api, storage })
+    await backend.start()
+    expect(backend.getSnapshot().windows[0]).toMatchObject({ id: 1 })
+    for (const field of ['name', 'icon', 'iconColor'] as const)
+      expect(backend.getSnapshot().windows[0]?.[field]).toBeUndefined()
+
+    Object.assign(identity, {
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'green',
+      provisional: false,
+    })
+    onChanged.emit({ [WINDOW_IDENTITIES_KEY]: {} }, 'session')
+    await backend.start()
+    expect(backend.getSnapshot().windows[0]).toMatchObject({
+      id: 1,
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'green',
+    })
+    backend.dispose()
+  })
+
   it('normalizes records and keeps event and command results authoritative with partial close outcomes', async () => {
     const { api, mock, onUpdated } = mockBrowser()
     const backend = createChromeBackend(api)
@@ -298,6 +338,60 @@ describe('Chrome command parity', () => {
     }
   })
 
+  it('moves complete groups and individual tabs together without dissolving the groups', async () => {
+    for (const destination of [2, undefined]) {
+      const { api, mock } = mockBrowser()
+      const query = vi.fn(async () => [
+        ...(await mock.tabs.query()),
+        { id: 13, windowId: 1, index: 2, groupId: -1, active: false },
+      ])
+      const move = vi.fn(async () => []),
+        moveGroup = vi.fn(async () => ({ id: 7 }))
+      const create = vi.fn(async () => ({ id: 2, tabs: [{ id: 90 }] }))
+      const backend = createChromeBackend({
+        ...api,
+        windows: {
+          ...api.windows,
+          create,
+          getAll: async () => [
+            ...(await mock.windows.getAll()),
+            { id: 2, type: 'normal', focused: false, incognito: false },
+          ],
+        },
+        tabs: { ...api.tabs, query, move },
+        tabGroups: { ...api.tabGroups!, move: moveGroup },
+      } as unknown as ChromeBackendApi)
+      await backend.start()
+      expect(
+        await backend.execute({
+          type: 'move-tabs',
+          tabIds: [11, 12, 13],
+          windowId: destination,
+        }),
+      ).toMatchObject({ status: 'success', succeededIds: [11, 12, 13] })
+      expect(moveGroup).toHaveBeenCalledExactlyOnceWith(7, {
+        windowId: 2,
+        index: -1,
+      })
+      expect(move).toHaveBeenCalledExactlyOnceWith(13, {
+        windowId: 2,
+        index: -1,
+      })
+      if (destination === undefined) {
+        expect(create).toHaveBeenCalledExactlyOnceWith({
+          type: 'normal',
+          incognito: false,
+          focused: false,
+        })
+        expect(mock.tabs.remove).toHaveBeenCalledExactlyOnceWith(90)
+      } else {
+        expect(create).not.toHaveBeenCalled()
+        expect(mock.tabs.remove).not.toHaveBeenCalled()
+      }
+      backend.dispose()
+    }
+  })
+
   it('maps tab actions, ordered moves, grouping, and group metadata to injected browser APIs', async () => {
     const { api, mock } = mockBrowser()
     const reload = vi.fn(async () => {}),
@@ -389,13 +483,19 @@ describe('Chrome command parity', () => {
       succeededIds: [11, 12],
     })
     expect(mock.windows.create).toHaveBeenCalledWith({
-      tabId: 11,
       type: 'normal',
       incognito: false,
+      focused: false,
     })
-    expect(move).toHaveBeenCalledWith(12, { windowId: 2, index: -1 })
+    expect(moveGroup).toHaveBeenCalledWith(7, { windowId: 2, index: -1 })
+    expect(move).not.toHaveBeenCalled()
     await backend.execute({ type: 'move-group', groupId: 7 })
     expect(moveGroup).toHaveBeenCalledWith(7, { windowId: 2, index: -1 })
+    expect(mock.windows.create).toHaveBeenLastCalledWith({
+      type: 'normal',
+      incognito: false,
+      focused: false,
+    })
     backend.dispose()
   })
 })
@@ -430,6 +530,107 @@ describe('browser presentation facts', () => {
       hasLoaded: true,
       renderKey: 11,
     })
+    backend.dispose()
+  })
+})
+
+describe('window transfer constraints', () => {
+  it('inserts pinned tabs at the pinned boundary and retains a later failed source tab without focusing Chrome', async () => {
+    const { api, mock } = mockBrowser()
+    let tabs = [
+      {
+        id: 11,
+        windowId: 1,
+        index: 0,
+        title: 'Pinned source',
+        url: 'https://source.test',
+        active: true,
+        pinned: true,
+        groupId: -1,
+      },
+      {
+        id: 12,
+        windowId: 1,
+        index: 1,
+        title: 'Failed source',
+        url: 'https://source.test/later',
+        active: false,
+        pinned: false,
+        groupId: -1,
+      },
+      {
+        id: 21,
+        windowId: 2,
+        index: 0,
+        title: 'Pinned destination',
+        url: 'https://target.test',
+        active: true,
+        pinned: true,
+        groupId: -1,
+      },
+      {
+        id: 22,
+        windowId: 2,
+        index: 1,
+        title: 'Destination',
+        url: 'https://target.test/later',
+        active: false,
+        pinned: false,
+        groupId: -1,
+      },
+    ]
+    const query = async (query: { windowId?: number; pinned?: boolean } = {}) =>
+      structuredClone(
+        tabs.filter(
+          (tab) =>
+            (query.windowId === undefined || tab.windowId === query.windowId) &&
+            (query.pinned === undefined || tab.pinned === query.pinned),
+        ),
+      )
+    const move = vi.fn(
+      async (id: number, target: { windowId: number; index: number }) => {
+        if (id === 12) throw new Error('Window is locked.')
+        tabs = tabs.map((tab) =>
+          tab.id === id
+            ? { ...tab, windowId: target.windowId, index: target.index }
+            : tab,
+        )
+      },
+    )
+    const backend = createChromeBackend({
+      ...api,
+      windows: {
+        ...api.windows,
+        getAll: async () => [
+          { id: 1, type: 'normal', incognito: false },
+          { id: 2, type: 'normal', incognito: false },
+        ],
+      },
+      tabs: { ...api.tabs, query, move },
+    } as unknown as ChromeBackendApi)
+    await backend.start()
+    expect(
+      await backend.execute({
+        type: 'move-tabs',
+        tabIds: [11, 12],
+        windowId: 2,
+      }),
+    ).toMatchObject({
+      status: 'partial',
+      succeededIds: [11],
+      failures: [{ id: 12, message: 'Window is locked.' }],
+    })
+    expect(move.mock.calls).toEqual([
+      [11, { windowId: 2, index: 1 }],
+      [12, { windowId: 2, index: -1 }],
+    ])
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11),
+    ).toMatchObject({ windowId: 2, pinned: true })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 12)?.windowId,
+    ).toBe(1)
+    expect(mock.windows.update).not.toHaveBeenCalled()
     backend.dispose()
   })
 })

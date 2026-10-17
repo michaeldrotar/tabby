@@ -157,7 +157,10 @@ export const Omnibar = ({
     originalWindowId?: number,
   ) => {
     try {
-      await item.execute(modifier, originalWindowId)
+      await item.execute(
+        item.type === 'window' ? undefined : modifier,
+        originalWindowId,
+      )
       onDismiss()
     } catch (error) {
       onError?.(error)

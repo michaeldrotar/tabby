@@ -1,8 +1,9 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import * as Menu from '@radix-ui/react-menu'
+import { animate } from 'framer-motion'
 import {
   ArrowDown,
+  ArrowLeft,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   ChevronUp,
   Copy,
@@ -15,26 +16,32 @@ import {
   Link2,
   MemoryStick,
   MonitorUp,
+  MousePointer2,
   Palette,
   Pencil,
   Pin,
   PinOff,
+  Plus,
   RefreshCw,
+  Search,
+  Settings,
   Trash2,
   Ungroup,
   Volume2,
   VolumeOff,
+  X,
 } from 'lucide-react'
-import { useRef } from 'react'
+import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
-import { useSurface } from '../../Surface'
+import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
-import { useShouldSettleMotion } from '../../useShouldReduceMotion'
+import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
-import { formatSelectionCount } from './actionBarLayout'
+import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
+  TabManagerActionOption,
   TabManagerIntent,
   TabManagerViewModel,
 } from '../TabManager'
@@ -57,11 +64,13 @@ const icons = {
   Pencil,
   Pin,
   PinOff,
+  Plus,
   RefreshCw,
   Trash2,
   Ungroup,
   Volume2,
   VolumeOff,
+  X,
 }
 const ActionIcon = ({ name }: { name?: string }) => {
   const key = Object.keys(icons).find(
@@ -71,309 +80,417 @@ const ActionIcon = ({ name }: { name?: string }) => {
   const Icon = icons[(key ?? 'Layers') as keyof typeof icons]
   return <Icon size={17} aria-hidden="true" />
 }
-const countLabel = (count: number, entity: string) =>
-  `${formatSelectionCount(count)} ${entity}${count === 1 ? '' : 's'}`
-const itemClass = `text-popover-foreground flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-highlighted/50 focus-visible:bg-highlighted/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45`
+const itemClass =
+  'text-popover-foreground flex min-h-9 w-full cursor-default select-none items-center gap-3 rounded px-3 py-2 text-left text-sm outline-none data-[highlighted]:bg-highlighted/50 data-[state=open]:bg-highlighted/50 data-[disabled]:opacity-45'
+const menuClass =
+  'bg-popover border-border text-popover-foreground z-[80] min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border p-1 shadow-lg outline-none'
+const OptionContent = ({
+  option,
+  windows,
+}: {
+  option: TabManagerActionOption
+  windows: boolean
+}) => (
+  <>
+    <span className="text-muted shrink-0">
+      {option.color ? (
+        <span
+          role="img"
+          aria-label={`${option.label} color swatch`}
+          className={cn(
+            'block size-4 rounded-full',
+            getGroupColorClasses(option.color).dot,
+          )}
+        />
+      ) : windows && option.id !== 'new' ? (
+        <WindowIcon
+          icon={option.icon}
+          iconUrl={option.iconUrl}
+          color={option.windowIconColor}
+          size={17}
+        />
+      ) : (
+        <ActionIcon name={option.icon} />
+      )}
+    </span>
+    <span className="min-w-0 flex-1 truncate text-left">{option.label}</span>
+    {option.subtitle && (
+      <span className="text-muted text-xs">{option.subtitle}</span>
+    )}
+  </>
+)
 
 export const TabManagerActionBar = ({
   model,
   onIntent,
   menuRef,
+  menuPosition,
+  returnFocus,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
+  menuPosition: RefObject<{ x: number; y: number } | null>
+  returnFocus: RefObject<HTMLElement | null>
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const surface = useSurface()
-  const settle = useShouldSettleMotion()
+  const { canFocusInput } = useSurfaceInputOwner()
   const actions =
     model.actionMenu?.target && model.contextActions
       ? model.contextActions
       : (model.actions ?? [])
   const ordered = [
-    ...actions.filter((action) => action.kind === 'primary'),
-    ...actions.filter((action) => action.kind === 'secondary'),
+    ...actions.filter((a) => a.kind === 'primary'),
+    ...actions.filter((a) => a.kind === 'secondary'),
   ]
-  const panelAction = [
-    ...actions,
-    ...(model.actions ?? []),
-    ...(model.contextActions ?? []),
-  ].find((action) => action.id === model.actionPanel?.actionId)
-  const selectedGroupCount =
-    model.selectedGroupCount ?? model.selectedGroupIds.length
-  const open = Boolean(model.actionMenu || model.actionPanel)
-  const run = (action: TabManagerAction) =>
-    onIntent(
-      action.panel
-        ? { type: 'open-action-panel', actionId: action.id }
-        : { type: 'run-action', actionId: action.id },
+  const open = Boolean(
+    (model.actionMenu || model.actionPanel) &&
+    model.actionMenu?.target?.type !== 'window',
+  )
+  const hasSelection =
+    model.selectedTabIds.length > 0 || model.selectedGroupIds.length > 0
+  const interactive =
+    (!surface || surface.inputMode === 'live') && canFocusInput()
+  const panel = ordered.find(
+    (action) => action.id === model.actionPanel?.actionId,
+  )
+  const panelId = panel?.id
+  const previousPanel = useRef<string | undefined>(undefined)
+  useLayoutEffect(() => {
+    const previous = previousPanel.current
+    previousPanel.current = panelId
+    if (!open || !interactive) return
+    const target =
+      previous && !panelId
+        ? menuRef.current?.querySelector<HTMLElement>(
+            `[data-action-id="${previous}"]`,
+          )
+        : menuRef.current?.querySelector<HTMLElement>(
+            '[role="menuitem"]:not(:disabled):not([data-disabled])',
+          )
+    target?.focus({ preventScroll: true })
+  }, [panelId, open, interactive, menuRef])
+  const position = open ? menuPosition.current : null
+  const reducedMotion = useShouldReduceMotion()
+  const previousPosition = useRef<typeof position>(null)
+  useLayoutEffect(() => {
+    const previous = previousPosition.current
+    previousPosition.current = position
+    if (
+      !previous ||
+      !position ||
+      previous === position ||
+      !menuRef.current ||
+      reducedMotion
     )
-  const popup = (
-    <AnimatePresence initial={false}>
-      {open && (
-        <motion.div
-          key={model.actionPanel?.actionId ?? 'overflow-menu'}
-          ref={menuRef}
-          data-manager-action-menu
-          {...(model.actionPanel
-            ? { 'data-action-bar-panel': '' }
-            : { 'data-action-bar-menu': '' })}
-          role="menu"
-          aria-label={panelAction?.label ?? 'Selection actions'}
-          initial={settle ? false : { y: 8, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 8, opacity: 0 }}
-          transition={{ duration: settle ? 0 : 0.15, ease: 'easeOut' }}
-          className={`
-            bg-popover border-border absolute bottom-16 right-2 z-[80] flex
-            max-h-[min(75%,34rem)] w-[min(22rem,calc(100%-1rem))] flex-col
-            overflow-hidden rounded-lg border shadow-lg
-          `}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              event.preventDefault()
-              event.stopPropagation()
-              onIntent({ type: 'dismiss-action-menu' })
-              surface?.root
-                ?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
-                ?.focus()
-            } else if (
-              ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)
-            ) {
-              event.preventDefault()
-              const entries = Array.from(
-                menuRef.current?.querySelectorAll<HTMLElement>(
-                  '[role="menuitem"]:not(:disabled)',
-                ) ?? [],
-              )
-              const index = entries.indexOf(event.target as HTMLElement)
-              const next =
-                event.key === 'Home'
-                  ? 0
-                  : event.key === 'End'
-                    ? entries.length - 1
-                    : (index +
-                        (event.key === 'ArrowUp' ? -1 : 1) +
-                        entries.length) %
-                      entries.length
-              entries[next]?.focus()
-            }
-          }}
-        >
-          {model.actionPanel && panelAction ? (
-            <>
-              <div
-                className={`
-                  border-border flex-shrink-0 border-b px-3 py-2 text-sm
-                  font-medium
-                `}
-              >
-                {panelAction.label}
-              </div>
-              <div
-                data-action-bar-panel-scroll-region
-                className="min-h-0 flex-1 overflow-y-auto py-1"
-              >
-                {panelAction.options?.map((option) => (
-                  <div key={option.id}>
-                    {option.dividerBefore && (
-                      <div className="bg-border mx-2 my-1 h-px" />
-                    )}
-                    <button
-                      role="menuitem"
-                      disabled={option.disabled}
-                      title={option.disabledReason}
-                      className={cn(
-                        itemClass,
-                        option.destructive && 'text-destructive',
-                      )}
-                      onClick={() =>
-                        onIntent({
-                          type: 'run-action',
-                          actionId: panelAction.id,
-                          optionId: option.id,
-                        })
-                      }
-                    >
-                      <span className="text-muted flex-shrink-0">
-                        {option.color ? (
-                          <span
-                            role="img"
-                            aria-label={`${option.label} color swatch`}
-                            className={cn(
-                              'block size-4 rounded-full',
-                              getGroupColorClasses(option.color).dot,
-                            )}
-                          />
-                        ) : option.iconUrl ? (
-                          <img
-                            src={option.iconUrl}
-                            width={16}
-                            height={16}
-                            alt=""
-                          />
-                        ) : (
-                          <ActionIcon name={option.icon} />
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-left">
-                        {option.label}
-                      </span>
-                      {option.subtitle && (
-                        <span className="text-muted text-xs">
-                          {option.subtitle}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="border-border flex-shrink-0 border-t p-2">
-                <button
-                  role="menuitem"
-                  data-action-bar-panel-back
-                  className={cn(itemClass, 'rounded px-2')}
-                  onClick={() => onIntent({ type: 'dismiss-action-panel' })}
-                >
-                  <ChevronLeft size={15} />
-                  <span>Back</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="min-h-0 flex-1 overflow-y-auto py-1">
-              {ordered.map((action, index) => (
-                <div key={action.id}>
-                  <button
-                    role="menuitem"
-                    disabled={action.disabled}
-                    title={action.disabledReason}
-                    className={cn(
-                      itemClass,
-                      action.destructive && 'text-destructive',
-                    )}
-                    onClick={() => run(action)}
-                  >
-                    <span className="text-muted flex-shrink-0">
-                      <ActionIcon name={action.icon} />
-                    </span>
-                    <span className="flex-1 text-left">{action.label}</span>
-                    {action.panel ? (
-                      <ChevronRight size={14} className="text-muted" />
-                    ) : (
-                      action.shortcut && (
-                        <kbd className="text-muted font-mono text-xs">
-                          {action.shortcut}
-                        </kbd>
-                      )
-                    )}
-                  </button>
-                  {action.kind === 'primary' &&
-                    ordered[index + 1]?.kind === 'secondary' && (
-                      <div className="bg-border mx-2 my-1 h-px" />
-                    )}
-                </div>
-              ))}
-              {!ordered.length && (
-                <p className="text-muted px-3 py-3 text-sm">
-                  Select items to see actions.
-                </p>
-              )}
-            </div>
-          )}
-        </motion.div>
+      return
+    const animation = animate(
+      menuRef.current,
+      { opacity: [1, 0, 1] },
+      { duration: 0.16, ease: 'easeOut' },
+    )
+    return () => animation.stop()
+  }, [position, menuRef, reducedMotion])
+  const anchor = useMemo(
+    () => ({
+      current: {
+        getBoundingClientRect: () =>
+          position
+            ? new DOMRect(position.x, position.y, 0, 0)
+            : ((surface?.root ?? rootRef.current?.closest('[data-tab-manager]'))
+                ?.querySelector('[data-action-bar-menu-trigger]')
+                ?.getBoundingClientRect() ?? new DOMRect()),
+      },
+    }),
+    [surface?.root, position],
+  )
+  const run = (action: TabManagerAction, optionId?: string) =>
+    onIntent({ type: 'run-action', actionId: action.id, optionId })
+  const restoreFocus = (event: Event) => {
+    event.preventDefault()
+    if (canFocusInput()) {
+      const active = rootRef.current?.ownerDocument.activeElement
+      if (
+        active &&
+        active !== active.ownerDocument.body &&
+        !menuRef.current?.contains(active)
+      )
+        return
+      const target = returnFocus.current?.isConnected
+        ? returnFocus.current
+        : (
+            surface?.root ?? rootRef.current?.closest('[data-tab-manager]')
+          )?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
+      target?.focus({ preventScroll: true })
+    }
+  }
+  const renderItem = (
+    id: string,
+    content: React.ReactNode,
+    activate: () => void,
+    settings: {
+      disabled?: boolean
+      reason?: string
+      destructive?: boolean
+      panel?: boolean
+    } = {},
+  ) => {
+    const props = {
+      'data-action-id': id,
+      title: settings.reason,
+      disabled: settings.disabled,
+      className: cn(itemClass, settings.destructive && 'text-destructive'),
+    }
+    return interactive ? (
+      <Menu.Item
+        key={id}
+        {...props}
+        onPointerUp={(event) => {
+          if (event.button !== 0) event.preventDefault()
+        }}
+        onSelect={(event) => {
+          if (settings.panel) event.preventDefault()
+          activate()
+        }}
+        onKeyDown={(event) => {
+          if (settings.panel && event.key === 'ArrowRight') {
+            event.preventDefault()
+            activate()
+          }
+        }}
+      >
+        {content}
+      </Menu.Item>
+    ) : (
+      <button key={id} role="menuitem" {...props} onClick={activate}>
+        {content}
+      </button>
+    )
+  }
+  const contents = !hasSelection ? (
+    <div
+      role="status"
+      className={`
+        text-muted flex aspect-square w-full flex-col items-center
+        justify-center gap-4 p-6 text-center text-base
+      `}
+    >
+      <MousePointer2 size={32} className="text-accent" aria-hidden="true" />
+      <p>Select tabs or groups to see actions.</p>
+    </div>
+  ) : panel ? (
+    <>
+      {renderItem(
+        'back',
+        <>
+          <ArrowLeft size={17} />
+          <span>Back</span>
+        </>,
+        () => onIntent({ type: 'dismiss-action-panel' }),
+        { panel: true },
       )}
-    </AnimatePresence>
+      {panel.options?.map((option) => (
+        <Fragment key={option.id}>
+          {option.dividerBefore && (
+            <div role="separator" className="bg-border mx-2 my-1 h-px" />
+          )}
+          {renderItem(
+            option.id,
+            <OptionContent
+              option={option}
+              windows={panel.panel === 'windows'}
+            />,
+            () => run(panel, option.id),
+            {
+              disabled: option.disabled,
+              reason: option.disabledReason,
+              destructive: option.destructive,
+            },
+          )}
+        </Fragment>
+      ))}
+    </>
+  ) : (
+    ordered.map((action) =>
+      renderItem(
+        action.id,
+        <>
+          <span className="text-muted shrink-0">
+            <ActionIcon name={action.icon} />
+          </span>
+          <span className="min-w-0 flex-1 text-left">{action.label}</span>
+          {action.panel && (
+            <ChevronRight size={14} className="text-muted shrink-0" />
+          )}
+        </>,
+        () =>
+          action.panel
+            ? onIntent({ type: 'open-action-panel', actionId: action.id })
+            : run(action),
+        {
+          disabled: action.disabled,
+          reason: action.disabledReason,
+          destructive: action.destructive,
+          panel: !!action.panel,
+        },
+      ),
+    )
+  )
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (panel && event.key === 'ArrowLeft') {
+      event.preventDefault()
+      event.stopPropagation()
+      onIntent({ type: 'dismiss-action-panel' })
+    }
+  }
+  const popupClass = cn(menuClass, !hasSelection && 'w-56')
+  const staticPopup = open && (
+    <div
+      ref={menuRef}
+      role="menu"
+      aria-label={panel?.label ?? 'Selection actions'}
+      data-manager-action-menu
+      data-action-bar-menu
+      className={cn(
+        popupClass,
+        'absolute right-2 max-h-[75%]',
+        hasSelection && 'w-[min(22rem,calc(100%-1rem))]',
+      )}
+      style={{
+        bottom: 57 + (model.notifications?.items.length ? 53 : 0),
+      }}
+    >
+      {contents}
+    </div>
   )
   return (
     <div
       ref={rootRef}
       data-action-bar-root
-      data-keyboard-section="actions"
       className="bg-background relative z-50"
     >
       <div
-        inert={!!model.notifications?.items.length}
-        aria-hidden={model.notifications?.items.length ? true : undefined}
-        className={cn(
-          'border-border border-t p-2',
-          !!model.notifications?.items.length && 'invisible',
-        )}
+        className="pointer-events-none relative"
+        style={{ height: model.notifications?.items.length ? 53 : 0 }}
       >
-        <div className="flex h-9 items-center gap-2">
-          <div
-            data-selection-summary
-            data-selected-tabs={model.selectedTabIds.length}
-            data-selected-windows={model.selectedWindowIds.length}
-            data-selected-groups={selectedGroupCount}
-            role="status"
-            className="ml-auto flex flex-shrink-0 items-center gap-1"
-            aria-label={`${countLabel(model.selectedWindowIds.length, 'window')}, ${countLabel(selectedGroupCount, 'tab group')}, ${countLabel(model.selectedTabIds.length, 'tab')}`}
-          >
-            {[
-              [MonitorUp, model.selectedWindowIds.length, 'window'],
-              [FolderPlus, selectedGroupCount, 'tab group'],
-              [Layers, model.selectedTabIds.length, 'tab'],
-            ].map(([Icon, count, entity]) => {
-              const ItemIcon = Icon as typeof Layers
-              return (
-                <span
-                  key={String(entity)}
-                  title={countLabel(Number(count), String(entity))}
-                  className={`
-                    text-muted flex h-7 w-[3.5rem] flex-shrink-0 items-center
-                    gap-1 whitespace-nowrap text-xs
-                  `}
-                >
-                  <ItemIcon size={14} aria-hidden="true" />
-                  {formatSelectionCount(Number(count))}
-                </span>
+        <NotificationStack
+          items={model.notifications?.items ?? []}
+          expanded={model.notifications?.expanded ?? false}
+          onExpand={(expanded) =>
+            onIntent({ type: 'expand-notifications', expanded })
+          }
+          onDismiss={(id) => onIntent({ type: 'dismiss-notice', id })}
+          onEmptyFocus={() =>
+            rootRef.current
+              ?.querySelector<HTMLButtonElement>(
+                '[data-action-bar-menu-trigger]',
               )
-            })}
-          </div>
+              ?.focus()
+          }
+        />
+      </div>
+      <nav
+        aria-label="Tab Manager tools"
+        data-keyboard-section="tools"
+        className={`
+          border-border bg-background flex h-12 shrink-0 items-center
+          justify-between gap-1 border-t px-2
+        `}
+      >
+        <div className="flex items-center gap-1">
           <button
-            type="button"
-            data-action-bar-menu-trigger
-            aria-label="More actions"
-            aria-expanded={open}
-            className={cn(
-              `
-                text-muted flex h-9 w-9 flex-shrink-0 items-center
-                justify-center rounded-md transition-colors
-                hover:bg-highlighted/50 hover:text-foreground
-                focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                focus-visible:ring-offset-background focus-visible:outline-none
-                focus-visible:ring-2 focus-visible:ring-offset-2
-              `,
-              open && 'bg-highlighted/50 text-foreground',
-            )}
-            onClick={() =>
-              onIntent(
-                open
-                  ? { type: 'dismiss-action-menu' }
-                  : { type: 'open-action-menu' },
-              )
-            }
+            aria-label="Search everything"
+            title="Search everything"
+            className={cn(windowControlClass, 'size-10 px-0')}
+            onClick={() => onIntent({ type: 'open-search' })}
           >
-            <Ellipsis size={18} />
+            <Search size={18} />
+          </button>
+          <button
+            aria-label="Settings"
+            title="Settings"
+            className={cn(windowControlClass, 'size-10 px-0')}
+            onClick={() => onIntent({ type: 'open-settings' })}
+          >
+            <Settings size={18} />
           </button>
         </div>
-      </div>
-      <NotificationStack
-        items={model.notifications?.items ?? []}
-        expanded={model.notifications?.expanded ?? false}
-        onExpand={(expanded) =>
-          onIntent({ type: 'expand-notifications', expanded })
-        }
-        onDismiss={(id) => onIntent({ type: 'dismiss-notice', id })}
-        onEmptyFocus={() =>
-          rootRef.current
-            ?.querySelector<HTMLButtonElement>('[data-action-bar-menu-trigger]')
-            ?.focus()
-        }
-      />
-      {surface?.portalHost ? createPortal(popup, surface.portalHost) : popup}
+        <button
+          type="button"
+          data-action-bar-menu-trigger
+          aria-label="More actions"
+          title="More actions"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className={cn(windowControlClass, 'size-10 px-0')}
+          onClick={() =>
+            onIntent(
+              open
+                ? { type: 'dismiss-action-menu' }
+                : { type: 'open-action-menu' },
+            )
+          }
+        >
+          <Ellipsis size={18} />
+        </button>
+      </nav>
+      {interactive ? (
+        <Menu.Root
+          open={open}
+          modal={false}
+          onOpenChange={(value) => {
+            if (!value && open) onIntent({ type: 'dismiss-action-menu' })
+          }}
+        >
+          <Menu.Anchor virtualRef={anchor} />
+          <Menu.Portal container={surface?.portalHost ?? undefined}>
+            <Menu.Content
+              ref={menuRef}
+              data-manager-action-menu
+              data-action-bar-menu
+              aria-label={panel?.label ?? 'Selection actions'}
+              side={position ? 'bottom' : 'top'}
+              align={position ? 'start' : 'end'}
+              sideOffset={position ? 0 : 12}
+              collisionBoundary={surface?.root ?? undefined}
+              collisionPadding={8}
+              loop
+              className={popupClass}
+              style={{
+                maxHeight: 'min(75vh, var(--radix-popper-available-height))',
+                maxWidth: surface?.root
+                  ? Math.max(160, surface.root.clientWidth - 16)
+                  : undefined,
+              }}
+              onCloseAutoFocus={restoreFocus}
+              onInteractOutside={(event) => {
+                const target = event.detail.originalEvent.target
+                if (
+                  !(target instanceof Element) ||
+                  !rootRef.current
+                    ?.closest('[data-tab-manager]')
+                    ?.contains(target)
+                )
+                  return
+                if (
+                  target.closest(
+                    '[data-action-bar-menu-trigger],[data-tab-id],[data-group-id]',
+                  )
+                )
+                  event.preventDefault()
+              }}
+              onKeyDown={onKeyDown}
+            >
+              {contents}
+            </Menu.Content>
+          </Menu.Portal>
+        </Menu.Root>
+      ) : surface?.portalHost ? (
+        createPortal(staticPopup, surface.portalHost)
+      ) : (
+        staticPopup
+      )}
     </div>
   )
 }
