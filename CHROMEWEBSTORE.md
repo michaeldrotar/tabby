@@ -28,6 +28,8 @@ Organize one window at a time
 
 Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
+Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows. Holding over a window reveals an arrow; drag onto it to preview that window’s tabs. Long lists scroll as you drag near their edges. Moving tabs through dragging or the menu brings the destination forward and opens its Tab Manager with the moved tabs selected.
+
 Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
@@ -137,6 +139,7 @@ Appearance preferences, an unfinished search query, Tabby window names and icons
 
 | Version                                                                      | Submission date | Summary                                   | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | -------------- |
+| [1.7.0](product/releases/v1.7.0-drag-and-drop-tab-organization.md)           | —               | Drag and drop tab organization.           | Not submitted  |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.  | Pending review |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                           | Published      |
 | [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Published      |

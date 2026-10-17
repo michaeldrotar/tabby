@@ -1,4 +1,4 @@
-import { getDuplicateTabIds } from '@extension/core'
+import { getDuplicateTabIds, getMovedTabIds } from '@extension/core'
 import {
   isSelectionItemRepresented,
   resolveSelectedTabIds,
@@ -424,12 +424,15 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     const next = reconcileTabManagerView(snapshot, current)
     if (next !== current) view.setState(next, true)
   }
+  let inputRevision = 0
   const execute = async (
     command: Parameters<typeof backend.execute>[0],
     label: string,
   ) => {
     const operation = ++generation
     const initiatingState = view.getState()
+    const initiatingSnapshot = backend.getSnapshot()
+    const initiatingInput = inputRevision
     view.setState({
       actionMenu: null,
       actionPanel: null,
@@ -523,13 +526,68 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           : {}),
       })
     }
-    const openWindowId =
-      command.type === 'activate-window' &&
-      outcome.succeededIds.includes(command.windowId)
+    const isMove =
+      command.type === 'move-tabs' ||
+      command.type === 'move-group' ||
+      command.type === 'place-tabs'
+    const movedTabIds = getMovedTabIds(command, initiatingSnapshot, outcome)
+    const movedTabs = movedTabIds.flatMap((id) => {
+      const tab = backend.getSnapshot().tabs.find((tab) => tab.id === id)
+      return tab ? [tab] : []
+    })
+    if (
+      isMove &&
+      outcome.status === 'success' &&
+      initiatingInput === inputRevision
+    ) {
+      for (const groupId of new Set(
+        movedTabs.flatMap((tab) =>
+          tab.groupId === undefined ? [] : [tab.groupId],
+        ),
+      )) {
+        if (
+          backend.getSnapshot().groups.find((group) => group.id === groupId)
+            ?.collapsed
+        )
+          await backend.execute({
+            type: 'set-group-collapsed',
+            groupId,
+            collapsed: false,
+          })
+      }
+      if (operation !== generation || initiatingInput !== inputRevision) return
+    }
+    const destinationWindow = movedTabs[0]?.windowId
+    const followsMove =
+      isMove &&
+      outcome.status === 'success' &&
+      initiatingInput === inputRevision &&
+      destinationWindow !== undefined &&
+      movedTabs.some(
+        (tab) =>
+          initiatingSnapshot.tabs.find((source) => source.id === tab.id)
+            ?.windowId !== tab.windowId,
+      )
+    const openWindowId = followsMove
+      ? destinationWindow
+      : command.type === 'activate-window' &&
+          outcome.succeededIds.includes(command.windowId)
         ? command.windowId
         : command.type === 'create-window' && applied
           ? created
           : undefined
+    if (
+      isMove &&
+      !followsMove &&
+      applied &&
+      initiatingInput === inputRevision &&
+      movedTabIds.length
+    ) {
+      const local = movedTabs.filter(
+        (tab) => tab.windowId === view.getState().viewedWindowId,
+      )
+      if (local.length) selectMovedTabs(local.map((tab) => tab.id))
+    }
     if (openWindowId !== undefined) {
       if (
         sameInteraction &&
@@ -538,9 +596,23 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           resources.host.getCurrentWindowId() === openWindowId)
       )
         dispatch({ type: 'view-window', windowId: openWindowId })
+      if (followsMove) {
+        const first = movedTabs[0]
+        if (first)
+          await backend.execute({ type: 'activate-tab', tabId: first.id })
+        if (operation !== generation || initiatingInput !== inputRevision)
+          return
+        if (resources.host?.getCurrentWindowId?.() === undefined) {
+          dispatch({ type: 'view-window', windowId: openWindowId })
+          selectMovedTabs(movedTabIds)
+        }
+      }
       const beforeHost = view.getState()
       try {
-        await resources.host?.openWindowTabManager?.(openWindowId)
+        await resources.host?.openWindowTabManager?.(
+          openWindowId,
+          ...(followsMove ? [movedTabIds] : []),
+        )
       } catch (error) {
         if (operation === generation)
           setNotice({
@@ -567,6 +639,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
                 scrollToItem: {
                   id: active.id,
                   revision: (view.getState().scrollToItem?.revision ?? 0) + 1,
+                  ...(followsMove ? { focus: true } : {}),
                 },
               }
             : {}),
@@ -644,13 +717,67 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         })
       }
     })
+  const selectMovedTabs = (tabIds: readonly number[]) => {
+    const snapshot = backend.getSnapshot()
+    const ids = tabIds.filter((id) =>
+      snapshot.tabs.some(
+        (tab) =>
+          tab.id === id && tab.windowId === view.getState().viewedWindowId,
+      ),
+    )
+    if (!ids.length) return
+    view.setState({
+      selection: {
+        selection: {
+          ...createEmptySelectionSnapshot(),
+          mode: ids.length > 1 ? 'multi-select' : 'default',
+          tabIds: new Set(ids),
+        },
+        interaction: createSelectionInteractionState(),
+      },
+      selectionCleared: false,
+      focusedItem: { type: 'tab', id: ids[0]! },
+      scrollToItem: {
+        id: ids[0]!,
+        revision: (view.getState().scrollToItem?.revision ?? 0) + 1,
+        focus: true,
+      },
+    })
+  }
   const dispatch = (intent: TabManagerIntent): void | Promise<void> => {
+    if (
+      ![
+        'scroll',
+        'focus-item',
+        'expand-notifications',
+        'dismiss-notice',
+      ].includes(intent.type)
+    )
+      inputRevision++
     reconcile()
     const snapshot = backend.getSnapshot()
     if (intent.type !== 'view-window' && !view.getState().hasUserInput)
       view.setState({ hasUserInput: true })
     const state = view.getState()
-    if (intent.type === 'open-window-picker') {
+    if (intent.type === 'receive-moved-tabs') {
+      dispatch({ type: 'view-window', windowId: intent.windowId })
+      selectMovedTabs(intent.tabIds)
+    } else if (intent.type === 'place-tabs') {
+      return execute(
+        intent.destination
+          ? {
+              type: 'place-tabs',
+              tabIds: intent.tabIds,
+              destination: intent.destination,
+            }
+          : {
+              type: 'move-tabs',
+              tabIds: intent.tabIds,
+              windowId: intent.windowId,
+            },
+        'Move tabs',
+      )
+    } else if (intent.type === 'open-window-picker') {
       view.setState({
         windowPicker: true,
         editingWindow: null,

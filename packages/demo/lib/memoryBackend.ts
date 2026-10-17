@@ -6,6 +6,7 @@ import {
   insertTabs,
   planGroupMove,
   planTabMove,
+  planTabPlacement,
 } from '@extension/core'
 import type {
   BrowserBackend,
@@ -345,6 +346,36 @@ export class MemoryBackend implements BrowserBackend {
             }
           }
         }
+        break
+      }
+      case 'place-tabs': {
+        const { tabs, index, units } = planTabPlacement(
+          snapshot,
+          ids,
+          command.destination,
+        )
+        const retained = new Set(
+          units.flatMap((unit) =>
+            unit.groupId === undefined ? [] : [unit.groupId],
+          ),
+        )
+        snapshot.tabs = insertTabs(
+          snapshot.tabs,
+          tabs.map((tab) => ({
+            ...tab,
+            groupId:
+              command.destination.groupId ??
+              (retained.has(tab.groupId ?? -1) ? tab.groupId : undefined),
+          })),
+          command.destination.windowId,
+          index,
+        )
+        snapshot.groups = snapshot.groups.map((group) =>
+          retained.has(group.id)
+            ? { ...group, windowId: command.destination.windowId }
+            : group,
+        )
+        succeededIds.push(...ids)
         break
       }
       case 'move-tabs': {

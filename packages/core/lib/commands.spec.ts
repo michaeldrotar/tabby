@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   getCommandTargetIds,
   getDuplicateTabIds,
+  getMovedTabIds,
   planGroupMove,
   planTabMove,
 } from './commands'
@@ -40,10 +41,7 @@ describe('shared browser command planning', () => {
       type: 'group',
       groupId: 20,
     })
-    expect(planTabMove(snapshot, 1, 'forward')).toEqual({
-      type: 'group',
-      groupId: 10,
-    })
+    expect(planTabMove(snapshot, 1, 'forward')).toEqual({ type: 'none' })
   })
   it('resolves relative closes once, omits pinned siblings, and deduplicates explicit targets', () => {
     expect(
@@ -123,4 +121,28 @@ describe('shared browser command planning', () => {
       ),
     ).toEqual([12, 21])
   })
+})
+
+it('resolves the first moved tab by source order for selections and groups', () => {
+  const reversed = { ...snapshot, tabs: snapshot.tabs.toReversed() }
+  expect(
+    getMovedTabIds(
+      { type: 'move-tabs', tabIds: [3, 2], windowId: 2 },
+      reversed,
+      {
+        status: 'success',
+        requestedIds: [3, 2],
+        succeededIds: [3, 2],
+        failures: [],
+      },
+    ),
+  ).toEqual([2, 3])
+  expect(
+    getMovedTabIds({ type: 'move-group', groupId: 10, windowId: 2 }, reversed, {
+      status: 'success',
+      requestedIds: [10],
+      succeededIds: [10],
+      failures: [],
+    }),
+  ).toEqual([2, 3])
 })

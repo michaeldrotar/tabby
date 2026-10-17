@@ -1,8 +1,10 @@
 import { WINDOW_ICONS } from '@extension/core/windowIdentity'
+import { motion } from 'framer-motion'
 import {
   BookOpen,
   Briefcase,
   ChevronDown,
+  ChevronRight,
   Code,
   Coffee,
   FlaskConical,
@@ -21,6 +23,7 @@ import {
   getGroupColorClasses,
   TAB_GROUP_COLOR_IDS,
 } from '../../tab-group/tabGroupColors'
+import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
 import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 import type { BrowserTabGroupColor } from '@extension/core'
@@ -146,21 +149,26 @@ export const WindowHeader = ({
 export const WindowPicker = ({
   model,
   onIntent,
+  dragging = false,
+  dragWindow,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
+  dragging?: boolean
+  dragWindow?: { id: number; ready: boolean; delay: number } | null
 }) => {
   const root = useRef<HTMLDivElement>(null)
+  const reduced = useShouldReduceMotion()
   const { canFocusInput } = useSurfaceInputOwner()
   useLayoutEffect(() => {
-    if (canFocusInput())
+    if (!dragging && canFocusInput())
       (
         root.current?.querySelector<HTMLButtonElement>(
           '[aria-current="true"]',
         ) ??
         root.current?.querySelector<HTMLButtonElement>('[data-window-choice]')
       )?.focus()
-  }, [canFocusInput])
+  }, [canFocusInput, dragging])
   return (
     <div
       ref={root}
@@ -222,6 +230,8 @@ export const WindowPicker = ({
                 'min-h-16 w-full justify-start gap-3 py-3 pr-12 text-left',
                 window.id === model.viewedWindowId &&
                   'bg-accent/[calc(var(--accent-strength)*1%)]',
+                dragWindow?.id === window.id &&
+                  'bg-highlighted/30 text-foreground',
               )}
               onClick={() =>
                 onIntent({ type: 'activate-window', windowId: window.id })
@@ -251,21 +261,85 @@ export const WindowPicker = ({
                 </span>
               </span>
             </button>
-            <RowCloseButton
-              label={`Close window: ${window.title}`}
-              title="Close window"
-              active={window.id === model.viewedWindowId}
-              className="absolute right-1"
-              onClose={() =>
-                onIntent({ type: 'close-window', windowId: window.id })
-              }
-            />
+            {dragging ? (
+              dragWindow?.id === window.id && (
+                <motion.span
+                  key={dragWindow.ready ? 'ready' : 'progress'}
+                  data-drag-open-window={
+                    dragWindow.ready ? window.id : undefined
+                  }
+                  data-drag-window-progress={
+                    dragWindow.ready ? undefined : window.id
+                  }
+                  aria-hidden="true"
+                  className={cn(
+                    `
+                      text-muted absolute right-3 flex size-8 items-center
+                      justify-center
+                    `,
+                    !dragWindow.ready && 'pointer-events-none',
+                  )}
+                  initial={
+                    dragWindow.ready && !reduced ? { opacity: 0, x: -4 } : false
+                  }
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: reduced ? 0 : 0.22, ease: 'easeOut' }}
+                >
+                  {dragWindow.ready ? (
+                    <ChevronRight size={18} />
+                  ) : (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      className="-rotate-90"
+                    >
+                      <circle
+                        cx="9"
+                        cy="9"
+                        r="7"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        opacity="0.2"
+                      />
+                      <motion.circle
+                        cx="9"
+                        cy="9"
+                        r="7"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{
+                          duration: dragWindow.delay / 1000,
+                          ease: 'linear',
+                        }}
+                      />
+                    </svg>
+                  )}
+                </motion.span>
+              )
+            ) : (
+              <RowCloseButton
+                label={`Close window: ${window.title}`}
+                title="Close window"
+                active={window.id === model.viewedWindowId}
+                className="absolute right-1"
+                onClose={() =>
+                  onIntent({ type: 'close-window', windowId: window.id })
+                }
+              />
+            )}
           </div>
         ))}
       </div>
       <button
         type="button"
         aria-label="New window"
+        data-new-window
         className={cn(windowControlClass, 'mt-2 w-full justify-start gap-3')}
         onClick={() => onIntent({ type: 'create-window' })}
       >

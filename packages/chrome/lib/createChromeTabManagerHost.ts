@@ -3,14 +3,20 @@ import type { HostCapabilities } from '@extension/core/browser'
 export type ChromeTabManagerHostApi = Pick<
   typeof chrome,
   'action' | 'runtime' | 'windows'
-> & { sidePanel?: Pick<typeof chrome.sidePanel, 'open'> }
+> & {
+  sidePanel?: Pick<typeof chrome.sidePanel, 'open'>
+  storage?: Pick<typeof chrome.storage, 'session'>
+}
 
 /** Host-only effects and cross-window activation signals, with an explicit owner lifecycle. */
 export const createChromeTabManagerHost = (
   api: ChromeTabManagerHostApi,
   options: {
     writeClipboardText: (text: string) => Promise<void>
-    onWindowActivated: (windowId: number) => void
+    onWindowActivated: (
+      windowId: number,
+      tabIds?: readonly number[],
+    ) => void | boolean
   },
 ) => {
   let currentWindowId: number | undefined
@@ -47,7 +53,18 @@ export const createChromeTabManagerHost = (
             window.id === message.windowId
           ) {
             currentWindowId = window.id
-            options.onWindowActivated(window.id)
+            const tabIds =
+              'tabIds' in message &&
+              Array.isArray(message.tabIds) &&
+              message.tabIds.every((id) => Number.isSafeInteger(id) && id >= 0)
+                ? (message.tabIds as number[])
+                : undefined
+            const received = options.onWindowActivated(
+              window.id,
+              ...(tabIds ? [tabIds] : []),
+            )
+            if (tabIds && received !== false)
+              await api.storage?.session.remove(`tabby-moved-tabs-${window.id}`)
           }
         } catch {
           /* The originating window may already be closed. */
@@ -64,17 +81,31 @@ export const createChromeTabManagerHost = (
   }
   const capabilities: HostCapabilities = {
     getCurrentWindowId: () => currentWindowId,
-    openWindowTabManager: async (windowId) => {
+    openWindowTabManager: async (windowId, tabIds) => {
       const operation = generation
       if (!running) return
       if (!Number.isSafeInteger(windowId) || windowId < 0)
         throw new Error('The destination window is invalid.')
-      // Start the panel opening while the originating user gesture is active.
+      const key = `tabby-moved-tabs-${windowId}`
+      const saving = tabIds
+        ? api.storage?.session.set({ [key]: [...tabIds] })
+        : undefined
       const opening = api.sidePanel?.open({ windowId })
-      const signaling = api.runtime
-        .sendMessage({ type: 'TAB_MANAGER_WINDOW_ACTIVATED', windowId })
-        .catch(() => undefined)
-      await Promise.all([opening, signaling])
+      try {
+        await Promise.all([saving, opening])
+        await api.runtime
+          .sendMessage({
+            type: 'TAB_MANAGER_WINDOW_ACTIVATED',
+            windowId,
+            ...(tabIds ? { tabIds } : {}),
+          })
+          .catch(() => undefined)
+        if (!running || operation !== generation) return
+        await api.windows.update(windowId, { focused: true })
+      } catch (error) {
+        if (tabIds) await api.storage?.session.remove(key)
+        throw error
+      }
       if (!running || operation !== generation) return
     },
     openSearch: async () => {
@@ -96,6 +127,22 @@ export const createChromeTabManagerHost = (
   }
   return {
     capabilities,
+    restoreMovedTabs: async () => {
+      const windowId = currentWindowId
+      const operation = generation
+      if (!running || windowId === undefined || !api.storage) return
+      const key = `tabby-moved-tabs-${windowId}`
+      const stored = (await api.storage.session.get(key))[key]
+      if (
+        running &&
+        operation === generation &&
+        Array.isArray(stored) &&
+        stored.every((id) => Number.isSafeInteger(id) && id >= 0)
+      ) {
+        if (options.onWindowActivated(windowId, stored) !== false)
+          await api.storage.session.remove(key)
+      }
+    },
     start: async () => {
       if (running) return currentWindowId
       running = true
