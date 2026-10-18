@@ -28,18 +28,38 @@ export const ChromeTabbyProvider = ({
   originalWindowId,
 }: ChromeTabbyProviderProps) => {
   const resources = useMemo(() => {
-    const backend = createChromeBackend(api)
+    const backend = createChromeBackend(api, {
+      delegateClosingWindowMoves: true,
+    })
     const preferences = createChromePreferences(api)
     const views = createTabbyViews()
     const host = createChromeTabManagerHost(api, {
       writeClipboardText: (text) => navigator.clipboard.writeText(text),
-      onWindowActivated: (windowId) => {
+      onWindowActivated: (windowId, tabIds) => {
+        if (
+          tabIds &&
+          (backend.getSnapshot().state !== 'loaded' ||
+            tabIds.some(
+              (id) =>
+                !backend
+                  .getSnapshot()
+                  .tabs.some(
+                    (tab) => tab.id === id && tab.windowId === windowId,
+                  ),
+            ))
+        )
+          return false
         createTabManagerController({
           backend,
           view: views.tabManager,
           preferences,
           environment: { now: Date.now, systemTheme: 'light' },
-        }).dispatch({ type: 'view-window', windowId })
+        }).dispatch(
+          tabIds
+            ? { type: 'receive-moved-tabs', windowId, tabIds }
+            : { type: 'view-window', windowId },
+        )
+        return true
       },
     })
     return {
@@ -74,19 +94,25 @@ export const ChromeTabbyProvider = ({
   )
   useEffect(() => {
     let live = true
+    const unsubscribe = resources.backend.subscribe(() => {
+      if (live && surface === 'tab-manager')
+        void resources.host.restoreMovedTabs()
+    })
     const browserReady = Promise.all([
       resources.backend.start(),
       resources.preferences.start(),
       surface === 'tab-manager' ? resources.host.start() : undefined,
     ])
     void browserReady.then(
-      ([, , windowId]) => {
-        if (live)
+      async ([, , windowId]) => {
+        if (live) {
           initializeTabManagerView(
             resources.views.tabManager,
             resources.backend.getSnapshot(),
             windowId,
           )
+          await resources.host.restoreMovedTabs()
+        }
       },
       () => {},
     )
@@ -111,6 +137,7 @@ export const ChromeTabbyProvider = ({
     })
     return () => {
       live = false
+      unsubscribe()
       resources.host.dispose()
       resources.backend.dispose()
       resources.preferences.dispose()

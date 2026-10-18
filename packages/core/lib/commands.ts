@@ -4,12 +4,32 @@ import {
   getNewWindowMoveBlockReason,
 } from './actions/batchTabActions.js'
 import { isNavigableUrl } from './navigation.js'
+import { getTabPlacementReason } from './tabPlacement.js'
 import type {
   BrowserCommand,
   BrowserSnapshot,
   BrowserTab,
   CommandOutcome,
 } from './browser.js'
+
+/** Keep transfer focus and selection in the source tab order. */
+export const getMovedTabIds = (
+  command: BrowserCommand,
+  snapshot: BrowserSnapshot,
+  outcome: CommandOutcome,
+): number[] => {
+  if (!['move-tabs', 'move-group', 'place-tabs'].includes(command.type))
+    return []
+  return snapshot.tabs
+    .filter((tab) =>
+      command.type === 'move-group'
+        ? tab.groupId === command.groupId &&
+          outcome.succeededIds.includes(command.groupId)
+        : outcome.succeededIds.includes(tab.id),
+    )
+    .toSorted((a, b) => a.windowId - b.windowId || a.index - b.index)
+    .map((tab) => tab.id)
+}
 
 const getTabIdsByUrl = (tabs: readonly BrowserTab[]) => {
   const tabIdsByUrl = new Map<string, number[]>()
@@ -72,6 +92,7 @@ export const getCommandTargetIds = (
     case 'close-tabs':
     case 'tab-action':
     case 'move-tabs':
+    case 'place-tabs':
     case 'group-tabs':
       return [...new Set(command.tabIds)]
     case 'window-action':
@@ -122,6 +143,8 @@ export const getCommandBlockReason = (
   )
     return 'This URL cannot be opened. Use a web address or a supported browser page.'
   const ids = getCommandTargetIds(command, snapshot)
+  if (command.type === 'place-tabs')
+    return getTabPlacementReason(snapshot, command.tabIds, command.destination)
   if (command.type === 'create-tab') {
     if (
       command.windowId !== undefined &&
@@ -189,7 +212,7 @@ export const planTabMove = (
   )
   if (tab.groupId !== undefined) {
     if (adjacent?.groupId !== tab.groupId) return { type: 'ungroup' }
-  } else if (adjacent?.groupId !== undefined)
+  } else if (adjacent?.groupId !== undefined && !tab.pinned)
     return { type: 'group', groupId: adjacent.groupId }
   return adjacent && adjacent.pinned === tab.pinned
     ? { type: 'move', index: adjacent.index }

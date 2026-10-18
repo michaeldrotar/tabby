@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { forwardRef, memo, useCallback, useEffect, useRef } from 'react'
+import { DragReveal } from './components/DragReveal'
 import { useSurfaceId, useSurfaceInputOwner } from './Surface'
 import {
   getGroupColorClasses,
@@ -22,6 +23,7 @@ export type BrowserTabGroupItemProps = Omit<
   title?: string
   color?: BrowserTabGroupColor | string
   collapsed?: boolean
+  dragReveal?: boolean
   active?: boolean
   isRenaming?: boolean
   renameTitle?: string
@@ -48,6 +50,7 @@ export const BrowserTabGroupItem = memo(
         title,
         color,
         collapsed = false,
+        dragReveal = false,
         active = false,
         isRenaming = false,
         renameTitle,
@@ -314,33 +317,35 @@ export const BrowserTabGroupItem = memo(
                 focus-visible:outline-none
               `}
             >
-              {prefersReducedMotion ? (
-                collapsed ? (
-                  <ChevronRight
-                    className={cn('size-4', colorClasses.text)}
-                    aria-hidden="true"
-                  />
+              <DragReveal active={dragReveal}>
+                {prefersReducedMotion ? (
+                  collapsed ? (
+                    <ChevronRight
+                      className={cn('size-4', colorClasses.text)}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <ChevronDown
+                      className={cn('size-4', colorClasses.text)}
+                      aria-hidden="true"
+                    />
+                  )
                 ) : (
-                  <ChevronDown
-                    className={cn('size-4', colorClasses.text)}
-                    aria-hidden="true"
-                  />
-                )
-              ) : (
-                <motion.div
-                  animate={{ rotate: collapsed ? -90 : 0 }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 25,
-                  }}
-                >
-                  <ChevronDown
-                    className={cn('size-4', colorClasses.text)}
-                    aria-hidden="true"
-                  />
-                </motion.div>
-              )}
+                  <motion.div
+                    animate={{ rotate: collapsed ? -90 : 0 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 300,
+                      damping: 25,
+                    }}
+                  >
+                    <ChevronDown
+                      className={cn('size-4', colorClasses.text)}
+                      aria-hidden="true"
+                    />
+                  </motion.div>
+                )}
+              </DragReveal>
             </button>
           </div>
 
