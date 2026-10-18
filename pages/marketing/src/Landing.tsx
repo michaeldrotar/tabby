@@ -1,134 +1,19 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { ClosingCat } from './ClosingCat'
-import { assets, homeFeatures, storeUrl } from './content'
+import { homeFeatures } from './content'
 import {
   BrowserIllustration,
   FeatureIllustration,
   ProductDemo,
 } from './DemoLoader'
 import { BannerCat, WalkingPaws } from './ScrollDecorations'
+import { Footer, Install, SiteHeader } from './SiteChrome'
 import { useIdleCue } from './useIdleCue'
-import type { ReactNode, RefObject } from 'react'
+import { usePageAnchor } from './usePageAnchor'
+import type { RefObject } from 'react'
 
-const ChromeIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.6" />
-    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.6" />
-    <path
-      d="M12 8h9M8.5 14 4 6m10 10-4 6"
-      stroke="currentColor"
-      strokeWidth="1.6"
-    />
-  </svg>
-)
-const Install = ({
-  className = '',
-  playful = false,
-}: {
-  className?: string
-  playful?: boolean
-}) => {
-  const installRef = useRef<HTMLAnchorElement>(null)
-  const [shaking, setShaking] = useState(false)
-  useIdleCue(installRef, {
-    enabled: playful,
-    delay: 4000,
-    interval: Math.round(10000 / 1.5),
-    onCue: () => setShaking(true),
-    onCancel: () => setShaking(false),
-  })
-  return (
-    <a
-      ref={installRef}
-      data-shaking={shaking}
-      onAnimationEnd={() => setShaking(false)}
-      className={`
-        install
-        ${className}
-      `}
-      href={storeUrl}
-      target="_blank"
-      rel="noreferrer"
-    >
-      <ChromeIcon />
-      Get Tabby for Chrome
-    </a>
-  )
-}
-const Brand = ({ linked = true }: { linked?: boolean }) => {
-  const brandRef = useRef<HTMLAnchorElement>(null)
-  const [hopping, setHopping] = useState(false)
-  useIdleCue(brandRef, {
-    delay: 4000,
-    interval: 6000,
-    group: 'hero',
-    duration: 650,
-    onCue: () => setHopping(true),
-    onCancel: () => setHopping(false),
-  })
-  const content = (
-    <>
-      <img src={assets.face} width="45" height="45" alt="" />
-      <span className="brand-word">
-        {'Tabby'.split('').map((letter, index) => (
-          <span key={index}>{letter}</span>
-        ))}
-      </span>
-    </>
-  )
-  return linked ? (
-    <a
-      ref={brandRef}
-      className="brand"
-      href="#top"
-      aria-label="Tabby home"
-      data-hopping={hopping}
-      onAnimationEnd={(event) => {
-        if ((event.target as HTMLElement).tagName === 'IMG') setHopping(false)
-      }}
-    >
-      {content}
-    </a>
-  ) : (
-    <div className="brand">{content}</div>
-  )
-}
 type ShowcaseControls = {
   onShowcase: (watching: boolean) => void
 }
-
-const ShowcaseLink = ({
-  onShowcase,
-  watching = false,
-  className,
-  children,
-}: ShowcaseControls & {
-  watching?: boolean
-  className?: string
-  children: ReactNode
-}) => (
-  <a
-    href="#hero-showcase"
-    className={className}
-    onClick={() => onShowcase(watching)}
-  >
-    {children}
-  </a>
-)
-
-const Header = ({ onShowcase }: ShowcaseControls) => (
-  <header className="site-header">
-    <Brand />
-    <nav aria-label="Main navigation">
-      <a href="#features">What it does</a>
-      <ShowcaseLink onShowcase={onShowcase}>Try Tabby</ShowcaseLink>
-      <ShowcaseLink onShowcase={onShowcase} watching>
-        Watch it work
-      </ShowcaseLink>
-    </nav>
-    <Install />
-  </header>
-)
 
 const TourVideo = ({
   videoRef,
@@ -315,6 +200,26 @@ const Hero = ({
       </p>
       <div className="hero-actions">
         <Install />
+        <a className="secondary-action" href="/whats-new">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+              x="4"
+              y="3"
+              width="16"
+              height="18"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
+            <path
+              d="M8 7h8M8 11h8M8 15h5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+          What’s New
+        </a>
       </div>
       <p className="privacy-note">
         Tabby doesn’t send any of your data to anyone,{' '}
@@ -389,71 +294,20 @@ const Privacy = () => (
   </section>
 )
 
-const Footer = () => {
-  const companionRef = useRef<HTMLDivElement>(null)
-  return (
-    <>
-      <section className="closing section-wrap">
-        <div ref={companionRef} className="closing-companion">
-          <ClosingCat visibilityRef={companionRef} />
-          <h2>Your tabs have a new companion.</h2>
-        </div>
-        <p>Give Tabby a try. I’d love to hear what you think.</p>
-        <Install playful />
-      </section>
-      <footer className="site-footer">
-        <Brand linked={false} />
-        <div>
-          <a
-            href="https://github.com/michaeldrotar/tabby"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open source
-          </a>
-          <a
-            href="https://github.com/michaeldrotar/tabby/issues"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Help & feedback
-          </a>
-          <a
-            href="https://github.com/michaeldrotar/tabby/blob/main/PRIVACY.md"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Privacy
-          </a>
-        </div>
-        <span>Made for tab-aholics like me.</span>
-      </footer>
-    </>
-  )
-}
-
 export const Landing = () => {
   const [watching, setWatching] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
-  useLayoutEffect(() => {
-    let targetId: string
-    try {
-      targetId = decodeURIComponent(location.hash.slice(1))
-    } catch {
-      return
-    }
-    document.getElementById(targetId)?.scrollIntoView({ behavior: 'instant' })
-  }, [])
+  usePageAnchor()
   const onShowcase = (next: boolean) => {
     if (!next) videoRef.current?.pause()
     setWatching(next)
   }
   return (
-    <div id="top" className="site site--home">
+    <div className="site site--home">
       <a className="skip-link" href="#features">
         Skip to features
       </a>
-      <Header onShowcase={onShowcase} />
+      <SiteHeader />
       <main>
         <Hero onShowcase={onShowcase} watching={watching} videoRef={videoRef} />
         <div className="promise-strip">

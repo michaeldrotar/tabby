@@ -133,7 +133,9 @@ Appearance preferences, an unfinished search query, Tabby window names and icons
 
 **Support:** [GitHub issues](https://github.com/michaeldrotar/tabby/issues).
 
-**Homepage:** [Tabby repository](https://github.com/michaeldrotar/tabby).
+**Homepage:** [Tabby website](https://www.gettabby.org/).
+
+The homepage URL update was submitted for review on 2026-10-18 with automatic publishing enabled. The extension package remains 1.6.0.
 
 ## Version history
 

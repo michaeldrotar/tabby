@@ -13,12 +13,13 @@
     "@extension/core": "workspace:*",
     "@extension/demo": "workspace:*",
     "@extension/providers": "workspace:*",
-    "@extension/ui": "workspace:*"
+    "@extension/ui": "workspace:*",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "@vitejs/plugin-react-swc": "^4.2.2",
     "@types/node": "^24.10.1",
+    "@vitejs/plugin-react-swc": "^4.2.2",
     "vite": "^7.2.6"
   },
   "postcss": {

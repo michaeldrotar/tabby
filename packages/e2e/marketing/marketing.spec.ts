@@ -1,5 +1,183 @@
 import { expect, test } from '@playwright/test'
 
+test('published release notes stay on the site from the hero and footer', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const { width, height } of [
+    { width: 1280, height: 480 },
+    { width: 320, height: 812 },
+    { width: 375, height: 667 },
+  ]) {
+    await page.setViewportSize({ width, height })
+    await page.goto('./')
+    await expect(page.locator('main #release-notes')).toHaveCount(0)
+    await expect(page.locator('.site-header nav')).toHaveCount(0)
+    const cta = page
+      .locator('.hero-actions')
+      .getByRole('link', { name: 'What’s New', exact: true })
+    await expect(cta).toHaveAttribute('href', '/whats-new')
+    await cta.click()
+    await expect(page).toHaveURL(/\/whats-new$/)
+    await expect(page).toHaveTitle('What’s new in Tabby — Release notes')
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'What’s new in Tabby' }),
+    ).toBeVisible()
+    const versions = page.getByRole('navigation', { name: 'Release versions' })
+    const chooser = versions.getByRole('button', { name: 'Choose a version' })
+    if (width <= 760) {
+      await expect(chooser).toHaveAttribute('aria-expanded', 'false')
+      await expect(
+        page.getByRole('heading', {
+          level: 2,
+          name: 'Named windows and a simpler Tab Manager',
+        }),
+      ).toBeInViewport()
+      await chooser.click()
+      await expect(chooser).toHaveAttribute('aria-expanded', 'true')
+      expect(
+        (await versions.locator('ol').boundingBox())!.y +
+          (await versions.locator('ol').boundingBox())!.height,
+      ).toBeLessThanOrEqual(height - 8)
+    } else {
+      const bounds = (await versions.boundingBox())!
+      const notes = (await page.locator('.release-history').boundingBox())!
+      expect(notes.width).toBeLessThanOrEqual(660)
+      expect(bounds.x).toBeCloseTo(width - notes.x - notes.width, 0)
+      await page.mouse.move(bounds.x + 20, bounds.y + 10)
+      await page.mouse.wheel(0, 120)
+      await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+      expect(await versions.evaluate((element) => element.scrollTop)).toBe(0)
+      await page.mouse.wheel(0, 400)
+      await expect(versions).toHaveAttribute('data-stuck', 'true')
+      const documentScroll = await page.evaluate(() => scrollY)
+      await versions.hover()
+      await page.mouse.wheel(0, 100)
+      await expect
+        .poll(() => versions.evaluate((element) => element.scrollTop))
+        .toBeGreaterThan(0)
+      expect(await page.evaluate(() => scrollY)).toBe(documentScroll)
+      expect(
+        await versions.evaluate(
+          (element) => element.getBoundingClientRect().bottom,
+        ),
+      ).toBeLessThanOrEqual(481)
+      await page.mouse.wheel(0, 1000)
+      await expect
+        .poll(() =>
+          versions.evaluate(
+            (element) =>
+              element.scrollHeight - element.clientHeight - element.scrollTop,
+          ),
+        )
+        .toBeLessThan(1)
+      await page.mouse.wheel(0, 100)
+      await expect
+        .poll(() => page.evaluate(() => scrollY))
+        .toBeGreaterThan(documentScroll)
+      const lowerScroll = await page.evaluate(() => scrollY)
+      await page.mouse.wheel(0, -1000)
+      await expect
+        .poll(() => versions.evaluate((element) => element.scrollTop))
+        .toBe(0)
+      await page.mouse.wheel(0, -100)
+      await expect
+        .poll(() => page.evaluate(() => scrollY))
+        .toBeLessThan(lowerScroll)
+      await page.mouse.wheel(0, 100)
+      await expect
+        .poll(() => versions.evaluate((element) => element.scrollTop))
+        .toBeGreaterThan(0)
+      await page.mouse.move(1000, 200)
+      await page.mouse.wheel(0, -2000)
+      await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+      expect(await versions.evaluate((element) => element.scrollTop)).toBe(0)
+    }
+    expect(await versions.getByRole('link').count()).toBeGreaterThanOrEqual(7)
+    await expect(
+      page.getByRole('heading', {
+        level: 2,
+        name: 'Named windows and a simpler Tab Manager',
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByText('Give each window a custom name, icon, and color', {
+        exact: false,
+      }),
+    ).toBeVisible()
+    expect(await page.locator('article').count()).toBeGreaterThanOrEqual(7)
+    await expect(page.locator('article').last()).toHaveCSS(
+      'border-bottom-width',
+      '0px',
+    )
+    await expect(page.locator('main a[href*="github.com"]')).toHaveCount(0)
+    expect(await page.locator('main').innerText()).not.toMatch(
+      /\p{Extended_Pictographic}/u,
+    )
+    await expect(page.locator('.site-header nav')).toHaveCount(0)
+    await expect(page.locator('a[href$="#top"]')).toHaveCount(0)
+    const firstRelease = versions.getByRole('link', {
+      name: 'v1.0.0 The Launch',
+    })
+    await firstRelease.focus()
+    await page.keyboard.press('Enter')
+    await expect(page).toHaveURL(/#v1\.0\.0$/)
+    const launch = page.locator('[id="v1.0.0"]')
+    await expect(launch).toBeInViewport()
+    await expect(launch).not.toContainText('Enjoying Tabby?')
+    if (width <= 760)
+      await expect(chooser).toHaveAttribute('aria-expanded', 'false')
+    await expect(launch.getByRole('list').first()).toBeVisible()
+    await page.reload()
+    await expect(launch).toBeInViewport()
+    if (width <= 760) {
+      await expect(chooser).toBeInViewport()
+      expect((await launch.boundingBox())!.y).toBeGreaterThanOrEqual(
+        (await versions.boundingBox())!.y +
+          (await versions.boundingBox())!.height,
+      )
+      const height = await page.evaluate(
+        () => document.documentElement.scrollHeight,
+      )
+      const scroll = await page.evaluate(() => scrollY)
+      await chooser.click()
+      expect(
+        await page.evaluate(() => document.documentElement.scrollHeight),
+      ).toBe(height)
+      expect(await page.evaluate(() => scrollY)).toBe(scroll)
+      await page.keyboard.press('Escape')
+      await expect(chooser).toHaveAttribute('aria-expanded', 'false')
+      await expect(chooser).toBeFocused()
+      await chooser.click()
+      await versions
+        .getByRole('link', {
+          name: 'v1.6.0 Named windows and a simpler Tab Manager',
+        })
+        .click()
+      await expect(page).toHaveURL(/#v1\.6\.0$/)
+      await expect(chooser).toBeInViewport()
+      await expect(chooser).toHaveAttribute('aria-expanded', 'false')
+      expect(
+        (await page.locator('[id="v1.6.0"]').boundingBox())!.y,
+      ).toBeGreaterThanOrEqual(
+        (await versions.boundingBox())!.y +
+          (await versions.boundingBox())!.height,
+      )
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true)
+    await page.getByRole('link', { name: 'Tabby home' }).click()
+    await page
+      .locator('.site-footer')
+      .getByRole('link', { name: 'Release notes', exact: true })
+      .click()
+    await expect(page).toHaveURL(/\/whats-new$/)
+  }
+})
+
 test('the Chrome demo keeps product controls usable without tour controls', async ({
   page,
 }) => {
@@ -242,10 +420,7 @@ test('homepage separates the live demo and switches to a video without losing de
       }),
     )
     .toBe(true)
-  await page
-    .getByRole('navigation', { name: 'Main navigation' })
-    .getByRole('link', { name: 'Try Tabby', exact: true })
-    .click()
+  await showcase.scrollIntoViewIfNeeded()
   await expect(page.locator('.hero .tab-sticker')).toHaveCount(0)
   await demo
     .getByRole('group', { name: 'Demo experience' })
@@ -324,9 +499,8 @@ test('homepage separates the live demo and switches to a video without losing de
     element.muted = false
   })
   await expect(video).toHaveJSProperty('muted', false)
-  await page
-    .getByRole('navigation', { name: 'Main navigation' })
-    .getByRole('link', { name: 'Try Tabby', exact: true })
+  await showcase
+    .getByRole('button', { name: 'Or try the demo', exact: true })
     .click()
   await expect(video).toBeHidden()
   await expect
@@ -411,16 +585,14 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(showcase.locator('video')).toBeVisible()
   await expect(video).toHaveJSProperty('muted', false)
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page
-    .getByRole('navigation', { name: 'Main navigation' })
-    .getByRole('link', { name: 'Try Tabby', exact: true })
+  await showcase
+    .getByRole('button', { name: 'Or try the demo', exact: true })
     .click()
   await expect(
     showcase.getByRole('heading', { name: 'Try it', exact: true }),
   ).toBeVisible()
-  await page
-    .getByRole('navigation', { name: 'Main navigation' })
-    .getByRole('link', { name: 'Watch it work', exact: true })
+  await showcase
+    .getByRole('button', { name: 'Or watch my video', exact: true })
     .click()
   await expect(
     showcase.getByRole('heading', { name: 'Watch it', exact: true }),

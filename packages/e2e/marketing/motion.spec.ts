@@ -383,41 +383,46 @@ test('idle cues repeat in view and pause for interaction and reduced motion', as
 test('the showcase sign starts while the demo loads, then reveals the demo and video switch', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1280, height: 900 })
-  let releaseDemo!: () => void
-  const loading = new Promise<void>((resolve) => {
-    releaseDemo = resolve
-  })
-  await page.route('**/*ProductDemo*', async (route) => {
-    await loading
-    await route.continue()
-  })
-  await page.goto('./', { waitUntil: 'domcontentloaded' })
-  const placeholder = page.locator('.hero .product-placeholder')
-  await expect(placeholder).toBeVisible()
-  await expect(placeholder).toHaveText('')
-  await expect(placeholder).toHaveCSS('border-top-width', '0px')
-  await expect(page.locator('.hero [data-demo]')).toHaveCount(0)
-  await expect(
-    page.getByRole('heading', { name: 'Try it', exact: true }),
-  ).toHaveCSS('opacity', '1')
-  await expect(page.locator('.showcase-toggle')).toBeHidden()
-  await expect(
-    page.locator('.showcase-toggle .showcase-face[aria-hidden="false"]'),
-  ).toBeHidden()
-  await page
-    .getByRole('navigation', { name: 'Main navigation' })
-    .getByRole('link', { name: 'Watch it work', exact: true })
-    .click()
-  await expect
-    .poll(() =>
-      page.locator('#hero-showcase').evaluate((element) => {
-        const top = element.getBoundingClientRect().top
-        return top >= 0 && top < 100
-      }),
+  for (const width of [320, 900, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    let releaseDemo!: () => void
+    const loading = new Promise<void>((resolve) => {
+      releaseDemo = resolve
+    })
+    await page.route('**/*ProductDemo*', async (route) => {
+      await loading
+      await route.continue()
+    })
+    await page.goto('./', { waitUntil: 'domcontentloaded' })
+    const placeholder = page.locator('.hero .product-placeholder')
+    await expect(placeholder).toBeVisible()
+    await expect(placeholder).toHaveText('')
+    await expect(placeholder).toHaveCSS('border-top-width', '0px')
+    const heroBefore = (await page.locator('.hero-copy').boundingBox())!
+    const stripBefore = (await page.locator('.promise-strip').boundingBox())!
+    await expect(page.locator('.hero [data-demo]')).toHaveCount(0)
+    await expect(
+      page.getByRole('heading', { name: 'Try it', exact: true }),
+    ).toHaveCSS('opacity', '1')
+    await expect(page.locator('.showcase-toggle')).toBeHidden()
+    await expect(
+      page.locator('.showcase-toggle .showcase-face[aria-hidden="false"]'),
+    ).toBeHidden()
+    releaseDemo()
+    await expect(page.locator('.hero .demo-screen')).toBeVisible()
+    expect((await page.locator('.hero-copy').boundingBox())!.y).toBeCloseTo(
+      heroBefore.y,
+      0,
     )
-    .toBe(true)
-  releaseDemo()
+    expect((await page.locator('.promise-strip').boundingBox())!.y).toBeCloseTo(
+      stripBefore.y,
+      0,
+    )
+    await page.unroute('**/*ProductDemo*')
+  }
+  await page
+    .getByRole('button', { name: 'Or watch my video', exact: true })
+    .click()
   await expect(page.locator('.hero video')).toBeVisible()
   await expect(
     page.getByRole('heading', { name: 'Watch it', exact: true }),
