@@ -45,7 +45,7 @@ import type {
   TabManagerIntent,
   TabManagerViewModel,
 } from '../TabManager'
-import type { RefObject } from 'react'
+import type { ReactNode, RefObject } from 'react'
 
 const icons = {
   ArrowDown,
@@ -126,12 +126,14 @@ export const TabManagerActionBar = ({
   menuRef,
   menuPosition,
   returnFocus,
+  designPicker,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
   menuPosition: RefObject<{ x: number; y: number } | null>
   returnFocus: RefObject<HTMLElement | null>
+  designPicker?: ReactNode
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const surface = useSurface()
@@ -416,6 +418,7 @@ export const TabManagerActionBar = ({
             <Settings size={18} />
           </button>
         </div>
+        {designPicker}
         <button
           type="button"
           data-action-bar-menu-trigger

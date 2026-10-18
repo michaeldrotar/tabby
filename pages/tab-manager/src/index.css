@@ -1,5 +1,468 @@
 @import '@extension/ui/base.css';
 
+/* Midtones retain the palette's hue when lifted into paper or lowered into ink. */
+[data-theme-background='slate'] {
+  --manager-background-tone: theme(colors.slate.500);
+}
+[data-theme-background='gray'] {
+  --manager-background-tone: theme(colors.gray.500);
+}
+[data-theme-background='zinc'] {
+  --manager-background-tone: theme(colors.zinc.500);
+}
+[data-theme-background='neutral'] {
+  --manager-background-tone: theme(colors.neutral.500);
+}
+[data-theme-background='stone'] {
+  --manager-background-tone: theme(colors.stone.500);
+}
+[data-theme-foreground='slate'] {
+  --manager-foreground-tone: theme(colors.slate.500);
+}
+[data-theme-foreground='gray'] {
+  --manager-foreground-tone: theme(colors.gray.500);
+}
+[data-theme-foreground='zinc'] {
+  --manager-foreground-tone: theme(colors.zinc.500);
+}
+[data-theme-foreground='neutral'] {
+  --manager-foreground-tone: theme(colors.neutral.500);
+}
+[data-theme-foreground='stone'] {
+  --manager-foreground-tone: theme(colors.stone.500);
+}
+
+[data-surface][data-theme-background]:has([data-manager-design]) {
+  --manager-material: var(--manager-background-tone);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --tooltip: var(--foreground);
+  --tooltip-foreground: var(--background);
+}
+
+[data-surface][data-theme='light'][data-theme-background]:has(
+    [data-manager-design]
+  ) {
+  --background: oklch(from var(--manager-material) 0.955 c h);
+  --manager-shade: oklch(from var(--manager-material) 0.32 c h);
+  --foreground: oklch(from var(--manager-foreground-tone) 0.35 calc(c * 2.4) h);
+  --muted: oklch(from var(--manager-foreground-tone) 0.43 calc(c * 1.6) h);
+  --card: oklch(from var(--manager-material) 0.985 calc(c * 0.45) h);
+  --popover: var(--card);
+  --input: oklch(from var(--manager-material) 0.9 c h);
+  --border: oklch(from var(--manager-material) 0.82 c h);
+  --highlighted: oklch(from var(--manager-material) 0.86 c h);
+}
+
+[data-surface][data-theme='dark'][data-theme-background]:has(
+    [data-manager-design]
+  ) {
+  --background: oklch(from var(--manager-material) 0.17 c h);
+  --manager-shade: oklch(from var(--manager-material) 0.9 c h);
+  --foreground: oklch(from var(--manager-foreground-tone) 0.9 calc(c * 1.25) h);
+  --muted: oklch(from var(--manager-foreground-tone) 0.7 calc(c * 1.1) h);
+  --card: oklch(from var(--manager-material) 0.24 c h);
+  --popover: var(--card);
+  --input: oklch(from var(--manager-material) 0.29 c h);
+  --border: oklch(from var(--manager-material) 0.35 c h);
+  --highlighted: oklch(from var(--manager-material) 0.32 c h);
+}
+
+[data-manager-design] {
+  --surface-step: 10%;
+  --surface-line: 20%;
+  --manager-raised: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) var(--surface-step),
+    var(--background)
+  );
+  --manager-line: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) var(--surface-line),
+    var(--background)
+  );
+  --manager-tint: calc(8% + var(--accent-strength) * 0.32%);
+  --manager-selection: color-mix(
+    in oklab,
+    var(--accent) var(--manager-tint),
+    var(--manager-raised)
+  );
+}
+
+[data-manager-contrast='soft'] {
+  --surface-step: 6%;
+  --surface-line: 14%;
+}
+
+[data-manager-contrast='crisp'] {
+  --surface-step: 16%;
+  --surface-line: 30%;
+}
+
+[data-theme='light'][data-theme-background] [data-manager-design] {
+  --manager-raised: oklch(
+    from var(--manager-material) calc(99% - var(--surface-step) * 0.1)
+      calc(c * 0.65) h
+  );
+}
+
+[data-theme='dark'][data-theme-background] [data-manager-design] {
+  --manager-tint: calc(8% + var(--accent-strength) * 0.2%);
+  --manager-raised: oklch(
+    from var(--manager-material) calc(18% + var(--surface-step) * 0.65) c h
+  );
+}
+
+[data-theme='dark'][data-theme-background]
+  [data-manager-design]:not([data-manager-design='refined'])
+  :is(
+    [data-keyboard-section='header'],
+    [data-tab-item][data-selected='true'],
+    [data-tab-item]:hover,
+    [data-tab-item][data-hover='true'],
+    [data-window-choice][data-viewing='true']
+  ) {
+  --muted: oklch(from var(--manager-foreground-tone) 0.8 calc(c * 1.1) h);
+}
+
+[data-manager-design]:not([data-manager-design='refined'])
+  [data-window-choice][data-viewing='true'] {
+  background: var(--manager-selection);
+}
+
+[data-manager-design] [data-keyboard-section='header'] {
+  background: var(--manager-raised);
+  border-color: var(--manager-line);
+}
+
+[data-manager-design] [data-keyboard-section='tools'] {
+  background: var(--manager-raised);
+  border-color: var(--manager-line);
+}
+
+[data-manager-design]:not([data-manager-design='refined'])
+  [data-tab-item][data-selected='true']
+  > div {
+  background: var(--manager-selection);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--manager-line));
+}
+
+[data-manager-contrast] [data-group-active-rail] {
+  display: none;
+}
+
+[data-manager-design]:not([data-manager-design='refined'])
+  [data-tab-item]:is(:hover, [data-hover='true']):not([data-selected='true'])
+  > div {
+  background: color-mix(
+    in oklab,
+    var(--accent) var(--manager-tint),
+    var(--manager-raised)
+  );
+}
+
+[data-manager-design] [data-group-item] {
+  --group-color: theme(colors.gray.500);
+}
+[data-manager-design] [data-group-color='blue'] {
+  --group-color: theme(colors.blue.500);
+}
+[data-manager-design] [data-group-color='red'] {
+  --group-color: theme(colors.red.500);
+}
+[data-manager-design] [data-group-color='yellow'] {
+  --group-color: theme(colors.yellow.500);
+}
+[data-manager-design] [data-group-color='green'] {
+  --group-color: theme(colors.green.500);
+}
+[data-manager-design] [data-group-color='pink'] {
+  --group-color: theme(colors.pink.500);
+}
+[data-manager-design] [data-group-color='purple'] {
+  --group-color: theme(colors.purple.500);
+}
+[data-manager-design] [data-group-color='cyan'] {
+  --group-color: theme(colors.cyan.500);
+}
+[data-manager-design] [data-group-color='orange'] {
+  --group-color: theme(colors.orange.500);
+}
+
+/* Layered: window chrome above a recessed canvas, groups in colored wells. */
+[data-manager-design='layered'] [data-selection-mode] {
+  background: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) 3%,
+    var(--background)
+  );
+}
+
+[data-manager-design='layered'] [data-keyboard-section='header'] {
+  margin: 8px 8px 0;
+  border: 1px solid var(--manager-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--manager-raised));
+}
+
+[data-manager-design='layered'] [data-tab-pane] {
+  padding: 12px;
+}
+
+[data-manager-design='layered'] [data-group-item] {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: color-mix(
+    in srgb,
+    var(--group-color) var(--surface-step),
+    var(--background)
+  );
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--group-color) var(--surface-line),
+      var(--background)
+    );
+  border-radius: 12px;
+}
+
+/* Accent frame: the chosen accent anchors the window and outlines its contents. */
+[data-manager-design='accent-frame'] [data-selection-mode] {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--accent) 25%, var(--background));
+}
+
+[data-manager-design='accent-frame'] [data-keyboard-section='header'] {
+  background: var(--manager-selection);
+  border-top: 3px solid var(--accent);
+  border-bottom-color: color-mix(in srgb, var(--accent) 40%, var(--background));
+}
+
+[data-manager-design='accent-frame'] [data-tab-pane] {
+  padding: 12px;
+}
+
+[data-manager-design='accent-frame'] [data-tab-item] > div {
+  background: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) 4%,
+    var(--background)
+  );
+}
+
+[data-manager-design='accent-frame'] [data-group-item] {
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--group-color) calc(var(--surface-line) + 12%),
+      var(--background)
+    );
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--group-color) 5%, var(--background));
+}
+
+[data-manager-design='accent-frame'] [data-group-header] {
+  margin-left: -4px;
+  width: calc(100% + 4px);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: color-mix(
+    in srgb,
+    var(--group-color) var(--surface-step),
+    var(--background)
+  );
+}
+
+[data-manager-design='accent-frame'] [data-keyboard-section='tools'] {
+  border-top-color: color-mix(in srgb, var(--accent) 35%, var(--background));
+}
+
+/* Ledger: a firm header band and compact ruled rows, with color at group headings. */
+[data-manager-design='ledger'] [data-keyboard-section='header'] {
+  border-bottom: 2px solid var(--accent);
+  background: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) calc(var(--surface-step) + 5%),
+    var(--background)
+  );
+}
+
+[data-manager-design='ledger']
+  [data-window-picker-trigger]
+  > span:nth-child(2)
+  > span:first-child {
+  font-weight: 650;
+}
+
+[data-manager-design='ledger'] [data-tab-pane] {
+  padding: 8px 12px;
+}
+
+[data-manager-design='ledger'] [data-tab-pane] ol {
+  gap: 0;
+}
+
+[data-manager-design='ledger'] [data-tab-item],
+[data-manager-design='ledger'] [data-tab-item] > div {
+  border-radius: 3px;
+}
+
+[data-manager-design='ledger'] [data-tab-item] > div {
+  min-height: 44px;
+  border-width: 0 0 1px;
+  border-bottom-color: var(--manager-line);
+}
+
+[data-manager-design='ledger'] [data-tab-option] {
+  min-height: 44px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+[data-manager-design='ledger']
+  li:nth-child(even)
+  > [data-tab-item]:not(
+    :hover,
+    [data-hover='true'],
+    [data-active='true'],
+    [data-selected='true']
+  )
+  > div {
+  background: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) 3%,
+    var(--background)
+  );
+}
+
+[data-manager-design='ledger'] [data-group-item] {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+
+[data-manager-design='ledger'] [data-group-header] {
+  background: color-mix(
+    in srgb,
+    var(--group-color) calc(var(--surface-step) + 4%),
+    var(--background)
+  );
+  border-radius: 3px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+/* New directions share quiet window color and use filled surfaces for grouping. */
+:is([data-manager-design='soft-canvas'], [data-manager-design='islands']) {
+  --manager-canvas: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) 3%,
+    var(--background)
+  );
+}
+
+:is(
+    [data-manager-design='soft-canvas'],
+    [data-manager-design='islands'],
+    [data-manager-design='refined']
+  )
+  [data-window-picker] {
+  background: color-mix(
+    in srgb,
+    var(--accent) calc(var(--manager-tint) * 0.25),
+    var(--manager-canvas)
+  );
+}
+
+/* Soft canvas and Refined share a brighter window-list surface. */
+:is([data-manager-design='soft-canvas'], [data-manager-design='refined']) {
+  --manager-canvas: color-mix(
+    in srgb,
+    var(--manager-shade, var(--foreground)) 7%,
+    var(--background)
+  );
+}
+
+[data-manager-design='soft-canvas'] [data-selection-mode] {
+  background: var(--manager-canvas);
+}
+
+[data-manager-design='soft-canvas'] [data-tab-pane] {
+  padding: 16px 12px;
+}
+
+[data-manager-design='soft-canvas'] [data-group-item] {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 16px;
+  background: color-mix(
+    in srgb,
+    var(--group-color) calc(var(--surface-step) * 0.8),
+    var(--background)
+  );
+}
+
+[data-manager-design='soft-canvas'] [data-group-header] {
+  margin-bottom: 8px;
+}
+
+/* Islands: floating window controls and separate blocks on a quiet canvas. */
+[data-manager-design='islands'] [data-selection-mode] {
+  background: var(--manager-canvas);
+}
+
+[data-manager-design='islands'] [data-keyboard-section='header'] {
+  margin: 10px 10px 0;
+  border: 0;
+  border-radius: 16px;
+}
+
+[data-manager-design='islands'] [data-action-bar-root] {
+  background: var(--manager-canvas);
+}
+
+[data-manager-design='islands'] [data-keyboard-section='tools'] {
+  margin: 0 10px 10px;
+  border: 0;
+  border-radius: 16px;
+}
+
+[data-manager-design='islands'] [data-tab-pane] {
+  padding: 14px 10px;
+}
+
+[data-manager-design='islands'] [data-tab-pane] > ol {
+  gap: 10px;
+}
+
+[data-manager-design='islands'] [data-tab-item] > div {
+  background: var(--manager-raised);
+  border-radius: 12px;
+}
+
+[data-manager-design='islands'] [data-group-item] {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 18px;
+  background: color-mix(
+    in srgb,
+    var(--group-color) calc(var(--surface-step) + 3%),
+    var(--background)
+  );
+}
+
+[data-manager-design='islands']
+  [data-group-item]
+  [data-tab-item]:not(
+    [data-selected='true'],
+    [data-active='true'],
+    :hover,
+    [data-hover='true']
+  )
+  > div {
+  background: transparent;
+}
+
 /**
  * Focus Ring Animations for Multi-Select Mode
  *

@@ -40,6 +40,8 @@ Make Tabby comfortable to use
 
 Choose a light or dark theme and adjust your colors. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
+Try six Tab Manager designs from its temporary Design button. Refined keeps the current tab layout and interaction styling with matching lighter window bars and a softly tinted window list. Choose cool or warm surfaces and tinted foreground text. Switch between light and dark appearance while adjusting surface contrast and theme colors. Design previews reset when Tab Manager reloads; appearance choices save to Settings.
+
 Keep your browsing data local
 
 Your tabs, bookmarks, and history are searched on your device. The developer receives none of your browsing data or saved preferences. If you choose Search Google, Google receives the query you send.
@@ -66,6 +68,8 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 | Marquee promo tile         | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/promo-tiles/marquee-1400-560.jpg) |
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
+
+The temporary Tab Manager design previews are available in the extension; promotional layouts use the standard appearance.
 
 Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
 
@@ -139,7 +143,7 @@ Appearance preferences, an unfinished search query, Tabby window names and icons
 
 | Version                                                                      | Submission date | Summary                                   | Store status  |
 | ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | ------------- |
-| [1.7.0](product/releases/v1.7.0-drag-and-drop-tab-organization.md)           | —               | Drag and drop tab organization.           | Not submitted |
+| [1.7.0](product/releases/v1.7.0-drag-and-drop-tab-organization.md)           | —               | Tab organization and design previews.     | Not submitted |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.  | Published     |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                           | Published     |
 | [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Published     |

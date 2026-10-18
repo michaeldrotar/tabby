@@ -7,7 +7,7 @@ export const Root = () => (
       instanceId="extension-tab-manager"
       style={{ height: '100dvh' }}
     >
-      <TabManagerExperience focusOnMount />
+      <TabManagerExperience focusOnMount appearanceExperiment />
     </TabbySurface>
   </ChromeTabbyProvider>
 )

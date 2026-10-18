@@ -1,7 +1,7 @@
 import { t } from '@extension/i18n/catalog'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import { Plus } from 'lucide-react'
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
 import { BrowserTabList } from '../BrowserTabList'
 import { TabListSkeleton } from '../components/TabListSkeleton'
@@ -12,6 +12,7 @@ import {
 } from '../useShouldReduceMotion'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
+import { TabManagerDesignPicker } from './ui/TabManagerDesignPicker'
 import { TabManagerShell } from './ui/TabManagerShell'
 import {
   WindowHeader,
@@ -24,11 +25,15 @@ import type {
   BrowserTabListTab,
 } from '../BrowserTabList'
 import type {
+  TabManagerContrast,
+  TabManagerDesign,
+} from './ui/TabManagerDesignPicker'
+import type {
   BrowserTabGroupColor,
   SelectionItemRef,
   TabPlacement,
 } from '@extension/core'
-import type { KeyboardEvent, MouseEvent } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
 
 export type TabManagerItem = SelectionItemRef
 export type TabManagerTabView = {
@@ -189,6 +194,8 @@ export type TabManagerProps = {
   onIntent: (intent: TabManagerIntent) => void | Promise<void>
   className?: string
   focusOnMount?: boolean
+  appearanceExperiment?: boolean
+  designSettings?: ReactNode
 }
 
 const navigationSelector =
@@ -243,7 +250,11 @@ export const TabManager = ({
   onIntent,
   className,
   focusOnMount = false,
+  appearanceExperiment = false,
+  designSettings,
 }: TabManagerProps) => {
+  const [design, setDesign] = useState<TabManagerDesign>('refined')
+  const [contrast, setContrast] = useState<TabManagerContrast>('balanced')
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const rootRef = useRef<HTMLDivElement>(null)
@@ -577,7 +588,7 @@ export const TabManager = ({
     if (!live || pickerVisible || model.editingWindow || !canFocusInput())
       return
     const target = event.target as HTMLElement
-    if (target.closest('input,textarea,[contenteditable="true"]')) return
+    if (target.closest('input,textarea,select,[contenteditable="true"]')) return
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
       event.preventDefault()
       event.stopPropagation()
@@ -865,6 +876,10 @@ export const TabManager = ({
       ref={rootRef}
       className="relative h-full min-h-0"
       data-tab-manager
+      data-manager-design={
+        appearanceExperiment && design !== 'current' ? design : undefined
+      }
+      data-manager-contrast={appearanceExperiment ? contrast : undefined}
       onFocusCapture={(event) => {
         const target = event.target as HTMLElement
         if (target.matches('[data-create-item]')) {
@@ -958,6 +973,17 @@ export const TabManager = ({
             menuRef={menuRef}
             menuPosition={menuPosition}
             returnFocus={menuReturnFocus}
+            designPicker={
+              appearanceExperiment ? (
+                <TabManagerDesignPicker
+                  design={design}
+                  onDesignChange={setDesign}
+                  contrast={contrast}
+                  onContrastChange={setContrast}
+                  settings={designSettings}
+                />
+              ) : undefined
+            }
           />
         }
       >

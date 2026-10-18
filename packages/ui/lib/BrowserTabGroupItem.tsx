@@ -223,12 +223,14 @@ export const BrowserTabGroupItem = memo(
           data-nav-type="group"
           data-group-item={groupId}
           data-group-id={groupId}
+          data-group-color={resolvedColor ?? 'grey'}
           data-selected={selected}
           data-active={active || undefined}
           data-collapsed={collapsed || undefined}
           {...props}
         >
           <div
+            data-group-rail
             className={cn(
               'absolute bottom-2 left-1 top-2 w-1 rounded-full',
               colorClasses.dot,
@@ -238,6 +240,7 @@ export const BrowserTabGroupItem = memo(
 
           {active && (
             <div
+              data-group-active-rail
               className={cn(
                 'absolute bottom-2 left-0 top-2 w-0.5 rounded-full',
                 'bg-accent/[calc(var(--accent-strength)*1%)]',

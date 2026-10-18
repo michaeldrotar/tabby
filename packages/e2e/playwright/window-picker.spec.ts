@@ -94,7 +94,12 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         .evaluateAll((buttons) =>
           buttons.map((button) => button.getAttribute('aria-label')),
         ),
-    ).toEqual(['Search everything', 'Settings', 'More actions'])
+    ).toEqual([
+      'Search everything',
+      'Settings',
+      'Try Tab Manager designs: Layered',
+      'More actions',
+    ])
     const search = await tools
       .getByRole('button', { name: 'Search everything' })
       .boundingBox()
