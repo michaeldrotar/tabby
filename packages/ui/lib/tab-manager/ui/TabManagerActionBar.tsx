@@ -34,10 +34,11 @@ import {
 import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
-import { useSurface, useSurfaceInputOwner } from '../../Surface'
+import { useSurface, useSurfaceId, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
+import { AppearanceDrawer } from './AppearanceDrawer'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -134,6 +135,7 @@ export const TabManagerActionBar = ({
   returnFocus: RefObject<HTMLElement | null>
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const appearanceId = useSurfaceId('appearance')
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const actions =
@@ -390,12 +392,19 @@ export const TabManagerActionBar = ({
           }
         />
       </div>
+      {model.appearance?.open && (
+        <AppearanceDrawer
+          id={appearanceId}
+          appearance={model.appearance}
+          onIntent={onIntent}
+        />
+      )}
       <nav
         aria-label="Tab Manager tools"
         data-keyboard-section="tools"
         className={`
-          border-border bg-background flex h-12 shrink-0 items-center
-          justify-between gap-1 border-t px-2
+          border-border flex h-12 shrink-0 items-center justify-between gap-1
+          border-t bg-[var(--manager-chrome)] px-2
         `}
       >
         <div className="flex items-center gap-1">
@@ -414,6 +423,21 @@ export const TabManagerActionBar = ({
             onClick={() => onIntent({ type: 'open-settings' })}
           >
             <Settings size={18} />
+          </button>
+          <button
+            type="button"
+            aria-label="Appearance"
+            title="Appearance"
+            aria-expanded={model.appearance?.open ?? false}
+            aria-controls={appearanceId}
+            className={cn(
+              windowControlClass,
+              'size-10 px-0',
+              model.appearance?.open && 'bg-accent/20 text-foreground',
+            )}
+            onClick={() => onIntent({ type: 'toggle-appearance' })}
+          >
+            <Palette size={18} />
           </button>
         </div>
         <button

@@ -9,7 +9,7 @@
   }
 
   [data-theme='light'][data-theme-background='slate'] {
-    --background: theme(colors.slate.100);
+    --background: #e1eaf4;
     --card: theme(colors.slate.50);
     --popover: theme(colors.slate.50);
     --input: theme(colors.slate.200);
@@ -29,7 +29,7 @@
   }
 
   [data-theme='light'][data-theme-background='gray'] {
-    --background: theme(colors.gray.100);
+    --background: #e7ebed;
     --card: theme(colors.gray.50);
     --popover: theme(colors.gray.50);
     --input: theme(colors.gray.200);
@@ -49,7 +49,7 @@
   }
 
   [data-theme='light'][data-theme-background='zinc'] {
-    --background: theme(colors.zinc.100);
+    --background: #ebe7ef;
     --card: theme(colors.zinc.50);
     --popover: theme(colors.zinc.50);
     --input: theme(colors.zinc.200);
@@ -69,7 +69,7 @@
   }
 
   [data-theme='light'][data-theme-background='neutral'] {
-    --background: theme(colors.neutral.100);
+    --background: #eaeaea;
     --card: theme(colors.neutral.50);
     --popover: theme(colors.neutral.50);
     --input: theme(colors.neutral.200);
@@ -89,7 +89,7 @@
   }
 
   [data-theme='light'][data-theme-background='stone'] {
-    --background: theme(colors.stone.100);
+    --background: #f0e5d6;
     --card: theme(colors.stone.50);
     --popover: theme(colors.stone.50);
     --input: theme(colors.stone.200);
@@ -109,11 +109,11 @@
   }
 
   [data-theme='light'][data-theme-foreground='slate'] {
-    --foreground: theme(colors.slate.900);
-    --card-foreground: theme(colors.slate.900);
-    --popover-foreground: theme(colors.slate.900);
-    --muted: theme(colors.slate.500);
-    --tooltip: theme(colors.slate.900);
+    --foreground: #243b53;
+    --card-foreground: #243b53;
+    --popover-foreground: #243b53;
+    --muted: theme(colors.slate.600);
+    --tooltip: #243b53;
   }
 
   [data-theme='dark'][data-theme-foreground='slate'] {
@@ -125,11 +125,11 @@
   }
 
   [data-theme='light'][data-theme-foreground='gray'] {
-    --foreground: theme(colors.gray.900);
-    --card-foreground: theme(colors.gray.900);
-    --popover-foreground: theme(colors.gray.900);
-    --muted: theme(colors.gray.500);
-    --tooltip: theme(colors.gray.900);
+    --foreground: #354149;
+    --card-foreground: #354149;
+    --popover-foreground: #354149;
+    --muted: theme(colors.gray.600);
+    --tooltip: #354149;
   }
 
   [data-theme='dark'][data-theme-foreground='gray'] {
@@ -141,11 +141,11 @@
   }
 
   [data-theme='light'][data-theme-foreground='zinc'] {
-    --foreground: theme(colors.zinc.900);
-    --card-foreground: theme(colors.zinc.900);
-    --popover-foreground: theme(colors.zinc.900);
-    --muted: theme(colors.zinc.500);
-    --tooltip: theme(colors.zinc.900);
+    --foreground: #40364c;
+    --card-foreground: #40364c;
+    --popover-foreground: #40364c;
+    --muted: theme(colors.zinc.600);
+    --tooltip: #40364c;
   }
 
   [data-theme='dark'][data-theme-foreground='zinc'] {
@@ -157,11 +157,11 @@
   }
 
   [data-theme='light'][data-theme-foreground='neutral'] {
-    --foreground: theme(colors.neutral.900);
-    --card-foreground: theme(colors.neutral.900);
-    --popover-foreground: theme(colors.neutral.900);
-    --muted: theme(colors.neutral.500);
-    --tooltip: theme(colors.neutral.900);
+    --foreground: #383838;
+    --card-foreground: #383838;
+    --popover-foreground: #383838;
+    --muted: theme(colors.neutral.600);
+    --tooltip: #383838;
   }
 
   [data-theme='dark'][data-theme-foreground='neutral'] {
@@ -173,11 +173,11 @@
   }
 
   [data-theme='light'][data-theme-foreground='stone'] {
-    --foreground: theme(colors.stone.900);
-    --card-foreground: theme(colors.stone.900);
-    --popover-foreground: theme(colors.stone.900);
-    --muted: theme(colors.stone.500);
-    --tooltip: theme(colors.stone.900);
+    --foreground: #493625;
+    --card-foreground: #493625;
+    --popover-foreground: #493625;
+    --muted: theme(colors.stone.600);
+    --tooltip: #493625;
   }
 
   [data-theme='dark'][data-theme-foreground='stone'] {
@@ -350,6 +350,16 @@
 
   [data-surface] :is(h1, h2, h3) {
     text-wrap: balance;
+  }
+
+  [data-tab-manager-shell] {
+    --manager-canvas: var(--background);
+    --manager-chrome: var(--card);
+  }
+
+  [data-theme='dark'] [data-tab-manager-shell] {
+    --manager-canvas: var(--card);
+    --manager-chrome: var(--input);
   }
 
   [data-defer-offscreen='true']

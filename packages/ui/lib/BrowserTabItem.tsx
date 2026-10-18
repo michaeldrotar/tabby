@@ -13,6 +13,8 @@ import type { HTMLAttributes, ReactNode } from 'react'
 /** Pattern for "(N) Title" in formatTitle. */
 const TITLE_NUMBER_PATTERN = /^(\(\d+\))\s(.+)$/
 
+export const tabRowHeightClass = 'min-h-[54px]'
+
 /**
  * Props for the BrowserTabItem component.
  * Represents the data needed to display a browser tab.
@@ -314,28 +316,32 @@ export const BrowserTabItem = memo(
           <div
             className={cn(
               `
-                flex min-h-[48px] w-full items-center gap-0 rounded-lg border
+                flex w-full items-center gap-0 rounded-lg border
                 border-transparent
                 transition-[opacity,background-color,filter,transform,box-shadow,border-color]
                 duration-200 ease-out
               `,
+              tabRowHeightClass,
               !selected &&
+                !active &&
                 `
                   hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
                   group-data-[hover=true]/tab-row:bg-accent/[calc(var(--accent-strength)*0.5%)]
                 `,
               selected &&
                 `
-                  bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
-                  hover:brightness-95
-                  group-data-[hover=true]/tab-row:brightness-95
+                  bg-accent/[min(35%,calc(var(--accent-strength)*1.2%))]
+                  text-foreground
+                  hover:bg-accent/[min(40%,calc(var(--accent-strength)*1.5%))]
+                  group-data-[hover=true]/tab-row:bg-accent/[min(40%,calc(var(--accent-strength)*1.5%))]
                 `,
-              active && 'bg-card border-foreground/20 shadow-sm',
+              active && 'border-accent/40',
               active &&
-                selected &&
+                !selected &&
                 `
-                  bg-accent/[calc(var(--accent-strength)*1.2%)]
-                  border-accent/[calc(var(--accent-strength)*1%)]
+                  bg-accent/[min(30%,calc(var(--accent-strength)*0.65%))]
+                  hover:bg-accent/[min(35%,calc(var(--accent-strength)*1%))]
+                  group-data-[hover=true]/tab-row:bg-accent/[min(35%,calc(var(--accent-strength)*1%))]
                 `,
               discarded && 'opacity-50 grayscale',
             )}
@@ -387,9 +393,16 @@ export const BrowserTabItem = memo(
                 {/* Domain */}
                 {domain && (
                   <motion.div
-                    className={`
-                      text-muted flex min-w-0 items-center gap-1 text-xs
-                    `}
+                    className={cn(
+                      'flex min-w-0 items-center gap-1 text-xs',
+                      selected || active
+                        ? 'text-foreground'
+                        : `
+                          text-muted
+                          group-hover/tab-row:text-foreground
+                          group-data-[hover=true]/tab-row:text-foreground
+                        `,
+                    )}
                     animate={{
                       filter: blurred ? 'blur(4px)' : 'blur(0px)',
                     }}

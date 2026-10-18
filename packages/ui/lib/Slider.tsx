@@ -20,20 +20,16 @@ export const Slider = React.forwardRef<
           bg-input relative h-2 w-full grow overflow-hidden rounded-full
         `}
       >
-        <SliderPrimitive.Range
-          className={`
-            bg-accent/[calc(var(--accent-strength)*1%)] absolute h-full
-          `}
-        />
+        <SliderPrimitive.Range className="bg-accent absolute h-full" />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb
+        aria-label={props['aria-label']}
+        aria-labelledby={props['aria-labelledby']}
         className={`
-          border-accent/[calc(var(--accent-strength)*1%)] bg-background
-          ring-offset-background block h-5 w-5 rounded-full border-2
-          transition-colors
-          focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-          focus-visible:outline-none focus-visible:ring-2
-          focus-visible:ring-offset-2
+          border-accent bg-card ring-offset-background block h-5 w-5
+          rounded-full border-2 transition-colors
+          focus-visible:ring-accent/70 focus-visible:outline-none
+          focus-visible:ring-2 focus-visible:ring-offset-2
           disabled:pointer-events-none disabled:opacity-50
         `}
       />

@@ -27,8 +27,13 @@ import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 import type { BrowserTabGroupColor } from '@extension/core'
 
 export const windowControlClass =
-  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-highlighted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70'
+  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-accent/[calc(var(--accent-strength)*0.5%)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70'
 const windowDropClass = 'bg-highlighted/30 text-foreground'
+const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
+const editorRowEntry = (row: Element) =>
+  row.querySelector<HTMLElement>('[data-editor-done]') ??
+  row.querySelector<HTMLElement>('[aria-pressed="true"]') ??
+  row.querySelector<HTMLElement>('input,button')
 const icons = {
   window: Monitor,
   briefcase: Briefcase,
@@ -78,7 +83,10 @@ export const WindowHeader = ({
   )
   return (
     <header
-      className="border-border flex shrink-0 items-center gap-1 border-b p-2"
+      className={`
+        border-border flex shrink-0 items-center gap-1 border-b
+        bg-[var(--manager-chrome)] p-2
+      `}
       data-keyboard-section="header"
     >
       <button
@@ -87,7 +95,11 @@ export const WindowHeader = ({
         aria-expanded={model.windowPicker}
         className={cn(
           windowControlClass,
-          'min-w-0 flex-1 justify-start py-2 text-left',
+          `
+            bg-accent/[calc(var(--accent-strength)*0.5%)] min-w-0 flex-1
+            justify-start py-2 text-left
+            hover:bg-accent/[min(35%,calc(var(--accent-strength)*0.8%))]
+          `,
         )}
         onClick={() =>
           onIntent({
@@ -117,7 +129,7 @@ export const WindowHeader = ({
           >
             {window?.title ?? 'Windows'}
           </span>
-          <span className="text-muted mt-0.5 block truncate text-xs">
+          <span className="text-foreground mt-0.5 block truncate text-xs">
             {window
               ? `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.incognito ? ' · Private' : ''}`
               : 'Choose a window'}
@@ -175,6 +187,7 @@ export const WindowPicker = ({
     <div
       ref={root}
       data-window-picker
+      data-keyboard-section="windows"
       className="bg-accent/[calc(var(--accent-strength)*0.18%)] min-h-full p-2"
       onKeyDownCapture={(event) => {
         if (event.key === 'Escape') {
@@ -188,7 +201,7 @@ export const WindowPicker = ({
         event.stopPropagation()
         const entries = Array.from(
           root.current?.querySelectorAll<HTMLButtonElement>(
-            '[data-window-choice]',
+            '[data-window-choice],[data-new-window]',
           ) ?? [],
         )
         const origin =
@@ -197,6 +210,21 @@ export const WindowPicker = ({
             ?.querySelector<HTMLButtonElement>('[data-window-choice]') ??
           event.target
         const index = entries.indexOf(origin as HTMLButtonElement)
+        const manager = root.current?.closest('[data-tab-manager]')
+        const crossing =
+          event.key === 'ArrowUp' && index === 0
+            ? manager?.querySelector<HTMLButtonElement>(
+                '[data-window-picker-trigger]',
+              )
+            : event.key === 'ArrowDown' && index === entries.length - 1
+              ? manager?.querySelector<HTMLButtonElement>(
+                  '[data-keyboard-section="tools"] button',
+                )
+              : null
+        if (crossing) {
+          crossing.focus()
+          return
+        }
         const next =
           event.key === 'Home'
             ? 0
@@ -229,9 +257,13 @@ export const WindowPicker = ({
               data-viewing={window.id === model.viewedWindowId}
               className={cn(
                 windowControlClass,
-                'min-h-16 w-full justify-start gap-3 py-3 pr-12 text-left',
+                windowChoiceClass,
+                'group/window-choice pr-12',
                 window.id === model.viewedWindowId &&
-                  'bg-accent/[calc(var(--accent-strength)*1%)]',
+                  `
+                    bg-accent/[min(30%,calc(var(--accent-strength)*1%))]
+                    hover:bg-accent/[min(35%,calc(var(--accent-strength)*1.3%))]
+                  `,
                 dropWindowId === window.id && windowDropClass,
               )}
               onClick={() =>
@@ -255,7 +287,17 @@ export const WindowPicker = ({
                 <span className="text-foreground block truncate font-medium">
                   {window.title}
                 </span>
-                <span className="text-muted block truncate text-xs">
+                <span
+                  className={cn(
+                    'block truncate text-xs',
+                    window.id === model.viewedWindowId
+                      ? 'text-foreground'
+                      : `
+                        text-muted
+                        group-hover/window-choice:text-foreground
+                      `,
+                  )}
+                >
                   {window.tabs.length}{' '}
                   {window.tabs.length === 1 ? 'tab' : 'tabs'}
                   {window.incognito ? ' · Private' : ''}
@@ -280,14 +322,18 @@ export const WindowPicker = ({
         type="button"
         aria-label="New window"
         data-new-window
+        data-create-item="window"
         className={cn(
           windowControlClass,
-          'mt-2 w-full justify-start gap-3',
+          windowChoiceClass,
+          'mt-2',
           dropWindowId === 'new' && windowDropClass,
         )}
         onClick={() => onIntent({ type: 'create-window' })}
       >
-        <Plus size={20} />
+        <span className="flex size-10 shrink-0 items-center justify-center">
+          <Plus size={22} />
+        </span>
         New window
       </button>
     </div>
@@ -312,6 +358,7 @@ export const WindowIdentityEditor = ({
   }, [canFocusInput])
   return (
     <form
+      data-window-editor
       aria-label="Name and icon"
       className="space-y-5 p-4"
       onSubmit={(event) => {
@@ -319,14 +366,107 @@ export const WindowIdentityEditor = ({
         onIntent({ type: 'save-window' })
       }}
       onKeyDownCapture={(event) => {
+        if (
+          event.key === 'Tab' &&
+          !event.altKey &&
+          !event.ctrlKey &&
+          !event.metaKey
+        ) {
+          const form = event.currentTarget
+          const manager = form.closest('[data-tab-manager]')
+          const stops = Array.from(
+            form.querySelectorAll<HTMLElement>('[data-editor-row]'),
+          )
+            .flatMap((row) =>
+              row.dataset.editorRow === 'actions'
+                ? [
+                    row.querySelector<HTMLElement>('[data-editor-done]'),
+                    row.querySelector<HTMLElement>('[data-editor-reset]'),
+                  ]
+                : [editorRowEntry(row)],
+            )
+            .filter((control): control is HTMLElement => !!control)
+          const target = event.target as HTMLElement
+          const index = stops.indexOf(target)
+          const destination =
+            stops[index + (event.shiftKey ? -1 : 1)] ??
+            manager?.querySelector<HTMLElement>(
+              event.shiftKey
+                ? '[data-window-edit-trigger]'
+                : '[data-keyboard-section="tools"] button',
+            )
+          if (destination) {
+            event.preventDefault()
+            event.stopPropagation()
+            destination.focus()
+            destination.scrollIntoView({ block: 'nearest' })
+          }
+          return
+        }
         if (event.key === 'Escape') {
           event.preventDefault()
           event.stopPropagation()
           onIntent({ type: 'save-window' })
+          return
         }
+        if (
+          !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(
+            event.key,
+          ) ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey
+        )
+          return
+        const target = event.target as HTMLElement
+        const horizontal =
+          event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+        if (target === input.current && horizontal) return
+        const rows = Array.from(
+          event.currentTarget.querySelectorAll<HTMLElement>(
+            '[data-editor-row]',
+          ),
+        )
+        const row = target.closest<HTMLElement>('[data-editor-row]')
+        if (!row) return
+        const controls = Array.from(
+          row.querySelectorAll<HTMLElement>('input,button'),
+        )
+        let destination: HTMLElement | null | undefined
+        if (horizontal) {
+          const index = controls.indexOf(target)
+          destination =
+            controls[
+              (index + (event.key === 'ArrowLeft' ? -1 : 1) + controls.length) %
+                controls.length
+            ]
+        } else {
+          const index = rows.indexOf(row)
+          const next = rows[index + (event.key === 'ArrowUp' ? -1 : 1)]
+          destination = next
+            ? editorRowEntry(next)
+            : event.currentTarget
+                .closest('[data-tab-manager]')
+                ?.querySelector<HTMLElement>(
+                  event.key === 'ArrowUp'
+                    ? '[data-window-edit-trigger]'
+                    : '[data-keyboard-section="tools"] button',
+                )
+        }
+        if (!destination) return
+        event.preventDefault()
+        event.stopPropagation()
+        destination.focus()
+        destination.scrollIntoView({ block: 'nearest' })
+        if (
+          horizontal &&
+          ['icons', 'colors'].includes(row.dataset.editorRow ?? '')
+        )
+          destination.click()
       }}
     >
-      <label className="block text-sm">
+      <label data-editor-row="name" className="block text-sm">
         Name
         <input
           ref={input}
@@ -345,7 +485,7 @@ export const WindowIdentityEditor = ({
           `}
         />
       </label>
-      <fieldset>
+      <fieldset data-editor-row="icons">
         <legend className="mb-2 text-sm">Icon</legend>
         <div className="flex flex-wrap gap-2">
           {WINDOW_ICONS.map((icon) => (
@@ -354,6 +494,7 @@ export const WindowIdentityEditor = ({
               type="button"
               aria-label={`${icon[0]!.toUpperCase()}${icon.slice(1)} icon`}
               aria-pressed={draft.icon === icon}
+              tabIndex={(draft.icon ?? WINDOW_ICONS[0]) === icon ? 0 : -1}
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
@@ -372,7 +513,7 @@ export const WindowIdentityEditor = ({
           ))}
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset data-editor-row="colors">
         <legend className="mb-2 text-sm">Color</legend>
         <div className="flex flex-wrap gap-2">
           {TAB_GROUP_COLOR_IDS.map((color) => (
@@ -381,6 +522,9 @@ export const WindowIdentityEditor = ({
               type="button"
               aria-label={`${color[0]!.toUpperCase()}${color.slice(1)} icon color`}
               aria-pressed={draft.iconColor === color}
+              tabIndex={
+                (draft.iconColor ?? TAB_GROUP_COLOR_IDS[0]) === color ? 0 : -1
+              }
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
@@ -403,8 +547,9 @@ export const WindowIdentityEditor = ({
           ))}
         </div>
       </fieldset>
-      <div className="flex justify-between">
+      <div data-editor-row="actions" className="flex justify-between">
         <button
+          data-editor-reset
           type="button"
           className={windowControlClass}
           onClick={() => onIntent({ type: 'reset-window' })}
@@ -412,6 +557,7 @@ export const WindowIdentityEditor = ({
           Reset
         </button>
         <button
+          data-editor-done
           type="submit"
           className={cn(
             windowControlClass,

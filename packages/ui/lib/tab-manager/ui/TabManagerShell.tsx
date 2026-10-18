@@ -26,9 +26,13 @@ export const TabManagerShell = ({
   const mainId = useSurfaceId('tab-manager-main')
   return (
     <div
+      data-tab-manager-shell
       data-selection-mode={selectionMode}
       className={cn(
-        'bg-background relative flex w-full flex-col overflow-hidden',
+        `
+          relative flex w-full flex-col overflow-hidden
+          bg-[var(--manager-canvas)]
+        `,
         surface ? 'h-full min-h-0' : 'h-screen',
         className,
       )}
