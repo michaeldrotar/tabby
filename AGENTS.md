@@ -70,5 +70,6 @@ In a worktree, if any tool or server's default port is already in use, use a dif
 
 - Release actions are user-triggered. CI and ordinary merges must not tag, package, upload, submit, or publish a release.
 - Follow [RELEASE.md](./RELEASE.md) for versioning and packaging. Follow the Chrome Extensions skill for Chrome Web Store documentation and submission readiness. Never put store credentials in the repository.
-- If the user explicitly asks to submit a release and publish it once accepted, that instruction authorizes the agent to monitor the Chrome Web Store review status and publish after acceptance.
+- When authorized to publish a Chrome Web Store release, enable automatic publishing after approval. After verifying submission, record its status, report the result, and end the task.
+- Monitor store review or publication only when the user explicitly requests monitoring. A request to submit or publish alone does not authorize polling, scheduled checks, or waiting for Google's approval.
 - Preview marketing-site changes with their pull requests and deploy production as an explicit release action, coordinated with the published extension.
