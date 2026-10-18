@@ -114,9 +114,9 @@ test('switches Chrome windows, keeps selection local, and transitions right-clic
   await expect(group).toBeFocused()
   await move.click()
   await destinations.getByRole('menuitem', { name: /Reading room/ }).click()
-  await expect(row(2)).toHaveCount(0)
-  await expect(row(4)).toHaveCount(0)
-  await expect(switcher).toContainText('Tabby')
+  await expect(switcher).toContainText('Reading room')
+  await expect(row(2)).toHaveAttribute('aria-selected', 'true')
+  await expect(row(4)).toHaveAttribute('aria-selected', 'true')
   expect(
     await page.evaluate(async () =>
       (await chrome.tabs.query({ windowId: 2 })).map((tab) => tab.id),
@@ -179,10 +179,8 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   await page.keyboard.press('ArrowRight')
   await expect(destinations).toBeVisible()
   await destinations.getByRole('menuitem', { name: /New window/i }).click()
-  await expect(row(2)).toHaveCount(0)
-  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
-    'Tabby',
-  )
+  await expect(row(2)).toBeVisible()
+  await expect(row(2)).toHaveAttribute('aria-selected', 'true')
   const moved = await page.evaluate(async () => ({
     group: await chrome.tabGroups.get(10),
     tabs: (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
@@ -191,7 +189,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   expect(moved).toMatchObject({
     group: { title: 'Tabby', color: 'blue', windowId: 13 },
     tabs: [2, 3, 4],
-    focused: 1,
+    focused: 13,
   })
   await page.locator('[data-window-picker-trigger]').click()
   await page.locator('[data-window-choice="13"]').click()

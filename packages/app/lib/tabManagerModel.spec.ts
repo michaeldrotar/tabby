@@ -233,7 +233,11 @@ describe('Tab Manager controller', () => {
           ],
         }),
       )
-      const { controller, backend, view } = resources
+      const { backend, view } = resources
+      const controller = createTabManagerController({
+        ...resources,
+        host: { getCurrentWindowId: () => 1 },
+      })
       if (operation === 'partial-move') {
         const execute = backend.execute
         backend.execute = async (command) => {
@@ -908,7 +912,7 @@ describe('complete Tab Manager actions', () => {
       optionId: '2',
     })
     expect(resources.backend.getSnapshot().groups).toEqual([
-      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: true },
+      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: false },
       { id: 6, windowId: 2, title: 'Build', color: 'blue' },
     ])
     expect(
@@ -1071,4 +1075,149 @@ describe('Tab Manager identity replacement', () => {
     expect(state.focusedItem).toEqual({ type: 'tab', id: 21 })
     expect(state.actionMenu?.target).toEqual({ type: 'tab', id: 21 })
   })
+})
+
+describe('moving follows the destination', () => {
+  it('opens the destination with the moved selection while the source sidebar keeps its own window', async () => {
+    for (const optionId of ['2', 'new']) {
+      const resources = setup()
+      const openWindowTabManager = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { getCurrentWindowId: () => 1, openWindowTabManager },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 12 },
+      })
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'move-selected-tabs',
+        optionId,
+      })
+      const tab = resources.backend
+        .getSnapshot()
+        .tabs.find((tab) => tab.id === 12)!
+      expect(tab).toMatchObject({ active: true })
+      expect(
+        resources.backend.getSnapshot().windows.find((window) => window.focused)
+          ?.id,
+      ).toBe(tab.windowId)
+      expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(
+        tab.windowId,
+        [12],
+      )
+      expect(resources.view.getState().viewedWindowId).toBe(1)
+      await controller.dispatch({
+        type: 'receive-moved-tabs',
+        windowId: tab.windowId,
+        tabIds: [12],
+      })
+      expect(resources.view.getState().selection.selection.tabIds).toEqual(
+        new Set([12]),
+      )
+      expect(resources.view.getState().focusedItem).toEqual({
+        type: 'tab',
+        id: 12,
+      })
+    }
+  })
+  it('keeps the source context after a failed move', async () => {
+    const resources = setup({ commands: 'ignore' })
+    const openWindowTabManager = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { getCurrentWindowId: () => 1, openWindowTabManager },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'move-selected-tabs',
+      optionId: '2',
+    })
+    expect(openWindowTabManager).not.toHaveBeenCalled()
+    expect(resources.view.getState().selection.selection.tabIds).toEqual(
+      new Set([12]),
+    )
+  })
+})
+
+it('reveals all collapsed groups moved through the menu', async () => {
+  const resources = setup()
+  resources.backend.restoreSnapshot({
+    ...resources.backend.getSnapshot(),
+    groups: [5, 6].map((id) => ({
+      id,
+      windowId: 1,
+      color: 'blue',
+      collapsed: true,
+    })),
+    tabs: [
+      ...resources.backend
+        .getSnapshot()
+        .tabs.map((tab) =>
+          tab.windowId === 1 ? { ...tab, groupId: tab.id === 11 ? 5 : 6 } : tab,
+        ),
+      { id: 14, windowId: 1, index: 2, title: 'Stay here' },
+    ],
+  })
+  const controller = createTabManagerController({
+    ...resources,
+    host: { getCurrentWindowId: () => 1 },
+  })
+  controller.dispatch({ type: 'select-item', item: { type: 'group', id: 5 } })
+  controller.dispatch({
+    type: 'select-item',
+    item: { type: 'group', id: 6 },
+    toggle: true,
+  })
+  await controller.dispatch({
+    type: 'run-action',
+    actionId: 'move-selected-tabs',
+    optionId: '2',
+  })
+  expect(resources.backend.getSnapshot().groups).toEqual([
+    { id: 5, windowId: 2, color: 'blue', collapsed: false },
+    { id: 6, windowId: 2, color: 'blue', collapsed: false },
+  ])
+})
+
+it('activates and focuses the first selected tab in source order for drag and menu transfers', async () => {
+  for (const method of ['drop', 'menu']) {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.backend.getSnapshot(),
+      tabs: [
+        ...resources.backend.getSnapshot().tabs,
+        { id: 14, windowId: 1, index: 2, title: 'Stay here' },
+      ],
+    })
+    resources.controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+    })
+    resources.controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 11 },
+      toggle: true,
+    })
+    await resources.controller.dispatch(
+      method === 'drop'
+        ? { type: 'place-tabs', tabIds: [12, 11], windowId: 2 }
+        : { type: 'run-action', actionId: 'move-selected-tabs', optionId: '2' },
+    )
+    expect(
+      resources.backend
+        .getSnapshot()
+        .tabs.find((tab) => tab.windowId === 2 && tab.active)?.id,
+    ).toBe(11)
+    expect(resources.view.getState().focusedItem).toEqual({
+      type: 'tab',
+      id: 11,
+    })
+    expect(resources.view.getState().scrollToItem).toMatchObject({
+      id: 11,
+      focus: true,
+    })
+  }
 })

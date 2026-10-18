@@ -18,11 +18,16 @@ import {
   WindowIdentityEditor,
   WindowPicker,
 } from './ui/WindowNavigation'
+import { useTabDrag } from './useTabDrag'
 import type {
   BrowserTabListItemData,
   BrowserTabListTab,
 } from '../BrowserTabList'
-import type { BrowserTabGroupColor, SelectionItemRef } from '@extension/core'
+import type {
+  BrowserTabGroupColor,
+  SelectionItemRef,
+  TabPlacement,
+} from '@extension/core'
 import type { KeyboardEvent, MouseEvent } from 'react'
 
 export type TabManagerItem = SelectionItemRef
@@ -116,9 +121,16 @@ export type TabManagerViewModel = {
   status?: 'ready' | 'loading' | 'error'
   error?: string
   scrollTop?: number
-  scrollToItem?: { id: number; revision: number } | null
+  scrollToItem?: { id: number; revision: number; focus?: boolean } | null
 }
 export type TabManagerIntent =
+  | {
+      type: 'place-tabs'
+      tabIds: number[]
+      destination?: TabPlacement
+      windowId?: number
+    }
+  | { type: 'receive-moved-tabs'; windowId: number; tabIds: readonly number[] }
   | { type: 'view-window'; windowId: number }
   | { type: 'open-window-picker' }
   | { type: 'dismiss-window-picker' }
@@ -247,11 +259,16 @@ export const TabManager = ({
   const menuPosition = useRef<{ x: number; y: number } | null>(null)
   const menuReturnFocus = useRef<HTMLElement | null>(null)
   const live = !surface || surface.inputMode === 'live'
+  const drag = useTabDrag(rootRef, model, onIntent, live)
+  const restoreDrag = drag.restore
+  const displayedWindowId = drag.view?.windowId ?? model.viewedWindowId
   const viewedWindow = model.windows.find(
-    (window) => window.id === model.viewedWindowId,
+    (window) => window.id === displayedWindowId,
   )
   const selectedTabIds = new Set(model.selectedTabIds)
-  const pickerVisible = !!model.windowPicker
+  const pickerVisible = drag.view
+    ? drag.view.mode === 'windows'
+    : !!model.windowPicker
   const previousPane = useRef({
     picker: pickerVisible,
     editing: !!model.editingWindow,
@@ -284,7 +301,13 @@ export const TabManager = ({
       editing: !!model.editingWindow,
       windowId: model.viewedWindowId,
     }
-    if (!live || pickerVisible || model.editingWindow || !canFocusInput())
+    if (
+      !live ||
+      drag.view ||
+      pickerVisible ||
+      model.editingWindow ||
+      !canFocusInput()
+    )
       return
     if (
       previous.picker ||
@@ -308,6 +331,7 @@ export const TabManager = ({
     live,
     pickerVisible,
     model.editingWindow,
+    drag.view,
     model.viewedWindowId,
     model.focusedItem,
     focusPane,
@@ -399,6 +423,7 @@ export const TabManager = ({
     currentWindow.focus({ preventScroll: true })
   }, [focusOnMount, live, model.status, model.viewedWindowId])
   const syncScroll = useCallback(() => {
+    if (drag.view) return
     const viewport = rootRef.current?.querySelector<HTMLElement>(
       '[data-manager-scroll] [data-radix-scroll-area-viewport]',
     )
@@ -413,21 +438,49 @@ export const TabManager = ({
           viewport.getBoundingClientRect().top -
           (viewport.clientHeight - current.clientHeight) / 2
     } else viewport.scrollTop = model.editingWindow ? 0 : (model.scrollTop ?? 0)
-  }, [model.scrollTop, pickerVisible, model.editingWindow])
+  }, [model.scrollTop, pickerVisible, model.editingWindow, drag.view])
+  const revealedItem = useRef<TabManagerViewModel['scrollToItem']>(null)
+  const revealFrame = useRef(0)
+  const revealItem = useCallback(() => {
+    const request = model.scrollToItem
+    if (
+      !live ||
+      drag.view ||
+      pickerVisible ||
+      !request ||
+      (revealedItem.current?.id === request.id &&
+        revealedItem.current.revision === request.revision)
+    )
+      return
+    const target = rootRef.current?.querySelector<HTMLElement>(
+      `[data-tab-id="${request.id}"]`,
+    )
+    if (!target) return
+    revealedItem.current = request
+    target.scrollIntoView({
+      block: 'center',
+      behavior: 'instant',
+    })
+    if (request.focus && canFocusInput())
+      target
+        .querySelector<HTMLElement>('[data-tab-option]')
+        ?.focus({ preventScroll: true })
+  }, [model.scrollToItem, live, drag.view, pickerVisible, canFocusInput])
+  const queueReveal = useCallback(() => {
+    cancelAnimationFrame(revealFrame.current)
+    revealFrame.current = requestAnimationFrame(revealItem)
+  }, [revealItem])
   const paneReady = useCallback(() => {
     syncScroll()
     focusPane()
-  }, [syncScroll, focusPane])
+    restoreDrag()
+    queueReveal()
+  }, [syncScroll, focusPane, restoreDrag, queueReveal])
   useLayoutEffect(syncScroll, [syncScroll])
   useLayoutEffect(() => {
-    if (!live || !model.scrollToItem) return
-    rootRef.current
-      ?.querySelector<HTMLElement>(`[data-tab-id="${model.scrollToItem.id}"]`)
-      ?.scrollIntoView({
-        block: 'center',
-        behavior: surface?.motion === 'reduced' ? 'instant' : 'smooth',
-      })
-  }, [model.scrollToItem, surface?.motion, live])
+    queueReveal()
+    return () => cancelAnimationFrame(revealFrame.current)
+  }, [queueReveal])
   useLayoutEffect(() => {
     if (!live) return
     const focusModelItem = () => {
@@ -753,7 +806,9 @@ export const TabManager = ({
       seenGroups.add(group.id)
       items.push({
         type: 'group',
-        group,
+        group: drag.view?.expanded.includes(group.id)
+          ? { ...group, collapsed: false }
+          : group,
         tabs: viewedWindow!.tabs
           .filter((tab) => tab.groupId === group.id)
           .map(toTab),
@@ -840,6 +895,7 @@ export const TabManager = ({
       }}
       onKeyDownCapture={keyDown}
       onPointerDownCapture={(event) => {
+        drag.pointerDown(event)
         if (
           event.button === 0 &&
           (model.actionMenu || model.actionPanel) &&
@@ -850,6 +906,7 @@ export const TabManager = ({
         )
           send({ type: 'dismiss-action-menu' })
       }}
+      onDragStart={(event) => event.preventDefault()}
       onContextMenu={(event) => {
         const item = itemAt(event.target)
         if (!item) return
@@ -870,6 +927,7 @@ export const TabManager = ({
         if (
           live &&
           !pickerVisible &&
+          !drag.view &&
           !model.editingWindow &&
           element.closest('[data-manager-scroll]')
         )
@@ -880,9 +938,12 @@ export const TabManager = ({
         className={className}
         selectionMode={model.selectionMode}
         overlay={
-          <ModeTransitionEffect
-            isMultiSelectMode={model.selectionMode === 'multi-select'}
-          />
+          <>
+            <ModeTransitionEffect
+              isMultiSelectMode={model.selectionMode === 'multi-select'}
+            />
+            {drag.overlay}
+          </>
         }
         header={<WindowHeader model={model} onIntent={send} />}
         actionBar={
@@ -916,7 +977,12 @@ export const TabManager = ({
               {model.editingWindow ? (
                 <WindowIdentityEditor model={model} onIntent={send} />
               ) : pickerVisible ? (
-                <WindowPicker model={model} onIntent={send} />
+                <WindowPicker
+                  model={model}
+                  onIntent={send}
+                  dragging={!!drag.view}
+                  dragWindow={drag.windowHover}
+                />
               ) : model.status === 'error' ? (
                 <p role="alert" className="p-4">
                   {model.error ?? 'Unable to load tabs.'}
