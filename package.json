@@ -25,6 +25,7 @@
     "preview": "pnpm build && node scripts/preview/server.mjs",
     "demo-studio": "pnpm exec turbo ready && pnpm -F @extension/demo-studio dev",
     "marketing": "pnpm exec turbo ready && pnpm -F @extension/marketing dev",
+    "marketing:sync-releases": "node scripts/sync-marketing-releases.mjs",
     "test:marketing": "pnpm -F @extension/e2e exec playwright test --config marketing.config.ts",
     "test:demo-studio": "pnpm -F @extension/e2e exec playwright test --config demo-studio.config.ts",
     "zip": "pnpm build && pnpm -F zipper zip",

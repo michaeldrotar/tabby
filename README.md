@@ -2,6 +2,9 @@
 
 Tabby is a Chrome extension I built with React, Vite, and Tailwind CSS, with help from AI agents.
 
+[![Visit the Tabby website](product/brand/website-cta.svg)](https://www.gettabby.org/)
+[![Get Tabby for Chrome](product/brand/chrome-store-cta.svg)](https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob)
+
 ## Features
 
 ### Omnibar

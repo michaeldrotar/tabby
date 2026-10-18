@@ -1,0 +1,19 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="210"
+  height="46"
+  viewBox="0 0 210 46"
+>
+  <rect width="210" height="46" rx="8" fill="#302833" />
+  <text
+    x="105"
+    y="28"
+    text-anchor="middle"
+    fill="#fff9f2"
+    font-family="Arial, sans-serif"
+    font-size="14"
+    font-weight="700"
+  >
+    Visit the Tabby website
+  </text>
+</svg>
