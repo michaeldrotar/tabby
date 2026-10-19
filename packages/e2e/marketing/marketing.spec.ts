@@ -319,7 +319,7 @@ test('homepage separates the live demo and switches to a video without losing de
     seasonalBoard.getByRole('button', {
       name: /background and foreground tone stone$/,
     }),
-  ).toHaveCount(5)
+  ).toHaveCount(9)
   await seasonalBoard.scrollIntoViewIfNeeded()
   await expect(
     seasonalBoard.locator('.playground-piece__arrival.is-entered').first(),

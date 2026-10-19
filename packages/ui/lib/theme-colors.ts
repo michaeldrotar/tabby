@@ -1,11 +1,8 @@
+import { additionalNeutralColors } from './tailwind-neutral-colors'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
 
 export type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
-export {
-  THEME_ACCENT_PALETTES,
-  THEME_ACCENT_STRENGTH_OPTIONS,
-  THEME_NEUTRAL_PALETTES,
-} from '@extension/core'
+export { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '@extension/core'
 
 export const neutralSwatchByPalette = {
   slate: 'bg-slate-500',
@@ -13,6 +10,10 @@ export const neutralSwatchByPalette = {
   zinc: 'bg-zinc-500',
   neutral: 'bg-neutral-500',
   stone: 'bg-stone-500',
+  taupe: 'bg-taupe-500',
+  mauve: 'bg-mauve-500',
+  mist: 'bg-mist-500',
+  olive: 'bg-olive-500',
 } satisfies Record<ThemeNeutralPalette, string>
 export const accentSwatchByPalette = {
   red: 'bg-red-500',
@@ -33,3 +34,16 @@ export const accentSwatchByPalette = {
   pink: 'bg-pink-500',
   rose: 'bg-rose-500',
 } satisfies Record<ThemeAccentPalette, string>
+
+export { additionalNeutralColors }
+export const neutralSwatchColors = {
+  slate: '#64748b',
+  gray: '#6b7280',
+  zinc: '#71717a',
+  neutral: '#737373',
+  stone: '#78716c',
+  taupe: additionalNeutralColors.taupe[500],
+  mauve: additionalNeutralColors.mauve[500],
+  mist: additionalNeutralColors.mist[500],
+  olive: additionalNeutralColors.olive[500],
+} satisfies Record<ThemeNeutralPalette, string>

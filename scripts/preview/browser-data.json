@@ -231,10 +231,8 @@
     "themeLightBackground": "stone",
     "themeLightForeground": "neutral",
     "themeLightAccent": "amber",
-    "themeLightAccentStrength": 15,
     "themeDarkBackground": "neutral",
     "themeDarkForeground": "zinc",
-    "themeDarkAccent": "blue",
-    "themeDarkAccentStrength": 15
+    "themeDarkAccent": "blue"
   }
 }

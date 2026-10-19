@@ -1,6 +1,9 @@
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
+import { motion } from 'framer-motion'
 import { cn } from './utils/cn'
 import type { ComponentProps } from 'react'
+
+const MotionViewport = motion.create(ScrollAreaPrimitive.Viewport)
 
 type ScrollBarProps = ComponentProps<
   typeof ScrollAreaPrimitive.ScrollAreaScrollbar
@@ -52,14 +55,15 @@ export const ScrollArea = ({
       type="scroll"
       {...props}
     >
-      <ScrollAreaPrimitive.Viewport
+      <MotionViewport
+        layoutScroll
         className={cn(
           'size-full overscroll-none rounded-[inherit]',
           orientation === 'vertical' && '[&>div]:!block',
         )}
       >
         {children}
-      </ScrollAreaPrimitive.Viewport>
+      </MotionViewport>
       {(orientation === 'vertical' || orientation === 'both') && (
         <ScrollBar orientation="vertical" />
       )}

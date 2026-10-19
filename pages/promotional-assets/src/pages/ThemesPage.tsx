@@ -1,6 +1,7 @@
 import { BrowserTabItem } from '@extension/ui/BrowserTabItem'
 import { Surface } from '@extension/ui/Surface'
 import {
+  additionalNeutralColors,
   THEME_ACCENT_PALETTES,
   THEME_NEUTRAL_PALETTES,
 } from '@extension/ui/theme-colors'
@@ -18,6 +19,22 @@ const neutralToneColors = {
   zinc: { light: '#e4e4e7', dark: '#27272a' },
   neutral: { light: '#e5e5e5', dark: '#262626' },
   stone: { light: '#e7e5e4', dark: '#292524' },
+  taupe: {
+    light: additionalNeutralColors.taupe[200],
+    dark: additionalNeutralColors.taupe[800],
+  },
+  mauve: {
+    light: additionalNeutralColors.mauve[200],
+    dark: additionalNeutralColors.mauve[800],
+  },
+  mist: {
+    light: additionalNeutralColors.mist[200],
+    dark: additionalNeutralColors.mist[800],
+  },
+  olive: {
+    light: additionalNeutralColors.olive[200],
+    dark: additionalNeutralColors.olive[800],
+  },
 } satisfies Record<ThemeNeutralPalette, { light: string; dark: string }>
 
 const accentColors = {
@@ -61,7 +78,6 @@ const examples: {
       background: 'stone',
       foreground: 'neutral',
       accent: 'rose',
-      strength: 12,
     },
     className: 'theme-tab-example--one',
   },
@@ -76,7 +92,6 @@ const examples: {
       background: 'zinc',
       foreground: 'slate',
       accent: 'blue',
-      strength: 20,
     },
     className: 'theme-tab-example--two',
   },
@@ -91,7 +106,6 @@ const examples: {
       background: 'gray',
       foreground: 'slate',
       accent: 'violet',
-      strength: 12,
     },
     className: 'theme-tab-example--three',
   },
@@ -106,7 +120,6 @@ const examples: {
       background: 'neutral',
       foreground: 'stone',
       accent: 'orange',
-      strength: 20,
     },
     className: 'theme-tab-example--four',
   },
@@ -121,7 +134,6 @@ const examples: {
       background: 'slate',
       foreground: 'gray',
       accent: 'teal',
-      strength: 12,
     },
     className: 'theme-tab-example--five',
   },

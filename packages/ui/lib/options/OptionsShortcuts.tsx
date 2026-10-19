@@ -55,13 +55,13 @@ const ShortcutSettingsButton = ({
     onClick={openShortcutsSettings}
     className={cn(
       `
-        bg-accent/[calc(var(--accent-strength)*1%)] text-foreground flex
-        shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2
-        text-sm font-medium transition-colors
-        hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-        focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-        focus-visible:ring-offset-background focus-visible:outline-none
-        focus-visible:ring-2 focus-visible:ring-offset-2
+        bg-accent-selected text-foreground flex shrink-0 items-center gap-2
+        whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium
+        transition-colors
+        hover:bg-accent-selected-hover
+        focus-visible:ring-accent focus-visible:ring-offset-background
+        focus-visible:outline-none focus-visible:ring-2
+        focus-visible:ring-offset-2
       `,
     )}
   >

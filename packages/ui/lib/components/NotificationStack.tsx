@@ -117,9 +117,8 @@ export const NotificationStack = ({
                   zIndex: items.length - index,
                   paddingRight: 52,
                   background:
-                    'color-mix(in srgb, var(--accent) calc(var(--accent-strength) * 0.5%), var(--background))',
-                  borderColor:
-                    'color-mix(in srgb, var(--accent) calc(var(--accent-strength) * 1%), var(--border))',
+                    'linear-gradient(var(--accent-soft), var(--accent-soft)), var(--background)',
+                  borderColor: 'var(--accent-border)',
                   userSelect: 'text',
                   transformOrigin: 'bottom center',
                   pointerEvents: interactive ? 'auto' : 'none',

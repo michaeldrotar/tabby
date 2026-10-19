@@ -50,16 +50,12 @@ const ChoiceCard = ({
           border-border bg-background flex h-full min-h-28 flex-col items-center
           justify-between gap-2 rounded-lg border p-3 text-center
           transition-colors
-          hover:border-accent/[calc(var(--accent-strength)*1%)]
-          peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+          hover:border-accent-border
+          peer-focus-visible:ring-accent
           peer-focus-visible:ring-offset-background peer-focus-visible:ring-2
           peer-focus-visible:ring-offset-2
         `,
-        selected === iconId &&
-          `
-            border-accent/[calc(var(--accent-strength)*1%)]
-            bg-accent/[calc(var(--accent-strength)*1%)]
-          `,
+        selected === iconId && `border-accent-border bg-accent-selected`,
       )}
     >
       <img
@@ -212,11 +208,11 @@ export const OptionsSeasonalIconsOverview = ({
               after:left-[2px] after:top-[2px] after:h-5 after:w-5
               after:rounded-full after:border after:transition-transform
               after:content-['']
-              peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
-              peer-checked:after:border-accent/[calc(var(--accent-strength)*1%)]
+              peer-checked:bg-accent-selected
+              peer-checked:after:border-accent-border
               peer-checked:after:translate-x-full
-              peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-              peer-focus-visible:outline-none peer-focus-visible:ring-4
+              peer-focus-visible:ring-accent peer-focus-visible:outline-none
+              peer-focus-visible:ring-4
             `}
           />
           <span className="text-foreground ml-3 text-sm font-medium">
@@ -228,13 +224,13 @@ export const OptionsSeasonalIconsOverview = ({
           onClick={onOpen}
           className={cn(
             `
-              bg-accent/[calc(var(--accent-strength)*1%)] text-foreground flex
-              shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2
-              text-sm font-medium transition-colors
-              hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-              focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-              focus-visible:ring-offset-background focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-offset-2
+              bg-accent-selected text-foreground flex shrink-0 items-center
+              justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium
+              transition-colors
+              hover:bg-accent-selected-hover
+              focus-visible:ring-accent focus-visible:ring-offset-background
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-offset-2
             `,
           )}
         >

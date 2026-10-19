@@ -199,10 +199,9 @@ export const BrowserTabGroupItem = memo(
           className={cn(
             'group/tab-group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
             'transition-[background-color,border-color,box-shadow] duration-200',
-            selected &&
-              'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
+            selected && 'ring-accent-border ring-2 ring-inset',
             `
-              has-[[data-group-header]>button:focus-visible]:after:ring-accent/70
+              has-[[data-group-header]>button:focus-visible]:after:ring-focus
               has-[[data-group-header]>button:focus-visible]:after:ring-2
               has-[[data-group-header]>button:focus-visible]:after:ring-inset
               after:pointer-events-none after:absolute after:inset-0
@@ -230,7 +229,7 @@ export const BrowserTabGroupItem = memo(
             <div
               className={cn(
                 'absolute bottom-2 left-0 top-2 w-0.5 rounded-full',
-                'bg-accent/[calc(var(--accent-strength)*1%)]',
+                'bg-accent-selected',
               )}
             />
           )}

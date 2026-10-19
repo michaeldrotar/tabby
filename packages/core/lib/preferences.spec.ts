@@ -12,14 +12,15 @@ describe('preferences', () => {
         theme: 'dark',
         tabManagerCompactIconMode: 'first',
         themeDarkAccent: 'invalid',
-        themeLightAccentStrength: Infinity,
-        themeLightForeground: 'gray',
+        themeLightAccentStrength: 50,
+        themeDarkAccentStrength: 50,
+        themeLightForeground: 'mist',
       }),
     ).toEqual({
       ...defaultPreferences,
       theme: 'dark',
       tabManagerCompactIconMode: 'first',
-      themeLightForeground: 'gray',
+      themeLightForeground: 'mist',
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
   })
@@ -27,13 +28,17 @@ describe('preferences', () => {
     expect(
       applyPreferencePatch(
         { ...defaultPreferences },
-        { themeDarkAccent: 'rose' },
+        { themeDarkAccent: 'rose', themeDarkBackground: 'mauve' },
       ),
-    ).toEqual({ ...defaultPreferences, themeDarkAccent: 'rose' })
+    ).toEqual({
+      ...defaultPreferences,
+      themeDarkAccent: 'rose',
+      themeDarkBackground: 'mauve',
+    })
     expect(() =>
       applyPreferencePatch(
         { ...defaultPreferences },
-        { themeLightAccentStrength: 11 },
+        { themeLightAccent: 'invalid' as never },
       ),
     ).toThrow('Invalid preference')
   })

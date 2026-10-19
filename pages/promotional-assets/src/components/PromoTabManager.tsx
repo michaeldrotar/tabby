@@ -14,12 +14,10 @@ export type PromoPalette = NonNullable<SurfaceProps['palette']>
 export const promoPalette = (
   theme: 'light' | 'dark',
   accent: PromoPalette['accent'] = 'orange',
-  strength = 22,
 ): PromoPalette => ({
   background: theme === 'light' ? 'stone' : 'neutral',
   foreground: theme === 'light' ? 'neutral' : 'zinc',
   accent,
-  strength,
 })
 
 const favicon = (letter: string, color: string) => {
@@ -110,18 +108,16 @@ export const PromoTabManager = ({
   model,
   theme = 'light',
   accent = 'orange',
-  strength = 22,
   className,
 }: {
   model: TabManagerViewModel
   theme?: 'light' | 'dark'
   accent?: PromoPalette['accent']
-  strength?: number
   className?: string
 }) => (
   <Surface
     theme={theme}
-    palette={promoPalette(theme, accent, strength)}
+    palette={promoPalette(theme, accent)}
     inputMode="static"
     motion="reduced"
     className={className}

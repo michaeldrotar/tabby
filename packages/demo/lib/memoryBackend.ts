@@ -245,9 +245,6 @@ export class MemoryBackend implements BrowserBackend {
         snapshot.groups = snapshot.groups.map((candidate) =>
           candidate.id === group.id ? { ...candidate, windowId } : candidate,
         )
-        snapshot.windows = snapshot.windows.filter((window) =>
-          snapshot.tabs.some((tab) => tab.windowId === window.id),
-        )
         break
       }
       case 'tab-action': {
@@ -437,9 +434,6 @@ export class MemoryBackend implements BrowserBackend {
             ? { ...group, windowId: windowId! }
             : group,
         )
-        snapshot.windows = snapshot.windows.filter((window) =>
-          snapshot.tabs.some((tab) => tab.windowId === window.id),
-        )
         break
       }
       case 'group-tabs': {
@@ -597,9 +591,6 @@ export class MemoryBackend implements BrowserBackend {
         )
         const removed = new Set(succeededIds)
         snapshot.tabs = snapshot.tabs.filter((tab) => !removed.has(tab.id))
-        snapshot.windows = snapshot.windows.filter((window) =>
-          snapshot.tabs.some((tab) => tab.windowId === window.id),
-        )
         break
       }
       case 'window-action':
@@ -704,9 +695,17 @@ export class MemoryBackend implements BrowserBackend {
   }
 
   private normalize(snapshot: BrowserSnapshot): BrowserSnapshot {
-    const windows = snapshot.windows.map((window, index) => ({
+    const populated = new Set(snapshot.tabs.map((tab) => tab.windowId))
+    const previouslyPopulated = new Set(
+      this.snapshot.tabs.map((tab) => tab.windowId),
+    )
+    const remainingWindows = snapshot.windows.filter(
+      (window) =>
+        populated.has(window.id) || !previouslyPopulated.has(window.id),
+    )
+    const windows = remainingWindows.map((window, index) => ({
       ...window,
-      focused: snapshot.windows.some((item) => item.focused)
+      focused: remainingWindows.some((item) => item.focused)
         ? window.focused
         : index === 0,
     }))

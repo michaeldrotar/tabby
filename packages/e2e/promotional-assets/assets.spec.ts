@@ -39,6 +39,14 @@ test('promotional layouts show current windows, search, and batch actions', asyn
           .evaluate((element) => element.clientWidth),
       ).toBe(536)
     }
+    if (asset.id === 'themes') {
+      await expect(page.locator('.theme-swatch--tone')).toHaveCount(18)
+      const palette = await page.locator('.themes-palette').boundingBox()
+      const frame = await canvas.boundingBox()
+      expect(palette!.y + palette!.height).toBeLessThanOrEqual(
+        frame!.y + frame!.height - 16,
+      )
+    }
     if (asset.id === 'find-anything')
       await expect(
         page.getByRole('option', { name: /Customer inbox.*Window/ }),

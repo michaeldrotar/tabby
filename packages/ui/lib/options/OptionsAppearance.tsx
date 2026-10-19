@@ -5,7 +5,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../Select'
-import { Slider } from '../Slider'
 import { useSurfaceId } from '../Surface'
 import {
   accentSwatchByPalette,
@@ -73,11 +72,9 @@ export const OptionsAppearance = ({
     themeLightBackground,
     themeLightForeground,
     themeLightAccent,
-    themeLightAccentStrength,
     themeDarkBackground,
     themeDarkForeground,
     themeDarkAccent,
-    themeDarkAccentStrength,
   } = preferences
   const activeThemeBackground =
     activeThemeMode === 'light' ? themeLightBackground : themeDarkBackground
@@ -85,11 +82,6 @@ export const OptionsAppearance = ({
     activeThemeMode === 'light' ? themeLightForeground : themeDarkForeground
   const activeThemeAccent =
     activeThemeMode === 'light' ? themeLightAccent : themeDarkAccent
-
-  const activeThemeAccentStrength =
-    activeThemeMode === 'light'
-      ? themeLightAccentStrength
-      : themeDarkAccentStrength
 
   const neutralPalettes = THEME_NEUTRAL_PALETTES
   const accentPalettes = THEME_ACCENT_PALETTES
@@ -140,10 +132,10 @@ export const OptionsAppearance = ({
                         bg-input text-foreground inline-flex rounded-lg px-3
                         py-2 text-sm font-medium transition-colors
                         hover:bg-input/70
-                        peer-checked:bg-accent/[calc(var(--accent-strength)*1%)]
+                        peer-checked:bg-accent-selected
                         peer-checked:text-foreground
-                        peer-checked:hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-                        peer-focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                        peer-checked:hover:bg-accent-selected-hover
+                        peer-focus-visible:ring-accent
                         peer-focus-visible:ring-offset-background
                         peer-focus-visible:ring-2
                         peer-focus-visible:ring-offset-2
@@ -163,7 +155,8 @@ export const OptionsAppearance = ({
             <div>
               <h3 className="text-foreground font-medium">Colors</h3>
               <p className="text-muted text-sm">
-                Controls Tabby’s neutral palettes and accent across the UI
+                Choose your background, text, and accent. Highlights adapt to
+                light and dark mode.
               </p>
             </div>
             <button
@@ -174,8 +167,7 @@ export const OptionsAppearance = ({
                   bg-input text-foreground flex-shrink-0 rounded-lg px-3 py-2
                   text-sm font-medium transition-colors
                   hover:bg-input/70
-                  focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-                  focus-visible:ring-offset-background
+                  focus-visible:ring-accent focus-visible:ring-offset-background
                   focus-visible:outline-none focus-visible:ring-2
                   focus-visible:ring-offset-2
                 `,
@@ -234,48 +226,6 @@ export const OptionsAppearance = ({
                   )
                 }
               />
-
-              <fieldset
-                className={`
-                  min-w-0
-                  group-data-[wide=true]/options:col-span-3
-                `}
-              >
-                <legend className="text-foreground mb-2 text-sm font-medium">
-                  Accent strength
-                </legend>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    aria-label="Accent strength"
-                    value={[activeThemeAccentStrength]}
-                    min={10}
-                    max={50}
-                    step={5}
-                    onValueChange={(value) =>
-                      onPreferenceChange({
-                        ...(activeThemeMode === 'light'
-                          ? {
-                              themeLightAccentStrength:
-                                value[0] ??
-                                preferences.themeLightAccentStrength,
-                            }
-                          : {
-                              themeDarkAccentStrength:
-                                value[0] ?? preferences.themeDarkAccentStrength,
-                            }),
-                      })
-                    }
-                    className="flex-1"
-                  />
-                  <span
-                    className={`
-                      text-muted w-12 shrink-0 text-right text-sm tabular-nums
-                    `}
-                  >
-                    {activeThemeAccentStrength}%
-                  </span>
-                </div>
-              </fieldset>
             </div>
           </div>
         </div>

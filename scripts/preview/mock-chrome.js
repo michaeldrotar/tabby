@@ -62,6 +62,12 @@
       }
     }
   }
+  const finishSourceMove = async (windowId) => {
+    const remaining = windowTabs(windowId)
+    if (!remaining.length) await api.windows.remove(windowId)
+    else if (!remaining.some((tab) => tab.active))
+      await api.tabs.update(remaining[0].id, { active: true })
+  }
   const removeTabs = async (ids, isWindowClosing = false) => {
     for (const id of [].concat(ids)) {
       const tab = find(tabs, id)
@@ -339,10 +345,7 @@
               newPosition: find(tabs, id).index,
             })
           })
-          const remaining = windowTabs(oldWindowId)
-          if (!remaining.length) await api.windows.remove(oldWindowId)
-          else if (!remaining.some((tab) => tab.active))
-            await api.tabs.update(remaining[0].id, { active: true })
+          await finishSourceMove(oldWindowId)
         }
         return clone(group)
       },
@@ -473,6 +476,7 @@
               newPosition: toIndex,
             })
             if (tab.groupId !== -1) await api.tabs.ungroup(id)
+            await finishSourceMove(oldWindowId)
           } else {
             api.tabs.onMoved.emit(id, {
               windowId: targetId,

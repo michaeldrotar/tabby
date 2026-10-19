@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
+import { Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
 import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
@@ -287,10 +287,10 @@ export const BrowserTabItem = memo(
             // Transition for smooth mode changes
             'transition-shadow duration-150',
             `
-              has-[[data-tab-option]:focus-visible]:after:ring-accent/70
+              has-[[data-tab-option]:focus-visible]:after:ring-focus
               has-[[data-tab-option]:focus-visible]:after:ring-2
               has-[[data-tab-option]:focus-visible]:after:ring-inset
-              has-[button:focus-visible]:after:ring-accent/70
+              has-[button:focus-visible]:after:ring-focus
               has-[button:focus-visible]:after:ring-2
               has-[button:focus-visible]:after:ring-inset
               after:pointer-events-none after:absolute after:inset-0
@@ -325,23 +325,22 @@ export const BrowserTabItem = memo(
               !selected &&
                 !active &&
                 `
-                  hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-                  group-data-[hover=true]/tab-row:bg-accent/[calc(var(--accent-strength)*0.5%)]
+                  hover:bg-highlighted/30
+                  group-data-[hover=true]/tab-row:bg-highlighted/30
                 `,
               selected &&
                 `
-                  bg-accent/[min(35%,calc(var(--accent-strength)*1.2%))]
-                  text-foreground
-                  hover:bg-accent/[min(40%,calc(var(--accent-strength)*1.5%))]
-                  group-data-[hover=true]/tab-row:bg-accent/[min(40%,calc(var(--accent-strength)*1.5%))]
+                  bg-accent-selected text-foreground
+                  hover:bg-accent-selected-hover
+                  group-data-[hover=true]/tab-row:bg-accent-selected-hover
                 `,
-              active && 'border-accent/40',
+              active && 'border-accent-border',
               active &&
                 !selected &&
                 `
-                  bg-accent/[min(30%,calc(var(--accent-strength)*0.65%))]
-                  hover:bg-accent/[min(35%,calc(var(--accent-strength)*1%))]
-                  group-data-[hover=true]/tab-row:bg-accent/[min(35%,calc(var(--accent-strength)*1%))]
+                  bg-accent-soft
+                  hover:bg-accent-hover
+                  group-data-[hover=true]/tab-row:bg-accent-hover
                 `,
               discarded && 'opacity-50 grayscale',
             )}
@@ -429,9 +428,6 @@ export const BrowserTabItem = memo(
 
               {/* Status indicators */}
               <div className="flex flex-shrink-0 items-center gap-1.5">
-                {selected && (
-                  <Check className="text-foreground size-4" aria-hidden />
-                )}
                 {/* Audio indicator */}
                 {audio === 'muted' && (
                   <div

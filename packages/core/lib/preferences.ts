@@ -7,10 +7,14 @@ import type { SeasonalIconPreferences } from './seasonalIcons.js'
 
 export const THEME_NEUTRAL_PALETTES = [
   'slate',
+  'mist',
   'gray',
   'zinc',
   'neutral',
+  'mauve',
+  'olive',
   'stone',
+  'taupe',
 ] as const
 export const THEME_ACCENT_PALETTES = [
   'red',
@@ -31,9 +35,6 @@ export const THEME_ACCENT_PALETTES = [
   'pink',
   'rose',
 ] as const
-export const THEME_ACCENT_STRENGTH_OPTIONS = [
-  10, 15, 20, 25, 30, 35, 40, 45, 50,
-] as const
 export type ThemeNeutralPalette = (typeof THEME_NEUTRAL_PALETTES)[number]
 export type ThemeAccentPalette = (typeof THEME_ACCENT_PALETTES)[number]
 
@@ -45,11 +46,9 @@ export interface PreferenceState extends SeasonalIconPreferences {
   themeLightBackground: ThemeNeutralPalette
   themeLightForeground: ThemeNeutralPalette
   themeLightAccent: ThemeAccentPalette
-  themeLightAccentStrength: number
   themeDarkBackground: ThemeNeutralPalette
   themeDarkForeground: ThemeNeutralPalette
   themeDarkAccent: ThemeAccentPalette
-  themeDarkAccentStrength: number
 }
 
 export interface PreferenceResource {
@@ -67,11 +66,9 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   themeLightBackground: 'stone',
   themeLightForeground: 'neutral',
   themeLightAccent: 'amber',
-  themeLightAccentStrength: 15,
   themeDarkBackground: 'neutral',
   themeDarkForeground: 'zinc',
   themeDarkAccent: 'blue',
-  themeDarkAccentStrength: 15,
   seasonalIconsEnabled: true,
   seasonalIconSelections: DEFAULT_SEASONAL_ICON_SELECTIONS,
   seasonalEasterCalendar: 'local',
@@ -92,11 +89,6 @@ const isValidPreference = (key: string, value: unknown): boolean => {
   if (key === 'seasonalThanksgivingRegion')
     return ['local', 'us', 'canada'].includes(value as string)
   if (!Object.hasOwn(defaultPreferences, key)) return false
-  if (key.endsWith('AccentStrength'))
-    return (
-      typeof value === 'number' &&
-      THEME_ACCENT_STRENGTH_OPTIONS.some((strength) => strength === value)
-    )
   if (key.endsWith('Accent'))
     return THEME_ACCENT_PALETTES.some((palette) => palette === value)
   return THEME_NEUTRAL_PALETTES.some((palette) => palette === value)

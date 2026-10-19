@@ -66,8 +66,8 @@ export const ContextMenuSubTrigger = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
-        data-[state=open]:bg-accent/[calc(var(--accent-strength)*0.5%)]
+        data-[highlighted]:bg-accent-selected
+        data-[state=open]:bg-accent-hover
         flex cursor-default select-none items-center gap-2 rounded-md px-2.5
         py-2 text-sm outline-none
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
@@ -122,7 +122,7 @@ export const ContextMenuItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
+        data-[highlighted]:bg-accent-selected
         relative flex cursor-default select-none items-center gap-2 rounded-md
         px-2.5 py-2 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
@@ -151,7 +151,7 @@ export const ContextMenuCheckboxItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
+        data-[highlighted]:bg-accent-selected
         relative flex cursor-default select-none items-center gap-2 rounded-md
         py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50
@@ -180,7 +180,7 @@ export const ContextMenuRadioItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
+        data-[highlighted]:bg-accent-selected
         relative flex cursor-default select-none items-center gap-2 rounded-md
         py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
         data-[disabled]:pointer-events-none data-[disabled]:opacity-50

@@ -278,6 +278,25 @@ describe('sample Chrome interactions', () => {
     expect(removedGroups).toEqual([10])
   })
 
+  it('closes a source window when its last tabs move and leaves its destination intact', async () => {
+    const chrome = loadMock()
+    const removed = []
+    chrome.windows.onRemoved.addListener((id) => removed.push(id))
+    const ids = (await chrome.tabs.query({ windowId: 1 })).map((tab) => tab.id)
+    await chrome.tabs.move(ids.slice(0, -1), { windowId: 2, index: -1 })
+    expect(
+      (await chrome.windows.getAll()).some((window) => window.id === 1),
+    ).toBe(true)
+    await chrome.tabs.move(ids.at(-1), { windowId: 2, index: -1 })
+    expect(removed).toEqual([1])
+    expect(
+      (await chrome.windows.getAll()).some((window) => window.id === 2),
+    ).toBe(true)
+    expect(
+      (await chrome.tabs.query({ windowId: 2 })).map((tab) => tab.id),
+    ).toEqual(expect.arrayContaining(ids))
+  })
+
   it('moves an entire group between windows with its identity and order intact', async () => {
     const chrome = loadMock()
     const group = await chrome.tabGroups.get(10)

@@ -104,6 +104,18 @@ test('reorders a selection, respects pinned boundaries, and temporarily reveals 
     const above = await point(next, 0.1)
     await page.mouse.move(below.x, below.y, { steps: 4 })
     await expect(indicator).toBeVisible()
+    await expect
+      .poll(async () => {
+        const line = await indicator.boundingBox()
+        const insertionTop = await next.evaluate(
+          (element) =>
+            (
+              element.closest('[data-tab-id]') ?? element
+            ).getBoundingClientRect().top,
+        )
+        return line ? Math.abs(line.y - insertionTop) : Infinity
+      })
+      .toBeLessThan(1)
     const line = (await indicator.boundingBox())!
     const previousBounds = (await previous.boundingBox())!
     const nextBounds = (await next.boundingBox())!

@@ -39,7 +39,7 @@ export const ManagerFrame = (props: TabManagerProps) => (
 )
 ```
 
-Use `palette` for preference-driven background, foreground, accent, and strength values. [PreferenceSurface](../app/lib/PreferenceSurface.tsx) subscribes to an injected preference resource and applies those values.
+Use `palette` for preference-driven background, foreground, and accent values. [PreferenceSurface](../app/lib/PreferenceSurface.tsx) subscribes to an injected preference resource and applies those values. Each surface derives its hover, selection, border, and focus colors from its theme and accent.
 
 ## Interaction and motion
 

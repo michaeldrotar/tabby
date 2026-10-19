@@ -22,7 +22,7 @@ export type RadialLoadingSpinnerProps = Omit<
  * Features:
  * - Variable stroke thickness (thicker at top, thinner at bottom)
  * - Smooth animations with prefers-reduced-motion support
- * - Uses theme colors that respect accent-strength
+ * - Uses the surface’s theme colors
  *
  * @example
  * ```tsx
@@ -55,7 +55,7 @@ export const RadialLoadingSpinner = memo<RadialLoadingSpinnerProps>(
 
     const strokeClass =
       variant === 'accent'
-        ? 'stroke-accent/[calc(var(--accent-strength)*1%)]'
+        ? 'stroke-accent'
         : variant === 'muted'
           ? 'stroke-muted'
           : 'stroke-foreground'

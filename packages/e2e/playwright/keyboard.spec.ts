@@ -108,14 +108,52 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     page.getByRole('heading', { name: 'Name and icon' }),
   ).toHaveCount(0)
   await page.getByRole('button', { name: 'Code icon', exact: true }).click()
+  const iconChoices = page.locator('[data-editor-row="icons"] svg')
+  const choiceColors = await iconChoices.evaluateAll((icons) =>
+    icons.map((icon) => getComputedStyle(icon).color),
+  )
+  expect(new Set(choiceColors).size).toBe(1)
+  const headerIcon = switcher.locator('svg').first()
+  const headerColor = await headerIcon.evaluate(
+    (icon) => getComputedStyle(icon).color,
+  )
   await page
     .getByRole('button', { name: 'Green icon color', exact: true })
     .click()
-  await page.getByRole('button', { name: 'Edit window' }).click()
+  expect(
+    await iconChoices.evaluateAll((icons) =>
+      icons.map((icon) => getComputedStyle(icon).color),
+    ),
+  ).toEqual(choiceColors)
+  await expect
+    .poll(() => headerIcon.evaluate((icon) => getComputedStyle(icon).color))
+    .not.toBe(headerColor)
+  const selectedIcon = page.locator(
+    '[data-editor-row="icons"] [aria-pressed="true"]',
+  )
+  const selectedColor = page.locator(
+    '[data-editor-row="colors"] [aria-pressed="true"]',
+  )
+  await selectedIcon.hover()
+  const iconStyle = await selectedIcon.evaluate((node) => ({
+    background: getComputedStyle(node).backgroundColor,
+    ring: getComputedStyle(node).boxShadow,
+  }))
+  await selectedColor.hover()
+  expect(
+    await selectedColor.evaluate(
+      (node) => getComputedStyle(node).backgroundColor,
+    ),
+  ).toBe(iconStyle.background)
+  expect(
+    await selectedIcon.evaluate((node) => getComputedStyle(node).boxShadow),
+  ).toBe(iconStyle.ring)
+  expect(iconStyle.ring).not.toBe('none')
+  await page.keyboard.press('Enter')
   await expect(page.getByRole('form', { name: 'Name and icon' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Edit window' }).click()
   await expect(name).toHaveValue('Working space')
-  await page.getByRole('button', { name: 'Done', exact: true }).click()
+  await name.press('Enter')
   await expect(switcher).toContainText('Working space')
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
   const firstItem = page

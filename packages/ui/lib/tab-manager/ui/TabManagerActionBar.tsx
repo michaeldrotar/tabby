@@ -433,7 +433,7 @@ export const TabManagerActionBar = ({
             className={cn(
               windowControlClass,
               'size-10 px-0',
-              model.appearance?.open && 'bg-accent/20 text-foreground',
+              model.appearance?.open && 'bg-accent-selected text-foreground',
             )}
             onClick={() => onIntent({ type: 'toggle-appearance' })}
           >

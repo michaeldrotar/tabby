@@ -898,11 +898,9 @@ export const TabManager = ({
         `
           text-muted flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm
           transition-colors
-          hover:text-foreground
-          hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
-          focus-visible:text-foreground
-          focus-visible:bg-accent/[calc(var(--accent-strength)*0.5%)]
-          focus-visible:ring-accent/70 focus-visible:outline-none
+          hover:text-foreground hover:bg-accent-hover
+          focus-visible:text-foreground focus-visible:bg-accent-hover
+          focus-visible:ring-focus focus-visible:outline-none
           focus-visible:ring-2 focus-visible:ring-inset
         `,
       )}

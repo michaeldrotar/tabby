@@ -98,15 +98,15 @@ export const OmnibarItem = ({
         data-omnibar-result={item.id}
         className={cn(
           `
-            focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-            focus-visible:ring-offset-background focus-visible:outline-none
-            focus-visible:ring-2 focus-visible:ring-offset-2
+            focus-visible:ring-accent focus-visible:ring-offset-background
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-offset-2
             relative flex w-full items-center gap-3 rounded-md px-4 py-2
             text-left text-sm
             focus:outline-none
           `,
           isSelected
-            ? 'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground'
+            ? 'bg-accent-selected text-foreground'
             : cn('text-foreground', interactive && 'hover:bg-highlighted/50'),
         )}
         onClick={(e) => {

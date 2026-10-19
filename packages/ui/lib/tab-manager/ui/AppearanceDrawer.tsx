@@ -1,4 +1,3 @@
-import { Slider } from '../../Slider'
 import {
   accentSwatchByPalette,
   neutralSwatchByPalette,
@@ -37,7 +36,7 @@ const Swatches = ({
           aria-pressed={value === selected}
           className={cn(
             `
-              focus-visible:ring-accent/70 focus-visible:outline-none
+              focus-visible:ring-focus focus-visible:outline-none
               focus-visible:ring-2
               flex size-6 items-center justify-center rounded border
               border-transparent
@@ -56,6 +55,7 @@ const Swatches = ({
   </div>
 )
 
+// Temporary palette controls for the appearance review; remove before release.
 export const AppearanceDrawer = ({
   id,
   appearance,
@@ -67,7 +67,6 @@ export const AppearanceDrawer = ({
 }) => {
   const { preferences, theme } = appearance
   const prefix = theme === 'light' ? 'themeLight' : 'themeDark'
-  const strength = preferences[`${prefix}AccentStrength`]
   return (
     <section
       id={id}
@@ -91,11 +90,11 @@ export const AppearanceDrawer = ({
               aria-pressed={preferences.theme === mode}
               className={cn(
                 `
-                  focus-visible:ring-accent/70 focus-visible:outline-none
+                  focus-visible:ring-focus focus-visible:outline-none
                   focus-visible:ring-2
                   min-h-7 rounded px-2 text-xs
                 `,
-                preferences.theme === mode && 'bg-accent/20',
+                preferences.theme === mode && 'bg-accent-selected',
               )}
               onClick={() =>
                 onIntent({ type: 'change-appearance', value: { theme: mode } })
@@ -125,31 +124,6 @@ export const AppearanceDrawer = ({
           }
         />
       ))}
-      <div
-        className={`
-          grid min-h-7 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2
-        `}
-      >
-        <span className="text-xs">Strength</span>
-        <div className="flex items-center gap-2 px-1">
-          <Slider
-            aria-label="Accent strength"
-            min={10}
-            max={50}
-            step={5}
-            value={[strength]}
-            onValueChange={([value]) =>
-              onIntent({
-                type: 'change-appearance',
-                value: { [`${prefix}AccentStrength`]: value ?? strength },
-              })
-            }
-          />
-          <span className="w-8 shrink-0 text-right text-xs tabular-nums">
-            {strength}%
-          </span>
-        </div>
-      </div>
     </section>
   )
 }

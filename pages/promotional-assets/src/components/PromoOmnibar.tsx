@@ -7,7 +7,6 @@ const defaultPalette: NonNullable<SurfaceProps['palette']> = {
   background: 'stone',
   foreground: 'stone',
   accent: 'orange',
-  strength: 20,
 }
 
 export const PromoOmnibar = ({
