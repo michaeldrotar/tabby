@@ -6,11 +6,8 @@ import {
   TabbySurface,
   TabManagerExperience,
 } from '@extension/app'
-import {
-  THEME_ACCENT_PALETTES,
-  THEME_ACCENT_STRENGTH_OPTIONS,
-  THEME_NEUTRAL_PALETTES,
-} from '@extension/core'
+import { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '@extension/core'
+import { neutralSwatchColors as neutralColors } from '@extension/ui/theme-colors'
 import {
   useCallback,
   useEffect,
@@ -25,7 +22,7 @@ import logoUrl from '../../../chrome-extension/public/tabby-face-128.png?url'
 import { DemoTransport } from './DemoTransport'
 import { createScenario } from './scenario'
 import type { Dataset, Product, Scenario, Sharing } from './scenario'
-import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
+import type { ThemeAccentPalette } from '@extension/core'
 import type { SurfaceInputMode } from '@extension/ui/Surface'
 
 type InstanceSize = 'wide' | 'narrow'
@@ -38,14 +35,6 @@ type AnatomyPart =
   | 'search-field'
   | 'search-results'
   | 'appearance-settings'
-
-const neutralColors: Record<ThemeNeutralPalette, string> = {
-  slate: '#64748b',
-  gray: '#6b7280',
-  zinc: '#71717a',
-  neutral: '#737373',
-  stone: '#78716c',
-}
 
 const accentColors: Record<ThemeAccentPalette, string> = {
   red: '#e5484d',
@@ -484,8 +473,8 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
   const appearancePrefix =
     appearanceTheme === 'light' ? 'themeLight' : 'themeDark'
   const setPalettePreference = (
-    field: 'Background' | 'Foreground' | 'Accent' | 'AccentStrength',
-    value: string | number,
+    field: 'Background' | 'Foreground' | 'Accent',
+    value: string,
   ) => {
     const key = `${appearancePrefix}${field}` as
       | 'themeLightBackground'
@@ -494,8 +483,6 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
       | 'themeDarkForeground'
       | 'themeLightAccent'
       | 'themeDarkAccent'
-      | 'themeLightAccentStrength'
-      | 'themeDarkAccentStrength'
     void appearancePreferences.set({ [key]: value })
   }
 
@@ -881,40 +868,6 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                       </button>
                     ))}
                   </div>
-                  <div className="strength-row">
-                    <label htmlFor="accent-strength">Accent strength</label>
-                    <output htmlFor="accent-strength">
-                      {
-                        preferenceState[
-                          `${appearancePrefix}AccentStrength` as
-                            | 'themeLightAccentStrength'
-                            | 'themeDarkAccentStrength'
-                        ]
-                      }
-                      %
-                    </output>
-                  </div>
-                  <input
-                    id="accent-strength"
-                    aria-label="Accent strength"
-                    type="range"
-                    min={THEME_ACCENT_STRENGTH_OPTIONS[0]}
-                    max={THEME_ACCENT_STRENGTH_OPTIONS.at(-1)}
-                    step="5"
-                    value={
-                      preferenceState[
-                        `${appearancePrefix}AccentStrength` as
-                          | 'themeLightAccentStrength'
-                          | 'themeDarkAccentStrength'
-                      ]
-                    }
-                    onChange={(event) =>
-                      setPalettePreference(
-                        'AccentStrength',
-                        Number(event.target.value),
-                      )
-                    }
-                  />
                 </div>
               </section>
             </section>

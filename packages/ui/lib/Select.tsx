@@ -203,9 +203,8 @@ export const SelectTrigger = React.forwardRef<
           border-border bg-background ring-offset-background flex h-10 w-full
           items-center justify-between rounded-md border px-3 py-2 text-sm
           placeholder:text-muted
-          focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-          focus-visible:outline-none focus-visible:ring-2
-          focus-visible:ring-offset-2
+          focus-visible:ring-accent focus-visible:outline-none
+          focus-visible:ring-2 focus-visible:ring-offset-2
           focus:outline-none
           disabled:cursor-not-allowed disabled:opacity-50
           [&>span]:line-clamp-1
@@ -451,7 +450,7 @@ export const SelectItem = React.forwardRef<
         data-disabled={disabled ? '' : undefined}
         className={cn(
           `
-            data-[highlighted]:bg-accent/[calc(var(--accent-strength)*1%)]
+            data-[highlighted]:bg-accent-selected
             data-[highlighted]:text-foreground
             relative flex w-full cursor-default select-none items-center
             rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none

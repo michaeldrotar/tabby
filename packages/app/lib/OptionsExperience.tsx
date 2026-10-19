@@ -1,7 +1,6 @@
 import {
   getUpcomingSeasonalIcon,
   THEME_ACCENT_PALETTES,
-  THEME_ACCENT_STRENGTH_OPTIONS,
   THEME_NEUTRAL_PALETTES,
 } from '@extension/core'
 import { Options } from '@extension/ui/options/Options'
@@ -80,10 +79,6 @@ export const createOptionsController = (
           [`${prefix}Accent`]: different(
             state[`${prefix}Accent`],
             THEME_ACCENT_PALETTES,
-          ),
-          [`${prefix}AccentStrength`]: different(
-            state[`${prefix}AccentStrength`],
-            THEME_ACCENT_STRENGTH_OPTIONS,
           ),
         })
       }),

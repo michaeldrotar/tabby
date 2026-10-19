@@ -80,7 +80,7 @@ export const TabListGroup = ({
           transition-colors
         `,
         colorClasses.bg,
-        isActive && 'bg-accent/[calc(var(--accent-strength)*1%)]',
+        isActive && 'bg-accent-selected',
       )}
     >
       <div className="mb-1 flex items-center gap-2 px-2 py-1">

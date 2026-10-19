@@ -81,20 +81,19 @@ test('keeps the compact appearance drawer open while trying palettes and using o
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await drawer.getByRole('button', { name: 'Dark', exact: true }).click()
   await drawer
-    .getByRole('button', { name: 'Background: slate', exact: true })
+    .getByRole('button', { name: 'Background: mauve', exact: true })
     .click()
   await drawer
-    .getByRole('button', { name: 'Foreground: stone', exact: true })
+    .getByRole('button', { name: 'Foreground: mist', exact: true })
     .click()
   await drawer
     .getByRole('button', { name: 'Accent: rose', exact: true })
     .click()
-  await drawer.getByRole('slider', { name: 'Accent strength' }).press('End')
+  await expect(drawer.getByRole('slider')).toHaveCount(0)
   await expect(page.locator('[data-surface]')).toHaveAttribute(
     'data-theme-accent',
     'rose',
   )
-  await expect(drawer.getByText('50%', { exact: true })).toBeVisible()
   await page.locator('[data-tab-option]').last().click()
   await page.locator('[data-window-picker-trigger]').click()
   await expect(drawer).toBeVisible()
@@ -103,6 +102,12 @@ test('keeps the compact appearance drawer open while trying palettes and using o
   await expect(drawer).toBeVisible()
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await drawer.getByRole('button', { name: 'Light', exact: true }).click()
+  await drawer
+    .getByRole('button', { name: 'Background: taupe', exact: true })
+    .click()
+  await drawer
+    .getByRole('button', { name: 'Foreground: olive', exact: true })
+    .click()
   await drawer
     .getByRole('button', { name: 'Accent: teal', exact: true })
     .click()
@@ -119,11 +124,12 @@ test('keeps the compact appearance drawer open while trying palettes and using o
     ),
   ).toMatchObject({
     theme: 'dark',
-    themeDarkBackground: 'slate',
-    themeDarkForeground: 'stone',
+    themeDarkBackground: 'mauve',
+    themeDarkForeground: 'mist',
     themeDarkAccent: 'rose',
-    themeDarkAccentStrength: 50,
     themeLightAccent: 'teal',
+    themeLightBackground: 'taupe',
+    themeLightForeground: 'olive',
   })
   await page.setViewportSize({ width: 320, height: 640 })
   await expect(drawer).toBeInViewport()
@@ -160,7 +166,13 @@ for (const theme of ['dark', 'light'] as const) {
     await expect.poll(() => background(shell)).not.toBe(originalCanvas)
     if (theme === 'light') {
       const coolCanvas = await color(shell)
-      expect(coolCanvas[2]! - coolCanvas[0]!).toBeGreaterThan(15)
+      expect(coolCanvas[2]! - coolCanvas[0]!).toBeGreaterThan(10)
+      const chrome = await color(header)
+      expect(
+        chrome.slice(0, 3).reduce((sum, channel) => sum + channel, 0),
+      ).toBeLessThan(
+        coolCanvas.slice(0, 3).reduce((sum, channel) => sum + channel, 0),
+      )
     }
     const title = row.locator('[data-tab-option] > div').first()
     const originalText = await title.evaluate(
@@ -173,23 +185,33 @@ for (const theme of ['dark', 'light'] as const) {
     if (theme === 'light') {
       const warmInk = await color(title, 'color')
       expect(warmInk[0]! - warmInk[2]!).toBeGreaterThan(25)
+      const secondaryInk = await color(
+        page.getByText('github.com', { exact: true }),
+        'color',
+      )
+      expect(secondaryInk[0]! - secondaryInk[2]!).toBeGreaterThan(20)
     }
 
+    const switcherBase = await background(switcher)
     await updatePreferences(page, {
       [`${prefix}Accent`]: 'blue',
-      [`${prefix}AccentStrength`]: 10,
     })
-    const quiet = await background(fill)
-    await updatePreferences(page, { [`${prefix}AccentStrength`]: 50 })
-    await expect.poll(() => background(fill)).not.toBe(quiet)
+    await expect(page.locator('[data-surface]')).toHaveAttribute(
+      'data-theme-accent',
+      'blue',
+    )
+    await fill.evaluate(async (node) => {
+      await Promise.all(
+        node.getAnimations().map((animation) => animation.finished),
+      )
+    })
     const blue = await color(fill)
     await updatePreferences(page, { [`${prefix}Accent`]: 'rose' })
     await expect.poll(() => color(fill)).not.toEqual(blue)
+    expect(await background(switcher)).toBe(switcherBase)
     const resting = await color(fill)
     await row.hover()
-    await expect
-      .poll(async () => (await color(fill))[3])
-      .toBeGreaterThan(resting[3]!)
+    await expect.poll(() => color(fill)).not.toEqual(resting)
 
     await updatePreferences(page, { [`${prefix}Accent`]: 'yellow' })
     await expect(page.locator('[data-surface]')).toHaveAttribute(
@@ -206,6 +228,13 @@ for (const theme of ['dark', 'light'] as const) {
       await contrast(createTab.getByText('New tab')),
     ).toBeGreaterThanOrEqual(4.5)
     await switcher.hover()
+    const neutralHover = await background(switcher)
+    await updatePreferences(page, { [`${prefix}Accent`]: 'teal' })
+    await expect(page.locator('[data-surface]')).toHaveAttribute(
+      'data-theme-accent',
+      'teal',
+    )
+    expect(await background(switcher)).toBe(neutralHover)
     expect(
       await contrast(switcher.getByText('4 tabs', { exact: true })),
     ).toBeGreaterThanOrEqual(4.5)
@@ -215,9 +244,7 @@ for (const theme of ['dark', 'light'] as const) {
     await expect(currentWindow).toBeVisible()
     const windowResting = await color(currentWindow)
     await currentWindow.hover()
-    await expect
-      .poll(async () => (await color(currentWindow))[3])
-      .toBeGreaterThan(windowResting[3]!)
+    await expect.poll(() => color(currentWindow)).not.toEqual(windowResting)
     expect(
       await contrast(currentWindow.getByText('4 tabs', { exact: true })),
     ).toBeGreaterThanOrEqual(4.5)
@@ -261,7 +288,7 @@ for (const theme of ['dark', 'light'] as const) {
         themeLightAccent: 'indigo',
       })
       const warmCanvas = await color(shell)
-      expect(warmCanvas[0]! - warmCanvas[2]!).toBeGreaterThan(20)
+      expect(warmCanvas[0]! - warmCanvas[2]!).toBeGreaterThan(15)
       await option.click()
       await row.hover()
       for (const text of ['Project notes', 'docs.google.com'])

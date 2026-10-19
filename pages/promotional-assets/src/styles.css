@@ -299,7 +299,7 @@ body[data-promo-view='gallery'] #root {
 .themes-palette {
   position: absolute;
   left: 52px;
-  top: 384px;
+  top: 360px;
   display: flex;
   width: 414px;
   flex-direction: column;
@@ -322,6 +322,7 @@ body[data-promo-view='gallery'] #root {
 
 .theme-swatch-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 9px;
 }

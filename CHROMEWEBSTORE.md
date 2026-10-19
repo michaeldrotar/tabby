@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-18
+Last updated: 2026-10-19
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -38,7 +38,7 @@ Use Tab to reach controls and arrow keys to browse tabs, groups, and the window 
 
 Make Tabby comfortable to use
 
-Choose a light or dark theme and tune backgrounds, text, and accent colors from a compact drawer beside your tabs. The drawer stays open while you try palettes and accent strength. The Tab Manager uses your accent for the current window, active tabs, and selections, with stronger color on hover and clear keyboard focus. Use Tab to move between sections and through window editing, arrow keys to choose icons and colors and reach New window, and Left and Right to collapse and expand groups. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
+Choose a light or dark theme and customize Tabby's appearance. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
 Keep your browsing data local
 
@@ -139,17 +139,17 @@ The homepage URL update was submitted for review on 2026-10-18 with automatic pu
 
 ## Version history
 
-| Version                                                                      | Submission date | Summary                                                                                 | Store status  |
-| ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | ------------- |
-| [1.7.0](product/releases/v1.7.0-drag-and-drop-tab-organization.md)           | —               | Drag and drop organization, quick appearance controls, and clearer keyboard navigation. | Not submitted |
-| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published     |
-| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published     |
-| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                  | Published     |
-| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                       | Published     |
-| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                               | Not recorded  |
-| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                            | Not recorded  |
-| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                         | Not recorded  |
-| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                        | Not recorded  |
+| Version                                                                      | Submission date | Summary                                   | Store status  |
+| ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | ------------- |
+| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | —               | Drag and drop with better themes.         | Not submitted |
+| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.  | Published     |
+| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                           | Published     |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Published     |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.         | Published     |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization. | Not recorded  |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.              | Not recorded  |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.           | Not recorded  |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                          | Not recorded  |
 
 Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 

@@ -27,7 +27,7 @@ import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 import type { BrowserTabGroupColor } from '@extension/core'
 
 export const windowControlClass =
-  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-accent/[calc(var(--accent-strength)*0.5%)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70'
+  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-highlighted/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
 const editorRowEntry = (row: Element) =>
@@ -95,11 +95,7 @@ export const WindowHeader = ({
         aria-expanded={model.windowPicker}
         className={cn(
           windowControlClass,
-          `
-            bg-accent/[calc(var(--accent-strength)*0.5%)] min-w-0 flex-1
-            justify-start py-2 text-left
-            hover:bg-accent/[min(35%,calc(var(--accent-strength)*0.8%))]
-          `,
+          `min-w-0 flex-1 justify-start py-2 text-left`,
         )}
         onClick={() =>
           onIntent({
@@ -188,7 +184,7 @@ export const WindowPicker = ({
       ref={root}
       data-window-picker
       data-keyboard-section="windows"
-      className="bg-accent/[calc(var(--accent-strength)*0.18%)] min-h-full p-2"
+      className="min-h-full p-2"
       onKeyDownCapture={(event) => {
         if (event.key === 'Escape') {
           event.preventDefault()
@@ -261,8 +257,8 @@ export const WindowPicker = ({
                 'group/window-choice pr-12',
                 window.id === model.viewedWindowId &&
                   `
-                    bg-accent/[min(30%,calc(var(--accent-strength)*1%))]
-                    hover:bg-accent/[min(35%,calc(var(--accent-strength)*1.3%))]
+                    bg-accent-selected
+                    hover:bg-accent-selected-hover
                   `,
                 dropWindowId === window.id && windowDropClass,
               )}
@@ -366,6 +362,20 @@ export const WindowIdentityEditor = ({
         onIntent({ type: 'save-window' })
       }}
       onKeyDownCapture={(event) => {
+        if (
+          event.key === 'Enter' &&
+          !event.nativeEvent.isComposing &&
+          !(event.target as HTMLElement).closest('[data-editor-reset]') &&
+          !event.altKey &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.shiftKey
+        ) {
+          event.preventDefault()
+          event.stopPropagation()
+          event.currentTarget.requestSubmit()
+          return
+        }
         if (
           event.key === 'Tab' &&
           !event.altKey &&
@@ -481,7 +491,7 @@ export const WindowIdentityEditor = ({
           className={`
             border-border bg-input mt-2 block min-h-10 w-full rounded-md border
             px-3 outline-none
-            focus-visible:ring-accent/70 focus-visible:ring-2
+            focus-visible:ring-focus focus-visible:ring-2
           `}
         />
       </label>
@@ -498,17 +508,13 @@ export const WindowIdentityEditor = ({
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
-                draft.icon === icon &&
-                  `
-                    bg-accent/[calc(var(--accent-strength)*1%)] ring-accent/70
-                    ring-1
-                  `,
+                draft.icon === icon && 'ring-focus ring-2',
               )}
               onClick={() =>
                 onIntent({ type: 'change-window-draft', value: { icon } })
               }
             >
-              <WindowIcon icon={icon} color={draft.iconColor} />
+              <WindowIcon icon={icon} color="grey" />
             </button>
           ))}
         </div>
@@ -528,7 +534,7 @@ export const WindowIdentityEditor = ({
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
-                draft.iconColor === color && 'ring-accent ring-2',
+                draft.iconColor === color && 'ring-focus ring-2',
               )}
               onClick={() =>
                 onIntent({
@@ -559,10 +565,12 @@ export const WindowIdentityEditor = ({
         <button
           data-editor-done
           type="submit"
-          className={cn(
-            windowControlClass,
-            'bg-accent/[calc(var(--accent-strength)*1%)] text-foreground',
-          )}
+          className={`
+            bg-foreground text-background min-h-10 rounded-md px-3 text-sm
+            hover:bg-foreground/90
+            focus-visible:outline-focus focus-visible:outline
+            focus-visible:outline-2 focus-visible:outline-offset-2
+          `}
         >
           Done
         </button>

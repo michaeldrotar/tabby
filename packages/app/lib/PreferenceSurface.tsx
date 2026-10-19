@@ -22,10 +22,6 @@ export const resolveTheme = (
       theme === 'light'
         ? preferences.themeLightAccent
         : preferences.themeDarkAccent,
-    strength:
-      theme === 'light'
-        ? preferences.themeLightAccentStrength
-        : preferences.themeDarkAccentStrength,
   }
 }
 

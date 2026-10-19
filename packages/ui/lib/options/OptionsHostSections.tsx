@@ -42,13 +42,13 @@ export const OptionsSidePanelSettings = ({
           onClick={openSidePanelSettings}
           className={cn(
             `
-              bg-accent/[calc(var(--accent-strength)*1%)] text-foreground flex
-              shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2
-              text-sm font-medium transition-colors
-              hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-              focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-              focus-visible:ring-offset-background focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-offset-2
+              bg-accent-selected text-foreground flex shrink-0 items-center
+              gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium
+              transition-colors
+              hover:bg-accent-selected-hover
+              focus-visible:ring-accent focus-visible:ring-offset-background
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-offset-2
             `,
           )}
         >
@@ -80,10 +80,7 @@ export const OptionsReset = ({
     <h2 className="text-foreground mb-4 text-lg font-semibold">Reset</h2>
     <div
       className={cn(
-        `
-          border-accent/[calc(var(--accent-strength)*1%)]
-          bg-accent/[calc(var(--accent-strength)*1%)] rounded-lg border p-4
-        `,
+        `border-accent-border bg-accent-selected rounded-lg border p-4`,
       )}
     >
       <div
@@ -105,13 +102,12 @@ export const OptionsReset = ({
           onClick={resetPreferences}
           className={cn(
             `
-              bg-accent/[calc(var(--accent-strength)*1%)] text-foreground
-              shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm
-              font-medium transition-colors
-              hover:bg-accent/[calc((var(--accent-strength)+5)*1%)]
-              focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
-              focus-visible:ring-offset-background focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-offset-2
+              bg-accent-selected text-foreground shrink-0 whitespace-nowrap
+              rounded-lg px-4 py-2 text-sm font-medium transition-colors
+              hover:bg-accent-selected-hover
+              focus-visible:ring-accent focus-visible:ring-offset-background
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-offset-2
             `,
           )}
         >

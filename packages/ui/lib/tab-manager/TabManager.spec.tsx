@@ -597,7 +597,6 @@ describe('TabManager presentation', () => {
             background: 'stone',
             foreground: 'neutral',
             accent: 'amber',
-            strength: 22,
           }}
         >
           <div>Warm</div>
@@ -609,7 +608,6 @@ describe('TabManager presentation', () => {
             background: 'slate',
             foreground: 'zinc',
             accent: 'blue',
-            strength: 12,
           }}
           tokens={{ accent: 'rebeccapurple' }}
         >
@@ -622,7 +620,6 @@ describe('TabManager presentation', () => {
     expect(warm).toHaveAttribute('data-theme-background', 'stone')
     expect(warm).toHaveAttribute('data-theme-foreground', 'neutral')
     expect(warm).toHaveAttribute('data-theme-accent', 'amber')
-    expect(warm.style.getPropertyValue('--accent-strength')).toBe('22')
     expect(warm.style.getPropertyValue('--accent')).toBe('')
     expect(warm.style.getPropertyValue('--background')).toBe('')
     expect(cool).toHaveAttribute('data-theme-accent', 'blue')

@@ -19,8 +19,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
     return (
       <div
         className={`
-          border-b-accent/[calc(var(--accent-strength)*1%)] flex items-center
-          border-b px-4 py-3
+          border-b-accent-border flex items-center border-b px-4 py-3
           focus-within:border-b-accent
         `}
       >

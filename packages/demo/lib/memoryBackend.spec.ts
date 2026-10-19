@@ -67,6 +67,31 @@ describe('memory backend', () => {
     })
   })
 
+  it('closes the source window after placing its last tabs in another window', async () => {
+    const backend = new MemoryBackend(scene())
+    await backend.execute({
+      type: 'place-tabs',
+      tabIds: [1, 2],
+      destination: { windowId: 2 },
+    })
+    expect(backend.getSnapshot().windows).toHaveLength(2)
+    await backend.execute({
+      type: 'place-tabs',
+      tabIds: [3],
+      destination: { windowId: 2 },
+    })
+    expect(backend.getSnapshot().windows).toEqual([
+      expect.objectContaining({ id: 2, focused: true }),
+    ])
+    expect(backend.getSnapshot().tabs).toHaveLength(4)
+    expect(backend.getSnapshot().tabs.every((tab) => tab.windowId === 2)).toBe(
+      true,
+    )
+    expect(backend.getSnapshot().groups).toEqual([
+      expect.objectContaining({ id: 1, windowId: 2 }),
+    ])
+  })
+
   it('restores identifier allocation as well as data when rewinding', async () => {
     const backend = new MemoryBackend(scene())
     const checkpoint = backend.capture()

@@ -5,11 +5,30 @@
 @layer base {
   :root {
     color-scheme: light dark;
-    --accent-strength: 15;
+  }
+
+  [data-surface] {
+    --accent: oklch(from var(--accent-base, #3b82f6) 0.52 0.14 h);
+    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.6 0.16 h);
+    --accent-soft: oklch(from var(--accent) 0.96 0.025 h);
+    --accent-hover: oklch(from var(--accent) 0.94 0.04 h);
+    --accent-selected: oklch(from var(--accent) 0.92 0.055 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.9 0.065 h);
+    --accent-border: oklch(from var(--accent) 0.7 0.1 h);
+  }
+
+  [data-surface][data-theme='dark'] {
+    --accent: oklch(from var(--accent-base, #3b82f6) 0.8 0.12 h);
+    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.8 0.12 h);
+    --accent-soft: oklch(from var(--accent) 0.25 0.025 h);
+    --accent-hover: oklch(from var(--accent) 0.28 0.035 h);
+    --accent-selected: oklch(from var(--accent) 0.3 0.045 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.32 0.05 h);
+    --accent-border: oklch(from var(--accent) 0.55 0.1 h);
   }
 
   [data-theme='light'][data-theme-background='slate'] {
-    --background: #e1eaf4;
+    --background: #eaf1f8;
     --card: theme(colors.slate.50);
     --popover: theme(colors.slate.50);
     --input: theme(colors.slate.200);
@@ -29,7 +48,7 @@
   }
 
   [data-theme='light'][data-theme-background='gray'] {
-    --background: #e7ebed;
+    --background: #eef1f3;
     --card: theme(colors.gray.50);
     --popover: theme(colors.gray.50);
     --input: theme(colors.gray.200);
@@ -49,7 +68,7 @@
   }
 
   [data-theme='light'][data-theme-background='zinc'] {
-    --background: #ebe7ef;
+    --background: #f1edf5;
     --card: theme(colors.zinc.50);
     --popover: theme(colors.zinc.50);
     --input: theme(colors.zinc.200);
@@ -69,7 +88,7 @@
   }
 
   [data-theme='light'][data-theme-background='neutral'] {
-    --background: #eaeaea;
+    --background: #f1f1f1;
     --card: theme(colors.neutral.50);
     --popover: theme(colors.neutral.50);
     --input: theme(colors.neutral.200);
@@ -89,7 +108,7 @@
   }
 
   [data-theme='light'][data-theme-background='stone'] {
-    --background: #f0e5d6;
+    --background: #f6f0e4;
     --card: theme(colors.stone.50);
     --popover: theme(colors.stone.50);
     --input: theme(colors.stone.200);
@@ -108,12 +127,15 @@
     --tooltip-foreground: theme(colors.stone.950);
   }
 
+  [data-surface][data-theme='light'][data-theme-foreground] {
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --muted: oklch(from var(--foreground) 0.45 c h);
+    --tooltip: var(--foreground);
+  }
+
   [data-theme='light'][data-theme-foreground='slate'] {
-    --foreground: #243b53;
-    --card-foreground: #243b53;
-    --popover-foreground: #243b53;
-    --muted: theme(colors.slate.600);
-    --tooltip: #243b53;
+    --foreground: oklch(from theme(colors.slate.500) 0.34 0.07 h);
   }
 
   [data-theme='dark'][data-theme-foreground='slate'] {
@@ -125,11 +147,7 @@
   }
 
   [data-theme='light'][data-theme-foreground='gray'] {
-    --foreground: #354149;
-    --card-foreground: #354149;
-    --popover-foreground: #354149;
-    --muted: theme(colors.gray.600);
-    --tooltip: #354149;
+    --foreground: oklch(from theme(colors.gray.500) 0.34 0.035 h);
   }
 
   [data-theme='dark'][data-theme-foreground='gray'] {
@@ -141,11 +159,7 @@
   }
 
   [data-theme='light'][data-theme-foreground='zinc'] {
-    --foreground: #40364c;
-    --card-foreground: #40364c;
-    --popover-foreground: #40364c;
-    --muted: theme(colors.zinc.600);
-    --tooltip: #40364c;
+    --foreground: oklch(from theme(colors.zinc.500) 0.34 0.045 h);
   }
 
   [data-theme='dark'][data-theme-foreground='zinc'] {
@@ -157,11 +171,7 @@
   }
 
   [data-theme='light'][data-theme-foreground='neutral'] {
-    --foreground: #383838;
-    --card-foreground: #383838;
-    --popover-foreground: #383838;
-    --muted: theme(colors.neutral.600);
-    --tooltip: #383838;
+    --foreground: oklch(from theme(colors.neutral.500) 0.34 0 h);
   }
 
   [data-theme='dark'][data-theme-foreground='neutral'] {
@@ -173,11 +183,7 @@
   }
 
   [data-theme='light'][data-theme-foreground='stone'] {
-    --foreground: #493625;
-    --card-foreground: #493625;
-    --popover-foreground: #493625;
-    --muted: theme(colors.stone.600);
-    --tooltip: #493625;
+    --foreground: oklch(from theme(colors.stone.500) 0.34 0.055 h);
   }
 
   [data-theme='dark'][data-theme-foreground='stone'] {
@@ -188,140 +194,200 @@
     --tooltip: theme(colors.stone.100);
   }
 
-  [data-theme='light'][data-theme-accent='red'] {
-    --accent: theme(colors.red.600);
+  [data-theme='light'][data-theme-background='taupe'] {
+    --background: oklch(from theme(colors.taupe.500) 0.96 calc(c * 0.5) h);
+    --card: theme(colors.taupe.50);
+    --popover: theme(colors.taupe.50);
+    --input: theme(colors.taupe.200);
+    --border: theme(colors.taupe.300);
+    --highlighted: theme(colors.taupe.300);
+    --tooltip-foreground: theme(colors.taupe.100);
   }
 
-  [data-theme='dark'][data-theme-accent='red'] {
-    --accent: theme(colors.red.300);
+  [data-theme='dark'][data-theme-background='taupe'] {
+    --background: theme(colors.taupe.950);
+    --card: theme(colors.taupe.900);
+    --popover: theme(colors.taupe.950);
+    --input: theme(colors.taupe.800);
+    --border: theme(colors.taupe.800);
+    --highlighted: theme(colors.taupe.800);
+    --tooltip-foreground: theme(colors.taupe.950);
   }
 
-  [data-theme='light'][data-theme-accent='orange'] {
-    --accent: theme(colors.orange.600);
+  [data-theme='light'][data-theme-foreground='taupe'] {
+    --foreground: oklch(from theme(colors.taupe.500) 0.34 0.055 h);
   }
 
-  [data-theme='dark'][data-theme-accent='orange'] {
-    --accent: theme(colors.orange.300);
+  [data-theme='dark'][data-theme-foreground='taupe'] {
+    --foreground: theme(colors.taupe.100);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --muted: theme(colors.taupe.400);
+    --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-accent='amber'] {
-    --accent: theme(colors.amber.600);
+  [data-theme='light'][data-theme-background='mauve'] {
+    --background: oklch(from theme(colors.mauve.500) 0.96 calc(c * 0.5) h);
+    --card: theme(colors.mauve.50);
+    --popover: theme(colors.mauve.50);
+    --input: theme(colors.mauve.200);
+    --border: theme(colors.mauve.300);
+    --highlighted: theme(colors.mauve.300);
+    --tooltip-foreground: theme(colors.mauve.100);
   }
 
-  [data-theme='dark'][data-theme-accent='amber'] {
-    --accent: theme(colors.amber.300);
+  [data-theme='dark'][data-theme-background='mauve'] {
+    --background: theme(colors.mauve.950);
+    --card: theme(colors.mauve.900);
+    --popover: theme(colors.mauve.950);
+    --input: theme(colors.mauve.800);
+    --border: theme(colors.mauve.800);
+    --highlighted: theme(colors.mauve.800);
+    --tooltip-foreground: theme(colors.mauve.950);
   }
 
-  [data-theme='light'][data-theme-accent='yellow'] {
-    --accent: theme(colors.yellow.600);
+  [data-theme='light'][data-theme-foreground='mauve'] {
+    --foreground: oklch(from theme(colors.mauve.500) 0.34 0.065 h);
   }
 
-  [data-theme='dark'][data-theme-accent='yellow'] {
-    --accent: theme(colors.yellow.300);
+  [data-theme='dark'][data-theme-foreground='mauve'] {
+    --foreground: theme(colors.mauve.100);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --muted: theme(colors.mauve.400);
+    --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-accent='lime'] {
-    --accent: theme(colors.lime.600);
+  [data-theme='light'][data-theme-background='mist'] {
+    --background: oklch(from theme(colors.mist.500) 0.96 calc(c * 0.5) h);
+    --card: theme(colors.mist.50);
+    --popover: theme(colors.mist.50);
+    --input: theme(colors.mist.200);
+    --border: theme(colors.mist.300);
+    --highlighted: theme(colors.mist.300);
+    --tooltip-foreground: theme(colors.mist.100);
   }
 
-  [data-theme='dark'][data-theme-accent='lime'] {
-    --accent: theme(colors.lime.300);
+  [data-theme='dark'][data-theme-background='mist'] {
+    --background: theme(colors.mist.950);
+    --card: theme(colors.mist.900);
+    --popover: theme(colors.mist.950);
+    --input: theme(colors.mist.800);
+    --border: theme(colors.mist.800);
+    --highlighted: theme(colors.mist.800);
+    --tooltip-foreground: theme(colors.mist.950);
   }
 
-  [data-theme='light'][data-theme-accent='green'] {
-    --accent: theme(colors.green.600);
+  [data-theme='light'][data-theme-foreground='mist'] {
+    --foreground: oklch(from theme(colors.mist.500) 0.34 0.055 h);
   }
 
-  [data-theme='dark'][data-theme-accent='green'] {
-    --accent: theme(colors.green.300);
+  [data-theme='dark'][data-theme-foreground='mist'] {
+    --foreground: theme(colors.mist.100);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --muted: theme(colors.mist.400);
+    --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-accent='emerald'] {
-    --accent: theme(colors.emerald.600);
+  [data-theme='light'][data-theme-background='olive'] {
+    --background: oklch(from theme(colors.olive.500) 0.96 calc(c * 0.5) h);
+    --card: theme(colors.olive.50);
+    --popover: theme(colors.olive.50);
+    --input: theme(colors.olive.200);
+    --border: theme(colors.olive.300);
+    --highlighted: theme(colors.olive.300);
+    --tooltip-foreground: theme(colors.olive.100);
   }
 
-  [data-theme='dark'][data-theme-accent='emerald'] {
-    --accent: theme(colors.emerald.300);
+  [data-theme='dark'][data-theme-background='olive'] {
+    --background: theme(colors.olive.950);
+    --card: theme(colors.olive.900);
+    --popover: theme(colors.olive.950);
+    --input: theme(colors.olive.800);
+    --border: theme(colors.olive.800);
+    --highlighted: theme(colors.olive.800);
+    --tooltip-foreground: theme(colors.olive.950);
   }
 
-  [data-theme='light'][data-theme-accent='teal'] {
-    --accent: theme(colors.teal.600);
+  [data-theme='light'][data-theme-foreground='olive'] {
+    --foreground: oklch(from theme(colors.olive.500) 0.34 0.06 h);
   }
 
-  [data-theme='dark'][data-theme-accent='teal'] {
-    --accent: theme(colors.teal.300);
+  [data-theme='dark'][data-theme-foreground='olive'] {
+    --foreground: theme(colors.olive.100);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --muted: theme(colors.olive.400);
+    --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-accent='cyan'] {
-    --accent: theme(colors.cyan.600);
+  [data-theme-accent='red'] {
+    --accent-base: theme(colors.red.500);
   }
 
-  [data-theme='dark'][data-theme-accent='cyan'] {
-    --accent: theme(colors.cyan.300);
+  [data-theme-accent='orange'] {
+    --accent-base: theme(colors.orange.500);
   }
 
-  [data-theme='light'][data-theme-accent='sky'] {
-    --accent: theme(colors.sky.600);
+  [data-theme-accent='amber'] {
+    --accent-base: theme(colors.amber.500);
   }
 
-  [data-theme='dark'][data-theme-accent='sky'] {
-    --accent: theme(colors.sky.300);
+  [data-theme-accent='yellow'] {
+    --accent-base: theme(colors.yellow.500);
   }
 
-  [data-theme='light'][data-theme-accent='blue'] {
-    --accent: theme(colors.blue.600);
+  [data-theme-accent='lime'] {
+    --accent-base: theme(colors.lime.500);
   }
 
-  [data-theme='dark'][data-theme-accent='blue'] {
-    --accent: theme(colors.blue.300);
+  [data-theme-accent='green'] {
+    --accent-base: theme(colors.green.500);
   }
 
-  [data-theme='light'][data-theme-accent='indigo'] {
-    --accent: theme(colors.indigo.600);
+  [data-theme-accent='emerald'] {
+    --accent-base: theme(colors.emerald.500);
   }
 
-  [data-theme='dark'][data-theme-accent='indigo'] {
-    --accent: theme(colors.indigo.300);
+  [data-theme-accent='teal'] {
+    --accent-base: theme(colors.teal.500);
   }
 
-  [data-theme='light'][data-theme-accent='violet'] {
-    --accent: theme(colors.violet.600);
+  [data-theme-accent='cyan'] {
+    --accent-base: theme(colors.cyan.500);
   }
 
-  [data-theme='dark'][data-theme-accent='violet'] {
-    --accent: theme(colors.violet.300);
+  [data-theme-accent='sky'] {
+    --accent-base: theme(colors.sky.500);
   }
 
-  [data-theme='light'][data-theme-accent='purple'] {
-    --accent: theme(colors.purple.600);
+  [data-theme-accent='blue'] {
+    --accent-base: theme(colors.blue.500);
   }
 
-  [data-theme='dark'][data-theme-accent='purple'] {
-    --accent: theme(colors.purple.300);
+  [data-theme-accent='indigo'] {
+    --accent-base: theme(colors.indigo.500);
   }
 
-  [data-theme='light'][data-theme-accent='fuchsia'] {
-    --accent: theme(colors.fuchsia.600);
+  [data-theme-accent='violet'] {
+    --accent-base: theme(colors.violet.500);
   }
 
-  [data-theme='dark'][data-theme-accent='fuchsia'] {
-    --accent: theme(colors.fuchsia.300);
+  [data-theme-accent='purple'] {
+    --accent-base: theme(colors.purple.500);
   }
 
-  [data-theme='light'][data-theme-accent='pink'] {
-    --accent: theme(colors.pink.600);
+  [data-theme-accent='fuchsia'] {
+    --accent-base: theme(colors.fuchsia.500);
   }
 
-  [data-theme='dark'][data-theme-accent='pink'] {
-    --accent: theme(colors.pink.300);
+  [data-theme-accent='pink'] {
+    --accent-base: theme(colors.pink.500);
   }
 
-  [data-theme='light'][data-theme-accent='rose'] {
-    --accent: theme(colors.rose.600);
-  }
-
-  [data-theme='dark'][data-theme-accent='rose'] {
-    --accent: theme(colors.rose.300);
+  [data-theme-accent='rose'] {
+    --accent-base: theme(colors.rose.500);
   }
 
   body {
@@ -354,12 +420,36 @@
 
   [data-tab-manager-shell] {
     --manager-canvas: var(--background);
-    --manager-chrome: var(--card);
+    --manager-chrome: oklch(from var(--background) calc(l - 0.045) c h);
   }
 
   [data-theme='dark'] [data-tab-manager-shell] {
     --manager-canvas: var(--card);
     --manager-chrome: var(--input);
+  }
+
+  [data-drag-pinned='unpinned']
+    [data-pinned]
+    :is(
+      [data-tab-favicon],
+      [data-tab-details],
+      [data-tab-status] > :not([data-tab-pin]),
+      [aria-label='Close tab']
+    ),
+  [data-drag-pinned='pinned']
+    :is(
+      [data-tab-id]:not([data-pinned]) > div,
+      [data-group-header],
+      [data-create-item='tab']
+    ) {
+    opacity: 0.35;
+  }
+
+  [data-drag-pinned] [data-tab-pin] {
+    color: var(--accent);
+    background: var(--accent-selected);
+    border-radius: 0.125rem;
+    box-shadow: 0 0 0 3px var(--accent-selected);
   }
 
   [data-defer-offscreen='true']

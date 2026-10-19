@@ -120,7 +120,7 @@ describe('Omnibar', () => {
     const items = await within(list).findAllByRole('option', { name: /Tab/i })
 
     // The first item (index 0) should be selected by default
-    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
+    expect(items[0]).toHaveClass('bg-accent-selected')
 
     // Move mouse to the second item
     const secondItem = items[1]
@@ -128,10 +128,8 @@ describe('Omnibar', () => {
     fireEvent.mouseMove(secondItem!)
 
     // Second item should be selected
-    expect(items[1]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
-    expect(items[0]).not.toHaveClass(
-      'bg-accent/[calc(var(--accent-strength)*1%)]',
-    )
+    expect(items[1]).toHaveClass('bg-accent-selected')
+    expect(items[0]).not.toHaveClass('bg-accent-selected')
   })
 
   it('should NOT select item on mouse enter (simulating scroll under cursor)', async () => {
@@ -144,17 +142,15 @@ describe('Omnibar', () => {
     const items = await within(list).findAllByRole('option', { name: /Tab/i })
 
     // Select first item
-    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
+    expect(items[0]).toHaveClass('bg-accent-selected')
 
     // Fire mouseEnter on second item (should NOT change selection)
     const secondItem = items[1]
     expect(secondItem).toBeDefined()
     fireEvent.mouseEnter(secondItem!)
 
-    expect(items[0]).toHaveClass('bg-accent/[calc(var(--accent-strength)*1%)]')
-    expect(items[1]).not.toHaveClass(
-      'bg-accent/[calc(var(--accent-strength)*1%)]',
-    )
+    expect(items[0]).toHaveClass('bg-accent-selected')
+    expect(items[1]).not.toHaveClass('bg-accent-selected')
   })
   it('announces keyboard selection and highlights literal query terms safely', () => {
     render(

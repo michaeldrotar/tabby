@@ -3,6 +3,7 @@ import {
   THEME_ACCENT_PALETTES,
   THEME_NEUTRAL_PALETTES,
 } from '@extension/core'
+import { additionalNeutralColors } from '@extension/ui/theme-colors'
 import {
   useCallback,
   useEffect,
@@ -158,6 +159,10 @@ const toneLayout = [
   [72, 23],
   [30, 83],
   [10, 48],
+  [8, 18],
+  [90, 45],
+  [52, 91],
+  [48, 49],
 ] as const
 
 const neutralStoneStyles: Record<
@@ -169,6 +174,26 @@ const neutralStoneStyles: Record<
   zinc: { color: '#71717a', highlight: '#b4b4bb', shadow: '#515158' },
   neutral: { color: '#737373', highlight: '#b8b8b8', shadow: '#525252' },
   stone: { color: '#78716c', highlight: '#bdb5af', shadow: '#554f4a' },
+  taupe: {
+    color: additionalNeutralColors.taupe[500],
+    highlight: additionalNeutralColors.taupe[300],
+    shadow: additionalNeutralColors.taupe[700],
+  },
+  mauve: {
+    color: additionalNeutralColors.mauve[500],
+    highlight: additionalNeutralColors.mauve[300],
+    shadow: additionalNeutralColors.mauve[700],
+  },
+  mist: {
+    color: additionalNeutralColors.mist[500],
+    highlight: additionalNeutralColors.mist[300],
+    shadow: additionalNeutralColors.mist[700],
+  },
+  olive: {
+    color: additionalNeutralColors.olive[500],
+    highlight: additionalNeutralColors.olive[300],
+    shadow: additionalNeutralColors.olive[700],
+  },
 }
 
 const randomBetween = (minimum: number, maximum: number) =>

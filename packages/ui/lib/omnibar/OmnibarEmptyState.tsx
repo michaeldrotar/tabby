@@ -52,7 +52,7 @@ export const OmnibarEmptyState = ({
                     text-foreground flex items-center gap-3 rounded-lg px-3 py-2
                     text-left transition-colors
                     hover:bg-highlighted/50
-                    focus-visible:ring-accent/[calc(var(--accent-strength)*1%)]
+                    focus-visible:ring-accent
                     focus-visible:ring-offset-background
                     focus-visible:outline-none focus-visible:ring-2
                     focus-visible:ring-offset-2

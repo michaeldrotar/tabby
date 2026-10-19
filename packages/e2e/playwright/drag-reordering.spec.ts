@@ -69,6 +69,15 @@ const over = async (page: Page, target: Locator, fraction = 0.5) => {
   const at = await point(target, fraction)
   await page.mouse.move(at.x, at.y, { steps: 8 })
 }
+const atTopOf = async (page: Page, anchor: Locator) => {
+  await expect
+    .poll(async () => {
+      const line = await page.locator('[data-drop-indicator]').boundingBox()
+      const bounds = await anchor.boundingBox()
+      return line && bounds ? Math.abs(line.y - bounds.y) : Infinity
+    })
+    .toBeLessThan(1)
+}
 const openWindows = async (page: Page) => {
   await over(page, page.locator('[data-window-picker-trigger]'))
   await expect(page.locator('[data-drag-reveal="true"]')).toBeVisible()
@@ -87,6 +96,90 @@ test.beforeEach(async ({ page }) => {
   await expect(row(page, 2)).toBeVisible()
 })
 
+for (const pinned of [false, true]) {
+  test.describe(`current slot with two ${pinned ? 'pinned ' : ''}tabs`, () => {
+    test.use({
+      browserData: {
+        ...browser,
+        windows: browser.windows.slice(0, 1),
+        groups: [],
+        tabs: tabs(1, 1, pinned ? 3 : 2).map((tab, index) => ({
+          ...tab,
+          groupId: -1,
+          pinned: pinned && index < 2,
+        })),
+      },
+    })
+    test('shows the insertion line between the tabs while dragging the second tab back to its current slot', async ({
+      page,
+    }) => {
+      const second = page.locator('[data-tab-id="2"]')
+      await begin(page, row(page, 2))
+      await over(page, row(page, 2), 0.1)
+      await atTopOf(page, second)
+      await over(page, row(page, 1), 0.9)
+      await atTopOf(page, second)
+      const firstBounds = (await row(page, 1).boundingBox())!
+      const secondBounds = (await row(page, 2).boundingBox())!
+      await page.mouse.move(
+        firstBounds.x + 30,
+        (firstBounds.y + firstBounds.height + secondBounds.y) / 2,
+      )
+      await atTopOf(page, second)
+      await page.screenshot({
+        path: `../../test-results/drag-current-slot-${pinned ? 'pinned' : 'unpinned'}.png`,
+      })
+      await page.mouse.up()
+      expect(await order(page, 1)).toEqual(pinned ? [1, 2, 3] : [1, 2])
+      await expect(row(page, 2)).toHaveAttribute('aria-selected', 'true')
+    })
+  })
+}
+
+test.describe('upward dragging in a two-tab group', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      windows: browser.windows.slice(0, 1),
+      groups: browser.groups.filter((group) => group.id === 10),
+      tabs: tabs(1, 1, 4).map((tab) => ({
+        ...tab,
+        groupId: tab.id === 2 || tab.id === 3 ? 10 : -1,
+      })),
+    },
+  })
+  test('keeps the indicator moving upward through the first tab and group header', async ({
+    page,
+  }) => {
+    const group = page.locator('[data-group-id="10"]')
+    const header = group.locator('[data-group-header]')
+    const first = page.locator('[data-tab-id="2"]')
+    for (const sourceId of [3, 2]) {
+      await begin(page, row(page, sourceId))
+      if (sourceId === 3) {
+        await over(page, row(page, 3), 0.1)
+        await atTopOf(page, page.locator('[data-tab-id="3"]'))
+      }
+      await over(page, row(page, 2), 0.1)
+      await atTopOf(page, first)
+      await over(page, header, 0.9)
+      await atTopOf(page, first)
+      if (sourceId === 2)
+        await page.screenshot({
+          path: '../../test-results/drag-group-header.png',
+        })
+      await over(page, header, 0.1)
+      await atTopOf(page, group)
+      if (sourceId === 3) await page.keyboard.press('Escape')
+      await page.mouse.up()
+    }
+    await expect.poll(() => order(page, 1)).toEqual([1, 2, 3, 4])
+    expect((await page.evaluate(() => chrome.tabs.get(2))).groupId).toBe(-1)
+    await expect(group.locator('[data-tab-id]')).toHaveCount(1)
+    await expect(group.locator('[data-tab-id="3"]')).toBeVisible()
+  })
+})
+
 test('reorders a selection, respects pinned boundaries, and temporarily reveals a collapsed group', async ({
   page,
 }) => {
@@ -95,6 +188,12 @@ test('reorders a selection, respects pinned boundaries, and temporarily reveals 
   // Clear the default pinned selection, leaving the two dragged tabs selected.
   await row(page, 1).click({ modifiers: ['ControlOrMeta'] })
   await begin(page, row(page, 5))
+  await expect(page.locator('[data-drag-preview] > div').first()).toHaveText(
+    '2 tabs',
+  )
+  await expect(page.locator('[data-drag-preview] > div').nth(1)).toHaveText(
+    'Source 5, Source 6',
+  )
   const indicator = page.locator('[data-drop-indicator]')
   const sameInsertionLine = async (previous: Locator, next: Locator) => {
     await previous.evaluate((element) =>
@@ -104,6 +203,18 @@ test('reorders a selection, respects pinned boundaries, and temporarily reveals 
     const above = await point(next, 0.1)
     await page.mouse.move(below.x, below.y, { steps: 4 })
     await expect(indicator).toBeVisible()
+    await expect
+      .poll(async () => {
+        const line = await indicator.boundingBox()
+        const insertionTop = await next.evaluate(
+          (element) =>
+            (
+              element.closest('[data-tab-id]') ?? element
+            ).getBoundingClientRect().top,
+        )
+        return line ? Math.abs(line.y - insertionTop) : Infinity
+      })
+      .toBeLessThan(1)
     const line = (await indicator.boundingBox())!
     const previousBounds = (await previous.boundingBox())!
     const nextBounds = (await next.boundingBox())!
@@ -133,7 +244,8 @@ test('reorders a selection, respects pinned boundaries, and temporarily reveals 
   expect((await order(page, 1)).slice(0, 7)).toEqual([1, 2, 3, 4, 5, 6, 7])
   await begin(page, row(page, 5))
   await over(page, row(page, 1), 0.1)
-  await expect(page.locator('[data-drag-preview]')).toContainText(
+  await expect(page.locator('[data-drop-indicator]')).toBeVisible()
+  await expect(page.locator('[data-drag-preview]')).not.toContainText(
     'after pinned',
   )
   await page.keyboard.press('Escape')
@@ -190,6 +302,86 @@ test('reorders a selection, respects pinned boundaries, and temporarily reveals 
     false,
   )
   expect(await collapseAudit).toEqual([])
+})
+
+test('summarizes mixed drags and keeps pinned boundaries visible and valid', async ({
+  page,
+}) => {
+  const group = page.locator('[data-group-id="10"]')
+  const pin = page.locator('[data-tab-id="1"] [data-tab-pin]')
+  const normalPinColor = await pin.evaluate(
+    (node) => getComputedStyle(node).color,
+  )
+  const cancel = async () => {
+    await page.keyboard.press('Escape')
+    await page.mouse.up()
+  }
+  await row(page, 5).click()
+  await group
+    .locator('[data-group-option]')
+    .click({ modifiers: ['ControlOrMeta'] })
+  await begin(page, row(page, 5))
+  const preview = page.locator('[data-drag-preview]')
+  await expect(preview.locator(':scope > div').first()).toHaveText(
+    '1 tab and 1 tab group',
+  )
+  await expect(preview.locator(':scope > div').nth(1)).toHaveText(
+    'Source group, Source 5',
+  )
+  expect(
+    await preview
+      .locator(':scope > div')
+      .nth(1)
+      .evaluate((node) => getComputedStyle(node).fontSize),
+  ).toBe('12px')
+  expect(
+    await page
+      .locator('[data-tab-id="1"] [data-tab-details]')
+      .evaluate((node) => getComputedStyle(node).opacity),
+  ).toBe('0.35')
+  expect(await pin.evaluate((node) => getComputedStyle(node).color)).not.toBe(
+    normalPinColor,
+  )
+  for (const fraction of [0.1, 0.9]) {
+    await over(page, row(page, 1), fraction)
+    await atTopOf(page, group)
+  }
+  await page.screenshot({ path: '../../test-results/drag-mixed-preview.png' })
+  await cancel()
+  expect(await pin.evaluate((node) => getComputedStyle(node).color)).toBe(
+    normalPinColor,
+  )
+
+  await begin(page, row(page, 1))
+  await expect(page.locator('[data-tab-id="2"] > div')).toHaveCSS(
+    'opacity',
+    '0.35',
+  )
+  expect(
+    await group
+      .locator('[data-group-header]')
+      .evaluate((node) => getComputedStyle(node).opacity),
+  ).toBe('0.35')
+  expect(await pin.evaluate((node) => getComputedStyle(node).color)).not.toBe(
+    normalPinColor,
+  )
+  await over(page, group.locator('[data-group-header]'))
+  await atTopOf(page, group)
+  await over(page, row(page, 7))
+  await atTopOf(page, group)
+  await page.screenshot({ path: '../../test-results/drag-pinned-boundary.png' })
+  await page.mouse.up()
+  expect((await order(page, 1)).slice(0, 7)).toEqual([1, 2, 3, 4, 5, 6, 7])
+  await expect(page.locator('[data-tab-id="2"] > div')).toHaveCSS(
+    'opacity',
+    '1',
+  )
+
+  await begin(page, row(page, 7))
+  await over(page, row(page, 1), 0.1)
+  await atTopOf(page, group)
+  await page.mouse.up()
+  expect((await order(page, 1)).slice(0, 7)).toEqual([1, 7, 2, 3, 4, 5, 6])
 })
 
 test('cancels a window move, then drops, follows, and reorders in the destination', async ({
@@ -351,32 +543,22 @@ test('uses continuous group boundaries and two header drop zones', async ({
 }) => {
   const group = page.locator('[data-group-id="10"]')
   const header = group.locator('[data-group-header]')
-  const indicator = page.locator('[data-drop-indicator]')
-  const atTopOf = async (anchor: Locator) => {
-    await expect
-      .poll(async () => {
-        const line = await indicator.boundingBox()
-        const target = await anchor.boundingBox()
-        return line && target ? Math.abs(line.y - target.y) : 1000
-      })
-      .toBeLessThan(1)
-  }
   await begin(page, row(page, 7))
   await over(page, header, 0.1)
-  await atTopOf(group)
+  await atTopOf(page, group)
   await over(page, header, 0.9)
-  await atTopOf(page.locator('[data-tab-id="2"]'))
+  await atTopOf(page, page.locator('[data-tab-id="2"]'))
   const head = (await header.boundingBox())!
   const first = (await row(page, 2).boundingBox())!
   await page.mouse.move(head.x + 30, (head.y + head.height + first.y) / 2)
-  await atTopOf(page.locator('[data-tab-id="2"]'))
+  await atTopOf(page, page.locator('[data-tab-id="2"]'))
   const above = (await row(page, 1).boundingBox())!
   const bounds = (await group.boundingBox())!
   await page.mouse.move(above.x + 30, (above.y + above.height + bounds.y) / 2)
-  await atTopOf(group)
+  await atTopOf(page, group)
   const next = (await row(page, 5).boundingBox())!
   await page.mouse.move(next.x + 30, (bounds.y + bounds.height + next.y) / 2)
-  await atTopOf(page.locator('[data-tab-id="5"]'))
+  await atTopOf(page, page.locator('[data-tab-id="5"]'))
   await over(page, header, 0.9)
   await page.mouse.up()
   await expect
@@ -399,7 +581,7 @@ test('uses continuous group boundaries and two header drop zones', async ({
   await expect(row(page, 2)).toHaveCount(0)
   await begin(page, row(page, 8))
   await over(page, header, 0.9)
-  await atTopOf(page.locator('[data-tab-id="5"]'))
+  await atTopOf(page, page.locator('[data-tab-id="5"]'))
   await page.mouse.up()
   expect((await page.evaluate(() => chrome.tabs.get(8))).groupId).toBe(-1)
   expect((await order(page, 1)).slice(0, 7)).toEqual([1, 7, 2, 3, 4, 8, 5])
@@ -415,6 +597,7 @@ test('uses continuous group boundaries and two header drop zones', async ({
   )
   const groupHeader = group.locator('[data-group-option]')
   await begin(page, groupHeader)
+  await expect(page.locator('[data-drag-preview]')).toHaveText('Source group')
   await over(page, row(page, 6), 0.1)
   const viewport = page.locator(
     '[data-manager-scroll] [data-radix-scroll-area-viewport]',

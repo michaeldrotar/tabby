@@ -1,3 +1,4 @@
+import { additionalNeutralColors } from './tailwind-neutral-colors.js'
 import type { Config } from 'tailwindcss'
 
 export default {
@@ -12,6 +13,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        ...additionalNeutralColors,
         background: 'hsl(from var(--background) h s l / <alpha-value>)',
         foreground: 'hsl(from var(--foreground) h s l / <alpha-value>)',
         highlighted: 'hsl(from var(--highlighted) h s l / <alpha-value>)',
@@ -29,7 +31,13 @@ export default {
         'tooltip-foreground':
           'hsl(from var(--tooltip-foreground) h s l / <alpha-value>)',
 
+        focus: 'hsl(from var(--focus-ring) h s l / <alpha-value>)',
         accent: 'hsl(from var(--accent) h s l / <alpha-value>)',
+        'accent-soft': 'var(--accent-soft)',
+        'accent-hover': 'var(--accent-hover)',
+        'accent-selected': 'var(--accent-selected)',
+        'accent-selected-hover': 'var(--accent-selected-hover)',
+        'accent-border': 'var(--accent-border)',
         muted: 'hsl(from var(--muted) h s l / <alpha-value>)',
         border: 'hsl(from var(--border) h s l / <alpha-value>)',
       },

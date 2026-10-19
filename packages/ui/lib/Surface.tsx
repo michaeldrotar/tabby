@@ -21,7 +21,6 @@ export type SurfaceProps = {
     background: ThemeNeutralPalette
     foreground: ThemeNeutralPalette
     accent: ThemeAccentPalette
-    strength: number
   }
   tokens?: Record<string, string | number>
   inputMode?: SurfaceInputMode
@@ -204,7 +203,6 @@ export const Surface = ({
   }
   const resolvedTokens = {
     ...(palette ? {} : palettes[theme]),
-    'accent-strength': palette?.strength ?? 15,
     ...tokens,
   }
   const variables = Object.fromEntries(
