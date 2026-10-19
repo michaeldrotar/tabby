@@ -380,8 +380,16 @@
       get: async (id) => clone(find(tabs, id)),
       update: async (id, values) => {
         const tab = find(tabs, id)
+        const wasPinned = tab.pinned
         const { muted, ...changes } = values
         if (muted !== undefined) changes.mutedInfo = { muted }
+        if (values.pinned === true && tab.groupId !== -1) changes.groupId = -1
+        else if (
+          values.groupId !== undefined &&
+          values.groupId !== -1 &&
+          tab.pinned
+        )
+          changes.pinned = false
         if (values.active) {
           windowTabs(tab.windowId).forEach((item) => {
             item.active = item.id === id
@@ -391,9 +399,16 @@
             Object.assign(changes, { discarded: false, status: 'complete' })
         }
         Object.assign(tab, changes)
+        if (values.pinned !== undefined && values.pinned !== wasPinned)
+          await api.tabs.move(id, {
+            index: windowTabs(tab.windowId).filter(
+              (item) => item.id !== id && item.pinned,
+            ).length,
+          })
         if (values.active)
           api.tabs.onActivated.emit({ tabId: id, windowId: tab.windowId })
         api.tabs.onUpdated.emit(id, clone(changes), clone(tab))
+        if (changes.groupId !== undefined) removeEmptyGroups()
         return clone(tab)
       },
       create: async (values = {}) => {
@@ -509,7 +524,6 @@
       ungroup: async (ids) => {
         for (const id of [].concat(ids))
           await api.tabs.update(id, { groupId: -1 })
-        removeEmptyGroups()
       },
     },
   }

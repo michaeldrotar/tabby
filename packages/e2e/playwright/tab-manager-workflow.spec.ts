@@ -3,6 +3,47 @@ import { expect, test } from './fixtures'
 
 test.use({ browserData: browser })
 
+test('places pin and unpin transitions at the pinned boundary, including tabs taken out of groups', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const pin = async (id: number) => {
+    await page
+      .locator(`[data-tab-id="${id}"] [data-tab-option]`)
+      .click({ button: 'right' })
+    await page.getByRole('menuitem', { name: 'Pin 1 tab', exact: true }).click()
+  }
+  const displayedOrder = () =>
+    page
+      .locator('[data-tab-id]')
+      .evaluateAll((rows) =>
+        rows.map((row) => Number(row.getAttribute('data-tab-id'))),
+      )
+  await pin(5)
+  await expect.poll(displayedOrder).toEqual([1, 5, 2, 3, 4, 6])
+  await pin(3)
+  await expect.poll(displayedOrder).toEqual([1, 5, 3, 2, 4, 6])
+  await expect(page.locator('[data-tab-id="3"]')).toHaveAttribute(
+    'data-pinned',
+    'true',
+  )
+  await expect(
+    page.locator('[data-group-id="10"] [data-tab-id="3"]'),
+  ).toHaveCount(0)
+  await expect(page.locator('[data-group-id="10"] [data-tab-id]')).toHaveCount(
+    2,
+  )
+  await page
+    .locator('[data-tab-id="1"] [data-tab-option]')
+    .click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Unpin 1 tab', exact: true }).click()
+  await expect.poll(displayedOrder).toEqual([5, 3, 1, 2, 4, 6])
+  await expect(page.locator('[data-tab-id="1"]')).not.toHaveAttribute(
+    'data-pinned',
+  )
+})
+
 test('switches Chrome windows, keeps selection local, and transitions right-click actions beside the cursor and toggles the menu button', async ({
   page,
 }) => {

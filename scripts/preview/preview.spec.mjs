@@ -212,6 +212,110 @@ describe('sample Chrome interactions', () => {
     })
   })
 
+  it('ungroups pinned tabs and removes a group only when its last member leaves', async () => {
+    const chrome = loadMock()
+    const changes = []
+    const removedGroups = []
+    chrome.tabs.onUpdated.addListener((id, change) =>
+      changes.push([id, change]),
+    )
+    chrome.tabGroups.onRemoved.addListener((group) =>
+      removedGroups.push(group.id),
+    )
+
+    expect(await chrome.tabs.update(2, { pinned: true })).toMatchObject({
+      pinned: true,
+      groupId: -1,
+    })
+    expect(changes).toContainEqual([2, { pinned: true, groupId: -1 }])
+    expect(
+      (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
+    ).toEqual([3, 4])
+    expect((await chrome.tabGroups.get(10)).id).toBe(10)
+    expect(removedGroups).toEqual([])
+
+    await chrome.tabs.update(3, { pinned: true })
+    await chrome.tabs.update(4, { pinned: true })
+    expect(await chrome.tabGroups.query()).toEqual([])
+    expect(removedGroups).toEqual([10])
+  })
+
+  it('places pin and unpin transitions at the pinned boundary with contiguous indices', async () => {
+    const chrome = loadMock()
+    const moved = []
+    const otherWindow = await chrome.tabs.query({ windowId: 2 })
+    chrome.tabs.onMoved.addListener((id, info) => moved.push([id, info]))
+
+    await chrome.tabs.update(5, { pinned: true })
+    expect(
+      (await chrome.tabs.query({ windowId: 1 })).map((tab) => tab.id),
+    ).toEqual([1, 5, 2, 3, 4, 6])
+    await chrome.tabs.update(3, { pinned: true })
+    const reordered = await chrome.tabs.query({ windowId: 1 })
+    expect(reordered.map((tab) => tab.id)).toEqual([1, 5, 3, 2, 4, 6])
+    expect(reordered.map((tab) => tab.pinned)).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ])
+    expect(reordered.map((tab) => tab.index)).toEqual([0, 1, 2, 3, 4, 5])
+    expect(
+      (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
+    ).toEqual([2, 4])
+    expect(moved).toEqual([
+      [5, { windowId: 1, fromIndex: 4, toIndex: 1 }],
+      [3, { windowId: 1, fromIndex: 3, toIndex: 2 }],
+    ])
+    await chrome.tabs.update(1, { pinned: true })
+    expect(
+      (await chrome.tabs.query({ windowId: 1 })).map((tab) => tab.id),
+    ).toEqual(reordered.map((tab) => tab.id))
+    expect(moved).toHaveLength(2)
+    expect(await chrome.tabs.update(1, { pinned: false })).toMatchObject({
+      pinned: false,
+      index: 2,
+    })
+    expect(
+      (await chrome.tabs.query({ windowId: 1 })).map((tab) => tab.id),
+    ).toEqual([5, 3, 1, 2, 4, 6])
+    expect(moved.at(-1)).toEqual([1, { windowId: 1, fromIndex: 0, toIndex: 2 }])
+    await chrome.tabs.update(1, { pinned: false })
+    expect(moved).toHaveLength(3)
+    expect(await chrome.tabs.query({ windowId: 2 })).toEqual(otherWindow)
+  })
+
+  it('unpins tabs when adding them to new and existing groups', async () => {
+    const chrome = loadMock()
+    const changes = []
+    chrome.tabs.onUpdated.addListener((id, change) =>
+      changes.push([id, change]),
+    )
+    await chrome.tabs.update(5, { pinned: true })
+
+    const groupId = await chrome.tabs.group({ tabIds: [1, 5] })
+    expect(
+      (await chrome.tabs.query({ groupId })).map((tab) => [tab.id, tab.pinned]),
+    ).toEqual([
+      [1, false],
+      [5, false],
+    ])
+    expect(changes).toContainEqual([1, { groupId, pinned: false }])
+
+    await chrome.tabs.update(5, { pinned: true })
+    await chrome.tabs.group({ tabIds: [5], groupId: 10 })
+    expect(await chrome.tabs.get(5)).toMatchObject({
+      pinned: false,
+      groupId: 10,
+    })
+    expect(changes).toContainEqual([5, { groupId: 10, pinned: false }])
+    expect((await chrome.tabs.query({ groupId })).map((tab) => tab.id)).toEqual(
+      [1],
+    )
+  })
+
   it('creates groups and windows and emits events when tabs move between them', async () => {
     const chrome = loadMock()
     const createdGroups = []
