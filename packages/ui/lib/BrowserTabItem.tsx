@@ -375,7 +375,7 @@ export const BrowserTabItem = memo(
               aria-busy={loading}
             >
               {/* Tab info */}
-              <div className="min-w-0 flex-1">
+              <div data-tab-details className="min-w-0 flex-1">
                 {/* Title */}
                 {title && (
                   <motion.div
@@ -427,7 +427,10 @@ export const BrowserTabItem = memo(
               </div>
 
               {/* Status indicators */}
-              <div className="flex flex-shrink-0 items-center gap-1.5">
+              <div
+                data-tab-status
+                className="flex flex-shrink-0 items-center gap-1.5"
+              >
                 {/* Audio indicator */}
                 {audio === 'muted' && (
                   <div
@@ -465,6 +468,7 @@ export const BrowserTabItem = memo(
                 {/* Pinned indicator */}
                 {pinned && !loading && (
                   <div
+                    data-tab-pin
                     className="text-muted flex-shrink-0"
                     aria-label="Pinned"
                     title="Pinned tab"

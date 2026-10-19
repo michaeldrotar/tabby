@@ -33,6 +33,8 @@ const toSnapshot = (
 type DragView = {
   tabIds: number[]
   title: string
+  description?: string
+  pinned?: boolean
   mode: 'tabs' | 'windows'
   expanded: number[]
 }
@@ -287,6 +289,23 @@ export const useTabDrag = (
             item?.querySelector<HTMLElement>('[data-group-id]')
           const tabRow = item?.querySelector<HTMLElement>('[data-tab-id]')
           let destination: TabPlacement | undefined
+          let visualBefore: (typeof window.tabs)[number] | undefined
+          const placementAtRow = (row: HTMLElement, groupId?: number) => {
+            const index = window.tabs.findIndex(
+              (tab) => tab.id === Number(row.dataset.tabId),
+            )
+            if (index < 0) return undefined
+            const rect = row.getBoundingClientRect()
+            const following = window.tabs.slice(
+              index + (current.y > (rect.top + rect.bottom) / 2 ? 1 : 0),
+            )
+            visualBefore = following[0]
+            return {
+              windowId,
+              groupId,
+              beforeTabId: following.find((tab) => !selected.has(tab.id))?.id,
+            }
+          }
           if (groupElement) {
             const groupId = Number(groupElement.dataset.groupId)
             const group = window.groups.find((group) => group.id === groupId)
@@ -305,13 +324,17 @@ export const useTabDrag = (
               if (!expanded || current.y < firstTop) {
                 const lower =
                   current.y >= (headerBounds.top + headerBounds.bottom) / 2
-                destination =
-                  expanded && lower && !current.hasWholeGroups
-                    ? { windowId, groupId, beforeTabId: members[0]!.id }
-                    : {
-                        windowId,
-                        beforeTabId: lower ? afterGroup : members[0]!.id,
-                      }
+                const intoGroup = expanded && lower && !current.hasWholeGroups
+                if (intoGroup)
+                  visualBefore = window.tabs.find(
+                    (tab) => tab.groupId === groupId,
+                  )
+                destination = intoGroup
+                  ? { windowId, groupId, beforeTabId: members[0]!.id }
+                  : {
+                      windowId,
+                      beforeTabId: lower ? afterGroup : members[0]!.id,
+                    }
                 if (
                   !expanded &&
                   current.y >= headerBounds.top &&
@@ -332,24 +355,7 @@ export const useTabDrag = (
                   '[data-create-item="tab"]',
                 )
                 if (row) {
-                  const tab = members.find(
-                    (tab) => tab.id === Number(row.dataset.tabId),
-                  )
-                  if (tab) {
-                    const rect = row.getBoundingClientRect()
-                    destination = {
-                      windowId,
-                      groupId,
-                      beforeTabId:
-                        current.y > (rect.top + rect.bottom) / 2
-                          ? remaining[
-                              remaining.findIndex(
-                                (item) => item.id === tab.id,
-                              ) + 1
-                            ]?.id
-                          : tab.id,
-                    }
-                  }
+                  destination = placementAtRow(row, groupId)
                 } else if (
                   creation &&
                   current.y <= creation.getBoundingClientRect().bottom
@@ -359,23 +365,35 @@ export const useTabDrag = (
               }
             }
           } else if (tabRow) {
-            const tab = remaining.find(
-              (tab) => tab.id === Number(tabRow.dataset.tabId),
-            )
-            if (tab) {
-              const rect = tabRow.getBoundingClientRect()
-              destination = {
-                windowId,
-                beforeTabId:
-                  current.y > (rect.top + rect.bottom) / 2
-                    ? remaining[
-                        remaining.findIndex((item) => item.id === tab.id) + 1
-                      ]?.id
-                    : tab.id,
-              }
-            }
+            destination = placementAtRow(tabRow)
           } else if (pane) destination = { windowId }
           if (destination) {
+            const pinnedCount = remaining.filter((tab) => tab.pinned).length
+            const insertion =
+              destination.beforeTabId !== undefined
+                ? remaining.findIndex(
+                    (tab) => tab.id === destination!.beforeTabId,
+                  )
+                : destination.groupId !== undefined
+                  ? remaining.findLastIndex(
+                      (tab) => tab.groupId === destination!.groupId,
+                    ) + 1
+                  : current.view.pinned === true
+                    ? pinnedCount
+                    : remaining.length
+            const atPinnedBoundary =
+              (current.view.pinned === true &&
+                (insertion > pinnedCount ||
+                  destination.groupId !== undefined ||
+                  tabRow?.hasAttribute('data-pinned') !== true)) ||
+              (current.view.pinned === false &&
+                (insertion < pinnedCount ||
+                  tabRow?.hasAttribute('data-pinned')))
+            if (atPinnedBoundary)
+              destination = {
+                windowId,
+                beforeTabId: remaining[pinnedCount]?.id,
+              }
             const position = destination
             const reason = reasonFor(
               `position-${position.windowId}-${position.beforeTabId}-${position.groupId}`,
@@ -384,9 +402,10 @@ export const useTabDrag = (
             )
             current.drop = { destination, reason }
             if (!reason) {
-              const before = remaining.find(
-                (tab) => tab.id === position.beforeTabId,
-              )
+              const before = atPinnedBoundary
+                ? window.tabs.find((tab) => !tab.pinned)
+                : (visualBefore ??
+                  remaining.find((tab) => tab.id === position.beforeTabId))
               const group =
                 position.groupId === undefined
                   ? null
@@ -464,9 +483,37 @@ export const useTabDrag = (
           )
       const tabs = window.tabs.filter((tab) => ids.has(tab.id))
       if (!tabs.length) return
+      const units = getTabMoveUnits(
+        tabs.map((tab) => tab.id),
+        latest.current.snapshot,
+      )
+      const groups = units.filter((unit) => unit.groupId !== undefined)
+      const individualTabs = units.length - groups.length
+      const names = units.map((unit) =>
+        unit.groupId !== undefined
+          ? window.groups.find((group) => group.id === unit.groupId)?.title ||
+            'Unnamed group'
+          : tabs.find((tab) => tab.id === unit.tabIds[0])!.title,
+      )
       current.view = {
         tabIds: tabs.map((tab) => tab.id),
-        title: tabs.length === 1 ? tabs[0]!.title : `${tabs.length} tabs`,
+        title:
+          units.length === 1
+            ? names[0]!
+            : [
+                individualTabs &&
+                  `${individualTabs} ${individualTabs === 1 ? 'tab' : 'tabs'}`,
+                groups.length &&
+                  `${groups.length} ${groups.length === 1 ? 'tab group' : 'tab groups'}`,
+              ]
+                .filter(Boolean)
+                .join(' and '),
+        description: units.length > 1 ? names.join(', ') : undefined,
+        pinned: tabs.every((tab) => tab.pinned)
+          ? true
+          : tabs.every((tab) => !tab.pinned)
+            ? false
+            : undefined,
         mode: 'tabs',
         expanded: [],
       }
@@ -666,6 +713,11 @@ export const useTabDrag = (
               `}
             >
               <div className="truncate font-medium">{view.title}</div>
+              {view.description ? (
+                <div className="text-muted truncate text-xs">
+                  {view.description}
+                </div>
+              ) : null}
               {feedback ? (
                 <div className="text-muted max-w-64 text-xs">{feedback}</div>
               ) : null}

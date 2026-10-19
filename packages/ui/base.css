@@ -428,6 +428,30 @@
     --manager-chrome: var(--input);
   }
 
+  [data-drag-pinned='unpinned']
+    [data-pinned]
+    :is(
+      [data-tab-favicon],
+      [data-tab-details],
+      [data-tab-status] > :not([data-tab-pin]),
+      [aria-label='Close tab']
+    ),
+  [data-drag-pinned='pinned']
+    :is(
+      [data-tab-id]:not([data-pinned]) > div,
+      [data-group-header],
+      [data-create-item='tab']
+    ) {
+    opacity: 0.35;
+  }
+
+  [data-drag-pinned] [data-tab-pin] {
+    color: var(--accent);
+    background: var(--accent-selected);
+    border-radius: 0.125rem;
+    box-shadow: 0 0 0 3px var(--accent-selected);
+  }
+
   [data-defer-offscreen='true']
     [data-tab-item]:not(:focus-within):not([data-focus='true']) {
     content-visibility: auto;

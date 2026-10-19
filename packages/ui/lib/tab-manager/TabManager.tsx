@@ -933,6 +933,13 @@ export const TabManager = ({
       ref={rootRef}
       className="relative h-full min-h-0"
       data-tab-manager
+      data-drag-pinned={
+        drag.view?.pinned === undefined
+          ? undefined
+          : drag.view.pinned
+            ? 'pinned'
+            : 'unpinned'
+      }
       onFocusCapture={(event) => {
         const target = event.target as HTMLElement
         if (target.matches('[data-create-item]')) {
