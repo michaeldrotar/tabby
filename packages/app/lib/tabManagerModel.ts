@@ -798,18 +798,6 @@ export const createTabManagerController = (resources: TabManagerResources) => {
             },
         'Move tabs',
       )
-    } else if (intent.type === 'toggle-appearance') {
-      view.setState({ appearanceOpen: !state.appearanceOpen })
-    } else if (intent.type === 'change-appearance') {
-      return resources.preferences.set(intent.value).catch((error: unknown) => {
-        setNotice({
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Could not save appearance.',
-          kind: 'error',
-        })
-      })
     } else if (intent.type === 'open-window-picker') {
       view.setState({
         windowPicker: true,

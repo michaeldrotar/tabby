@@ -27,7 +27,6 @@ import type {
 } from '../BrowserTabList'
 import type {
   BrowserTabGroupColor,
-  PreferenceState,
   SelectionItemRef,
   TabPlacement,
 } from '@extension/core'
@@ -96,11 +95,6 @@ export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
   windowSource?: 'active' | 'first'
   windowPicker?: boolean
-  appearance?: {
-    open: boolean
-    preferences: PreferenceState
-    theme: 'light' | 'dark'
-  }
   editingWindow?: {
     windowId: number
     useCustom?: boolean
@@ -142,8 +136,6 @@ export type TabManagerIntent =
   | { type: 'receive-moved-tabs'; windowId: number; tabIds: readonly number[] }
   | { type: 'view-window'; windowId: number }
   | { type: 'open-window-picker' }
-  | { type: 'toggle-appearance' }
-  | { type: 'change-appearance'; value: Partial<PreferenceState> }
   | { type: 'dismiss-window-picker' }
   | { type: 'edit-window' }
   | {
@@ -639,12 +631,7 @@ export const TabManager = ({
       }
       return
     }
-    if (
-      target.closest(
-        '[data-window-picker],[data-window-editor],[data-appearance-drawer]',
-      )
-    )
-      return
+    if (target.closest('[data-window-picker],[data-window-editor]')) return
     if (target.closest('input,textarea,[contenteditable="true"]')) return
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
       event.preventDefault()

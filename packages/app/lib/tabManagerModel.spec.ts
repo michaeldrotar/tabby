@@ -64,36 +64,6 @@ describe('Tab Manager controller', () => {
     expect(selected()).toEqual([11, 12])
   })
 
-  it('keeps the appearance drawer open through other interactions and reports preference failures', async () => {
-    const resources = setup()
-    resources.controller.dispatch({ type: 'toggle-appearance' })
-    await resources.controller.dispatch({
-      type: 'change-appearance',
-      value: { themeDarkAccent: 'rose' },
-    })
-    resources.controller.dispatch({ type: 'open-window-picker' })
-    resources.controller.dispatch({ type: 'edit-window' })
-    expect(resources.preferences.getSnapshot().themeDarkAccent).toBe('rose')
-    expect(resources.view.getState().appearanceOpen).toBe(true)
-    const controller = createTabManagerController({
-      ...resources,
-      preferences: {
-        ...resources.preferences,
-        set: async () => {
-          throw new Error('Appearance unavailable')
-        },
-      },
-    })
-    await controller.dispatch({
-      type: 'change-appearance',
-      value: { theme: 'dark' },
-    })
-    expect(resources.view.getState().notifications.items.at(-1)?.message).toBe(
-      'Appearance unavailable',
-    )
-    controller.dispatch({ type: 'toggle-appearance' })
-    expect(resources.view.getState().appearanceOpen).toBe(false)
-  })
   it('preserves selection when the picker is canceled or the same window is chosen, and starts with the active tab on a real switch', async () => {
     const { backend, view, controller } = setup()
     const selected = () =>

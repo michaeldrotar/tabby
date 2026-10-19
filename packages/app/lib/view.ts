@@ -13,7 +13,6 @@ import type { TabManagerViewModel } from '@extension/ui/tab-manager/TabManager'
 export type TabManagerViewState = {
   viewedWindowId: number | null
   windowPicker: boolean
-  appearanceOpen: boolean
   editingWindow: {
     windowId: number
     useCustom?: boolean
@@ -41,7 +40,6 @@ export const createTabManagerView = (
   createStore<TabManagerViewState>()(() => ({
     viewedWindowId: null,
     windowPicker: false,
-    appearanceOpen: false,
     editingWindow: null,
     hasUserInput:
       !!initial.selection || !!initial.focusedItem || !!initial.scrollTop,

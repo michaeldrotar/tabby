@@ -135,7 +135,10 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         .evaluateAll((buttons) =>
           buttons.map((button) => button.getAttribute('aria-label')),
         ),
-    ).toEqual(['Search everything', 'Settings', 'Appearance', 'More actions'])
+    ).toEqual(['Search everything', 'Settings', 'More actions'])
+    await page.screenshot({
+      path: `../../test-results/appearance-tools-${width}.png`,
+    })
     const search = await tools
       .getByRole('button', { name: 'Search everything' })
       .boundingBox()

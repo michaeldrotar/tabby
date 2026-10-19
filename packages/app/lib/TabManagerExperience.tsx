@@ -73,17 +73,7 @@ export const TabManagerExperience = ({
   })
   return (
     <TabManager
-      model={{
-        ...model,
-        appearance: {
-          open: state.appearanceOpen,
-          preferences: preferenceState,
-          theme:
-            preferenceState.theme === 'system'
-              ? environment.systemTheme
-              : preferenceState.theme,
-        },
-      }}
+      model={model}
       onIntent={controller.dispatch}
       focusOnMount={focusOnMount}
     />
