@@ -56,7 +56,7 @@ export const BrowserTabGroupItem = memo(
         renameTitle,
         onRenameTitleChange,
         selected = false,
-        isMultiSelectMode = false,
+        isMultiSelectMode: _isMultiSelectMode = false,
         onSelect,
         onRenameComplete,
         onRenameCancel,
@@ -201,23 +201,13 @@ export const BrowserTabGroupItem = memo(
             'transition-[background-color,border-color,box-shadow] duration-200',
             selected &&
               'ring-accent/[calc(var(--accent-strength)*1%)] ring-2 ring-inset',
-            isMultiSelectMode
-              ? `
-                has-[[data-group-header]>button:focus-visible]:ring-accent/70
-                has-[[data-group-header]>button:focus-visible]:ring-2
-                has-[[data-group-header]>button:focus-visible]:ring-inset
-              `
-              : selected
-                ? `
-                  has-[[data-group-header]>button:focus-visible]:ring-foreground/20
-                  has-[[data-group-header]>button:focus-visible]:ring-1
-                  has-[[data-group-header]>button:focus-visible]:ring-inset
-                `
-                : `
-                  has-[[data-group-header]>button:focus-visible]:ring-accent/70
-                  has-[[data-group-header]>button:focus-visible]:ring-2
-                  has-[[data-group-header]>button:focus-visible]:ring-inset
-                `,
+            `
+              has-[[data-group-header]>button:focus-visible]:after:ring-accent/70
+              has-[[data-group-header]>button:focus-visible]:after:ring-2
+              has-[[data-group-header]>button:focus-visible]:after:ring-inset
+              after:pointer-events-none after:absolute after:inset-0
+              after:rounded-[inherit]
+            `,
             className,
           )}
           data-nav-type="group"

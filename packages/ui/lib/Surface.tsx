@@ -185,7 +185,20 @@ export const Surface = ({
     }
   }, [root, blocked])
   const blockInput = (event: SyntheticEvent) => {
-    if (!blocked) return
+    if (!blocked) {
+      const method =
+        event.type === 'keydown'
+          ? 'keyboard'
+          : event.type === 'pointerdown' || event.type === 'pointermove'
+            ? 'pointer'
+            : null
+      if (
+        method &&
+        event.currentTarget.getAttribute('data-input-method') !== method
+      )
+        event.currentTarget.setAttribute('data-input-method', method)
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
   }
@@ -217,6 +230,7 @@ export const Surface = ({
         tabIndex={blocked ? undefined : -1}
         data-surface={instanceId ?? generatedId}
         data-input-mode={inputMode}
+        data-input-method="keyboard"
         data-surface-ready={!!root && !!portalHost && width !== null}
         data-theme={theme}
         data-theme-background={palette?.background}
@@ -238,11 +252,13 @@ export const Surface = ({
         onClickCapture={blockInput}
         onDoubleClickCapture={blockInput}
         onPointerDownCapture={blockInput}
+        onPointerMoveCapture={blockInput}
         onMouseDownCapture={blockInput}
         onContextMenuCapture={blockInput}
         onKeyDownCapture={blockInput}
       >
-        <style>{`[data-surface] [data-focus="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+        <style>{`[data-surface]:not([data-input-mode="live"]) [data-focus="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+[data-surface][data-input-method="pointer"] :is([data-tab-item], [data-group-item])::after { box-shadow: none; }
 [data-surface][data-motion="reduced"] *, [data-surface][data-input-mode="static"] * { animation: none !important; transition: none !important; }`}</style>
         <div
           inert={blocked ? true : undefined}

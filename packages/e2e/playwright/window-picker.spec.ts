@@ -24,6 +24,23 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
       page.getByRole('button', { name: 'Back to tabs' }),
     ).toHaveCount(0)
     await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
+    const newWindow = page.getByRole('button', {
+      name: 'New window',
+      exact: true,
+    })
+    expect((await newWindow.boundingBox())!.height).toBe(
+      (await page.locator('[data-window-choice="1"]').boundingBox())!.height,
+    )
+    await page.keyboard.press('Tab')
+    await expect(
+      page.getByRole('button', { name: 'Search everything' }),
+    ).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(newWindow).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(page.locator('[data-window-picker-trigger]')).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
     await expect(page.getByLabel('Viewed window')).toHaveCount(0)
     const closeOther = page.getByRole('button', {
       name: 'Close window: Reading room',
@@ -50,6 +67,30 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
       )
       .toBe('1')
     await page.keyboard.press('End')
+    await expect(
+      page.getByRole('button', { name: 'New window', exact: true }),
+    ).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(
+      page.getByRole('button', { name: 'Search everything' }),
+    ).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(newWindow).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(
+      page.getByRole('button', { name: 'Search everything' }),
+    ).toBeFocused()
+    await page.keyboard.press('ArrowUp')
+    await expect(
+      page.getByRole('button', { name: 'New window', exact: true }),
+    ).toBeFocused()
+    await page.keyboard.press('Home')
+    await page.keyboard.press('ArrowUp')
+    await expect(page.locator('[data-window-picker-trigger]')).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
+    await page.keyboard.press('End')
+    await page.keyboard.press('ArrowUp')
     await expect(page.locator('[data-window-choice="12"]')).toBeFocused()
     await expect(page.locator('[data-window-choice="12"]')).toBeInViewport()
     await page.locator('[data-window-choice="12"]').click()
@@ -94,7 +135,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         .evaluateAll((buttons) =>
           buttons.map((button) => button.getAttribute('aria-label')),
         ),
-    ).toEqual(['Search everything', 'Settings', 'More actions'])
+    ).toEqual(['Search everything', 'Settings', 'Appearance', 'More actions'])
     const search = await tools
       .getByRole('button', { name: 'Search everything' })
       .boundingBox()

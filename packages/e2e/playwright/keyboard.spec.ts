@@ -12,6 +12,36 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await page.keyboard.press('Enter')
   const name = page.getByRole('textbox', { name: 'Name', exact: true })
   await expect(name).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(switcher).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  const editTabStops = [
+    name,
+    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+    page.getByRole('button', { name: 'Done', exact: true }),
+    page.getByRole('button', { name: 'Reset', exact: true }),
+    page.getByRole('button', { name: 'Search everything' }),
+  ]
+  for (const stop of editTabStops) {
+    await page.keyboard.press('Tab')
+    await expect(stop).toBeFocused()
+  }
+  await page.keyboard.press('Tab')
+  await expect(
+    page.getByRole('button', { name: 'Settings', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(
+    page.getByRole('button', { name: 'Search everything' }),
+  ).toBeFocused()
+  for (const stop of editTabStops.slice(0, -1).reverse()) {
+    await page.keyboard.press('Shift+Tab')
+    await expect(stop).toBeFocused()
+  }
   expect(
     await name.evaluate((input: HTMLInputElement) => [
       input.selectionStart,
@@ -19,6 +49,56 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     ]),
   ).toEqual([0, 5])
   await name.fill('Working space')
+  await name.press('ArrowLeft')
+  await expect(name).toBeFocused()
+  expect(
+    await name.evaluate((input: HTMLInputElement) => input.selectionStart),
+  ).toBe(12)
+  await name.press('ArrowUp')
+  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(name).toBeFocused()
+  await name.press('ArrowDown')
+  await expect(
+    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
+  ).toBeFocused()
+  const oldIcon = await page.locator(':focus').getAttribute('aria-label')
+  await page.keyboard.press('ArrowRight')
+  await expect(
+    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
+  ).toBeFocused()
+  expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
+    oldIcon,
+  )
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+  ).toBeFocused()
+  const oldColor = await page.locator(':focus').getAttribute('aria-label')
+  await page.keyboard.press('ArrowLeft')
+  await expect(
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+  ).toBeFocused()
+  expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
+    oldColor,
+  )
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.getByRole('button', { name: 'Done', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowLeft')
+  await expect(
+    page.getByRole('button', { name: 'Reset', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.getByRole('button', { name: 'Search everything' }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await expect(
+    page.getByRole('button', { name: 'Done', exact: true }),
+  ).toBeFocused()
   await expect(switcher).toContainText('Working space')
   await page.evaluate(async () => {
     await chrome.windows.update(1, { focused: true })
@@ -56,6 +136,12 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(firstItem).toBeFocused()
   await page.keyboard.press('End')
   await expect(newTab).toBeFocused()
+  expect((await newTab.boundingBox())!.height).toBe(
+    (await page.locator('[data-tab-item]').first().boundingBox())!.height,
+  )
+  await expect(
+    page.locator('[data-tab-option][aria-selected="true"]'),
+  ).toHaveCount(0)
   await page.keyboard.press('ArrowDown')
   await expect(search).toBeFocused()
   await page.keyboard.press('ArrowRight')

@@ -146,6 +146,8 @@ describe('TabManager presentation', () => {
     ).not.toBeInTheDocument()
     const first = screen.getByRole('button', { name: /^Research/ })
     fireEvent.keyDown(first, { key: 'End' })
+    expect(screen.getByRole('button', { name: 'New window' })).toHaveFocus()
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
     expect(screen.getByRole('button', { name: /^Personal/ })).toHaveFocus()
     fireEvent.click(document.activeElement!)
     expect(onIntent).toHaveBeenLastCalledWith({

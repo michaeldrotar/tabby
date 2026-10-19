@@ -139,6 +139,36 @@ test('moves a whole group through a submenu and closes duplicates in other windo
     page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
   const group = page.locator('[data-group-id="10"] [data-group-option]')
   await group.focus()
+  await page.keyboard.press('ArrowDown')
+  const tabRing = await page
+    .locator('[data-tab-id="2"]')
+    .evaluate((node) => getComputedStyle(node, '::after').boxShadow)
+  await page.keyboard.press('ArrowUp')
+  await expect(group).toBeFocused()
+  expect(
+    await page
+      .locator('[data-group-id="10"]')
+      .evaluate((node) => getComputedStyle(node, '::after').boxShadow),
+  ).toBe(tabRing)
+  await page.keyboard.press('ArrowLeft')
+  await expect(group).toHaveAttribute('aria-expanded', 'false')
+  await expect(row(2)).not.toBeVisible()
+  await page.keyboard.press('ArrowLeft')
+  await expect(group).toHaveAttribute('aria-expanded', 'false')
+  await page.keyboard.press('ArrowRight')
+  await expect(group).toHaveAttribute('aria-expanded', 'true')
+  await expect(row(2)).toBeVisible()
+  await expect
+    .poll(async () =>
+      Math.abs(
+        (await page
+          .getByRole('button', { name: 'New tab in Tabby', exact: true })
+          .boundingBox())!.height -
+          (await page.locator('[data-tab-id="2"]').boundingBox())!.height,
+      ),
+    )
+    .toBeLessThan(0.25)
+  await expect(group).toBeFocused()
   await page.keyboard.press('Enter')
   await page.keyboard.press('ArrowDown')
   await expect(row(5)).toBeFocused()

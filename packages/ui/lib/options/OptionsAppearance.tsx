@@ -7,7 +7,12 @@ import {
 } from '../Select'
 import { Slider } from '../Slider'
 import { useSurfaceId } from '../Surface'
-import { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '../theme-colors'
+import {
+  accentSwatchByPalette,
+  neutralSwatchByPalette,
+  THEME_ACCENT_PALETTES,
+  THEME_NEUTRAL_PALETTES,
+} from '../theme-colors'
 import { cn } from '../utils/cn'
 import type { OptionsControlBindings, OptionsProps } from './Options'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
@@ -88,34 +93,6 @@ export const OptionsAppearance = ({
 
   const neutralPalettes = THEME_NEUTRAL_PALETTES
   const accentPalettes = THEME_ACCENT_PALETTES
-
-  const neutralSwatchByPalette = {
-    slate: 'bg-slate-500',
-    gray: 'bg-gray-500',
-    zinc: 'bg-zinc-500',
-    neutral: 'bg-neutral-500',
-    stone: 'bg-stone-500',
-  } satisfies Record<ThemeNeutralPalette, string>
-
-  const accentSwatchByPalette = {
-    red: 'bg-red-500',
-    orange: 'bg-orange-500',
-    amber: 'bg-amber-500',
-    yellow: 'bg-yellow-500',
-    lime: 'bg-lime-500',
-    green: 'bg-green-500',
-    emerald: 'bg-emerald-500',
-    teal: 'bg-teal-500',
-    cyan: 'bg-cyan-500',
-    sky: 'bg-sky-500',
-    blue: 'bg-blue-500',
-    indigo: 'bg-indigo-500',
-    violet: 'bg-violet-500',
-    purple: 'bg-purple-500',
-    fuchsia: 'bg-fuchsia-500',
-    pink: 'bg-pink-500',
-    rose: 'bg-rose-500',
-  } satisfies Record<ThemeAccentPalette, string>
 
   return (
     <section className="mb-6">

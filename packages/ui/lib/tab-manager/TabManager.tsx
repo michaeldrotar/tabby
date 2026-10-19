@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { BrowserTabGroupItem } from '../BrowserTabGroupItem'
+import { tabRowHeightClass } from '../BrowserTabItem'
 import { BrowserTabList } from '../BrowserTabList'
 import { TabListSkeleton } from '../components/TabListSkeleton'
 import { useSurface, useSurfaceInputOwner } from '../Surface'
@@ -10,6 +11,7 @@ import {
   useShouldReduceMotion,
   useShouldSettleMotion,
 } from '../useShouldReduceMotion'
+import { cn } from '../utils/cn'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
 import { TabManagerShell } from './ui/TabManagerShell'
@@ -25,6 +27,7 @@ import type {
 } from '../BrowserTabList'
 import type {
   BrowserTabGroupColor,
+  PreferenceState,
   SelectionItemRef,
   TabPlacement,
 } from '@extension/core'
@@ -93,6 +96,11 @@ export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
   windowSource?: 'active' | 'first'
   windowPicker?: boolean
+  appearance?: {
+    open: boolean
+    preferences: PreferenceState
+    theme: 'light' | 'dark'
+  }
   editingWindow?: {
     windowId: number
     useCustom?: boolean
@@ -134,6 +142,8 @@ export type TabManagerIntent =
   | { type: 'receive-moved-tabs'; windowId: number; tabIds: readonly number[] }
   | { type: 'view-window'; windowId: number }
   | { type: 'open-window-picker' }
+  | { type: 'toggle-appearance' }
+  | { type: 'change-appearance'; value: Partial<PreferenceState> }
   | { type: 'dismiss-window-picker' }
   | { type: 'edit-window' }
   | {
@@ -194,7 +204,7 @@ export type TabManagerProps = {
 const navigationSelector =
   '[data-nav-type="window"], [data-tab-option], [data-group-option], [data-create-item]'
 const controlSelector = 'button,summary,[data-tab-option],[data-group-option]'
-const sectionOrder = ['header', 'tabs', 'actions', 'tools']
+const sectionOrder = ['header', 'tabs', 'windows', 'actions', 'tools']
 
 const sameItem = (
   a: TabManagerItem | null | undefined,
@@ -574,24 +584,37 @@ export const TabManager = ({
           !entry.closest('[data-group-id][data-collapsed="true"]')),
     )
   const keyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!live || pickerVisible || model.editingWindow || !canFocusInput())
-      return
+    if (!live || !canFocusInput()) return
     const target = event.target as HTMLElement
-    if (target.closest('input,textarea,[contenteditable="true"]')) return
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
-      event.preventDefault()
-      event.stopPropagation()
-      send({ type: 'navigate', key: 'a', toggle: true })
+    const section = target.closest<HTMLElement>('[data-keyboard-section]')
+    const tabbing =
+      event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey
+    if (
+      tabbing &&
+      model.editingWindow &&
+      section &&
+      ((!event.shiftKey &&
+        section.dataset.keyboardSection === 'header' &&
+        target === sectionControls(section).at(-1)) ||
+        (event.shiftKey &&
+          section.dataset.keyboardSection === 'tools' &&
+          target === sectionControls(section)[0]))
+    ) {
+      const next = rootRef.current?.querySelector<HTMLElement>(
+        event.shiftKey ? '[data-editor-reset]' : '[data-window-editor] input',
+      )
+      if (next) {
+        event.preventDefault()
+        event.stopPropagation()
+        focusControl(next)
+      }
       return
     }
-    if (target.closest('[role="menu"]')) return
-    const section = target.closest<HTMLElement>('[data-keyboard-section]')
     if (
-      event.key === 'Tab' &&
-      section?.dataset.keyboardSection === 'tabs' &&
-      !event.altKey &&
-      !event.ctrlKey &&
-      !event.metaKey
+      tabbing &&
+      !target.closest('input,textarea,[contenteditable="true"]') &&
+      section &&
+      ['tabs', 'windows'].includes(section.dataset.keyboardSection ?? '')
     ) {
       const sections = sectionOrder.flatMap((name) => {
         const element = rootRef.current?.querySelector<HTMLElement>(
@@ -603,11 +626,10 @@ export const TabManager = ({
         sections[sections.indexOf(section) + (event.shiftKey ? -1 : 1)]
       if (!next) return
       const controls = sectionControls(next)
-      const remembered = controls.find((control) =>
-        sameItem(model.focusedItem, itemAt(control)),
-      )
       const entry =
-        remembered ??
+        controls.find((control) =>
+          sameItem(model.focusedItem, itemAt(control)),
+        ) ??
         controls.find((control) => control.matches('[data-viewing="true"]')) ??
         controls[0]
       if (entry) {
@@ -615,6 +637,49 @@ export const TabManager = ({
         event.stopPropagation()
         focusControl(entry)
       }
+      return
+    }
+    if (
+      target.closest(
+        '[data-window-picker],[data-window-editor],[data-appearance-drawer]',
+      )
+    )
+      return
+    if (target.closest('input,textarea,[contenteditable="true"]')) return
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
+      event.preventDefault()
+      event.stopPropagation()
+      send({ type: 'navigate', key: 'a', toggle: true })
+      return
+    }
+    if (target.closest('[role="menu"]')) return
+    const groupItem = itemAt(target)
+    if (
+      target.matches('[data-group-option]') &&
+      groupItem?.type === 'group' &&
+      ['Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key) &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault()
+      event.stopPropagation()
+      const group = viewedWindow?.groups.find(
+        (group) => group.id === groupItem.id,
+      )
+      if (!sameItem(model.focusedItem, groupItem))
+        send({ type: 'focus-item', item: groupItem })
+      send({
+        type: 'set-group-collapsed',
+        groupId: groupItem.id,
+        collapsed:
+          event.key === 'ArrowLeft'
+            ? true
+            : event.key === 'ArrowRight'
+              ? false
+              : !group?.collapsed,
+      })
       return
     }
     if (
@@ -657,9 +722,17 @@ export const TabManager = ({
           '[data-keyboard-section="tools"] button',
         )
       else if (!list) {
-        const tabs = navigationEntries(
-          rootRef.current?.querySelector('[data-keyboard-section="tabs"]'),
-        )
+        const pane = rootRef.current?.querySelector('[data-manager-main]')
+        const tabs =
+          pickerVisible || model.editingWindow
+            ? Array.from(
+                pane?.querySelectorAll<HTMLElement>(
+                  pickerVisible
+                    ? '[data-window-choice],[data-new-window]'
+                    : 'input,button',
+                ) ?? [],
+              )
+            : navigationEntries(pane)
         if (
           event.key === 'ArrowUp' &&
           section.dataset.keyboardSection === 'tools'
@@ -763,15 +836,6 @@ export const TabManager = ({
       send({ type: 'start-group-rename', groupId: item.id })
       return
     }
-    if (item?.type === 'group' && event.key === 'Enter' && !event.shiftKey) {
-      const group = viewedWindow?.groups.find((group) => group.id === item.id)
-      send({
-        type: 'set-group-collapsed',
-        groupId: item.id,
-        collapsed: !group?.collapsed,
-      })
-      return
-    }
     const opensMenu =
       event.key === 'ContextMenu' ||
       (event.shiftKey && (event.key === 'F10' || event.key === 'Enter'))
@@ -829,13 +893,19 @@ export const TabManager = ({
                 ?.title || 'Untitled group',
             )
       }
-      className={`
-        text-muted flex min-h-12 w-full items-center gap-3 rounded-md px-3 py-2
-        text-sm transition-colors
-        hover:text-foreground hover:bg-highlighted/40
-        focus-visible:bg-highlighted/40 focus-visible:ring-accent/70
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset
-      `}
+      className={cn(
+        tabRowHeightClass,
+        `
+          text-muted flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm
+          transition-colors
+          hover:text-foreground
+          hover:bg-accent/[calc(var(--accent-strength)*0.5%)]
+          focus-visible:text-foreground
+          focus-visible:bg-accent/[calc(var(--accent-strength)*0.5%)]
+          focus-visible:ring-accent/70 focus-visible:outline-none
+          focus-visible:ring-2 focus-visible:ring-inset
+        `,
+      )}
       onClick={() => {
         if (!viewedWindow) return
         pendingKeyboardFocus.current = true

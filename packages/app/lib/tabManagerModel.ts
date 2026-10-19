@@ -798,6 +798,18 @@ export const createTabManagerController = (resources: TabManagerResources) => {
             },
         'Move tabs',
       )
+    } else if (intent.type === 'toggle-appearance') {
+      view.setState({ appearanceOpen: !state.appearanceOpen })
+    } else if (intent.type === 'change-appearance') {
+      return resources.preferences.set(intent.value).catch((error: unknown) => {
+        setNotice({
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Could not save appearance.',
+          kind: 'error',
+        })
+      })
     } else if (intent.type === 'open-window-picker') {
       view.setState({
         windowPicker: true,
@@ -1003,7 +1015,25 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       if (state.scrollTop !== intent.top)
         view.setState({ scrollTop: intent.top })
     } else if (intent.type === 'focus-creation') {
-      view.setState({ focusedItem: null })
+      view.setState({
+        focusedItem: null,
+        ...(intent.pane === 'tab' &&
+        state.selection.selection.mode === 'default' &&
+        state.selection.selection.tabIds.size +
+          state.selection.selection.groupIds.size <=
+          1
+          ? {
+              selection: {
+                selection: {
+                  ...createEmptySelectionSnapshot(),
+                  mode: 'default' as const,
+                },
+                interaction: createSelectionInteractionState(),
+              },
+              selectionCleared: true,
+            }
+          : {}),
+      })
     } else if (intent.type === 'focus-item') {
       if (itemExists(snapshot, intent.item))
         view.setState({ focusedItem: intent.item })
