@@ -936,6 +936,10 @@ export const TabManager = ({
             type: 'focus-creation',
             pane: target.dataset.createItem === 'window' ? 'window' : 'tab',
           })
+        } else {
+          const item = itemAt(target)
+          if (item && !sameItem(model.focusedItem, item))
+            send({ type: 'focus-item', item })
         }
         physicalFocusOwner.current = target.closest(
           '[data-notification-card],[data-manager-action-menu]',

@@ -726,6 +726,90 @@ describe('Tab Manager controller', () => {
     ).toBe('2m')
   })
 
+  it.each([false, true])(
+    'moves removed tab focus to the active tab in the viewed window (collapsed group: %s)',
+    (collapsed) => {
+      const { snapshot, view } = setup()
+      const state = {
+        ...view.getState(),
+        focusedItem: { type: 'tab' as const, id: 14 },
+      }
+      const next = {
+        ...snapshot,
+        groups: [{ id: 101, windowId: 1, color: 'blue' as const, collapsed }],
+        tabs: snapshot.tabs.map((tab) => ({
+          ...tab,
+          active: tab.id !== 11,
+          ...(tab.id === 12 ? { groupId: 101 } : {}),
+        })),
+      }
+      expect(reconcileTabManagerView(next, state).focusedItem).toEqual(
+        collapsed ? { type: 'group', id: 101 } : { type: 'tab', id: 12 },
+      )
+      expect(
+        reconcileTabManagerView(next, {
+          ...state,
+          focusedItem: { type: 'tab', id: 11 },
+        }).focusedItem,
+      ).toEqual({ type: 'tab', id: 11 })
+    },
+  )
+
+  it.each([
+    { closing: 12, expected: 14 },
+    { closing: 14, expected: 12 },
+    { closing: 15, expected: 16 },
+    { closing: 16, expected: 15 },
+    { closing: 12, expected: 14, singleton: true },
+    { closing: 12, expected: 16, active: true },
+  ])(
+    'recovers closed tab $closing to tab $expected using its browser history',
+    ({ closing, expected, singleton, active }) => {
+      const { backend, view, controller, snapshot } = setup()
+      const previous = {
+        ...snapshot,
+        groups: [{ id: 101, windowId: 1, color: 'blue' as const }],
+        tabs: [11, 12, 14, 15, 16].map((id, index) => ({
+          id,
+          index,
+          windowId: 1,
+          title: `Tab ${id}`,
+          active: id === (active ? closing : 11),
+          groupId: (singleton ? [12] : [12, 14]).includes(id) ? 101 : undefined,
+        })),
+      }
+      backend.restoreSnapshot(previous)
+      controller.reconcile()
+      view.setState({ focusedItem: { type: 'tab', id: closing } })
+      const next = {
+        ...previous,
+        tabs: previous.tabs
+          .filter((tab) => tab.id !== closing)
+          .map((tab, index) => ({
+            ...tab,
+            index,
+            active: active ? tab.id === expected : tab.active,
+          })),
+      }
+      backend.restoreSnapshot(next)
+      const target = { type: 'tab', id: expected }
+      expect(
+        projectTabManager(
+          next,
+          view.getState(),
+          0,
+          {},
+          controller.getPreviousSnapshot(),
+        ).focusedItem,
+      ).toEqual(target)
+      controller.reconcile()
+      expect(view.getState().focusedItem).toEqual(target)
+      expect(backend.getSnapshot().tabs.find((tab) => tab.active)?.id).toBe(
+        active ? expected : 11,
+      )
+    },
+  )
+
   it('keeps keyboard focus on visible items when the active tab group is collapsed', () => {
     const resources = setup()
     const fixtures = createFixtureBuilder()

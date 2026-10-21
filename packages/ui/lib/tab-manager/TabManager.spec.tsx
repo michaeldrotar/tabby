@@ -290,6 +290,11 @@ describe('TabManager presentation', () => {
     )
     const firstTab = screen.getByRole('option', { name: 'Tab: Tabby' })
     firstTab.focus()
+    expect(onIntent).toHaveBeenCalledExactlyOnceWith({
+      type: 'focus-item',
+      item: { type: 'tab', id: 10 },
+    })
+    onIntent.mockClear()
     fireEvent.keyDown(firstTab, { key: 'Backspace' })
     expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
       { type: 'focus-item', item: { type: 'tab', id: 10 } },
@@ -387,6 +392,11 @@ describe('TabManager presentation', () => {
       )
       const close = screen.getByRole('button', { name: 'Close tab' })
       close.focus()
+      expect(onIntent).toHaveBeenCalledExactlyOnceWith({
+        type: 'focus-item',
+        item: { type: 'tab', id: 10 },
+      })
+      onIntent.mockClear()
       const nativeDefaultAllowed = fireEvent.keyDown(close, { key })
       expect(nativeDefaultAllowed).toBe(true)
       expect(onIntent).not.toHaveBeenCalled()

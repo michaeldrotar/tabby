@@ -3,6 +3,43 @@ import { expect, test } from './fixtures'
 
 test.use({ browserData: browser })
 
+test('keeps focus beside closed inactive tabs and follows newly active tabs', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(1).click()
+  await row(2).focus()
+  await expect(row(2)).toBeFocused()
+  await page
+    .locator('[data-tab-id="3"]')
+    .getByRole('button', { name: 'Close tab' })
+    .click()
+  await expect(row(3)).toHaveCount(0)
+  await expect(row(4)).toBeFocused()
+  await expect(row(1)).toHaveAttribute('aria-current', 'page')
+  await expect(row(1)).toHaveAttribute('aria-selected', 'true')
+
+  await page.evaluate(() => chrome.tabs.remove(4))
+  await expect(row(4)).toHaveCount(0)
+  await expect(row(2)).toBeFocused()
+  await expect(row(1)).toHaveAttribute('aria-current', 'page')
+  await expect(row(1)).toHaveAttribute('aria-selected', 'true')
+
+  await row(5).click()
+  await page.evaluate(() => chrome.tabs.remove(5))
+  await expect(row(5)).toHaveCount(0)
+  await expect(row(6)).toBeFocused()
+  await expect(row(6)).toHaveAttribute('aria-current', 'page')
+
+  await page.evaluate(() => chrome.tabs.remove(6))
+  await expect(row(6)).toHaveCount(0)
+  await expect(row(2)).toBeFocused()
+  await expect(row(2)).toHaveAttribute('aria-current', 'page')
+})
+
 test('places pin and unpin transitions at the pinned boundary, including tabs taken out of groups', async ({
   page,
 }) => {

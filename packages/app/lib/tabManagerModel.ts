@@ -70,6 +70,7 @@ const itemExists = (snapshot: BrowserSnapshot, item: SelectionItemRef) =>
 export const reconcileTabManagerView = (
   snapshot: BrowserSnapshot,
   state: TabManagerViewState,
+  previousSnapshot?: BrowserSnapshot,
 ): TabManagerViewState => {
   if (snapshot.state !== 'loaded') return state
   const windowIds = new Set(snapshot.windows.map((window) => window.id))
@@ -114,7 +115,43 @@ export const reconcileTabManagerView = (
     (state.focusedItem.type === 'window'
       ? !windowIds.has(state.focusedItem.id)
       : !order.some((item) => sameItem(item, state.focusedItem)))
-  const focusedItem = removedFocus ? (order[0] ?? null) : state.focusedItem
+  const activeTab = removedFocus
+    ? snapshot.tabs.find((tab) => tab.windowId === selectedWindow && tab.active)
+    : undefined
+  const removedTab =
+    state.focusedItem?.type === 'tab' &&
+    !snapshot.tabs.some((tab) => tab.id === state.focusedItem?.id)
+      ? previousSnapshot?.tabs.find((tab) => tab.id === state.focusedItem?.id)
+      : undefined
+  let replacementTab = activeTab
+  if (
+    removedTab &&
+    !removedTab.active &&
+    removedTab.windowId === selectedWindow
+  ) {
+    const remaining = previousSnapshot!.tabs
+      .filter((tab) => tab.windowId === selectedWindow && tabIds.has(tab.id))
+      .toSorted((a, b) => a.index - b.index)
+    const groupTabs =
+      removedTab.groupId === undefined
+        ? []
+        : remaining.filter((tab) => tab.groupId === removedTab.groupId)
+    const candidates = groupTabs.length ? groupTabs : remaining
+    replacementTab =
+      candidates.find((tab) => tab.index > removedTab.index) ??
+      candidates.at(-1)
+  }
+  const replacementItem = replacementTab
+    ? (order.find(
+        (item) => item.type === 'tab' && item.id === replacementTab.id,
+      ) ??
+      order.find(
+        (item) => item.type === 'group' && item.id === replacementTab.groupId,
+      ))
+    : undefined
+  const focusedItem = removedFocus
+    ? (replacementItem ?? order[0] ?? null)
+    : state.focusedItem
   const anchor = state.selection.interaction.anchorItem
   const invalidAnchor = anchor && !itemExists(snapshot, anchor)
   const base = state.selection.interaction.baseSelection
@@ -252,8 +289,9 @@ export const projectTabManager = (
   state: TabManagerViewState,
   now: number,
   options: ManagerActionOptions = {},
+  previousSnapshot?: BrowserSnapshot,
 ): TabManagerViewModel => {
-  const current = reconcileTabManagerView(snapshot, state)
+  const current = reconcileTabManagerView(snapshot, state, previousSnapshot)
   const data = projectTabManagerWindows(
     snapshot,
     now,
@@ -419,9 +457,9 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         }
         view.setState(current, true)
       }
-      previousSnapshot = snapshot
     }
-    const next = reconcileTabManagerView(snapshot, current)
+    const next = reconcileTabManagerView(snapshot, current, previousSnapshot)
+    previousSnapshot = snapshot
     if (next !== current) view.setState(next, true)
   }
   let inputRevision = 0
@@ -1268,6 +1306,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   return {
     dispatch,
     reconcile,
+    getPreviousSnapshot: () => previousSnapshot,
     notify: notifications.publish,
     startNotifications: notifications.start,
     cancel: () => {
