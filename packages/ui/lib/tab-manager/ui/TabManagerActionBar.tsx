@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
-  Columns2,
   Copy,
   Ellipsis,
   ExternalLink,
@@ -27,7 +26,6 @@ import {
   Search,
   Settings,
   Trash2,
-  UnfoldHorizontal,
   Ungroup,
   Volume2,
   VolumeOff,
@@ -50,8 +48,6 @@ import type {
 import type { RefObject } from 'react'
 
 const icons = {
-  Columns2,
-  UnfoldHorizontal,
   ArrowDown,
   ChevronDown,
   ChevronUp,

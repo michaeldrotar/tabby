@@ -4,7 +4,6 @@ import {
   getNewWindowMoveBlockReason,
 } from './actions/batchTabActions.js'
 import { isNavigableUrl } from './navigation.js'
-import { getSplitViewBlockReason } from './splitViews.js'
 import { getTabPlacementReason } from './tabPlacement.js'
 import type {
   BrowserCommand,
@@ -95,14 +94,7 @@ export const getCommandTargetIds = (
     case 'move-tabs':
     case 'place-tabs':
     case 'group-tabs':
-    case 'create-split':
       return [...new Set(command.tabIds)]
-    case 'separate-split':
-      return (
-        snapshot?.tabs
-          .filter((tab) => tab.splitViewId === command.splitViewId)
-          .map((tab) => tab.id) ?? []
-      )
     case 'window-action':
       return [...new Set(command.windowIds)]
     case 'group-action':
@@ -151,17 +143,10 @@ export const getCommandBlockReason = (
   )
     return 'This URL cannot be opened. Use a web address or a supported browser page.'
   const ids = getCommandTargetIds(command, snapshot)
-  if (command.type === 'create-split')
-    return getSplitViewBlockReason(snapshot, command.tabIds)
-  if (command.type === 'separate-split') {
-    if (!snapshot.splitViewSupported)
-      return 'Split view controls are unavailable in this browser.'
-    if (ids.length !== 2) return 'The split view is no longer available.'
-  }
   if (command.type === 'place-tabs')
     return getTabPlacementReason(snapshot, command.tabIds, command.destination)
   if (command.type === 'create-tab') {
-    const anchorId = command.afterTabId ?? command.splitWithTabId
+    const anchorId = command.afterTabId
     if (anchorId !== undefined) {
       const anchor = snapshot.tabs.find((tab) => tab.id === anchorId)
       if (!anchor) return 'The source tab is no longer available.'
@@ -172,12 +157,6 @@ export const getCommandBlockReason = (
         return 'The new tab must be in the source tab’s window.'
       if (command.groupId !== undefined && command.groupId !== anchor.groupId)
         return 'The new tab must be in the source tab’s group.'
-      if (command.splitWithTabId !== undefined) {
-        if (!snapshot.splitViewSupported)
-          return 'Split view controls are unavailable in this browser.'
-        if (anchor.splitViewId !== undefined)
-          return 'The source tab is already in a split view.'
-      }
     }
     if (
       command.windowId !== undefined &&
@@ -228,25 +207,13 @@ export const planTabCreation = (
   snapshot: BrowserSnapshot,
   command: Extract<BrowserCommand, { type: 'create-tab' }>,
 ) => {
-  const anchor = snapshot.tabs.find(
-    (tab) => tab.id === (command.afterTabId ?? command.splitWithTabId),
-  )
+  const anchor = snapshot.tabs.find((tab) => tab.id === command.afterTabId)
   const groupId = anchor?.groupId ?? command.groupId
   const group = snapshot.groups.find((group) => group.id === groupId)
   const windowId = anchor?.windowId ?? command.windowId ?? group?.windowId
   const tabs = snapshot.tabs.filter((tab) => tab.windowId === windowId)
-  const split = command.splitWithTabId !== undefined
   const last = anchor
-    ? Math.max(
-        anchor.index,
-        ...tabs
-          .filter(
-            (tab) =>
-              anchor.splitViewId !== undefined &&
-              tab.splitViewId === anchor.splitViewId,
-          )
-          .map((tab) => tab.index),
-      )
+    ? anchor.index
     : groupId !== undefined
       ? Math.max(
           -1,
@@ -258,14 +225,10 @@ export const planTabCreation = (
   return {
     windowId,
     groupId,
-    pinned: split && Boolean(anchor?.pinned),
     index:
       last === undefined
         ? undefined
-        : Math.max(
-            last + 1,
-            split ? 0 : tabs.filter((tab) => tab.pinned).length,
-          ),
+        : Math.max(last + 1, tabs.filter((tab) => tab.pinned).length),
     openerTabId:
       anchor?.id ??
       (groupId !== undefined
