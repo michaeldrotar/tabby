@@ -67,10 +67,16 @@ export const TabManagerExperience = ({
     else controller.cancel()
     return () => controller.cancel()
   }, [controller, live])
-  const model = projectTabManager(snapshot, state, now, {
-    reduceAgePrecision,
-    windowSource: preferenceState.tabManagerCompactIconMode,
-  })
+  const model = projectTabManager(
+    snapshot,
+    state,
+    now,
+    {
+      reduceAgePrecision,
+      windowSource: preferenceState.tabManagerCompactIconMode,
+    },
+    controller.getPreviousSnapshot(),
+  )
   return (
     <TabManager
       model={model}

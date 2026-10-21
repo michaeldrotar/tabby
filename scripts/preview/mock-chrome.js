@@ -73,13 +73,20 @@
       const tab = find(tabs, id)
       tabs.splice(tabs.indexOf(tab), 1)
       const remaining = windowTabs(tab.windowId)
+      const groupTabs =
+        tab.groupId === -1
+          ? []
+          : remaining.filter((item) => item.groupId === tab.groupId)
+      const candidates = groupTabs.length ? groupTabs : remaining
+      const nextActive =
+        candidates.find((item) => item.index > tab.index) ?? candidates.at(-1)
       orderTabs(remaining)
       api.tabs.onRemoved.emit(id, { windowId: tab.windowId, isWindowClosing })
       removeEmptyGroups()
       if (!isWindowClosing) {
         if (remaining.length === 0) await api.windows.remove(tab.windowId)
         else if (tab.active)
-          await api.tabs.update(remaining[0].id, { active: true })
+          await api.tabs.update(nextActive.id, { active: true })
       }
     }
   }

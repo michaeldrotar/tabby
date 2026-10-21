@@ -212,6 +212,34 @@ describe('sample Chrome interactions', () => {
     })
   })
 
+  it.each([
+    { closing: 5, expected: 6 },
+    { closing: 6, expected: 5 },
+    { closing: 3, expected: 4 },
+    { closing: 4, expected: 3 },
+    { closing: 3, expected: 4, singleton: true },
+  ])(
+    'activates tab $expected after closing active tab $closing (singleton group: $singleton)',
+    async ({ closing, expected, singleton }) => {
+      const fixture = structuredClone(browser)
+      if (singleton)
+        fixture.tabs = fixture.tabs.map((tab) =>
+          [2, 4].includes(tab.id) ? { ...tab, groupId: -1 } : tab,
+        )
+      const chrome = loadMock(mockSource, fixture)
+      await chrome.tabs.update(closing, { active: true })
+      const activated = []
+      chrome.tabs.onActivated.addListener((info) => activated.push(info))
+      await chrome.tabs.remove(closing)
+      expect(
+        (await chrome.tabs.query({ windowId: 1, active: true })).map(
+          (tab) => tab.id,
+        ),
+      ).toEqual([expected])
+      expect(activated).toEqual([{ tabId: expected, windowId: 1 }])
+    },
+  )
+
   it('ungroups pinned tabs and removes a group only when its last member leaves', async () => {
     const chrome = loadMock()
     const changes = []
