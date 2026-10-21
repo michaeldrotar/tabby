@@ -36,6 +36,25 @@
     "message": "1 tab"
   },
 
+  "tabContextMenu_newTabBelow": {
+    "message": "New tab below"
+  },
+  "tabContextMenu_openSplitView": {
+    "message": "Open in split view"
+  },
+  "tabContextMenu_separateSplitView": {
+    "message": "Separate split view"
+  },
+  "tabContextMenu_newSplitTab": {
+    "message": "Add tab to new split view"
+  },
+  "tabContextMenu_splitWithCurrent": {
+    "message": "New split view with current tab"
+  },
+  "tab_splitView": {
+    "message": "Split view $1"
+  },
+
   "tabContextMenu_duplicateTab": {
     "message": "Duplicate Tab"
   },

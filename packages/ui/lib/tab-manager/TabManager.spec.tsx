@@ -808,3 +808,29 @@ describe('TabManager presentation', () => {
     expect(firstTab).toHaveFocus()
   })
 })
+
+describe('middle-click tab closing', () => {
+  it('closes the pointed-at tab without selecting it and leaves other mouse buttons alone', () => {
+    const onIntent = vi.fn()
+    const { container } = render(
+      <Surface>
+        <TabManager model={model} onIntent={onIntent} />
+      </Surface>,
+    )
+    const row = screen.getByRole('option', { name: 'Tab: Tabby' })
+    const favicon = container.querySelector('[data-tab-favicon]')!
+    fireEvent.mouseDown(favicon, { button: 1 })
+    fireEvent(favicon, new MouseEvent('auxclick', { bubbles: true, button: 1 }))
+    expect(onIntent).toHaveBeenCalledExactlyOnceWith({
+      type: 'close-tabs',
+      tabIds: [10],
+    })
+    onIntent.mockClear()
+    fireEvent(row, new MouseEvent('auxclick', { bubbles: true, button: 2 }))
+    fireEvent(
+      container.querySelector('[data-group-option]')!,
+      new MouseEvent('auxclick', { bubbles: true, button: 1 }),
+    )
+    expect(onIntent).not.toHaveBeenCalled()
+  })
+})

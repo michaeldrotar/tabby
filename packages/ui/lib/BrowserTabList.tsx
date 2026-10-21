@@ -21,6 +21,8 @@ export type BrowserTabListTab = {
   blurred?: boolean
   pinned?: boolean
   discarded?: boolean
+  splitViewId?: number
+  splitViewNumber?: number
   audio?: 'muted' | 'on' | 'off'
   lastAccessed?: number
   ageLabel?: string
@@ -131,6 +133,8 @@ const renderDefaultTab = ({
     blurred={tab.blurred}
     pinned={tab.pinned}
     discarded={tab.discarded}
+    splitViewId={tab.splitViewId}
+    splitViewNumber={tab.splitViewNumber}
     audio={tab.audio}
     ageLabel={tab.ageLabel}
     lastAccessed={tab.lastAccessed}
