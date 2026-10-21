@@ -1,0 +1,51 @@
+{
+  "currentWindowId": 1,
+  "windows": [
+    {
+      "id": 1,
+      "focused": true,
+      "name": "Workspace"
+    }
+  ],
+  "groups": [],
+  "tabs": [
+    {
+      "id": 1,
+      "windowId": 1,
+      "title": "T3 Code - project 1",
+      "url": "https://t3code.app/project/1",
+      "active": true
+    },
+    {
+      "id": 2,
+      "windowId": 1,
+      "title": "T3 Code - project 2",
+      "url": "https://t3code.app/project/2",
+      "active": false
+    },
+    {
+      "id": 3,
+      "windowId": 1,
+      "title": "T3 Code - project 3",
+      "url": "https://t3code.app/project/3",
+      "active": false
+    },
+    {
+      "id": 4,
+      "windowId": 1,
+      "title": "T3 Code - project 4",
+      "url": "https://t3code.app/project/4",
+      "active": false
+    },
+    {
+      "id": 5,
+      "windowId": 1,
+      "title": "T3 Code - project 5",
+      "url": "https://t3code.app/project/5",
+      "active": false
+    }
+  ],
+  "preferences": {
+    "theme": "dark"
+  }
+}

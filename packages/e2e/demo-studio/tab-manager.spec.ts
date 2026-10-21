@@ -13,6 +13,40 @@ const enterComparisonMode = async (page: Page) => {
   }
 }
 
+test('search recalls a chosen tab above other matches when the query is repeated', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const instance = page.getByRole('region', { name: 'Tabby product demo' })
+  const products = page.getByRole('navigation', { name: 'Product experience' })
+  const openSearch = () =>
+    products.getByRole('button', { name: 'Omnibar', exact: true }).click()
+  await openSearch()
+  await instance.getByRole('combobox').fill('e')
+  await expect(
+    instance.getByRole('option', { name: /^Reference 4 tab/ }),
+  ).toBeVisible()
+  await expect(
+    instance.getByRole('option', { name: /^Closed research guide/ }),
+  ).toBeVisible()
+  await expect(
+    instance.getByRole('option', { name: /^Tabby architecture guide/ }),
+  ).toBeVisible()
+  await instance.getByRole('combobox').fill('ref')
+  await expect(instance.getByRole('option').nth(1)).toContainText('Reference')
+  await instance.getByRole('option', { name: /^Reference 4 tab/ }).click()
+  await expect(instance.locator('[data-window-picker-trigger]')).toBeVisible()
+  await openSearch()
+  await instance.getByRole('combobox').fill('ref')
+  await expect(instance.getByRole('option').nth(1)).toContainText('Reference 4')
+  await expect(instance.getByRole('option').first()).toContainText(
+    'Search Google',
+  )
+  await instance.getByRole('combobox').press('ArrowDown')
+  await instance.getByRole('combobox').press('Enter')
+  await expect(instance.locator('[data-window-picker-trigger]')).toBeVisible()
+})
+
 test('a large browser stays responsive through selection and window switching at sidebar width', async ({
   page,
 }) => {

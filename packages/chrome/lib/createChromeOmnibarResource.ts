@@ -1,9 +1,12 @@
 import { createAsyncQueue } from '@extension/core/asyncQueue'
-import { isNavigableUrl } from '@extension/core/navigation'
 import { OmnibarCancelledError } from '@extension/core/omnibar'
+import { readOmnibarChoices } from '@extension/core/omnibarChoices'
+import { createOmnibarMatcher } from '@extension/core/omnibarMatching'
+import { createChromeOmnibarNavigator } from './createChromeOmnibarNavigator.js'
 import { getChromeFaviconUrl } from './favicon.js'
 import type {
   OmnibarAction,
+  OmnibarChoice,
   OmnibarMetadata,
   OmnibarModifier,
   OmnibarResource,
@@ -47,110 +50,41 @@ export const createChromeOmnibarResource = (
       throw new OmnibarCancelledError('The Omnibar resource has been disposed.')
     if (operation !== generation) throw new OmnibarCancelledError()
   }
-  const openUrl = async (
-    url: string,
-    modifier?: OmnibarModifier,
-    fallbackWindowId?: number,
-    operation = generation,
-  ) => {
-    current(operation)
-    if (!isNavigableUrl(url))
-      throw new Error(
-        'This URL cannot be opened. Use a web address or a supported browser page.',
-      )
-    if (modifier === 'new-window') {
-      await api.windows.create({ url, focused: true })
-      return
-    }
-    const windowId = metadata.originalWindowId ?? fallbackWindowId
-    if (modifier === 'new-tab') {
-      await api.tabs.create({
-        ...(windowId === undefined ? {} : { windowId }),
-        url,
-        active: true,
+  const loadChoices = async (windowId?: number): Promise<OmnibarChoice[]> => {
+    if (windowId === undefined) return []
+    try {
+      const response = await api.runtime.sendMessage({
+        type: 'tabby-omnibar-choices',
+        windowId,
       })
-      current(operation)
-      if (windowId !== undefined)
-        await api.windows.update(windowId, { focused: true })
-      return
+      return readOmnibarChoices(response?.choices, Date.now())
+    } catch {
+      return []
     }
-    if (windowId !== undefined) {
-      const [tab] = await api.tabs.query({ windowId, active: true })
-      current(operation)
-      if (tab?.id !== undefined)
-        await api.tabs.update(tab.id, { url, active: true })
-      else await api.tabs.create({ windowId, url, active: true })
-      current(operation)
-      await api.windows.update(windowId, { focused: true })
-    } else await api.tabs.update({ url })
   }
   const navigate = async (
     action: OmnibarAction,
     modifier: OmnibarModifier | undefined,
     operation: number,
+    choice?: OmnibarChoice,
   ) => {
+    if (!choice)
+      return createChromeOmnibarNavigator(
+        api,
+        metadata.originalWindowId,
+        current,
+      )(action, modifier, operation)
+    const response = await api.runtime.sendMessage({
+      type: 'tabby-omnibar-execute',
+      action,
+      modifier,
+      windowId: metadata.originalWindowId,
+      choice,
+    })
+    if (!response?.success)
+      throw new Error(response?.error ?? 'Could not open this search result.')
     current(operation)
-    switch (action.kind) {
-      case 'url':
-        await openUrl(action.url, modifier, undefined, operation)
-        break
-      case 'tab':
-        if (modifier && action.url) {
-          try {
-            await openUrl(action.url, modifier, action.windowId, operation)
-            return
-          } catch {
-            current(operation)
-          }
-        }
-        // Activate first: focusing a different window can close the popup host.
-        await api.tabs.update(action.tabId, { active: true })
-        current(operation)
-        await api.windows.update(action.windowId, { focused: true })
-        break
-      case 'group': {
-        const [groups, tabs] = await Promise.all([
-          api.tabGroups.query({}),
-          api.tabs.query({ groupId: action.groupId }),
-        ])
-        current(operation)
-        const group = groups.find(
-          (candidate) => candidate.id === action.groupId,
-        )
-        const members = tabs
-          .filter(
-            (tab): tab is chrome.tabs.Tab & { id: number } =>
-              tab.id !== undefined,
-          )
-          .sort((a, b) => a.index - b.index)
-        const tab = members.find((member) => member.active) ?? members[0]
-        if (!group || !tab)
-          throw new Error('This tab group is no longer available.')
-        if (group.collapsed)
-          await api.tabGroups.update(group.id, { collapsed: false })
-        current(operation)
-        await api.tabs.update(tab.id, { active: true })
-        current(operation)
-        await api.windows.update(group.windowId, { focused: true })
-        break
-      }
-      case 'window':
-        await api.windows.update(action.windowId, { focused: true })
-        break
-      case 'restore':
-        await api.sessions.restore(action.sessionId)
-        break
-      case 'tab-manager': {
-        const windowId =
-          metadata.originalWindowId ?? (await api.windows.getLastFocused()).id
-        current(operation)
-        if (windowId !== undefined) await api.sidePanel.open({ windowId })
-        break
-      }
-      case 'options':
-        await api.runtime.openOptionsPage()
-        break
-    }
+    await refreshChoices()
   }
   const queueQuery = (query?: string) => {
     const operation = generation
@@ -162,8 +96,18 @@ export const createChromeOmnibarResource = (
       else await api.storage.local.set({ lastQuery: query })
     })
   }
+  const refreshChoices = async (operation = generation) => {
+    const choices = await loadChoices(metadata.originalWindowId)
+    if (disposed || generation !== operation) return
+    metadata = { ...metadata, choices }
+    listeners.forEach((listener) => listener())
+  }
   const clearQuery = () => queueQuery()
-  const execute = async (action: OmnibarAction, modifier?: OmnibarModifier) => {
+  const execute = async (
+    action: OmnibarAction,
+    modifier?: OmnibarModifier,
+    choice?: OmnibarChoice,
+  ) => {
     current()
     const operation = generation
     const previousQuery = savedQuery
@@ -172,13 +116,13 @@ export const createChromeOmnibarResource = (
     try {
       if (action.kind === 'tab-manager') {
         // Side-panel opening requires the originating user gesture.
-        const opening = navigate(action, modifier, operation)
+        const opening = navigate(action, modifier, operation, choice)
         await Promise.all([opening, clear])
       } else {
         await clear
         // A newer edit must finish persisting before navigation can close the host.
         await writes.wait()
-        await navigate(action, modifier, operation)
+        await navigate(action, modifier, operation, choice)
       }
     } catch (error) {
       if (
@@ -217,12 +161,16 @@ export const createChromeOmnibarResource = (
             typeof query.value.lastQuery === 'string'
               ? query.value.lastQuery
               : undefined
+        const originalWindowId =
+          window.status === 'fulfilled' ? window.value.id : requestedWindowId
+        const choices = await loadChoices(originalWindowId)
+        if (token !== generation || disposed) return
         metadata = {
           loaded: true,
           initialQuery: savedQuery ?? '',
           isMac: platform.status === 'fulfilled' && platform.value.os === 'mac',
-          originalWindowId:
-            window.status === 'fulfilled' ? window.value.id : requestedWindowId,
+          originalWindowId,
+          choices,
           openTabManagerShortcut:
             commands.status === 'fulfilled'
               ? commands.value.find(
@@ -250,7 +198,7 @@ export const createChromeOmnibarResource = (
       ])
       if (token !== generation || disposed) return []
       const closed: OmnibarResult[] = []
-      const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+      const matches = createOmnibarMatcher(query)
       if (sessions.status === 'fulfilled')
         for (const session of sessions.value) {
           const tabs = session.tab
@@ -259,15 +207,7 @@ export const createChromeOmnibarResource = (
           tabs.forEach((tab, index) => {
             const sessionId =
               session.tab?.sessionId ?? session.window?.sessionId
-            if (
-              !sessionId ||
-              !terms.every((term) =>
-                `${tab.title ?? ''} ${tab.url ?? ''}`
-                  .toLowerCase()
-                  .includes(term),
-              )
-            )
-              return
+            if (!sessionId || !matches(tab.title, tab.url)) return
             closed.push({
               id: session.tab
                 ? `recently-closed-${sessionId}`

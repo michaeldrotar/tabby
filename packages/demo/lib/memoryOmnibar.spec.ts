@@ -1,3 +1,5 @@
+import { getOmnibarTarget } from '@extension/core/omnibarChoices'
+import { getOmnibarResults } from '@extension/core/omnibarResults'
 import { describe, expect, it, vi } from 'vitest'
 import { createFixtureBuilder } from './fixtures'
 import { MemoryBackend } from './memoryBackend'
@@ -27,6 +29,106 @@ const setup = (options: MemoryBackendOptions = {}) => {
 }
 
 describe('memory Omnibar', () => {
+  it.each([true, false])(
+    'keeps checked tabs above unchecked matches in selection order (advancing clock: %s)',
+    async (advancing) => {
+      let now = 100 * 24 * 60 * 60 * 1000
+      const backend = new MemoryBackend(
+        {
+          ...setup().getSnapshot(),
+          windows: [{ id: 1, name: 'Workspace', focused: true }],
+          groups: [],
+          tabs: Array.from({ length: 5 }, (_, index) => ({
+            id: index + 1,
+            windowId: 1,
+            index,
+            title: `T3 Code - project ${index + 1}`,
+            url: `https://t3code.app/project/${index + 1}`,
+            active: index === 4,
+            lastAccessed: now - (5 - index) * 1000,
+          })),
+        },
+        { now: () => now },
+      )
+      const resource = createMemoryOmnibarResource(backend, {
+        originalWindowId: 1,
+      })
+      const results = () =>
+        getOmnibarResults(
+          't3 code',
+          backend.getSnapshot(),
+          1,
+          [],
+          now,
+          'active',
+          resource.getSnapshot().choices,
+        )
+      const order = () =>
+        results()
+          .filter((item) => item.type === 'tab')
+          .map((item) => item.id)
+      expect(order()).toEqual([5, 4, 3, 2, 1])
+      const steps = [
+        { pick: 2, expected: [2, 5, 4, 3, 1] },
+        { pick: 5, expected: [5, 2, 4, 3, 1] },
+        { pick: 1, expected: [1, 5, 2, 4, 3] },
+        { pick: 4, expected: [4, 1, 5, 2, 3] },
+        { pick: 2, expected: [2, 4, 1, 5, 3] },
+      ]
+      for (const step of steps) {
+        if (advancing) now += 1000
+        const result = results().find(
+          (item) => item.type === 'tab' && item.id === step.pick,
+        )!
+        await resource.execute(result.action, undefined, {
+          query: 't3 code',
+          target: getOmnibarTarget(result),
+          selectedAt: now,
+        })
+        expect(order()).toEqual(step.expected)
+        expect(
+          backend.getSnapshot().tabs.find((tab) => tab.id === step.pick)
+            ?.lastAccessed,
+        ).toBe(now)
+        expect(results()[0]?.type).toBe('search')
+      }
+      expect(resource.getSnapshot().choices).toHaveLength(4)
+    },
+  )
+
+  it('finds demo results using title and URL substrings', async () => {
+    const backend = setup()
+    const results = [
+      {
+        id: 'bookmark',
+        type: 'bookmark' as const,
+        title: 'Tabby Café',
+        url: 'https://example.com/coffee',
+        action: { kind: 'url' as const, url: 'https://example.com/coffee' },
+      },
+      {
+        id: 'history',
+        type: 'history' as const,
+        title: 'Tabby Café',
+        url: 'https://example.com/coffee',
+        action: { kind: 'url' as const, url: 'https://example.com/coffee' },
+      },
+    ]
+    const resource = createMemoryOmnibarResource(backend, { results })
+    expect((await resource.search('ta')).map((item) => item.id)).toEqual([
+      'bookmark',
+      'history',
+    ])
+    expect((await resource.search('e')).map((item) => item.id)).toEqual([
+      'bookmark',
+      'history',
+    ])
+    expect(
+      (await resource.search('tabby coffee')).map((item) => item.id),
+    ).toEqual(['bookmark', 'history'])
+    expect(await resource.search('cafe')).toEqual([])
+  })
+
   it('navigates and duplicates without touching browser APIs, opens groups and restores supplied sessions', async () => {
     const backend = setup()
     const options = vi.fn()

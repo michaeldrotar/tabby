@@ -117,6 +117,10 @@ test('the built extension shares preferences and receives live tab changes', asy
       name: /Smoke workspace.*Window/,
     }),
   ).toBeVisible()
+  await popup.getByRole('combobox').fill('e')
+  await expect(
+    popup.getByRole('option').filter({ hasText: /options\/index\.html/ }),
+  ).toBeVisible()
   await popup.getByRole('combobox').fill('unfinished search')
   await popup.keyboard.down('Escape')
   await expect.poll(() => popup.isClosed()).toBe(true)
@@ -150,6 +154,21 @@ test('the built extension shares preferences and receives live tab changes', asy
     exact: true,
   })
   await expect(row).toBeVisible()
+  const search = await context.newPage()
+  await search.goto(`chrome-extension://${extensionId}/omnibar/index.html`)
+  await search.getByRole('combobox').fill('Smoke')
+  await expect(search.getByRole('option').nth(1)).toContainText(
+    'Smoke test tab',
+  )
+  await search.getByRole('option', { name: /^Smoke test tab tab/ }).click()
+  await expect.poll(() => search.isClosed()).toBe(true)
+  const recalled = await context.newPage()
+  await recalled.goto(`chrome-extension://${extensionId}/omnibar/index.html`)
+  await recalled.getByRole('combobox').fill('Smoke')
+  await expect(recalled.getByRole('option').nth(1)).toContainText(
+    'Smoke test tab',
+  )
+  await recalled.close()
   await row.click()
   await manager.keyboard.press('Delete')
   await expect(row).toHaveCount(0)

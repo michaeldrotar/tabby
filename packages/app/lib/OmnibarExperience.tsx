@@ -1,4 +1,5 @@
 import { OmnibarCancelledError } from '@extension/core/omnibar'
+import { getOmnibarTarget } from '@extension/core/omnibarChoices'
 import { getOmnibarResults } from '@extension/core/omnibarResults'
 import { formatTimeAgo } from '@extension/core/time'
 import { Omnibar } from '@extension/ui/omnibar/Omnibar'
@@ -14,9 +15,13 @@ import type {
 } from '@extension/core'
 import type { OmnibarSearchResult } from '@extension/ui/omnibar/Omnibar'
 
+const resultIdentity = (result: Pick<OmnibarResult, 'type' | 'id'>) =>
+  `${result.type}:${result.id}`
+
 export type OmnibarViewState = {
   query: string
   selectedIndex: number
+  selectedTarget: string | null
   modifiers: { command: boolean; shift: boolean }
   externalResults: OmnibarResult[]
   resultsQuery: string
@@ -28,6 +33,7 @@ export const createOmnibarView = (initial: Partial<OmnibarViewState> = {}) =>
   createStore<OmnibarViewState>(() => ({
     query: '',
     selectedIndex: 0,
+    selectedTarget: null,
     modifiers: { command: false, shift: false },
     externalResults: [],
     resultsQuery: '',
@@ -102,19 +108,34 @@ export const OmnibarExperience = ({
     }
   }, [state.query, resource, view, live])
   const execute = useCallback(
-    async (action: OmnibarAction, modifier?: OmnibarModifier) => {
+    async (
+      action: OmnibarAction,
+      modifier?: OmnibarModifier,
+      result?: OmnibarResult,
+    ) => {
       const query = view.getState().query
-      await resource.execute(action, modifier)
+      await resource.execute(
+        action,
+        modifier,
+        result && query.trim()
+          ? {
+              query,
+              target: getOmnibarTarget(result),
+              selectedAt: environment.now(),
+            }
+          : undefined,
+      )
       if (view.getState().query === query)
         view.setState({
           query: '',
           edited: true,
           selectedIndex: 0,
+          selectedTarget: null,
           externalResults: [],
           resultsQuery: '',
         })
     },
-    [resource, view],
+    [resource, view, environment],
   )
   const results = useMemo(() => {
     const present = (result: OmnibarResult): OmnibarSearchResult => ({
@@ -126,7 +147,7 @@ export const OmnibarExperience = ({
         result.lastVisitTime === undefined
           ? undefined
           : formatTimeAgo(result.lastVisitTime, now),
-      execute: (modifier) => execute(result.action, modifier),
+      execute: (modifier) => execute(result.action, modifier, result),
     })
     return getOmnibarResults(
       state.query,
@@ -135,6 +156,7 @@ export const OmnibarExperience = ({
       state.resultsQuery === state.query ? state.externalResults : [],
       now,
       preferenceState.tabManagerCompactIconMode,
+      metadata.choices,
     ).map(present)
   }, [
     resource,
@@ -142,11 +164,22 @@ export const OmnibarExperience = ({
     execute,
     snapshot,
     metadata.originalWindowId,
+    metadata.choices,
     now,
     state.query,
     state.resultsQuery,
     state.externalResults,
   ])
+  const retainedIndex =
+    state.selectedTarget === null
+      ? -1
+      : results.findIndex(
+          (result) => resultIdentity(result) === state.selectedTarget,
+        )
+  const selectedIndex =
+    retainedIndex >= 0
+      ? retainedIndex
+      : Math.min(state.selectedIndex, Math.max(0, results.length - 1))
   const dismiss = onDismiss
   const error = (error: unknown) => {
     if (error instanceof OmnibarCancelledError) return
@@ -166,18 +199,25 @@ export const OmnibarExperience = ({
         openTabManagerShortcut={metadata.openTabManagerShortcut}
         query={state.query}
         onQueryChange={(query) => {
-          view.setState({ query, selectedIndex: 0, edited: true, error: null })
+          view.setState({
+            query,
+            selectedIndex: 0,
+            selectedTarget: null,
+            edited: true,
+            error: null,
+          })
           void resource.saveQuery(query).catch(error)
         }}
-        selectedIndex={state.selectedIndex}
-        onSelectedIndexChange={(next) =>
+        selectedIndex={selectedIndex}
+        onSelectedIndexChange={(next) => {
+          const index = typeof next === 'function' ? next(selectedIndex) : next
           view.setState({
-            selectedIndex:
-              typeof next === 'function'
-                ? next(view.getState().selectedIndex)
-                : next,
+            selectedIndex: index,
+            selectedTarget: results[index]
+              ? resultIdentity(results[index])
+              : null,
           })
-        }
+        }}
         modifiers={state.modifiers}
         onModifiersChange={(modifiers) => view.setState({ modifiers })}
         onOpenTabManager={() => execute({ kind: 'tab-manager' })}

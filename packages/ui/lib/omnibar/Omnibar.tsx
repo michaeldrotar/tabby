@@ -235,8 +235,8 @@ export const Omnibar = ({
         ref={inputRef}
         query={query}
         onChange={(e) => {
-          setQuery(e.target.value)
           setSelectedIndex(0)
+          setQuery(e.target.value)
         }}
         onKeyDown={handleKeyDown}
       />

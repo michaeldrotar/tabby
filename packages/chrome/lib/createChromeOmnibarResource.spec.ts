@@ -82,6 +82,24 @@ const setup = (originalWindowId?: number) => {
 }
 
 describe('Chrome Omnibar resource', () => {
+  it('matches recently closed URL substrings and preserves native search results', async () => {
+    const { api, resource } = setup()
+    await resource.start()
+    const results = await resource.search('e')
+    expect(results.map((item) => item.type)).toEqual([
+      'recently-closed',
+      'recently-closed',
+      'bookmark',
+      'history',
+    ])
+    expect(api.bookmarks.search).toHaveBeenCalledWith('e')
+    expect(api.history.search).toHaveBeenCalledWith({
+      text: 'e',
+      maxResults: 20,
+      startTime: 0,
+    })
+  })
+
   it('focuses a window without changing its active tab or opening a copy', async () => {
     const { api, resource } = setup(1)
     await resource.start()
@@ -110,6 +128,7 @@ describe('Chrome Omnibar resource', () => {
       initialQuery: 'saved',
       originalWindowId: 3,
       isMac: true,
+      choices: [],
       openTabManagerShortcut: 'Alt+Shift+E',
     })
     expect(initial.loaded).toBe(false)

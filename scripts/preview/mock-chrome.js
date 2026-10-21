@@ -7,7 +7,7 @@
       addListener: (listener) => listeners.add(listener),
       removeListener: (listener) => listeners.delete(listener),
       hasListener: (listener) => listeners.has(listener),
-      emit: (...args) => listeners.forEach((listener) => listener(...args)),
+      emit: (...args) => [...listeners].map((listener) => listener(...args)),
     }
   }
   const events = (names) =>
@@ -152,6 +152,20 @@
           ? `chrome-extension://preview/${path}`
           : new URL(`/${path}`, globalThis.location.origin).href,
       sendMessage: async (message) => {
+        if (
+          message.type === 'tabby-omnibar-execute' ||
+          message.type === 'tabby-omnibar-choices'
+        ) {
+          return new Promise((resolve, reject) => {
+            const pending = api.runtime.onMessage.emit(
+              message,
+              { id: api.runtime.id },
+              resolve,
+            )
+            if (!pending.includes(true))
+              reject(new Error('The preview worker is not available.'))
+          })
+        }
         if (message.type === 'TAB_MANAGER_WINDOW_ACTIVATED') {
           api.runtime.onMessage.emit(message, { id: api.runtime.id })
           return
@@ -398,6 +412,7 @@
         )
           changes.pinned = false
         if (values.active) {
+          changes.lastAccessed = Date.now()
           windowTabs(tab.windowId).forEach((item) => {
             item.active = item.id === id
             item.highlighted = item.active
