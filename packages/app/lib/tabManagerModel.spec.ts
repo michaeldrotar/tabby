@@ -1354,8 +1354,8 @@ it('activates and focuses the first selected tab in source order for drag and me
   }
 })
 
-describe('Chrome tab parity', () => {
-  it('creates a tab below the chosen row and then creates and separates a split pair', async () => {
+describe('adjacent tab creation', () => {
+  it('creates and selects a tab below the chosen row', async () => {
     const { backend, view, controller } = setup()
     const select = (id: number, toggle = false) =>
       controller.dispatch({
@@ -1378,73 +1378,5 @@ describe('Chrome tab parity', () => {
     ).toEqual([11, created.id, 12])
     expect(created.active).toBe(true)
     expect(model().selectedTabIds).toEqual([created.id])
-    await select(11)
-    await select(12, true)
-    expect(
-      model().actions?.find((action) => action.id === 'create-split')?.disabled,
-    ).toBe(false)
-    await controller.dispatch({ type: 'run-action', actionId: 'create-split' })
-    const paired = backend
-      .getSnapshot()
-      .tabs.filter((tab) => tab.splitViewId !== undefined)
-    expect(paired.map((tab) => tab.id)).toEqual([11, 12])
-    expect(paired[1]!.index).toBe(paired[0]!.index + 1)
-    const projected = model().windows[0]!.tabs.filter(
-      (tab) => tab.splitViewId !== undefined,
-    )
-    expect(projected.map((tab) => tab.splitViewNumber)).toEqual([1, 1])
-    await controller.dispatch({
-      type: 'run-action',
-      actionId: 'separate-split',
-    })
-    expect(
-      backend.getSnapshot().tabs.every((tab) => tab.splitViewId === undefined),
-    ).toBe(true)
-    await select(11)
-    await controller.dispatch({ type: 'run-action', actionId: 'new-split-tab' })
-    expect(
-      backend.getSnapshot().tabs.filter((tab) => tab.splitViewId !== undefined),
-    ).toHaveLength(2)
-    await controller.dispatch({ type: 'close-tabs', tabIds: [11] })
-    expect(
-      backend.getSnapshot().tabs.every((tab) => tab.splitViewId === undefined),
-    ).toBe(true)
-  })
-
-  it('offers split-with-current without activating the target and hides unsupported controls', async () => {
-    const { backend, view, controller } = setup()
-    controller.dispatch({
-      type: 'open-action-menu',
-      target: { type: 'tab', id: 12 },
-    })
-    let model = projectTabManager(backend.getSnapshot(), view.getState(), 0)
-    expect(
-      model.contextActions?.find(
-        (action) => action.id === 'split-with-current-tab',
-      )?.disabled,
-    ).toBe(false)
-    await controller.dispatch({
-      type: 'run-action',
-      actionId: 'split-with-current-tab',
-    })
-    expect(
-      backend
-        .getSnapshot()
-        .tabs.filter((tab) => tab.splitViewId !== undefined)
-        .map((tab) => tab.id),
-    ).toEqual([11, 12])
-    expect(
-      backend.getSnapshot().tabs.find((tab) => tab.active && tab.windowId === 1)
-        ?.id,
-    ).toBe(11)
-    backend.restoreSnapshot({
-      ...backend.getSnapshot(),
-      splitViewSupported: false,
-    })
-    model = projectTabManager(backend.getSnapshot(), view.getState(), 0)
-    expect(model.actions?.some((action) => action.id.includes('split'))).toBe(
-      false,
-    )
-    expect(model.windows[0]!.tabs[0]!.splitViewNumber).toBe(1)
   })
 })

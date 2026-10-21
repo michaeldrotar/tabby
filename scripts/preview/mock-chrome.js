@@ -24,7 +24,6 @@
       .slice(0, index)
       .filter((item) => item.windowId === tab.windowId).length,
     groupId: -1,
-    splitViewId: -1,
     active: false,
     highlighted: Boolean(tab.active),
     pinned: false,
@@ -42,7 +41,6 @@
   const nextTabId = idSequence(tabs)
   const nextWindowId = idSequence(windows)
   const nextGroupId = idSequence(groups)
-  const nextSplitId = idSequence(tabs.map((tab) => ({ id: tab.splitViewId })))
   const find = (items, id) => {
     const item = items.find((candidate) => candidate.id === id)
     if (!item) throw new Error(`No sample browser item with ID ${id}.`)
@@ -70,19 +68,9 @@
     else if (!remaining.some((tab) => tab.active))
       await api.tabs.update(remaining[0].id, { active: true })
   }
-  const separateSplit = async (splitViewId) => {
-    const members = tabs.filter((tab) => tab.splitViewId === splitViewId)
-    if (splitViewId < 0 || members.length !== 2)
-      throw new Error('The split view is no longer available.')
-    for (const tab of members) {
-      tab.splitViewId = -1
-      api.tabs.onUpdated.emit(tab.id, { splitViewId: -1 }, clone(tab))
-    }
-  }
   const removeTabs = async (ids, isWindowClosing = false) => {
     for (const id of [].concat(ids)) {
       const tab = find(tabs, id)
-      if (tab.splitViewId !== -1) await separateSplit(tab.splitViewId)
       tabs.splice(tabs.indexOf(tab), 1)
       const remaining = windowTabs(tab.windowId)
       const groupTabs =
@@ -379,29 +367,6 @@
       },
     },
     tabs: {
-      createSplit: async (ids) => {
-        if (ids.length !== 2 || ids[0] === ids[1])
-          throw new Error('Choose exactly two tabs.')
-        const [first, second] = ids.map((id) => find(tabs, id))
-        if (
-          first.splitViewId !== -1 ||
-          second.splitViewId !== -1 ||
-          first.windowId !== second.windowId ||
-          first.groupId !== second.groupId ||
-          first.pinned !== second.pinned ||
-          Math.abs(first.index - second.index) !== 1
-        )
-          throw new Error(
-            'Tabs must be adjacent with matching window, group, and pinned state.',
-          )
-        const splitViewId = nextSplitId()
-        for (const tab of [first, second]) {
-          tab.splitViewId = splitViewId
-          api.tabs.onUpdated.emit(tab.id, { splitViewId }, clone(tab))
-        }
-        return splitViewId
-      },
-      unsplit: separateSplit,
       ...events([
         'onActivated',
         'onAttached',
@@ -454,26 +419,16 @@
         return clone(tab)
       },
       create: async (values = {}) => {
-        const partner =
-          values.splitWithTabId === undefined
-            ? undefined
-            : find(tabs, values.splitWithTabId)
-        if (partner?.splitViewId !== undefined && partner.splitViewId !== -1)
-          throw new Error('The source tab is already in a split view.')
         const windowId =
-          values.windowId ??
-          partner?.windowId ??
-          browser.currentWindowId ??
-          windows[0].id
+          values.windowId ?? browser.currentWindowId ?? windows[0].id
         find(windows, windowId)
         const tab = {
           id: nextTabId(),
           windowId,
-          groupId: partner?.groupId ?? -1,
-          splitViewId: -1,
+          groupId: -1,
           active: false,
           highlighted: false,
-          pinned: values.pinned ?? partner?.pinned ?? false,
+          pinned: Boolean(values.pinned),
           audible: false,
           mutedInfo: { muted: false },
           discarded: false,
@@ -496,7 +451,6 @@
         api.tabs.onUpdated.emit(tab.id, { status: 'complete' }, clone(tab))
         if (values.active !== false)
           await api.tabs.update(tab.id, { active: true })
-        if (partner) await api.tabs.createSplit([partner.id, tab.id])
         return clone(tab)
       },
       remove: (ids) => removeTabs(ids),
@@ -579,10 +533,6 @@
           await api.tabs.update(id, { groupId: -1 })
       },
     },
-  }
-  if (browser.splitViewSupported === false) {
-    delete api.tabs.createSplit
-    delete api.tabs.unsplit
   }
   globalThis.chrome = api
 

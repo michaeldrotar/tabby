@@ -149,20 +149,11 @@ it('resolves the first moved tab by source order for selections and groups', () 
   ).toEqual([2, 3])
 })
 
-describe('tab creation and split view planning', () => {
-  it('places new tabs after their source and respects groups, pins, and existing pairs', () => {
+describe('adjacent tab creation planning', () => {
+  it('places new tabs after their source and respects groups and pinned boundaries', () => {
     expect(
       planTabCreation(snapshot, { type: 'create-tab', afterTabId: 2 }),
-    ).toMatchObject({ windowId: 1, groupId: 10, index: 2, pinned: false })
-    const paired: BrowserSnapshot = {
-      ...snapshot,
-      tabs: snapshot.tabs.map((tab) =>
-        [2, 3].includes(tab.id) ? { ...tab, splitViewId: 0 } : tab,
-      ),
-    }
-    expect(
-      planTabCreation(paired, { type: 'create-tab', afterTabId: 2 }).index,
-    ).toBe(3)
+    ).toMatchObject({ windowId: 1, groupId: 10, index: 2 })
     const pinned = {
       ...snapshot,
       tabs: snapshot.tabs.map((tab) =>
@@ -171,66 +162,9 @@ describe('tab creation and split view planning', () => {
     }
     expect(
       planTabCreation(pinned, { type: 'create-tab', afterTabId: 1 }),
-    ).toMatchObject({ index: 2, pinned: false, groupId: undefined })
-    expect(
-      planTabCreation(pinned, { type: 'create-tab', splitWithTabId: 1 }),
-    ).toMatchObject({ index: 1, pinned: true })
+    ).toMatchObject({ index: 2, groupId: undefined })
     expect(
       getCommandBlockReason({ type: 'create-tab', afterTabId: 99 }, snapshot),
-    ).toContain('no longer available')
-  })
-
-  it('validates split pairs and browser support before changing any tabs', () => {
-    const supported = { ...snapshot, splitViewSupported: true }
-    const pair = (tabIds: number[]) => ({
-      type: 'create-split' as const,
-      tabIds,
-    })
-    expect(getCommandBlockReason(pair([2, 3]), supported)).toBeUndefined()
-    expect(getCommandBlockReason(pair([2, 3]), snapshot)).toContain(
-      'unavailable',
-    )
-    expect(getCommandBlockReason(pair([2, 2]), supported)).toContain('two tabs')
-    expect(getCommandBlockReason(pair([2, 4]), supported)).toContain(
-      'same group',
-    )
-    expect(getCommandBlockReason(pair([1, 6]), supported)).toContain(
-      'pinned state',
-    )
-    expect(getCommandBlockReason(pair([2, 99]), supported)).toContain(
-      'no longer available',
-    )
-    expect(
-      getCommandBlockReason(pair([2, 3]), {
-        ...supported,
-        tabs: supported.tabs.map((tab) =>
-          tab.id === 3 ? { ...tab, windowId: 2 } : tab,
-        ),
-      }),
-    ).toContain('same window')
-    const paired = {
-      ...supported,
-      tabs: supported.tabs.map((tab) =>
-        [2, 3].includes(tab.id) ? { ...tab, splitViewId: 0 } : tab,
-      ),
-    }
-    expect(getCommandBlockReason(pair([2, 3]), paired)).toContain(
-      'existing split views',
-    )
-    expect(
-      getCommandBlockReason({ type: 'separate-split', splitViewId: 0 }, paired),
-    ).toBeUndefined()
-    expect(
-      getCommandTargetIds({ type: 'separate-split', splitViewId: 0 }, paired),
-    ).toEqual([2, 3])
-    expect(
-      getCommandBlockReason(
-        {
-          type: 'separate-split',
-          splitViewId: 99,
-        },
-        paired,
-      ),
     ).toContain('no longer available')
   })
 })

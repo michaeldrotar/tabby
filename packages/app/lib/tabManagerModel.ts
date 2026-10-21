@@ -246,11 +246,6 @@ export const projectTabManagerWindows = (
     const tabs = (tabsByWindow.get(window.id) ?? []).sort(
       (a, b) => a.index - b.index,
     )
-    const splitNumbers = new Map<number, number>()
-    for (const tab of tabs) {
-      if (tab.splitViewId !== undefined && !splitNumbers.has(tab.splitViewId))
-        splitNumbers.set(tab.splitViewId, splitNumbers.size + 1)
-    }
     return {
       id: window.id,
       ...getWindowIdentity(window, tabs, windowSource),
@@ -274,11 +269,6 @@ export const projectTabManagerWindows = (
             ? ('on' as const)
             : ('off' as const),
         groupId: tab.groupId,
-        splitViewId: tab.splitViewId,
-        splitViewNumber:
-          tab.splitViewId === undefined
-            ? undefined
-            : splitNumbers.get(tab.splitViewId),
         ageLabel: ageLabelsById.get(tab.id),
       })),
       groups: (groupsByWindow.get(window.id) ?? []).map((group) => ({

@@ -22,13 +22,7 @@ import type {
   CommandOutcome,
 } from '@extension/core/browser'
 
-type SplitViewTabsApi = {
-  createSplit?: (tabIds: [number, number]) => Promise<number>
-  unsplit?: (splitViewId: number) => Promise<void>
-}
-
-export type ChromeBackendApi = Pick<typeof chrome, 'windows'> & {
-  tabs: typeof chrome.tabs & SplitViewTabsApi
+export type ChromeBackendApi = Pick<typeof chrome, 'windows' | 'tabs'> & {
   runtime?: Pick<typeof chrome.runtime, 'getURL'> &
     Partial<Pick<typeof chrome.runtime, 'sendMessage'>>
   storage?: typeof chrome.storage
@@ -44,7 +38,7 @@ const errorMessage = (error: unknown): string =>
 
 const normalizeSnapshot = (
   windows: chrome.windows.Window[],
-  tabs: (chrome.tabs.Tab & { splitViewId?: number })[],
+  tabs: chrome.tabs.Tab[],
   groups: chrome.tabGroups.TabGroup[],
   previousTabs: readonly BrowserTab[] = [],
   replacementKeys: ReadonlyMap<number, number> = new Map(),
@@ -93,10 +87,6 @@ const normalizeSnapshot = (
           : tab.favIconUrl,
       lastAccessed: tab.lastAccessed,
       groupId: tab.groupId >= 0 ? tab.groupId : undefined,
-      splitViewId:
-        tab.splitViewId !== undefined && tab.splitViewId >= 0
-          ? tab.splitViewId
-          : undefined,
     }))
     .sort((a, b) => a.windowId - b.windowId || a.index - b.index)
   const browserGroups: BrowserTabGroup[] = groups
@@ -123,9 +113,6 @@ export const createChromeBackend = (
     windows: [],
     tabs: [],
     groups: [],
-    splitViewSupported:
-      typeof api.tabs.createSplit === 'function' &&
-      typeof api.tabs.unsplit === 'function',
   }
   const replacementKeys = new Map<number, number>()
   const subscribers = new Set<() => void>()
@@ -176,7 +163,6 @@ export const createChromeBackend = (
           >
           publish({
             state: 'loaded',
-            splitViewSupported: snapshot.splitViewSupported,
             ...data,
             windows: data.windows.map((window) => {
               const identity = assigned[window.id]
@@ -195,7 +181,6 @@ export const createChromeBackend = (
           if (observedRevision !== eventRevision) continue
           publish({
             state: 'error',
-            splitViewSupported: snapshot.splitViewSupported,
             windows: snapshot.windows,
             tabs: snapshot.tabs,
             groups: snapshot.groups,
@@ -291,13 +276,10 @@ export const createChromeBackend = (
         throw new Error('Tab groups are unavailable in this browser.')
       return api.tabGroups
     }
-    const requireConnection = () => {
-      if (!running || generation !== commandGeneration)
-        throw new Error('The browser connection was stopped.')
-    }
     const attempt = async (id: number, operation: () => Promise<unknown>) => {
       try {
-        requireConnection()
+        if (!running || generation !== commandGeneration)
+          throw new Error('The browser connection was stopped.')
         await operation()
         succeededIds.push(id)
       } catch (error) {
@@ -386,16 +368,12 @@ export const createChromeBackend = (
             ...(plan.index !== undefined
               ? { index: plan.index, openerTabId: plan.openerTabId }
               : {}),
-            ...(command.splitWithTabId !== undefined
-              ? { splitWithTabId: command.splitWithTabId, pinned: plan.pinned }
-              : {}),
-          } as chrome.tabs.CreateProperties & { splitWithTabId?: number })
+          })
           if (!hasId(tab))
             throw new Error('Chrome did not return the created tab.')
           createdTabIds = [tab.id]
           if (
             plan.groupId !== undefined &&
-            command.splitWithTabId === undefined &&
             running &&
             generation === commandGeneration
           )
@@ -404,40 +382,6 @@ export const createChromeBackend = (
             await api.windows.update(tab.windowId, { focused: true })
         } catch (error) {
           failures.push({ id: -1, message: errorMessage(error) })
-        }
-        break
-      case 'create-split':
-        try {
-          const tabs = snapshot.tabs
-            .filter((tab) => requestedIds.includes(tab.id))
-            .toSorted((a, b) => a.index - b.index)
-          const [first, second] = tabs as [BrowserTab, BrowserTab]
-          if (second.index !== first.index + 1)
-            await api.tabs.move(second.id, { index: first.index + 1 })
-          requireConnection()
-          await api.tabs.createSplit!([first.id, second.id])
-          requireConnection()
-          await api.tabs.update(
-            tabs.find((tab) => tab.active)?.id ?? first.id,
-            { active: true },
-          )
-          requireConnection()
-          await api.windows.update(first.windowId, { focused: true })
-          succeededIds.push(...requestedIds)
-        } catch (error) {
-          failures.push(
-            ...requestedIds.map((id) => ({ id, message: errorMessage(error) })),
-          )
-        }
-        break
-      case 'separate-split':
-        try {
-          await api.tabs.unsplit!(command.splitViewId)
-          succeededIds.push(...requestedIds)
-        } catch (error) {
-          failures.push(
-            ...requestedIds.map((id) => ({ id, message: errorMessage(error) })),
-          )
         }
         break
       case 'navigate-tab':

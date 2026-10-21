@@ -1,6 +1,5 @@
-import { t } from '@extension/i18n/catalog'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Columns2, Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
+import { Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
 import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
@@ -55,8 +54,6 @@ export type BrowserTabItemProps = Omit<
   pinned?: boolean
   /** Whether the tab is discarded/unloaded (grayed out) */
   discarded?: boolean
-  splitViewId?: number
-  splitViewNumber?: number
 
   // Status indicator props
   /** Audio state: 'muted' shows muted icon, 'on' shows playing icon, 'off' shows nothing */
@@ -114,8 +111,6 @@ export const BrowserTabItem = memo(
         blurred = false,
         pinned = false,
         discarded = false,
-        splitViewId,
-        splitViewNumber,
         audio,
         lastAccessed: _lastAccessed,
         ageLabel,
@@ -125,10 +120,6 @@ export const BrowserTabItem = memo(
       },
       forwardedRef,
     ) => {
-      const splitViewLabel =
-        splitViewNumber === undefined
-          ? undefined
-          : t('tab_splitView', String(splitViewNumber))
       const rootRef = useRef<HTMLDivElement>(null)
       const setRef = (el: HTMLDivElement | null) => {
         ;(rootRef as { current: HTMLDivElement | null }).current = el
@@ -317,7 +308,6 @@ export const BrowserTabItem = memo(
           data-blurred={blurred || undefined}
           data-pinned={pinned || undefined}
           data-discarded={discarded || undefined}
-          data-split-view-id={splitViewId}
           data-audio={audio || undefined}
           data-duplicate={duplicate || undefined}
           onClick={onClick}
@@ -381,7 +371,7 @@ export const BrowserTabItem = memo(
                 `,
               )}
               onKeyDown={handleKeyDown}
-              aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}${splitViewLabel ? ` (${splitViewLabel})` : ''}`}
+              aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
               aria-current={active ? 'page' : undefined}
               aria-busy={loading}
             >
@@ -442,19 +432,7 @@ export const BrowserTabItem = memo(
                 data-tab-status
                 className="flex flex-shrink-0 items-center gap-1.5"
               >
-                {splitViewLabel && (
-                  <span
-                    className={`
-                      text-muted border-current/20 inline-flex shrink-0
-                      items-center gap-1 rounded border px-1.5 py-0.5 text-xs
-                    `}
-                    title={splitViewLabel}
-                    aria-hidden="true"
-                  >
-                    <Columns2 className="size-3.5" />
-                    {splitViewNumber}
-                  </span>
-                )}
+                {/* Audio indicator */}
                 {audio === 'muted' && (
                   <div
                     className="text-muted flex-shrink-0"
