@@ -5,6 +5,7 @@ import {
   getTabMoveUnits,
   insertTabs,
   planGroupMove,
+  planTabCreation,
   planTabMove,
   planTabPlacement,
 } from '@extension/core'
@@ -141,10 +142,9 @@ export class MemoryBackend implements BrowserBackend {
           )
         break
       case 'create-tab': {
+        const plan = planTabCreation(snapshot, command)
         const windowId =
-          command.windowId ??
-          snapshot.groups.find((group) => group.id === command.groupId)
-            ?.windowId ??
+          plan.windowId ??
           snapshot.windows.find((window) => window.focused)?.id ??
           snapshot.windows[0]?.id
         if (
@@ -175,21 +175,67 @@ export class MemoryBackend implements BrowserBackend {
               title: command.url ?? 'New tab',
               url: command.url ?? 'about:blank',
               active: true,
-              groupId: command.groupId,
+              groupId: plan.groupId,
+              pinned: plan.pinned,
+              ...(command.splitWithTabId !== undefined
+                ? {
+                    splitViewId:
+                      Math.max(
+                        -1,
+                        ...snapshot.tabs.map((tab) => tab.splitViewId ?? -1),
+                      ) + 1,
+                  }
+                : {}),
             },
           ],
           windowId,
-          command.groupId === undefined
-            ? -1
-            : Math.max(
-                ...snapshot.tabs
-                  .filter((tab) => tab.groupId === command.groupId)
-                  .map((tab) => tab.index),
-              ) + 1,
+          plan.index ?? -1,
         )
+        if (command.splitWithTabId !== undefined) {
+          const splitViewId = snapshot.tabs.find(
+            (tab) => tab.id === id,
+          )!.splitViewId
+          snapshot.tabs = snapshot.tabs.map((tab) =>
+            tab.id === command.splitWithTabId ? { ...tab, splitViewId } : tab,
+          )
+        }
         createdTabIds = [id]
         break
       }
+      case 'create-split': {
+        const [first, second] = snapshot.tabs
+          .filter((tab) => ids.includes(tab.id))
+          .toSorted((a, b) => a.index - b.index)
+        const splitViewId =
+          Math.max(-1, ...snapshot.tabs.map((tab) => tab.splitViewId ?? -1)) + 1
+        snapshot.tabs = insertTabs(
+          snapshot.tabs,
+          [second!],
+          first!.windowId,
+          first!.index + 1,
+        ).map((tab) => (ids.includes(tab.id) ? { ...tab, splitViewId } : tab))
+        const activeId =
+          [first, second].find((tab) => tab?.active)?.id ?? first!.id
+        snapshot.tabs = snapshot.tabs.map((tab) =>
+          tab.windowId === first!.windowId
+            ? { ...tab, active: tab.id === activeId }
+            : tab,
+        )
+        snapshot.windows = snapshot.windows.map((window) => ({
+          ...window,
+          focused: window.id === first!.windowId,
+        }))
+        succeededIds.push(...ids)
+        break
+      }
+      case 'separate-split':
+        snapshot.tabs = snapshot.tabs.map((tab) =>
+          tab.splitViewId === command.splitViewId
+            ? { ...tab, splitViewId: undefined }
+            : tab,
+        )
+        succeededIds.push(...ids)
+        break
       case 'navigate-tab': {
         const tab = snapshot.tabs.find((tab) => tab.id === command.tabId)
         if (requireId(command.tabId, Boolean(tab)) && tab)
@@ -724,6 +770,15 @@ export class MemoryBackend implements BrowserBackend {
       )
       return windowTabs.map((tab, index) => ({
         ...tab,
+        ...(tab.splitViewId !== undefined &&
+        windowTabs.filter(
+          (other) =>
+            other.splitViewId === tab.splitViewId &&
+            other.groupId === tab.groupId &&
+            Boolean(other.pinned) === Boolean(tab.pinned),
+        ).length !== 2
+          ? { splitViewId: undefined }
+          : {}),
         index,
         active: index === activeIndex,
         ...(tab.groupId !== undefined &&

@@ -8,8 +8,10 @@ const mock = readFileSync(
   'utf8',
 )
 
-type BrowserFixture = Omit<typeof browser, 'preferences'> & {
+type BrowserFixture = Omit<typeof browser, 'preferences' | 'tabs'> & {
   preferences: Partial<typeof browser.preferences>
+  splitViewSupported?: boolean
+  tabs: ((typeof browser.tabs)[number] & { splitViewId?: number })[]
 }
 
 export const test = base.extend<{ browserData: BrowserFixture }>({

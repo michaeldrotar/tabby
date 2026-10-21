@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-19
+Last updated: 2026-10-20
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -29,6 +29,8 @@ Organize one window at a time
 Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
 Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows, then drop on a window to move tabs there. Long lists scroll as you drag near their edges. Moving tabs through dragging or the menu brings the destination forward and opens its Tab Manager with the moved tabs selected, ready to reorder.
+
+Middle-click a tab to close it, or create a new tab directly below an existing tab. Matching labels identify tabs paired in split view. On supported Chrome versions, open tabs side by side or separate a pair from the tab actions.
 
 Work with the keyboard
 
@@ -141,7 +143,7 @@ The homepage URL update was submitted for review on 2026-10-18 with automatic pu
 
 | Version                                                                      | Submission date | Summary                                   | Store status  |
 | ---------------------------------------------------------------------------- | --------------- | ----------------------------------------- | ------------- |
-| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | —               | Drag and drop with better themes.         | Not submitted |
+| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | —               | Tab controls, split views, and themes.    | Not submitted |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.  | Published     |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                           | Published     |
 | [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.    | Published     |

@@ -5,6 +5,7 @@ import {
   getNewWindowMoveBlockReason,
   getOtherTabIdsWithSameUrl,
   getSingleGroupRenameState,
+  getSplitViewBlockReason,
   getTabDiscardSelectionCounts,
   getTabMoveUnits,
   resolveSelectedTabIds,
@@ -409,10 +410,64 @@ const buildTabManagerActions = (
       ),
     })
   const single = ids.length === 1 && !groupIds.size ? tabs[0] : undefined
+  if (snapshot.splitViewSupported && !groupIds.size) {
+    const splitViewId = tabs[0]?.splitViewId
+    if (
+      splitViewId !== undefined &&
+      tabs.every((tab) => tab.splitViewId === splitViewId)
+    )
+      command(
+        'separate-split',
+        t('tabContextMenu_separateSplitView'),
+        'UnfoldHorizontal',
+        { type: 'separate-split', splitViewId },
+        'secondary',
+      )
+    else if (tabs.length === 2)
+      command(
+        'create-split',
+        t('tabContextMenu_openSplitView'),
+        'Columns2',
+        { type: 'create-split', tabIds: ids },
+        'secondary',
+        getSplitViewBlockReason(snapshot, ids),
+      )
+    if (single && single.splitViewId === undefined) {
+      command(
+        'new-split-tab',
+        t('tabContextMenu_newSplitTab'),
+        'Columns2',
+        { type: 'create-tab', splitWithTabId: single.id },
+        'secondary',
+      )
+      const active = snapshot.tabs.find(
+        (tab) =>
+          tab.windowId === single.windowId &&
+          tab.active &&
+          tab.id !== single.id,
+      )
+      if (active)
+        command(
+          'split-with-current-tab',
+          t('tabContextMenu_splitWithCurrent'),
+          'Columns2',
+          { type: 'create-split', tabIds: [active.id, single.id] },
+          'secondary',
+          getSplitViewBlockReason(snapshot, [active.id, single.id]),
+        )
+    }
+  }
   const duplicateTabIds = single
     ? getOtherTabIdsWithSameUrl(snapshot.tabs, single.id)
     : []
   if (single) {
+    command(
+      'new-tab-below',
+      t('tabContextMenu_newTabBelow'),
+      'Plus',
+      { type: 'create-tab', afterTabId: single.id },
+      'secondary',
+    )
     if (duplicateTabIds.length)
       command(
         'close-duplicate-tabs',

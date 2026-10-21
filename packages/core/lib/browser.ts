@@ -38,6 +38,7 @@ export interface BrowserTab {
   faviconUrl?: string
   lastAccessed?: number
   groupId?: number
+  splitViewId?: number
 }
 
 export interface BrowserTabGroup {
@@ -55,6 +56,7 @@ export interface BrowserSnapshot {
   tabs: readonly BrowserTab[]
   groups: readonly BrowserTabGroup[]
   error?: string
+  splitViewSupported?: boolean
 }
 
 export type TabAction =
@@ -89,7 +91,16 @@ export type BrowserCommand =
       iconColor?: BrowserTabGroupColor
     }
   | { type: 'create-window'; url?: string; sourceWindowId?: number }
-  | { type: 'create-tab'; windowId?: number; url?: string; groupId?: number }
+  | {
+      type: 'create-tab'
+      windowId?: number
+      url?: string
+      groupId?: number
+      afterTabId?: number
+      splitWithTabId?: number
+    }
+  | { type: 'create-split'; tabIds: readonly number[] }
+  | { type: 'separate-split'; splitViewId: number }
   | { type: 'navigate-tab'; tabId: number; url: string }
   | { type: 'move-group'; groupId: number; windowId?: number }
   | { type: 'tab-action'; action: TabAction; tabIds: readonly number[] }

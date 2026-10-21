@@ -233,6 +233,7 @@ export const createFixtureBuilder = ({
       throw new Error('Scene explicitly disables every focused window')
     return {
       state: 'loaded',
+      splitViewSupported: true,
       revision: 0,
       windows: windows.map((window) => ({
         id: window.id,

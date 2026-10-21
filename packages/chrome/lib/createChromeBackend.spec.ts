@@ -634,3 +634,156 @@ describe('window transfer constraints', () => {
     backend.dispose()
   })
 })
+
+describe('Chrome tab creation and split view adapter', () => {
+  it('creates adjacent grouped tabs and creates a pinned native split without regrouping it', async () => {
+    const { api, mock } = mockBrowser()
+    const create = vi.fn(async () => ({ id: 13, windowId: 1 }))
+    const group = vi.fn(async () => 7)
+    Object.assign(api.tabs, {
+      create,
+      group,
+      createSplit: vi.fn(),
+      unsplit: vi.fn(),
+    })
+    const backend = createChromeBackend(api)
+    await backend.start()
+    await backend.execute({ type: 'create-tab', afterTabId: 11 })
+    expect(create).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        windowId: 1,
+        index: 1,
+        openerTabId: 11,
+        active: true,
+      }),
+    )
+    expect(group).toHaveBeenCalledExactlyOnceWith({ tabIds: 13, groupId: 7 })
+    const pinnedRecords = (await mock.tabs.query())
+      .slice(0, 1)
+      .map((tab) => ({ ...tab, groupId: -1, pinned: true }))
+    mock.tabs.query.mockResolvedValue(pinnedRecords)
+    await backend.start()
+    group.mockClear()
+    await backend.execute({ type: 'create-tab', splitWithTabId: 11 })
+    expect(create).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        windowId: 1,
+        index: 1,
+        pinned: true,
+        splitWithTabId: 11,
+      }),
+    )
+    expect(group).not.toHaveBeenCalled()
+    backend.dispose()
+  })
+
+  it('detects native splits, pairs nonadjacent tabs, separates them, and reports native failures', async () => {
+    const { api, mock } = mockBrowser()
+    let tabs = (await mock.tabs.query()).map((tab, index) => ({
+      ...tab,
+      index: index * 2,
+      splitViewId: -1,
+    }))
+    mock.tabs.query.mockImplementation(async () => structuredClone(tabs))
+    const move = vi.fn(async () => {
+      tabs[1]!.index = 1
+      return tabs[1]!
+    })
+    const createSplit = vi.fn(async () => {
+      tabs = tabs.map((tab) => ({ ...tab, splitViewId: 0 }))
+      return 0
+    })
+    const unsplit = vi.fn(async () => {
+      tabs = tabs.map((tab) => ({ ...tab, splitViewId: -1 }))
+    })
+    Object.assign(api.tabs, { move, createSplit, unsplit })
+    const backend = createChromeBackend(api)
+    await backend.start()
+    expect(backend.getSnapshot().splitViewSupported).toBe(true)
+    expect(
+      (await backend.execute({ type: 'create-split', tabIds: [12, 11] }))
+        .status,
+    ).toBe('success')
+    expect(move).toHaveBeenCalledExactlyOnceWith(12, { index: 1 })
+    expect(createSplit).toHaveBeenCalledExactlyOnceWith([11, 12])
+    expect(backend.getSnapshot().tabs.map((tab) => tab.splitViewId)).toEqual([
+      0, 0,
+    ])
+    expect(mock.tabs.update).toHaveBeenCalledWith(11, { active: true })
+    expect(
+      (await backend.execute({ type: 'separate-split', splitViewId: 0 }))
+        .status,
+    ).toBe('success')
+    expect(unsplit).toHaveBeenCalledExactlyOnceWith(0)
+    expect(
+      backend.getSnapshot().tabs.every((tab) => tab.splitViewId === undefined),
+    ).toBe(true)
+    createSplit.mockRejectedValueOnce(
+      new Error('Chrome could not pair these tabs.'),
+    )
+    const failed = await backend.execute({
+      type: 'create-split',
+      tabIds: [11, 12],
+    })
+    expect(failed).toMatchObject({
+      status: 'failed',
+      succeededIds: [],
+      failures: [
+        { id: 11, message: 'Chrome could not pair these tabs.' },
+        { id: 12, message: 'Chrome could not pair these tabs.' },
+      ],
+    })
+    backend.dispose()
+  })
+
+  it('keeps existing pairs visible on browsers without creation controls and rejects unsupported mutations', async () => {
+    const { api, mock } = mockBrowser()
+    const records = (await mock.tabs.query()).map((tab) => ({
+      ...tab,
+      splitViewId: 4,
+    }))
+    mock.tabs.query.mockResolvedValue(records)
+    const backend = createChromeBackend(api)
+    await backend.start()
+    expect(backend.getSnapshot().splitViewSupported).toBe(false)
+    expect(backend.getSnapshot().tabs.map((tab) => tab.splitViewId)).toEqual([
+      4, 4,
+    ])
+    expect(
+      (await backend.execute({ type: 'separate-split', splitViewId: 4 }))
+        .status,
+    ).toBe('failed')
+    expect(
+      (await backend.execute({ type: 'create-tab', splitWithTabId: 11 }))
+        .status,
+    ).toBe('failed')
+    backend.dispose()
+  })
+})
+
+it('stops split creation after the owning backend is disposed during a move', async () => {
+  const { api, mock } = mockBrowser()
+  const tabs = (await mock.tabs.query()).map((tab, index) => ({
+    ...tab,
+    index: index * 2,
+  }))
+  mock.tabs.query.mockResolvedValue(tabs)
+  const pending = deferred<void>()
+  const move = vi.fn(() => pending.promise)
+  const createSplit = vi.fn(async () => 0)
+  Object.assign(api.tabs, { move, createSplit, unsplit: vi.fn() })
+  const backend = createChromeBackend(api)
+  await backend.start()
+  const creating = backend.execute({ type: 'create-split', tabIds: [11, 12] })
+  expect(move).toHaveBeenCalledOnce()
+  backend.dispose()
+  await backend.start()
+  const current = backend.getSnapshot()
+  pending.resolve()
+  expect(await creating).toMatchObject({ status: 'failed', succeededIds: [] })
+  expect(createSplit).not.toHaveBeenCalled()
+  expect(mock.tabs.update).not.toHaveBeenCalled()
+  expect(mock.windows.update).not.toHaveBeenCalled()
+  expect(backend.getSnapshot()).toBe(current)
+  backend.dispose()
+})

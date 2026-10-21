@@ -480,3 +480,36 @@ describe('sample Chrome interactions', () => {
     ).toBeUndefined()
   })
 })
+
+describe('native split view preview boundary', () => {
+  it('creates and separates pairs, emits membership changes, and clears a pair when one tab closes', async () => {
+    const chrome = loadMock(mockSource, structuredClone(browser))
+    const changes = []
+    chrome.tabs.onUpdated.addListener((id, change) => {
+      if (change.splitViewId !== undefined)
+        changes.push([id, change.splitViewId])
+    })
+    const id = await chrome.tabs.createSplit([2, 3])
+    expect(
+      (await chrome.tabs.query({ splitViewId: id })).map((tab) => tab.id),
+    ).toEqual([2, 3])
+    expect(changes).toEqual([
+      [2, id],
+      [3, id],
+    ])
+    await chrome.tabs.unsplit(id)
+    expect(await chrome.tabs.query({ splitViewId: id })).toEqual([])
+    await expect(chrome.tabs.createSplit([1, 2])).rejects.toThrow('matching')
+    await expect(chrome.tabs.createSplit([2, 4])).rejects.toThrow('adjacent')
+    const tab = await chrome.tabs.create({
+      windowId: 1,
+      splitWithTabId: 2,
+      index: 2,
+      active: true,
+    })
+    expect(tab.groupId).toBe(10)
+    expect((await chrome.tabs.get(2)).splitViewId).toBe(tab.splitViewId)
+    await chrome.tabs.remove(tab.id)
+    expect((await chrome.tabs.get(2)).splitViewId).toBe(-1)
+  })
+})

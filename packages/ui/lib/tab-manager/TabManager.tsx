@@ -46,6 +46,8 @@ export type TabManagerTabView = {
   discarded?: boolean
   audio?: 'muted' | 'on' | 'off'
   groupId?: number
+  splitViewId?: number
+  splitViewNumber?: number
   ageLabel?: string
 }
 export type TabManagerGroupView = {
