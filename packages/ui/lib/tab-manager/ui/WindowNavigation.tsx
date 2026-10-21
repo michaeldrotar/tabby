@@ -27,7 +27,7 @@ import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 import type { BrowserTabGroupColor } from '@extension/core'
 
 export const windowControlClass =
-  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-highlighted/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
+  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-highlighted/30 hover:text-foreground data-[hover=true]:bg-highlighted/30 data-[hover=true]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
 const editorRowEntry = (row: Element) =>

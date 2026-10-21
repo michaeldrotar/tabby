@@ -517,6 +517,9 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
           <span className="brand-context">Demo Studio</span>
         </a>
         <div className="topbar-actions">
+          <a className="reset-button" href="?theme-lab">
+            Theme lab
+          </a>
           <span className="local-badge">
             <span className="status-dot" />
             Local sample
@@ -1044,7 +1047,12 @@ const initialize = async () => {
   }
   applicationRoot = createRoot(document.getElementById('root')!)
   initial.setInputMode('live')
-  applicationRoot.render(<DemoStudio initial={initial} />)
+  if (new URLSearchParams(location.search).has('theme-lab')) {
+    const { ThemeLab } = await import('./ThemeLab')
+    if (!disposed) applicationRoot.render(<ThemeLab scenario={initial} />)
+  } else {
+    applicationRoot.render(<DemoStudio initial={initial} />)
+  }
 }
 void initialize().catch((error: unknown) =>
   console.error('Could not start the Demo Studio', error),

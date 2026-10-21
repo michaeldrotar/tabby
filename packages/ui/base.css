@@ -418,6 +418,17 @@
     text-wrap: balance;
   }
 
+  [data-theme-samples] *,
+  [data-theme-samples] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  [data-theme-spotlight='true'] {
+    outline: 3px dashed var(--foreground);
+    outline-offset: 3px;
+  }
+
   [data-tab-manager-shell] {
     --manager-canvas: var(--background);
     --manager-chrome: oklch(from var(--background) calc(l - 0.045) c h);
