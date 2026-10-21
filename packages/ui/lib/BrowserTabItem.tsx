@@ -193,6 +193,7 @@ export const BrowserTabItem = memo(
       }
 
       const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.button === 1) return
         // Prevent text selection when using shift+click for multi-select
         if (e.shiftKey || e.metaKey || e.ctrlKey) {
           e.preventDefault()

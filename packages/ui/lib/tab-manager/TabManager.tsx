@@ -987,6 +987,17 @@ export const TabManager = ({
         }
         send({ type: 'open-action-menu', target: item })
       }}
+      onAuxClick={(event) => {
+        const item = itemAt(event.target)
+        if (event.button !== 1 || item?.type !== 'tab') return
+        event.preventDefault()
+        event.stopPropagation()
+        send({ type: 'close-tabs', tabIds: [item.id] })
+      }}
+      onMouseDownCapture={(event) => {
+        if (event.button === 1 && itemAt(event.target)?.type === 'tab')
+          event.preventDefault()
+      }}
       onScrollCapture={(event) => {
         const element = event.target as HTMLElement
         if (
