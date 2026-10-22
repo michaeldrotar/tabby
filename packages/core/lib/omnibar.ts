@@ -30,6 +30,8 @@ export type OmnibarResult = {
     | 'search'
     | 'recently-closed'
   title: string
+  searchTitle?: string
+  searchAliases?: string[]
   url?: string
   description?: string
   favIconUrl?: string
@@ -50,12 +52,19 @@ export type OmnibarResult = {
   action: OmnibarAction
 }
 
+export type OmnibarChoice = {
+  query: string
+  target: string
+  selectedAt: number
+}
+
 export type OmnibarMetadata = {
   loaded: boolean
   initialQuery: string
   originalWindowId?: number
   isMac: boolean
   openTabManagerShortcut?: string
+  choices?: readonly OmnibarChoice[]
 }
 
 /** Owned by a host, shared or isolated independently of the browser and view resources. */
@@ -67,7 +76,11 @@ export type OmnibarResource = {
   getFaviconUrl?: (url: string) => string | undefined
   search: (query: string) => Promise<OmnibarResult[]>
   /** Successful activation clears the saved query; dismissal preserves it. */
-  execute: (action: OmnibarAction, modifier?: OmnibarModifier) => Promise<void>
+  execute: (
+    action: OmnibarAction,
+    modifier?: OmnibarModifier,
+    choice?: OmnibarChoice,
+  ) => Promise<void>
   saveQuery: (query: string) => Promise<void>
   clearQuery: () => Promise<void>
 }

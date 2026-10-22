@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getOmnibarResults } from './omnibarResults.js'
 import type { BrowserSnapshot } from './browser.js'
+import type { OmnibarResult } from './omnibar.js'
 
 const snapshot: BrowserSnapshot = {
   state: 'loaded',
@@ -39,30 +40,126 @@ const snapshot: BrowserSnapshot = {
 }
 
 describe('Omnibar result composition', () => {
-  it('filters all query terms, ranks matching sources, and keeps search actions first', () => {
+  it('keeps short substring searches eligible across local result types', () => {
+    const browser = {
+      ...snapshot,
+      windows: [{ id: 10, type: 'normal', name: 'Workspace' }],
+      tabs: [
+        {
+          ...snapshot.tabs[0]!,
+          title: 'Options',
+          url: 'chrome-extension://tabby/options/index.html',
+        },
+        {
+          ...snapshot.tabs[1]!,
+          windowId: 10,
+          title: 'Google Calendar',
+          url: 'https://calendar.google.com',
+        },
+      ],
+    }
+    const results = getOmnibarResults('e', browser, 10, [], 0)
+    expect(results.map((item) => item.id)).toEqual(
+      expect.arrayContaining([
+        'search-google',
+        'cmd-extensions',
+        'window:10',
+        'tab-group:5',
+        1,
+        2,
+      ]),
+    )
+  })
+
+  it('preserves URL and web-search text and matches address paths, queries and fragments', () => {
+    const url = 'https://example.com/CaseSensitive?project=Atlas#Review'
+    const tab = { ...snapshot.tabs[0]!, url, title: 'Untitled' }
+    const browser = { ...snapshot, tabs: [tab], groups: [] }
+    expect(getOmnibarResults(url, browser, 10, [], 0)[0]?.action).toEqual({
+      kind: 'url',
+      url,
+    })
+    expect(
+      getOmnibarResults('Atlas', browser, 10, [], 0).some(
+        (item) => item.type === 'tab',
+      ),
+    ).toBe(true)
+    expect(
+      getOmnibarResults('Review', browser, 10, [], 0).some(
+        (item) => item.type === 'tab',
+      ),
+    ).toBe(true)
+    expect(
+      getOmnibarResults('Cat Pictures', snapshot, 10, [], 0).at(-1)?.url,
+    ).toBe('https://www.google.com/search?q=Cat%20Pictures')
+  })
+
+  it('filters all query terms while keeping web search pinned above ranked results', () => {
     const results = getOmnibarResults('zillow 17', snapshot, 10, [], 0)
     expect(results.map((result) => result.id)).toEqual([
       'search-google',
-      'cmd-focus-window-1',
+      'window:10',
       1,
     ])
     expect(
       getOmnibarResults('zillow', snapshot, 10, [], 0).map(
         (result) => result.id,
       ),
-    ).toEqual(['search-google', 'cmd-focus-window-1', 1, 'tab-group:5'])
+    ).toEqual(['search-google', 'window:10', 'tab-group:5', 1])
     expect(
       getOmnibarResults('chrome settings', snapshot, 10, [], 0).map(
         (result) => result.id,
       ),
     ).toEqual(['search-google', 'cmd-settings', 'cmd-clear-data'])
+    const recalled = getOmnibarResults(
+      'zillow',
+      snapshot,
+      10,
+      [],
+      0,
+      'active',
+      [{ query: 'zillow', target: 'tab:1', selectedAt: 0 }],
+    )
+    expect(recalled.map((result) => result.id)).toEqual([
+      'search-google',
+      1,
+      'window:10',
+      'tab-group:5',
+    ])
     expect(getOmnibarResults('', snapshot, 10, [], 0)).toEqual([])
   })
+  it('preserves native bookmark matches and never learns unrelated local results into eligibility', () => {
+    const bookmark: OmnibarResult = {
+      id: 'cafe-bookmark',
+      type: 'bookmark',
+      title: 'Café',
+      url: 'https://example.com/coffee',
+      action: { kind: 'url', url: 'https://example.com/coffee' },
+    }
+    const browser = {
+      ...snapshot,
+      tabs: [
+        { ...snapshot.tabs[0]!, title: bookmark.title, url: bookmark.url },
+      ],
+      groups: [],
+    }
+    expect(
+      getOmnibarResults('cafe', browser, 10, [bookmark], 0).map(
+        (item) => item.type,
+      ),
+    ).toEqual(['search', 'bookmark'])
+    expect(
+      getOmnibarResults('missing', browser, 10, [], 0, 'active', [
+        { query: 'missing', target: 'tab:1', selectedAt: 0 },
+      ]).map((item) => item.type),
+    ).toEqual(['search'])
+  })
+
   it('puts numbered window commands first and retains pinned URL actions', () => {
     const results = getOmnibarResults('window', snapshot, 10, [], 0)
     expect(results.slice(0, 3).map((result) => result.id)).toEqual([
-      'cmd-focus-window-1',
-      'cmd-focus-window-2',
+      'window:10',
+      'window:20',
       'search-google',
     ])
     expect(results[0]?.action).toEqual({ kind: 'window', windowId: 10 })
@@ -70,7 +167,7 @@ describe('Omnibar result composition', () => {
       getOmnibarResults('example.com', snapshot, 10, [], 0).map(
         (result) => result.id,
       ),
-    ).toEqual(['url-go', 'search-google', 'cmd-focus-window-2', 2])
+    ).toEqual(['url-go', 'search-google', 'window:20', 2])
   })
   it('finds a named window beyond the numbered shortcut slots without a tab-title match', () => {
     const windows = Array.from({ length: 12 }, (_, index) => ({

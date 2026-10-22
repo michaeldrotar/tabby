@@ -102,6 +102,28 @@ describe('full application preview', () => {
     expect((await fetch(`${origin}/%xx`)).status).toBe(400)
   })
 
+  it('serves the real omnibar worker and recalls a successful search choice', async () => {
+    const response = await fetch(`${origin}/__preview/omnibar-worker.js`)
+    expect(response.status).toBe(200)
+    const context = { chrome: loadMock(), URL, console }
+    runInNewContext(await response.text(), context)
+    const choice = { query: 'project', target: 'tab:2', selectedAt: Date.now() }
+    expect(
+      await context.chrome.runtime.sendMessage({
+        type: 'tabby-omnibar-execute',
+        action: { kind: 'tab', tabId: 2, windowId: 1 },
+        choice,
+        windowId: 1,
+      }),
+    ).toMatchObject({ success: true })
+    expect(
+      await context.chrome.runtime.sendMessage({
+        type: 'tabby-omnibar-choices',
+        windowId: 1,
+      }),
+    ).toMatchObject({ choices: [choice] })
+  })
+
   it('loads an alternate fixture and starts each page with fresh sample data', async () => {
     const fixturePath = resolve(directory, 'custom-browser.json')
     const custom = { ...browser, tabs: browser.tabs.slice(0, 1), groups: [] }

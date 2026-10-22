@@ -2,53 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { compareOmnibarScoredItems } from './omnibarRanking.js'
 import type { OmnibarRankableResult } from './omnibarRanking.js'
 
-const makeItem = (
-  overrides: Partial<OmnibarRankableResult>,
-): OmnibarRankableResult => ({
-  id: 'id',
-  type: 'history',
-  title: 'Title',
-  ...overrides,
-})
+const item = (
+  id: string,
+  title: string,
+  lastVisitTime?: number,
+): OmnibarRankableResult => ({ id, title, lastVisitTime, type: 'tab' })
 
-describe('compareOmnibarScoredItems', () => {
-  it('orders by score desc first', () => {
-    const older = makeItem({ id: 'older', lastVisitTime: 10 })
-    const newer = makeItem({ id: 'newer', lastVisitTime: 20 })
-
-    const sorted = [
-      { item: newer, score: 10 },
-      { item: older, score: 20 },
+describe('Omnibar score ordering', () => {
+  it('orders by score then title and stable identity, regardless of browsing activity', () => {
+    const results = [
+      { item: item('2', 'Beta', 100), score: 50 },
+      { item: item('3', 'Alpha'), score: 50 },
+      { item: item('1', 'Alpha'), score: 50 },
+      { item: item('4', 'Zulu'), score: 60 },
     ].sort(compareOmnibarScoredItems)
-
-    expect(sorted.map((s) => s.item.id)).toEqual(['older', 'newer'])
-  })
-
-  it('breaks score ties by lastVisitTime (more recent first)', () => {
-    const now = 1_700_000_000_000
-    const justNow = makeItem({ id: 'just-now', lastVisitTime: now })
-    const oneMinuteAgo = makeItem({ id: '1m', lastVisitTime: now - 60_000 })
-
-    const sorted = [
-      { item: oneMinuteAgo, score: 50 },
-      { item: justNow, score: 50 },
-    ].sort(compareOmnibarScoredItems)
-
-    expect(sorted.map((s) => s.item.id)).toEqual(['just-now', '1m'])
-  })
-
-  it('puts items without lastVisitTime after items with lastVisitTime when scores tie', () => {
-    const withTime = makeItem({ id: 'with-time', lastVisitTime: 123 })
-    const withoutTime = makeItem({
-      id: 'without-time',
-      lastVisitTime: undefined,
-    })
-
-    const sorted = [
-      { item: withoutTime, score: 50 },
-      { item: withTime, score: 50 },
-    ].sort(compareOmnibarScoredItems)
-
-    expect(sorted.map((s) => s.item.id)).toEqual(['with-time', 'without-time'])
+    expect(results.map((result) => result.item.id)).toEqual([
+      '4',
+      '1',
+      '3',
+      '2',
+    ])
   })
 })

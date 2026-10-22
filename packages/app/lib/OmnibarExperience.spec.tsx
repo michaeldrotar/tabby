@@ -42,6 +42,7 @@ const setup = () => {
               id: 11,
               title: 'Tabby project',
               url: 'http://localhost:3000',
+              lastAccessed: -30 * 24 * 60 * 60 * 1000,
             }),
           ],
         }),
@@ -61,6 +62,92 @@ const setup = () => {
 }
 
 describe('Omnibar experience', () => {
+  it('resets a navigated selection to the pinned search when the query changes', () => {
+    const resources = setup()
+    const view = createOmnibarView({ query: 'settin', edited: true })
+    render(
+      <TabbyProvider
+        {...resources}
+        views={{ ...resources.views, omnibar: view }}
+      >
+        <OmnibarExperience onDismiss={() => undefined} />
+      </TabbyProvider>,
+    )
+    expect(
+      screen.getByRole('option', { name: /Search Google/ }),
+    ).toHaveAttribute('aria-selected', 'true')
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' })
+    expect(
+      screen.getByRole('option', { name: /Chrome: Open settings/ }),
+    ).toHaveAttribute('aria-selected', 'true')
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'settinx' },
+    })
+    expect(screen.getAllByRole('option')[0]).toHaveTextContent('Search Google')
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
+  it('keeps a navigated result selected when late matches arrive and recalls it on the next search', async () => {
+    vi.useFakeTimers()
+    const resources = setup()
+    let resolve!: (results: OmnibarResult[]) => void
+    const resource = {
+      ...resources.omnibar,
+      search: () =>
+        new Promise<OmnibarResult[]>((done) => {
+          resolve = done
+        }),
+    }
+    const view = createOmnibarView({ query: 'project', edited: true })
+    const dismiss = vi.fn()
+    render(
+      <TabbyProvider
+        {...resources}
+        omnibar={resource}
+        views={{ ...resources.views, omnibar: view }}
+      >
+        <OmnibarExperience onDismiss={dismiss} />
+      </TabbyProvider>,
+    )
+    const input = screen.getByRole('combobox')
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(
+      screen.getByRole('option', { name: /^Tabby project tab/ }),
+    ).toHaveAttribute('aria-selected', 'true')
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200)
+    })
+    await act(async () => {
+      resolve([
+        {
+          id: 'bookmark',
+          type: 'bookmark',
+          title: 'Project',
+          url: 'https://project.test',
+          action: { kind: 'url', url: 'https://project.test' },
+        },
+      ])
+    })
+    expect(screen.getAllByRole('option')[1]).toHaveTextContent('Project')
+    expect(
+      screen.getByRole('option', { name: /^Tabby project tab/ }),
+    ).toHaveAttribute('aria-selected', 'true')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(dismiss).toHaveBeenCalledOnce()
+    expect(resource.getSnapshot().choices).toEqual([
+      expect.objectContaining({ query: 'project', target: 'tab:11' }),
+    ])
+    fireEvent.change(input, { target: { value: 'project' } })
+    expect(screen.getAllByRole('option')[1]).toHaveTextContent('Tabby project')
+    expect(screen.getAllByRole('option')[1]).toHaveTextContent('tab')
+  })
+
   it('finds a renamed window and focuses it without changing its tabs', async () => {
     const initial = setup().backend.getSnapshot()
     const backend = new MemoryBackend({
@@ -149,7 +236,7 @@ describe('Omnibar experience', () => {
     )
     expect(rightPanel.getByRole('combobox')).toHaveValue('window')
     const tab = within(leftPanel.getByRole('listbox')).getByRole('option', {
-      name: /^Tabby project/,
+      name: /^Tabby project tab/,
     })
     fireEvent.click(tab, { ctrlKey: true })
     await waitFor(() =>

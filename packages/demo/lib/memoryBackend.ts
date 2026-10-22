@@ -24,6 +24,7 @@ export interface MemoryCheckpoint {
 }
 
 export interface MemoryBackendOptions {
+  now?: () => number
   commands?: 'apply' | 'ignore'
   beforeExecute?: (command: BrowserCommand) => void | Promise<void>
 }
@@ -631,7 +632,12 @@ export class MemoryBackend implements BrowserBackend {
               ? {
                   ...tab,
                   active: tab.id === target.id,
-                  ...(tab.id === target.id ? { discarded: false } : {}),
+                  ...(tab.id === target.id
+                    ? {
+                        discarded: false,
+                        lastAccessed: (this.options.now ?? Date.now)(),
+                      }
+                    : {}),
                 }
               : tab,
           )

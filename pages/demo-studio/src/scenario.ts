@@ -24,7 +24,7 @@ import type {
   TabManagerResources,
   TabManagerViewState,
 } from '@extension/app'
-import type { PreferenceState } from '@extension/core'
+import type { OmnibarChoice, PreferenceState } from '@extension/core'
 import type { MemoryCheckpoint, MemoryScenePreset } from '@extension/demo'
 import type { TimelineFrame } from '@extension/demo/player'
 import type { TabManagerItem } from '@extension/ui/tab-manager/TabManager'
@@ -53,6 +53,7 @@ type Checkpoint = {
   optionsViews: OptionsViewState[]
   navigation: NavigationState[]
   savedQueries: string[]
+  choices: (readonly OmnibarChoice[])[]
 }
 
 const baselineTime = memorySceneTime
@@ -77,12 +78,14 @@ export const createScenario = async (
     createMemoryScene(dataset, { variant: 'left' }),
     {
       commands: ignoreCommands ? 'ignore' : 'apply',
+      now: environment.now,
     },
   )
   const rightBackend = sharing.data
     ? leftBackend
     : new MemoryBackend(createMemoryScene(dataset, { variant: 'right' }), {
         commands: ignoreCommands ? 'ignore' : 'apply',
+        now: environment.now,
       })
   const leftView = createTabManagerView({ viewedWindowId: 1 })
   const rightView = sharing.state
@@ -238,6 +241,9 @@ export const createScenario = async (
       structuredClone(view.getState()),
     ),
     savedQueries: omnibarResources.map((resource) => resource.getSavedQuery()),
+    choices: omnibarResources.map((resource) =>
+      structuredClone(resource.getSnapshot().choices ?? []),
+    ),
   })
   const restore = (checkpoint: Checkpoint) => {
     if (checkpoint.sceneVersion !== 1)
@@ -265,7 +271,10 @@ export const createScenario = async (
       view.setState(structuredClone(checkpoint.navigation[index]!), true),
     )
     omnibarResources.forEach((resource, index) =>
-      resource.restoreSavedQuery(checkpoint.savedQueries[index]!),
+      resource.restoreSavedQuery(
+        checkpoint.savedQueries[index]!,
+        checkpoint.choices?.[index] ?? [],
+      ),
     )
   }
   await Promise.all(

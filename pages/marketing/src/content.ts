@@ -16,7 +16,7 @@ export const homeFeatures = [
     id: 'find',
     label: 'Find anything',
     description:
-      'A page shouldn’t be hard to find just because it’s in another window. I know that feeling: it’s open somewhere, but there are so many windows and tabs. Tabby searches them all at once, along with bookmarks, history, recently closed pages, and anywhere else it may be hiding!',
+      'A page shouldn’t be hard to find just because it’s in another window. I know that feeling: it’s open somewhere, but there are so many windows and tabs. Tabby searches them all at once, along with bookmarks, history, and recently closed pages. Repeat a search and your recent choice moves toward the top.',
   },
   {
     id: 'customize',

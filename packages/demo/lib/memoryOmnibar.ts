@@ -1,6 +1,9 @@
 import { OmnibarCancelledError } from '@extension/core/omnibar'
+import { rememberOmnibarChoice } from '@extension/core/omnibarChoices'
+import { createOmnibarMatcher } from '@extension/core/omnibarMatching'
 import type {
   BrowserBackend,
+  OmnibarChoice,
   OmnibarMetadata,
   OmnibarResource,
   OmnibarResult,
@@ -24,7 +27,7 @@ export const createMemoryOmnibarResource = (
   options: MemoryOmnibarOptions = {},
 ): OmnibarResource & {
   getSavedQuery: () => string
-  restoreSavedQuery: (query: string) => void
+  restoreSavedQuery: (query: string, choices?: readonly OmnibarChoice[]) => void
 } => {
   let metadata: OmnibarMetadata = {
     loaded: true,
@@ -83,11 +86,9 @@ export const createMemoryOmnibarResource = (
     },
     search: async (query) => {
       current()
-      const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+      const matches = createOmnibarMatcher(query)
       return (options.results ?? []).filter((result) =>
-        terms.every((term) =>
-          `${result.title} ${result.url ?? ''}`.toLowerCase().includes(term),
-        ),
+        matches(result.title, result.url),
       )
     },
     saveQuery: async (next) => {
@@ -97,15 +98,15 @@ export const createMemoryOmnibarResource = (
     },
     clearQuery,
     getSavedQuery: () => savedQuery,
-    restoreSavedQuery: (query) => {
+    restoreSavedQuery: (query, choices = []) => {
       current()
       savedQuery = query
       queryVersion++
       generation++
-      metadata = { ...metadata, initialQuery: query }
+      metadata = { ...metadata, initialQuery: query, choices }
       listeners.forEach((listener) => listener())
     },
-    execute: async (action, modifier) => {
+    execute: async (action, modifier, choice) => {
       current()
       if (options.commands === 'ignore') return
       const version = queryVersion
@@ -202,6 +203,20 @@ export const createMemoryOmnibarResource = (
           break
       }
       current(operation)
+      if (choice) {
+        metadata = {
+          ...metadata,
+          choices: rememberOmnibarChoice(
+            metadata.choices ?? [],
+            choice,
+            Math.max(
+              choice.selectedAt,
+              ...(metadata.choices ?? []).map((item) => item.selectedAt),
+            ),
+          ),
+        }
+        listeners.forEach((listener) => listener())
+      }
       if (version === queryVersion) await clearQuery()
     },
   }

@@ -8,6 +8,28 @@ const previewDirectory = dirname(fileURLToPath(import.meta.url))
 const workspace = resolve(previewDirectory, '../..')
 const defaultFixture = resolve(previewDirectory, 'browser-data.json')
 const mockPath = '/__preview/mock-chrome.js'
+const workerPath = '/__preview/omnibar-worker.js'
+let workerBundle
+const getWorkerBundle = () =>
+  (workerBundle ??= (async () => {
+    const { build } = await import('vite')
+    const result = await build({
+      configFile: false,
+      logLevel: 'error',
+      build: {
+        write: false,
+        minify: false,
+        lib: {
+          entry: resolve(previewDirectory, 'omnibar-worker.ts'),
+          formats: ['es'],
+        },
+      },
+    })
+    const bundles = Array.isArray(result) ? result : [result]
+    return bundles
+      .flatMap((bundle) => bundle.output)
+      .find((item) => item.type === 'chunk').code
+  })())
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -29,6 +51,12 @@ export const createPreviewServer = ({
       const pathname = decodeURIComponent(
         new URL(request.url, 'http://localhost').pathname,
       )
+      if (pathname === workerPath) {
+        const bundle = await getWorkerBundle()
+        response.writeHead(200, { 'Content-Type': contentTypes['.js'] })
+        response.end(bundle)
+        return
+      }
       if (pathname === mockPath) {
         const [browser, messages, mock] = await Promise.all([
           readFile(fixturePath, 'utf8'),
@@ -69,7 +97,10 @@ export const createPreviewServer = ({
       if (extension === '.html') {
         contents = contents
           .toString()
-          .replace(/<head\b[^>]*>/i, `$&<script src="${mockPath}"></script>`)
+          .replace(
+            /<head\b[^>]*>/i,
+            `$&<script src="${mockPath}"></script><script type="module" src="${workerPath}"></script>`,
+          )
       }
       response.writeHead(200, {
         'Content-Type': contentTypes[extension] ?? 'application/octet-stream',
