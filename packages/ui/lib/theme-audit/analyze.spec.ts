@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  analyzeTheme,
-  compareThemePalettes,
-  contrastRegressions,
-  themeStates,
-} from './analyze'
+import { analyzeTheme, compareThemePalettes, themeStates } from './analyze'
 import { colorDistance, composite, contrastRatio } from './color'
 import { findingURL, renderThemeReport } from './report'
 import type { ThemeMeasurement, ThemeSelection } from './analyze'
@@ -36,6 +31,10 @@ const measurement = (): ThemeMeasurement => ({
   focus: black,
   modeResting: white,
   modeSelected: white,
+  modeHovered: white,
+  modeIndicator: black,
+  selectionIndicator: black,
+  activeIndicator: black,
 })
 
 describe('theme analysis', () => {
@@ -74,7 +73,10 @@ describe('theme analysis', () => {
       findings.find((finding) => finding.id.endsWith('focus-header')),
     ).toMatchObject({ sample: 'focus-header' })
     expect(
-      findings.find((finding) => finding.id.endsWith('header-hover')),
+      findings.find(
+        (finding) =>
+          finding.kind === 'state' && finding.id.endsWith('header-hover'),
+      ),
     ).toMatchObject({ kind: 'state', severity: 'warning', value: 0 })
     expect(
       findings
@@ -120,21 +122,93 @@ describe('theme analysis', () => {
     })
   })
 
-  it('blocks new or worsening contrast failures while leaving design warnings advisory', () => {
+  it('checks selection, active, and mode indicators against adjacent surfaces', () => {
     const sample = measurement()
-    sample.focus = [180, 180, 180, 1]
-    const findings = analyzeTheme(sample, selection)
-    const baseline = Object.fromEntries(
-      findings
-        .filter((finding) => finding.kind === 'contrast')
-        .map((finding) => [finding.id, finding.value]),
-    )
-    expect(contrastRegressions(findings, baseline)).toEqual([])
-    expect(contrastRegressions(findings, {})).toHaveLength(3)
-    const first = findings.find((finding) => finding.kind === 'contrast')!
+    sample.selectionIndicator = white
+    sample.activeIndicator = white
+    sample.modeIndicator = white
     expect(
-      contrastRegressions([{ ...first, value: first.value - 0.1 }], baseline),
-    ).toHaveLength(1)
+      analyzeTheme(sample, selection).filter((f) =>
+        f.id.endsWith('-indicator'),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sample: 'selected', threshold: 3, value: 1 }),
+        expect.objectContaining({ sample: 'active', threshold: 3, value: 1 }),
+        expect.objectContaining({ sample: 'mode', threshold: 3, value: 1 }),
+      ]),
+    )
+  })
+
+  it('detects focus and mode contrast lost only during hover', () => {
+    const sample = measurement()
+    sample.headerHover = black
+    sample.states['focus-hover'].background = black
+    sample.modeHovered = black
+    const failures = analyzeTheme(sample, selection).filter(
+      (f) => f.kind === 'contrast',
+    )
+    expect(failures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sample: 'focus-header-hover', value: 1 }),
+        expect.objectContaining({ sample: 'focus-hover', value: 1 }),
+        expect.objectContaining({ sample: 'mode', value: 1 }),
+      ]),
+    )
+    expect(failures.some((f) => f.id.endsWith('/focus-header'))).toBe(false)
+  })
+
+  it('opens the hovered indicator state when it has the weakest contrast', () => {
+    const sample = measurement()
+    sample.states['selected-hover'].background = black
+    sample.states['active-hover'].background = black
+    expect(analyzeTheme(sample, selection)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sample: 'selected-hover',
+          message: 'Selection indicator has low contrast',
+          value: 1,
+        }),
+        expect.objectContaining({
+          sample: 'active-hover',
+          message: 'Active tab border has low contrast',
+          value: 1,
+        }),
+      ]),
+    )
+  })
+
+  it('retains palettes when a secondary role is distinct', () => {
+    const first = measurement()
+    const second = {
+      ...measurement(),
+      foreground: [1, 1, 1, 1] as Color,
+      muted: [130, 130, 130, 1] as Color,
+    }
+    expect(
+      compareThemePalettes([
+        { selection, measurement: first },
+        {
+          selection: { ...selection, foreground: 'stone' },
+          measurement: second,
+        },
+      ]),
+    ).toEqual([])
+  })
+
+  it('groups hover observations by the palette that changes their colors', () => {
+    const first = analyzeTheme(measurement(), selection)
+    const second = analyzeTheme(measurement(), {
+      ...selection,
+      accent: 'red',
+      foreground: 'stone',
+    })
+    expect(first.find((f) => f.id.endsWith('tab-hover'))?.id).toBe(
+      second.find((f) => f.id.endsWith('tab-hover'))?.id,
+    )
+    expect(first.find((f) => f.id.endsWith('selected-hover'))?.id).not.toBe(
+      second.find((f) => f.id.endsWith('selected-hover'))?.id,
+    )
   })
 
   it('exports inspectable findings with escaped content and the exact palette pair', () => {

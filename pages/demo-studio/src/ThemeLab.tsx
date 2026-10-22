@@ -313,6 +313,12 @@ export const ThemeLab = ({ scenario }: { scenario: Scenario }) => {
   const failures =
     report?.findings.filter((finding) => finding.severity === 'failure')
       .length ?? 0
+  const suggestions =
+    report?.findings.filter((finding) => finding.severity === 'warning')
+      .length ?? 0
+  const information =
+    report?.findings.filter((finding) => finding.severity === 'info').length ??
+    0
   const inspection = report?.findings.find(
     (finding) => finding.id === inspecting?.id,
   )
@@ -426,7 +432,7 @@ export const ThemeLab = ({ scenario }: { scenario: Scenario }) => {
                 </h2>
                 <p>
                   {report
-                    ? `${failures} contrast failures · ${report.findings.length - failures} design warnings`
+                    ? `${failures} contrast failures · ${suggestions} review suggestions · ${information} subtle palette pairs`
                     : 'Explore the previews while the audit runs.'}
                 </p>
               </div>
@@ -445,9 +451,12 @@ export const ThemeLab = ({ scenario }: { scenario: Scenario }) => {
               These observations cover every combination and stay the same when
               you change preview colors. The audit reruns automatically when
               stylesheets change. Contrast failures use accessibility thresholds
-              for text and focus. Similarity and state visibility are advisory.
-              Matching colors can be intentional; warnings help you compare
-              them.
+              for text, focus, and selection indicators. Palette comparisons use
+              text and details, background surfaces, or accent roles together.
+              Similarity and hover visibility are advisory. Matching colors can
+              be intentional; warnings help you compare them. Repeated
+              observations are grouped by the palettes that affect their colors;
+              Inspect opens the weakest measured example.
             </p>
             {report && (
               <>
@@ -485,7 +494,9 @@ export const ThemeLab = ({ scenario }: { scenario: Scenario }) => {
                             {finding.severity === 'failure'
                               ? 'Low contrast'
                               : finding.kind === 'similarity'
-                                ? 'Similar palettes'
+                                ? finding.severity === 'info'
+                                  ? 'Subtle palettes'
+                                  : 'Near duplicates'
                                 : 'Weak state change'}
                           </span>
                           <FindingDescription finding={finding} />

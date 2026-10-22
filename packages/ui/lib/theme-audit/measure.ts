@@ -69,7 +69,10 @@ export const createThemeReader = (surface: HTMLElement) => {
   const header = required('[data-theme-header]')
   const hover = required('[data-theme-header-hover]')
   const selectedMode = required(
-    '[data-theme-mode-choices] input:checked + span',
+    '[data-theme-mode-choices]:not([data-hover]) input:checked + span',
+  )
+  const hoveredMode = required(
+    '[data-theme-mode-choices][data-hover] input:checked + span',
   )
   const restingMode = required(
     '[data-theme-mode-choices] input:not(:checked) + span',
@@ -123,6 +126,21 @@ export const createThemeReader = (surface: HTMLElement) => {
         focus: token('focus-ring'),
         modeResting: background(restingMode),
         modeSelected: background(selectedMode),
+        modeHovered: background(hoveredMode),
+        modeIndicator: color(
+          view.getComputedStyle(selectedMode).borderBottomColor,
+        ),
+        selectionIndicator: (() => {
+          const indicator =
+            stateElements.selected.row.querySelector<HTMLElement>(
+              '[data-tab-selection-indicator]',
+            )
+          return indicator ? background(indicator) : states.selected.background
+        })(),
+        activeIndicator: color(
+          view.getComputedStyle(stateElements.active.row.firstElementChild!)
+            .borderTopColor,
+        ),
       }
     } finally {
       probe.remove()
@@ -234,8 +252,17 @@ export const scanThemeCombinations = async (
             applySelection(surface, selection)
             const measurement = read()
             samples.push({ selection, measurement })
-            for (const finding of analyzeTheme(measurement, selection))
-              findings.set(finding.id, finding)
+            for (const finding of analyzeTheme(measurement, selection)) {
+              const previous = findings.get(finding.id)
+              const affectedCombinations =
+                (previous?.affectedCombinations ?? 0) + 1
+              findings.set(finding.id, {
+                ...(previous && previous.value <= finding.value
+                  ? previous
+                  : finding),
+                affectedCombinations,
+              })
+            }
             combinations++
             if (view.performance.now() - batchStarted >= 8) {
               options.onProgress?.(combinations)

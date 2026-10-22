@@ -33,6 +33,8 @@ export const ThemeSamples = ({
       data-theme-spotlight={highlight === 'mode' || undefined}
     >
       <ThemeModeChoices theme={mode} onChange={ignoreChoice} />
+      <p className="text-muted mb-1 mt-3 text-xs">Hovered mode</p>
+      <ThemeModeChoices theme={mode} onChange={ignoreChoice} hovered />
     </div>
     <div
       data-theme-header
@@ -61,6 +63,15 @@ export const ThemeSamples = ({
       >
         Focused window
       </button>
+      <button
+        type="button"
+        data-theme-header-focus-hover
+        data-hover="true"
+        data-theme-spotlight={highlight === 'focus-header-hover' || undefined}
+        className={cn(windowControlClass, 'ring-focus ring-2 ring-inset')}
+      >
+        Focused hovered window
+      </button>
     </div>
     <div
       className={`
@@ -86,14 +97,20 @@ export const ThemeSamples = ({
               selected={
                 state === 'selected' ||
                 state === 'selected-hover' ||
-                state === 'focus'
+                state === 'focus' ||
+                state === 'focus-selected-hover'
               }
-              active={state === 'active'}
+              active={state === 'active' || state === 'active-hover'}
               data-hover={
-                state === 'hover' || state === 'selected-hover' || undefined
+                state === 'hover' ||
+                state === 'selected-hover' ||
+                state === 'active-hover' ||
+                state === 'focus-hover' ||
+                state === 'focus-selected-hover' ||
+                undefined
               }
               className={
-                state === 'focus' || state === 'focus-resting'
+                state.startsWith('focus')
                   ? 'after:ring-focus after:ring-2 after:ring-inset'
                   : undefined
               }
@@ -123,6 +140,12 @@ export const FindingDescription = ({
             ? 'These choices may look the same at normal text sizes.'
             : 'Look for a clearly visible change when you hover or select.'}
     </span>
+    {finding.affectedCombinations !== undefined && (
+      <span className="mt-1 block text-xs">
+        {finding.affectedCombinations.toLocaleString()} combinations share this
+        observation.
+      </span>
+    )}
   </>
 )
 

@@ -9,12 +9,12 @@
 
   [data-surface] {
     --accent: oklch(from var(--accent-base, #3b82f6) 0.52 0.14 h);
-    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.6 0.16 h);
+    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.49 0.16 h);
     --accent-soft: oklch(from var(--accent) 0.96 0.025 h);
     --accent-hover: oklch(from var(--accent) 0.94 0.04 h);
     --accent-selected: oklch(from var(--accent) 0.92 0.055 h);
-    --accent-selected-hover: oklch(from var(--accent) 0.9 0.065 h);
-    --accent-border: oklch(from var(--accent) 0.7 0.1 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.88 0.065 h);
+    --accent-border: var(--focus-ring);
   }
 
   [data-surface][data-theme='dark'] {
@@ -23,8 +23,8 @@
     --accent-soft: oklch(from var(--accent) 0.25 0.025 h);
     --accent-hover: oklch(from var(--accent) 0.28 0.035 h);
     --accent-selected: oklch(from var(--accent) 0.3 0.045 h);
-    --accent-selected-hover: oklch(from var(--accent) 0.32 0.05 h);
-    --accent-border: oklch(from var(--accent) 0.55 0.1 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.35 0.05 h);
+    --accent-border: var(--focus-ring);
   }
 
   [data-theme='light'][data-theme-background='slate'] {
@@ -139,11 +139,11 @@
   }
 
   [data-theme='dark'][data-theme-foreground='slate'] {
-    --foreground: theme(colors.slate.100);
-    --card-foreground: theme(colors.slate.100);
-    --popover-foreground: theme(colors.slate.100);
+    --foreground: oklch(from theme(colors.slate.500) 0.88 0.065 h);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
     --muted: theme(colors.slate.400);
-    --tooltip: theme(colors.slate.100);
+    --tooltip: var(--foreground);
   }
 
   [data-theme='light'][data-theme-foreground='gray'] {
@@ -151,11 +151,11 @@
   }
 
   [data-theme='dark'][data-theme-foreground='gray'] {
-    --foreground: theme(colors.gray.100);
-    --card-foreground: theme(colors.gray.100);
-    --popover-foreground: theme(colors.gray.100);
+    --foreground: oklch(from theme(colors.gray.500) 0.88 0.025 h);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
     --muted: theme(colors.gray.400);
-    --tooltip: theme(colors.gray.100);
+    --tooltip: var(--foreground);
   }
 
   [data-theme='light'][data-theme-foreground='zinc'] {
@@ -163,11 +163,11 @@
   }
 
   [data-theme='dark'][data-theme-foreground='zinc'] {
-    --foreground: theme(colors.zinc.100);
-    --card-foreground: theme(colors.zinc.100);
-    --popover-foreground: theme(colors.zinc.100);
+    --foreground: oklch(from theme(colors.zinc.500) 0.88 0.04 h);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
     --muted: theme(colors.zinc.400);
-    --tooltip: theme(colors.zinc.100);
+    --tooltip: var(--foreground);
   }
 
   [data-theme='light'][data-theme-foreground='neutral'] {
@@ -175,11 +175,11 @@
   }
 
   [data-theme='dark'][data-theme-foreground='neutral'] {
-    --foreground: theme(colors.neutral.100);
-    --card-foreground: theme(colors.neutral.100);
-    --popover-foreground: theme(colors.neutral.100);
+    --foreground: oklch(from theme(colors.neutral.500) 0.88 0 h);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
     --muted: theme(colors.neutral.400);
-    --tooltip: theme(colors.neutral.100);
+    --tooltip: var(--foreground);
   }
 
   [data-theme='light'][data-theme-foreground='stone'] {
@@ -187,11 +187,11 @@
   }
 
   [data-theme='dark'][data-theme-foreground='stone'] {
-    --foreground: theme(colors.stone.100);
-    --card-foreground: theme(colors.stone.100);
-    --popover-foreground: theme(colors.stone.100);
+    --foreground: oklch(from theme(colors.stone.500) 0.88 0.05 h);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
     --muted: theme(colors.stone.400);
-    --tooltip: theme(colors.stone.100);
+    --tooltip: var(--foreground);
   }
 
   [data-theme='light'][data-theme-background='taupe'] {
@@ -219,7 +219,7 @@
   }
 
   [data-theme='dark'][data-theme-foreground='taupe'] {
-    --foreground: theme(colors.taupe.100);
+    --foreground: oklch(from theme(colors.taupe.500) 0.88 0.045 h);
     --card-foreground: var(--foreground);
     --popover-foreground: var(--foreground);
     --muted: theme(colors.taupe.400);
@@ -251,7 +251,7 @@
   }
 
   [data-theme='dark'][data-theme-foreground='mauve'] {
-    --foreground: theme(colors.mauve.100);
+    --foreground: oklch(from theme(colors.mauve.500) 0.88 0.06 h);
     --card-foreground: var(--foreground);
     --popover-foreground: var(--foreground);
     --muted: theme(colors.mauve.400);
@@ -283,7 +283,7 @@
   }
 
   [data-theme='dark'][data-theme-foreground='mist'] {
-    --foreground: theme(colors.mist.100);
+    --foreground: oklch(from theme(colors.mist.500) 0.88 0.055 h);
     --card-foreground: var(--foreground);
     --popover-foreground: var(--foreground);
     --muted: theme(colors.mist.400);
@@ -315,7 +315,7 @@
   }
 
   [data-theme='dark'][data-theme-foreground='olive'] {
-    --foreground: theme(colors.olive.100);
+    --foreground: oklch(from theme(colors.olive.500) 0.88 0.055 h);
     --card-foreground: var(--foreground);
     --popover-foreground: var(--foreground);
     --muted: theme(colors.olive.400);
@@ -432,11 +432,17 @@
   [data-tab-manager-shell] {
     --manager-canvas: var(--background);
     --manager-chrome: oklch(from var(--background) calc(l - 0.045) c h);
+    --manager-control-hover: oklch(
+      from var(--manager-chrome) calc(l - 0.06) c h
+    );
   }
 
   [data-theme='dark'] [data-tab-manager-shell] {
     --manager-canvas: var(--card);
     --manager-chrome: var(--input);
+    --manager-control-hover: oklch(
+      from var(--manager-chrome) calc(l + 0.08) c h
+    );
   }
 
   [data-drag-pinned='unpinned']

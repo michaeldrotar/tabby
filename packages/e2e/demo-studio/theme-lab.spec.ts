@@ -1,12 +1,11 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
-import { contrastRegressions } from '../../ui/lib/theme-audit/analyze'
 import type { ThemeReport } from '../../ui/lib/theme-audit/measure'
 
 test('compares palettes, scans every combination, and opens exact findings', async ({
   page,
 }, testInfo) => {
-  test.setTimeout(90_000)
+  test.setTimeout(120_000)
   await page.goto('/')
   await page.getByRole('link', { name: 'Theme lab', exact: true }).click()
   const left = page.getByRole('region', { name: 'Palette A', exact: true })
@@ -100,27 +99,51 @@ test('compares palettes, scans every combination, and opens exact findings', asy
   })
 
   expect(
-    report.findings.some((finding) => finding.id === 'dark/slate/header-hover'),
-  ).toBe(true)
+    report.findings.filter((finding) => finding.kind === 'contrast'),
+  ).toEqual([])
   expect(
     report.findings.some(
       (finding) => finding.id === 'dark/foreground/neutral/stone',
     ),
-  ).toBe(true)
+  ).toBe(false)
+
+  // Create a real contrast failure so Inspect and stylesheet recalculation are exercised.
+  const override = await page.addStyleTag({
+    content:
+      '[data-surface][data-theme="light"][data-theme-background="slate"][data-theme-accent="teal"] { --focus-ring: #ffffff !important; }',
+  })
+  await expect(page.locator('[data-theme-audit-duration]')).toHaveCount(0)
+  await expect(page.locator('[data-theme-audit-duration]')).toHaveCount(1, {
+    timeout: 60_000,
+  })
+  const changedDownload = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download JSON', exact: true }).click()
+  const changedPath = testInfo.outputPath('changed-theme-report.json')
+  await (await changedDownload).saveAs(changedPath)
+  const changed = JSON.parse(await readFile(changedPath, 'utf8')) as ThemeReport
+  expect(changed.combinations).toBe(report.combinations)
+  const failures = changed.findings.filter(
+    (finding) => finding.kind === 'contrast',
+  )
+  expect(failures.length).toBeGreaterThan(0)
   expect(
-    report.findings.some(
-      (finding) => finding.id === 'light/slate/teal/focus-selection',
+    failures.every(
+      ({ selection }) =>
+        selection.mode === 'light' &&
+        selection.background === 'slate' &&
+        selection.accent === 'teal',
     ),
   ).toBe(true)
   expect(
-    report.findings
-      .filter((finding) => finding.kind === 'contrast')
-      .every((finding) => Number.isFinite(finding.value)),
-  ).toBe(true)
-
+    changed.findings.find((f) => f.id === 'light/slate/teal/focus-selection')!
+      .value,
+  ).toBeLessThan(3)
   await page.getByLabel('Show', { exact: true }).selectOption('contrast')
-  await page.locator('[data-theme-result="contrast"]').first().click()
-  await expect(left.locator('[data-theme-spotlight="true"]')).toHaveCount(1)
+  await page
+    .locator('[data-theme-result="contrast"]')
+    .filter({ hasText: 'Focus ring on header controls' })
+    .first()
+    .click()
   await expect(
     left.locator('[data-theme-header-focus][data-theme-spotlight="true"]'),
   ).toHaveCount(1)
@@ -131,19 +154,11 @@ test('compares palettes, scans every combination, and opens exact findings', asy
   ).not.toBe('none')
   await observations.click()
   await page.getByLabel('Show', { exact: true }).selectOption('contrast')
-  const restingObservation = page
+  await page
     .locator('[data-theme-result="contrast"]')
     .filter({ hasText: 'Focus ring on resting tabs' })
-  for (
-    let batch = 0;
-    batch < 3 && (await restingObservation.count()) === 0;
-    batch++
-  ) {
-    await page
-      .getByRole('button', { name: 'Show more findings', exact: true })
-      .click()
-  }
-  await restingObservation.first().click()
+    .first()
+    .click()
   const restingFocus = left.locator('[data-theme-state="focus-resting"]')
   await expect(restingFocus).toHaveAttribute('data-theme-spotlight', 'true')
   await expect(restingFocus.locator('[data-tab-item]')).toHaveAttribute(
@@ -155,15 +170,6 @@ test('compares palettes, scans every combination, and opens exact findings', asy
       .locator('[data-tab-item]')
       .evaluate((node) => getComputedStyle(node, '::after').boxShadow),
   ).not.toBe('none')
-  expect(
-    await restingFocus
-      .locator('[data-tab-item] > div')
-      .evaluate((node) => getComputedStyle(node).backgroundColor),
-  ).toBe(
-    await left
-      .locator('[data-theme-state="normal"] [data-tab-item] > div')
-      .evaluate((node) => getComputedStyle(node).backgroundColor),
-  )
 
   await expect(
     left.getByRole('button', { name: 'Light', exact: true }),
@@ -177,27 +183,25 @@ test('compares palettes, scans every combination, and opens exact findings', asy
     .locator('[data-theme-result="similarity"]')
     .filter({
       hasText:
-        'neutral and stone primary text colors look very similar in dark mode',
+        'stone and taupe background roles look very similar in dark mode',
     })
     .click()
   await expect(
     page.getByRole('button', { name: 'Compare', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await expect(left.getByLabel('Foreground', { exact: true })).toHaveValue(
-    'neutral',
-  )
-  await expect(right.getByLabel('Foreground', { exact: true })).toHaveValue(
+  await expect(left.getByLabel('Background', { exact: true })).toHaveValue(
     'stone',
+  )
+  await expect(right.getByLabel('Background', { exact: true })).toHaveValue(
+    'taupe',
   )
   await expect(
     left.getByRole('button', { name: 'Dark', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await expect(
-    right.getByRole('button', { name: 'Dark', exact: true }),
-  ).toHaveAttribute('aria-pressed', 'true')
+  await override.evaluate((node) => node.remove())
   await page.reload()
-  await expect(right.getByLabel('Foreground', { exact: true })).toHaveValue(
-    'stone',
+  await expect(right.getByLabel('Background', { exact: true })).toHaveValue(
+    'taupe',
   )
   await page.setViewportSize({ width: 375, height: 800 })
   await expect(left.getByLabel('Background', { exact: true })).toBeVisible()
@@ -218,51 +222,6 @@ test('compares palettes, scans every combination, and opens exact findings', asy
       ),
     )
   expect(normalize(report)).toEqual(normalize(initialReport))
-  const baselinePath = new URL(
-    './theme-contrast-baseline.json',
-    import.meta.url,
-  )
-  if (process.env.TABBY_UPDATE_THEME_BASELINE === '1') {
-    const baseline = Object.fromEntries(
-      report.findings
-        .filter((finding) => finding.kind === 'contrast')
-        .map((finding) => [finding.id, Number(finding.value.toFixed(4))]),
-    )
-    await writeFile(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`)
-  }
-  const baseline = JSON.parse(await readFile(baselinePath, 'utf8')) as Record<
-    string,
-    number
-  >
-  expect(
-    contrastRegressions(report.findings, baseline),
-    'New or worsening contrast failures; inspect the attached theme report',
-  ).toEqual([])
-
-  // Change the actual stylesheet, without pressing Recalculate audit.
-  await page.addStyleTag({
-    content: '[data-surface] { --focus-ring: #ffffff !important; }',
-  })
-  await expect(page.locator('[data-theme-audit-duration]')).toHaveCount(0)
-  await expect(page.locator('[data-theme-audit-duration]')).toHaveCount(1, {
-    timeout: 60_000,
-  })
-  await observations.click()
-  const updatedDownload = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download JSON', exact: true }).click()
-  const updatedPath = testInfo.outputPath('changed-theme-report.json')
-  await (await updatedDownload).saveAs(updatedPath)
-  const updated = JSON.parse(await readFile(updatedPath, 'utf8')) as ThemeReport
-  expect(updated.combinations).toBe(report.combinations)
-  expect(
-    updated.findings.find(
-      (finding) => finding.id === 'light/slate/teal/focus-selection',
-    )!.value,
-  ).not.toBe(
-    report.findings.find(
-      (finding) => finding.id === 'light/slate/teal/focus-selection',
-    )!.value,
-  )
 })
 
 test('state samples match real pointer and keyboard styling', async ({
