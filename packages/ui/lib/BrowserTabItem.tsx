@@ -317,7 +317,7 @@ export const BrowserTabItem = memo(
           <div
             className={cn(
               `
-                flex w-full items-center gap-0 rounded-lg border
+                relative flex w-full items-center gap-0 rounded-lg border
                 border-transparent
                 transition-[opacity,background-color,filter,transform,box-shadow,border-color]
                 duration-200 ease-out
@@ -326,8 +326,8 @@ export const BrowserTabItem = memo(
               !selected &&
                 !active &&
                 `
-                  hover:bg-highlighted/30
-                  group-data-[hover=true]/tab-row:bg-highlighted/30
+                  hover:bg-highlighted/70
+                  group-data-[hover=true]/tab-row:bg-highlighted/70
                 `,
               selected &&
                 `
@@ -346,6 +346,16 @@ export const BrowserTabItem = memo(
               discarded && 'opacity-50 grayscale',
             )}
           >
+            {selected && (
+              <span
+                aria-hidden="true"
+                data-tab-selection-indicator
+                className={`
+                  bg-focus pointer-events-none absolute inset-y-3 left-0 w-[3px]
+                  rounded-r
+                `}
+              />
+            )}
             <div
               data-tab-favicon
               className={`

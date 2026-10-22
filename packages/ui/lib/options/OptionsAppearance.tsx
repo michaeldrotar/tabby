@@ -5,7 +5,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../Select'
-import { useSurfaceId } from '../Surface'
 import {
   accentSwatchByPalette,
   neutralSwatchByPalette,
@@ -13,6 +12,7 @@ import {
   THEME_NEUTRAL_PALETTES,
 } from '../theme-colors'
 import { cn } from '../utils/cn'
+import { ThemeModeChoices } from './ThemeModeChoices'
 import type { OptionsControlBindings, OptionsProps } from './Options'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
 
@@ -66,7 +66,6 @@ export const OptionsAppearance = ({
   OptionsProps,
   'preferences' | 'activeThemeMode' | 'onPreferenceChange' | 'randomizeColors'
 > & { controlProps: OptionsControlBindings }) => {
-  const themeModeId = useSurfaceId('theme-mode')
   const {
     theme,
     themeLightBackground,
@@ -104,50 +103,10 @@ export const OptionsAppearance = ({
               Match your system appearance, or override it
             </p>
           </div>
-          <fieldset className="flex shrink-0 items-center gap-2">
-            <legend className="sr-only">Theme mode</legend>
-            {(
-              [
-                { value: 'system' as const, label: 'System' },
-                { value: 'light' as const, label: 'Light' },
-                { value: 'dark' as const, label: 'Dark' },
-              ] as const
-            ).map((option) => {
-              return (
-                <label key={option.value} className="cursor-pointer">
-                  <input
-                    type="radio"
-                    name={themeModeId}
-                    className="peer sr-only"
-                    checked={theme === option.value}
-                    onChange={() =>
-                      onPreferenceChange({
-                        theme: option.value,
-                      })
-                    }
-                  />
-                  <span
-                    className={cn(
-                      `
-                        bg-input text-foreground inline-flex rounded-lg px-3
-                        py-2 text-sm font-medium transition-colors
-                        hover:bg-input/70
-                        peer-checked:bg-accent-selected
-                        peer-checked:text-foreground
-                        peer-checked:hover:bg-accent-selected-hover
-                        peer-focus-visible:ring-accent
-                        peer-focus-visible:ring-offset-background
-                        peer-focus-visible:ring-2
-                        peer-focus-visible:ring-offset-2
-                      `,
-                    )}
-                  >
-                    {option.label}
-                  </span>
-                </label>
-              )
-            })}
-          </fieldset>
+          <ThemeModeChoices
+            theme={theme}
+            onChange={(theme) => onPreferenceChange({ theme })}
+          />
         </div>
 
         <div className="border-border mt-4 border-t pt-4">

@@ -23,4 +23,10 @@ jobs:
       - run: pnpm --filter @extension/e2e exec playwright install --with-deps chromium
       - run: pnpm e2e
       - run: pnpm test:demo-studio
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: theme-and-browser-reports
+          path: packages/e2e/test-results/
+          retention-days: 7
       - run: pnpm test:marketing

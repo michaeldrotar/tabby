@@ -69,6 +69,8 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
 
+The checked layouts use the current light and dark palettes, including foreground tints and visible selection and focus indicators.
+
 Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
 
 ## Permissions justification

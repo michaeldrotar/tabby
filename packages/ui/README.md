@@ -41,6 +41,8 @@ export const ManagerFrame = (props: TabManagerProps) => (
 
 Use `palette` for preference-driven background, foreground, and accent values. [PreferenceSurface](../app/lib/PreferenceSurface.tsx) subscribes to an injected preference resource and applies those values. Each surface derives its hover, selection, border, and focus colors from its theme and accent.
 
+[ThemePreview](lib/theme-audit/ThemePreview.tsx) renders shared rows and controls in an isolated Surface for [Theme lab](../../pages/demo-studio/README.md#theme-lab). [Contrast and similarity analysis](lib/theme-audit/analyze.ts) is shared with the headless browser checks. Measurements account for transparent backgrounds and use rendered text and selection fills. Similarity is advisory; browser checks require zero contrast failures across the complete matrix, including focus, selection, and active indicators.
+
 ## Interaction and motion
 
 - `inputMode="live"` accepts ordinary mouse, keyboard, and scroll input.
