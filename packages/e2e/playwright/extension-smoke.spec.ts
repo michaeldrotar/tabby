@@ -31,20 +31,18 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(page.getByText('Accent strength', { exact: true })).toHaveCount(
     0,
   )
-  const background = page.getByRole('combobox', {
+  const background = page.getByRole('radiogroup', {
     name: 'Background',
     exact: true,
   })
-  await background.click()
   for (const palette of ['mist', 'mauve', 'olive', 'taupe']) {
-    const swatch = page.getByRole('option', { name: palette, exact: true })
+    const swatch = background.getByRole('radio', { name: palette, exact: true })
     const paint = await swatch
-      .locator('[aria-hidden="true"]')
+      .locator('[data-palette-swatch]')
       .evaluate((node) => getComputedStyle(node).backgroundColor)
     expect(paint).not.toBe('rgba(0, 0, 0, 0)')
     expect(paint).not.toBe('transparent')
   }
-  await page.keyboard.press('Escape')
   await page
     .getByRole('group', { name: 'Theme mode', exact: true })
     .getByText('Dark', { exact: true })
@@ -99,8 +97,10 @@ test('the built extension shares preferences and receives live tab changes', asy
       ['Accent', theme === 'dark' ? 'rose' : 'teal', 'accent'],
     ] as const) {
       const before = await Promise.all(surfaces.map(palettePaint))
-      await page.getByRole('combobox', { name: label, exact: true }).click()
-      await page.getByRole('option', { name: palette, exact: true }).click()
+      await page
+        .getByRole('radiogroup', { name: label, exact: true })
+        .getByRole('radio', { name: palette, exact: true })
+        .click()
       const expected = await palettePaint(page)
       for (const [index, surface] of surfaces.entries()) {
         await expect.poll(() => palettePaint(surface)).toEqual(expected)
@@ -125,10 +125,9 @@ test('the built extension shares preferences and receives live tab changes', asy
   await popup.keyboard.down('Escape')
   await expect.poll(() => popup.isClosed()).toBe(true)
   await page
-    .getByRole('group', { name: 'Accent', exact: true })
-    .getByRole('combobox')
+    .getByRole('radiogroup', { name: 'Accent', exact: true })
+    .getByRole('radio', { name: 'rose', exact: true })
     .click()
-  await page.getByRole('option', { name: 'rose', exact: true }).click()
   for (const surface of [page, manager])
     await expect(surface.locator('[data-surface]')).toHaveAttribute(
       'data-theme-accent',

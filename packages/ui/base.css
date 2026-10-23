@@ -8,123 +8,67 @@
   }
 
   [data-surface] {
-    --accent: oklch(from var(--accent-base, #3b82f6) 0.52 0.14 h);
-    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.49 0.16 h);
-    --accent-soft: oklch(from var(--accent) 0.96 0.025 h);
-    --accent-hover: oklch(from var(--accent) 0.94 0.04 h);
-    --accent-selected: oklch(from var(--accent) 0.92 0.055 h);
-    --accent-selected-hover: oklch(from var(--accent) 0.88 0.065 h);
+    --accent: oklch(from var(--accent-base, #3b82f6) 0.52 min(c, 0.21) h);
+    --focus-ring: oklch(
+      from var(--accent-base, var(--accent)) 0.49 min(c, 0.2) h
+    );
+    --accent-soft: oklch(from var(--accent) 0.96 0.045 h);
+    --accent-hover: oklch(from var(--accent) 0.94 0.065 h);
+    --accent-selected: oklch(from var(--accent) 0.92 0.095 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.88 0.12 h);
     --accent-border: var(--focus-ring);
   }
 
   [data-surface][data-theme='dark'] {
-    --accent: oklch(from var(--accent-base, #3b82f6) 0.8 0.12 h);
-    --focus-ring: oklch(from var(--accent-base, var(--accent)) 0.8 0.12 h);
-    --accent-soft: oklch(from var(--accent) 0.25 0.025 h);
-    --accent-hover: oklch(from var(--accent) 0.28 0.035 h);
-    --accent-selected: oklch(from var(--accent) 0.3 0.045 h);
-    --accent-selected-hover: oklch(from var(--accent) 0.35 0.05 h);
+    --accent: oklch(from var(--accent-base, #3b82f6) 0.8 min(c, 0.18) h);
+    --focus-ring: oklch(
+      from var(--accent-base, var(--accent)) 0.8 min(c, 0.18) h
+    );
+    --accent-soft: oklch(from var(--accent) 0.25 0.055 h);
+    --accent-hover: oklch(from var(--accent) 0.28 0.075 h);
+    --accent-selected: oklch(from var(--accent) 0.3 0.1 h);
+    --accent-selected-hover: oklch(from var(--accent) 0.35 0.13 h);
     --accent-border: var(--focus-ring);
   }
 
-  [data-theme='light'][data-theme-background='slate'] {
-    --background: #eaf1f8;
-    --card: theme(colors.slate.50);
-    --popover: theme(colors.slate.50);
-    --input: theme(colors.slate.200);
-    --border: theme(colors.slate.300);
-    --highlighted: theme(colors.slate.300);
-    --tooltip-foreground: theme(colors.slate.100);
+  [data-theme-background='slate'] {
+    --background-base: theme(colors.slate.500);
   }
 
-  [data-theme='dark'][data-theme-background='slate'] {
-    --background: theme(colors.slate.950);
-    --card: theme(colors.slate.900);
-    --popover: theme(colors.slate.950);
-    --input: theme(colors.slate.800);
-    --border: theme(colors.slate.800);
-    --highlighted: theme(colors.slate.800);
-    --tooltip-foreground: theme(colors.slate.950);
+  [data-theme-background='gray'] {
+    --background-base: theme(colors.gray.500);
   }
 
-  [data-theme='light'][data-theme-background='gray'] {
-    --background: #eef1f3;
-    --card: theme(colors.gray.50);
-    --popover: theme(colors.gray.50);
-    --input: theme(colors.gray.200);
-    --border: theme(colors.gray.300);
-    --highlighted: theme(colors.gray.300);
-    --tooltip-foreground: theme(colors.gray.100);
+  [data-theme-background='zinc'] {
+    --background-base: theme(colors.zinc.500);
   }
 
-  [data-theme='dark'][data-theme-background='gray'] {
-    --background: theme(colors.gray.950);
-    --card: theme(colors.gray.900);
-    --popover: theme(colors.gray.950);
-    --input: theme(colors.gray.800);
-    --border: theme(colors.gray.800);
-    --highlighted: theme(colors.gray.800);
-    --tooltip-foreground: theme(colors.gray.950);
+  [data-theme-background='neutral'] {
+    --background-base: theme(colors.neutral.500);
   }
 
-  [data-theme='light'][data-theme-background='zinc'] {
-    --background: #f1edf5;
-    --card: theme(colors.zinc.50);
-    --popover: theme(colors.zinc.50);
-    --input: theme(colors.zinc.200);
-    --border: theme(colors.zinc.300);
-    --highlighted: theme(colors.zinc.300);
-    --tooltip-foreground: theme(colors.zinc.100);
+  [data-theme-background='stone'] {
+    --background-base: theme(colors.stone.500);
   }
 
-  [data-theme='dark'][data-theme-background='zinc'] {
-    --background: theme(colors.zinc.950);
-    --card: theme(colors.zinc.900);
-    --popover: theme(colors.zinc.950);
-    --input: theme(colors.zinc.800);
-    --border: theme(colors.zinc.800);
-    --highlighted: theme(colors.zinc.800);
-    --tooltip-foreground: theme(colors.zinc.950);
+  [data-surface][data-theme='light'] {
+    --background: oklch(from var(--background-base) 0.96 calc(c * 1.25) h);
+    --card: oklch(from var(--background-base) 0.985 calc(c * 0.3) h);
+    --popover: var(--card);
+    --input: oklch(from var(--background-base) 0.91 calc(c * 0.85) h);
+    --border: oklch(from var(--background-base) 0.84 c h);
+    --highlighted: var(--border);
+    --tooltip-foreground: var(--background);
   }
 
-  [data-theme='light'][data-theme-background='neutral'] {
-    --background: #f1f1f1;
-    --card: theme(colors.neutral.50);
-    --popover: theme(colors.neutral.50);
-    --input: theme(colors.neutral.200);
-    --border: theme(colors.neutral.300);
-    --highlighted: theme(colors.neutral.300);
-    --tooltip-foreground: theme(colors.neutral.100);
-  }
-
-  [data-theme='dark'][data-theme-background='neutral'] {
-    --background: theme(colors.neutral.950);
-    --card: theme(colors.neutral.900);
-    --popover: theme(colors.neutral.950);
-    --input: theme(colors.neutral.800);
-    --border: theme(colors.neutral.800);
-    --highlighted: theme(colors.neutral.800);
-    --tooltip-foreground: theme(colors.neutral.950);
-  }
-
-  [data-theme='light'][data-theme-background='stone'] {
-    --background: #f6f0e4;
-    --card: theme(colors.stone.50);
-    --popover: theme(colors.stone.50);
-    --input: theme(colors.stone.200);
-    --border: theme(colors.stone.300);
-    --highlighted: theme(colors.stone.300);
-    --tooltip-foreground: theme(colors.stone.100);
-  }
-
-  [data-theme='dark'][data-theme-background='stone'] {
-    --background: theme(colors.stone.950);
-    --card: theme(colors.stone.900);
-    --popover: theme(colors.stone.950);
-    --input: theme(colors.stone.800);
-    --border: theme(colors.stone.800);
-    --highlighted: theme(colors.stone.800);
-    --tooltip-foreground: theme(colors.stone.950);
+  [data-surface][data-theme='dark'] {
+    --background: oklch(from var(--background-base) 0.15 c h);
+    --card: oklch(from var(--background-base) 0.225 calc(c * 1.3) h);
+    --popover: var(--background);
+    --input: oklch(from var(--background-base) 0.29 calc(c * 1.1) h);
+    --border: var(--input);
+    --highlighted: var(--input);
+    --tooltip-foreground: var(--background);
   }
 
   [data-surface][data-theme='light'][data-theme-foreground] {
@@ -139,7 +83,7 @@
   }
 
   [data-theme='dark'][data-theme-foreground='slate'] {
-    --foreground: oklch(from theme(colors.slate.500) 0.88 0.065 h);
+    --foreground: oklch(from theme(colors.slate.500) 0.88 0.12 h);
     --card-foreground: var(--foreground);
     --popover-foreground: var(--foreground);
     --muted: theme(colors.slate.400);
@@ -194,24 +138,8 @@
     --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-background='taupe'] {
-    --background: oklch(from theme(colors.taupe.500) 0.96 calc(c * 0.5) h);
-    --card: theme(colors.taupe.50);
-    --popover: theme(colors.taupe.50);
-    --input: theme(colors.taupe.200);
-    --border: theme(colors.taupe.300);
-    --highlighted: theme(colors.taupe.300);
-    --tooltip-foreground: theme(colors.taupe.100);
-  }
-
-  [data-theme='dark'][data-theme-background='taupe'] {
-    --background: theme(colors.taupe.950);
-    --card: theme(colors.taupe.900);
-    --popover: theme(colors.taupe.950);
-    --input: theme(colors.taupe.800);
-    --border: theme(colors.taupe.800);
-    --highlighted: theme(colors.taupe.800);
-    --tooltip-foreground: theme(colors.taupe.950);
+  [data-theme-background='taupe'] {
+    --background-base: theme(colors.taupe.500);
   }
 
   [data-theme='light'][data-theme-foreground='taupe'] {
@@ -226,24 +154,8 @@
     --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-background='mauve'] {
-    --background: oklch(from theme(colors.mauve.500) 0.96 calc(c * 0.5) h);
-    --card: theme(colors.mauve.50);
-    --popover: theme(colors.mauve.50);
-    --input: theme(colors.mauve.200);
-    --border: theme(colors.mauve.300);
-    --highlighted: theme(colors.mauve.300);
-    --tooltip-foreground: theme(colors.mauve.100);
-  }
-
-  [data-theme='dark'][data-theme-background='mauve'] {
-    --background: theme(colors.mauve.950);
-    --card: theme(colors.mauve.900);
-    --popover: theme(colors.mauve.950);
-    --input: theme(colors.mauve.800);
-    --border: theme(colors.mauve.800);
-    --highlighted: theme(colors.mauve.800);
-    --tooltip-foreground: theme(colors.mauve.950);
+  [data-theme-background='mauve'] {
+    --background-base: theme(colors.mauve.500);
   }
 
   [data-theme='light'][data-theme-foreground='mauve'] {
@@ -258,24 +170,8 @@
     --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-background='mist'] {
-    --background: oklch(from theme(colors.mist.500) 0.96 calc(c * 0.5) h);
-    --card: theme(colors.mist.50);
-    --popover: theme(colors.mist.50);
-    --input: theme(colors.mist.200);
-    --border: theme(colors.mist.300);
-    --highlighted: theme(colors.mist.300);
-    --tooltip-foreground: theme(colors.mist.100);
-  }
-
-  [data-theme='dark'][data-theme-background='mist'] {
-    --background: theme(colors.mist.950);
-    --card: theme(colors.mist.900);
-    --popover: theme(colors.mist.950);
-    --input: theme(colors.mist.800);
-    --border: theme(colors.mist.800);
-    --highlighted: theme(colors.mist.800);
-    --tooltip-foreground: theme(colors.mist.950);
+  [data-theme-background='mist'] {
+    --background-base: theme(colors.mist.500);
   }
 
   [data-theme='light'][data-theme-foreground='mist'] {
@@ -290,24 +186,8 @@
     --tooltip: var(--foreground);
   }
 
-  [data-theme='light'][data-theme-background='olive'] {
-    --background: oklch(from theme(colors.olive.500) 0.96 calc(c * 0.5) h);
-    --card: theme(colors.olive.50);
-    --popover: theme(colors.olive.50);
-    --input: theme(colors.olive.200);
-    --border: theme(colors.olive.300);
-    --highlighted: theme(colors.olive.300);
-    --tooltip-foreground: theme(colors.olive.100);
-  }
-
-  [data-theme='dark'][data-theme-background='olive'] {
-    --background: theme(colors.olive.950);
-    --card: theme(colors.olive.900);
-    --popover: theme(colors.olive.950);
-    --input: theme(colors.olive.800);
-    --border: theme(colors.olive.800);
-    --highlighted: theme(colors.olive.800);
-    --tooltip-foreground: theme(colors.olive.950);
+  [data-theme-background='olive'] {
+    --background-base: theme(colors.olive.500);
   }
 
   [data-theme='light'][data-theme-foreground='olive'] {
@@ -483,4 +363,53 @@
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+@layer components {
+  [data-palette-choices] {
+    min-width: 0;
+  }
+
+  [data-palette-grid] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+    gap: 2px;
+  }
+
+  [data-palette-choice] {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 34px;
+    gap: 6px;
+    padding: 6px 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  [data-palette-choice]:hover {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+  }
+
+  [data-palette-choice][aria-checked='true'] [data-palette-swatch] {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  [data-palette-choice]:focus-visible {
+    outline: 2px solid var(--focus-ring, currentColor);
+    outline-offset: 2px;
+  }
+
+  [data-palette-name] {
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
 }

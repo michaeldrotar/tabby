@@ -222,6 +222,7 @@ export const ThemePreview = ({
             palette={{ background, foreground, accent }}
             inputMode="static"
             motion="reduced"
+            className="pointer-events-none"
           >
             <ThemeSamples mode={mode} compact={compact} highlight={highlight} />
           </Surface>

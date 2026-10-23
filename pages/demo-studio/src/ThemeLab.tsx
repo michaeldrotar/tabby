@@ -8,6 +8,7 @@ import {
   TabManagerExperience,
 } from '@extension/app'
 import { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '@extension/core'
+import { PaletteChoices } from '@extension/ui/PaletteChoices'
 import { Surface } from '@extension/ui/Surface'
 import { themeCombinationCount } from '@extension/ui/theme-audit/measure'
 import { renderThemeReport } from '@extension/ui/theme-audit/report'
@@ -17,6 +18,10 @@ import {
   ThemePreview,
   ThemeSamples,
 } from '@extension/ui/theme-audit/ThemePreview'
+import {
+  accentSwatchByPalette,
+  neutralSwatchByPalette,
+} from '@extension/ui/theme-colors'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import logoUrl from '../../../chrome-extension/public/tabby-face-128.png?url'
 import { useThemeAudit } from './useThemeAudit'
@@ -104,23 +109,18 @@ const PaletteControls = ({
       </div>
     </fieldset>
     {(['background', 'foreground', 'accent'] as const).map((field) => (
-      <label key={field}>
-        {field[0]!.toUpperCase() + field.slice(1)}
-        <select
-          aria-label={field[0]!.toUpperCase() + field.slice(1)}
-          value={selection[field]}
-          onChange={(event) =>
-            onChange({ ...selection, [field]: event.target.value })
-          }
-        >
-          {(field === 'accent'
-            ? THEME_ACCENT_PALETTES
-            : THEME_NEUTRAL_PALETTES
-          ).map((value) => (
-            <option key={value}>{value}</option>
-          ))}
-        </select>
-      </label>
+      <PaletteChoices
+        key={field}
+        label={field[0]!.toUpperCase() + field.slice(1)}
+        value={selection[field]}
+        palettes={
+          field === 'accent' ? THEME_ACCENT_PALETTES : THEME_NEUTRAL_PALETTES
+        }
+        swatches={
+          field === 'accent' ? accentSwatchByPalette : neutralSwatchByPalette
+        }
+        onChange={(value) => onChange({ ...selection, [field]: value })}
+      />
     ))}
   </div>
 )

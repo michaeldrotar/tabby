@@ -1,10 +1,4 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../Select'
+import { PaletteChoices } from '../PaletteChoices'
 import {
   accentSwatchByPalette,
   neutralSwatchByPalette,
@@ -13,59 +7,18 @@ import {
 } from '../theme-colors'
 import { cn } from '../utils/cn'
 import { ThemeModeChoices } from './ThemeModeChoices'
-import type { OptionsControlBindings, OptionsProps } from './Options'
+import type { OptionsProps } from './Options'
 import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
-
-const PaletteSelect = ({
-  label,
-  value,
-  palettes,
-  swatches,
-  control,
-  onChange,
-}: {
-  label: string
-  value: string
-  palettes: readonly string[]
-  swatches: Record<string, string>
-  control: ReturnType<OptionsControlBindings>
-  onChange: (value: string) => void
-}) => (
-  <fieldset className="min-w-0">
-    <legend className="text-foreground mb-2 text-sm font-medium">
-      {label}
-    </legend>
-    <Select {...control} value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label={label} className="w-full">
-        <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-      </SelectTrigger>
-      <SelectContent>
-        {palettes.map((palette) => (
-          <SelectItem key={palette} value={palette}>
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className={cn('h-3.5 w-3.5 rounded-sm', swatches[palette])}
-              />
-              <span className="capitalize">{palette}</span>
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </fieldset>
-)
 
 export const OptionsAppearance = ({
   preferences,
   activeThemeMode,
   onPreferenceChange,
   randomizeColors,
-  controlProps,
 }: Pick<
   OptionsProps,
   'preferences' | 'activeThemeMode' | 'onPreferenceChange' | 'randomizeColors'
-> & { controlProps: OptionsControlBindings }) => {
+>) => {
   const {
     theme,
     themeLightBackground,
@@ -110,25 +63,21 @@ export const OptionsAppearance = ({
         </div>
 
         <div className="border-border mt-4 border-t pt-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="text-foreground font-medium">Colors</h3>
-              <p className="text-muted text-sm">
-                Choose your background, text, and accent. Highlights adapt to
-                light and dark mode.
-              </p>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-foreground font-medium">
+              {activeThemeMode === 'light' ? 'Light' : 'Dark'} mode colors
+            </h3>
             <button
               type="button"
               onClick={randomizeColors}
               className={cn(
                 `
-                  bg-input text-foreground flex-shrink-0 rounded-lg px-3 py-2
-                  text-sm font-medium transition-colors
-                  hover:bg-input/70
+                  text-foreground decoration-current/30 flex-shrink-0 rounded-md
+                  px-2 py-1.5 text-xs font-medium underline underline-offset-4
                   focus-visible:ring-accent focus-visible:ring-offset-background
                   focus-visible:outline-none focus-visible:ring-2
                   focus-visible:ring-offset-2
+                  hover:decoration-current
                 `,
               )}
             >
@@ -136,56 +85,46 @@ export const OptionsAppearance = ({
             </button>
           </div>
 
-          <div className="mt-4 space-y-4">
-            <div
-              className={`
-                grid gap-4
-                group-data-[wide=true]/options:grid-cols-3
-              `}
-            >
-              <PaletteSelect
-                label="Background"
-                value={activeThemeBackground}
-                palettes={neutralPalettes}
-                swatches={neutralSwatchByPalette}
-                control={controlProps('background')}
-                onChange={(value) =>
-                  onPreferenceChange(
-                    activeThemeMode === 'light'
-                      ? { themeLightBackground: value as ThemeNeutralPalette }
-                      : { themeDarkBackground: value as ThemeNeutralPalette },
-                  )
-                }
-              />
-              <PaletteSelect
-                label="Foreground"
-                value={activeThemeForeground}
-                palettes={neutralPalettes}
-                swatches={neutralSwatchByPalette}
-                control={controlProps('foreground')}
-                onChange={(value) =>
-                  onPreferenceChange(
-                    activeThemeMode === 'light'
-                      ? { themeLightForeground: value as ThemeNeutralPalette }
-                      : { themeDarkForeground: value as ThemeNeutralPalette },
-                  )
-                }
-              />
-              <PaletteSelect
-                label="Accent"
-                value={activeThemeAccent}
-                palettes={accentPalettes}
-                swatches={accentSwatchByPalette}
-                control={controlProps('accent')}
-                onChange={(value) =>
-                  onPreferenceChange(
-                    activeThemeMode === 'light'
-                      ? { themeLightAccent: value as ThemeAccentPalette }
-                      : { themeDarkAccent: value as ThemeAccentPalette },
-                  )
-                }
-              />
-            </div>
+          <div className="mt-6 space-y-6">
+            <PaletteChoices
+              label="Background"
+              value={activeThemeBackground}
+              palettes={neutralPalettes}
+              swatches={neutralSwatchByPalette}
+              onChange={(value) =>
+                onPreferenceChange(
+                  activeThemeMode === 'light'
+                    ? { themeLightBackground: value as ThemeNeutralPalette }
+                    : { themeDarkBackground: value as ThemeNeutralPalette },
+                )
+              }
+            />
+            <PaletteChoices
+              label="Foreground"
+              value={activeThemeForeground}
+              palettes={neutralPalettes}
+              swatches={neutralSwatchByPalette}
+              onChange={(value) =>
+                onPreferenceChange(
+                  activeThemeMode === 'light'
+                    ? { themeLightForeground: value as ThemeNeutralPalette }
+                    : { themeDarkForeground: value as ThemeNeutralPalette },
+                )
+              }
+            />
+            <PaletteChoices
+              label="Accent"
+              value={activeThemeAccent}
+              palettes={accentPalettes}
+              swatches={accentSwatchByPalette}
+              onChange={(value) =>
+                onPreferenceChange(
+                  activeThemeMode === 'light'
+                    ? { themeLightAccent: value as ThemeAccentPalette }
+                    : { themeDarkAccent: value as ThemeAccentPalette },
+                )
+              }
+            />
           </div>
         </div>
       </div>

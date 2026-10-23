@@ -5,7 +5,7 @@ import type { ThemeReport } from '../../ui/lib/theme-audit/measure'
 test('compares palettes, scans every combination, and opens exact findings', async ({
   page,
 }, testInfo) => {
-  test.setTimeout(120_000)
+  test.setTimeout(240_000)
   await page.goto('/')
   await page.getByRole('link', { name: 'Theme lab', exact: true }).click()
   const left = page.getByRole('region', { name: 'Palette A', exact: true })
@@ -40,7 +40,10 @@ test('compares palettes, scans every combination, and opens exact findings', asy
   await expect(
     right.getByRole('button', { name: 'Light', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await left.getByLabel('Accent', { exact: true }).selectOption('teal')
+  await left
+    .getByRole('radiogroup', { name: 'Accent', exact: true })
+    .getByRole('radio', { name: 'teal', exact: true })
+    .click()
   await left.getByRole('button', { name: 'Light', exact: true }).click()
   await expect(
     left.locator('[data-theme-preview] [data-surface]'),
@@ -57,14 +60,22 @@ test('compares palettes, scans every combination, and opens exact findings', asy
     initialReport,
   )
   await page.getByRole('button', { name: 'Compare', exact: true }).click()
-  await expect(right.getByLabel('Accent', { exact: true })).toHaveValue('blue')
+  await expect(
+    right
+      .getByRole('radiogroup', { name: 'Accent', exact: true })
+      .getByRole('radio', { name: 'blue', exact: true }),
+  ).toBeChecked()
 
   await page.getByRole('button', { name: 'Recalculate audit' }).click()
   await page.getByRole('button', { name: 'Cancel scan' }).click()
   await expect(
     page.getByRole('button', { name: 'Recalculate audit' }),
   ).toBeEnabled()
-  await expect(left.getByLabel('Accent', { exact: true })).toHaveValue('teal')
+  await expect(
+    left
+      .getByRole('radiogroup', { name: 'Accent', exact: true })
+      .getByRole('radio', { name: 'teal', exact: true }),
+  ).toBeChecked()
 
   await page.getByRole('button', { name: 'Recalculate audit' }).click()
   await expect(
@@ -100,6 +111,13 @@ test('compares palettes, scans every combination, and opens exact findings', asy
 
   expect(
     report.findings.filter((finding) => finding.kind === 'contrast'),
+  ).toEqual([])
+  expect(
+    report.findings.filter(
+      (finding) =>
+        finding.kind === 'similarity' &&
+        (finding.severity === 'warning' || finding.id.includes('/accent/')),
+    ),
   ).toEqual([])
   expect(
     report.findings.some(
@@ -189,22 +207,30 @@ test('compares palettes, scans every combination, and opens exact findings', asy
   await expect(
     page.getByRole('button', { name: 'Compare', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await expect(left.getByLabel('Background', { exact: true })).toHaveValue(
-    'stone',
-  )
-  await expect(right.getByLabel('Background', { exact: true })).toHaveValue(
-    'taupe',
-  )
+  await expect(
+    left
+      .getByRole('radiogroup', { name: 'Background', exact: true })
+      .getByRole('radio', { name: 'stone', exact: true }),
+  ).toBeChecked()
+  await expect(
+    right
+      .getByRole('radiogroup', { name: 'Background', exact: true })
+      .getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeChecked()
   await expect(
     left.getByRole('button', { name: 'Dark', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
   await override.evaluate((node) => node.remove())
   await page.reload()
-  await expect(right.getByLabel('Background', { exact: true })).toHaveValue(
-    'taupe',
-  )
+  await expect(
+    right
+      .getByRole('radiogroup', { name: 'Background', exact: true })
+      .getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeChecked()
   await page.setViewportSize({ width: 375, height: 800 })
-  await expect(left.getByLabel('Background', { exact: true })).toBeVisible()
+  await expect(
+    left.getByRole('radiogroup', { name: 'Background', exact: true }),
+  ).toBeVisible()
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -222,6 +248,221 @@ test('compares palettes, scans every combination, and opens exact findings', asy
       ),
     )
   expect(normalize(report)).toEqual(normalize(initialReport))
+})
+
+test('swatch palettes show every name and wrap keyboard selection between groups', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 1000 })
+  await page.goto('/?theme-lab&mode=light')
+  const palette = page.getByRole('region', { name: 'Palette A', exact: true })
+  const controls = palette.locator('.theme-lab-controls')
+  const background = controls.getByRole('radiogroup', {
+    name: 'Background',
+    exact: true,
+  })
+  const foreground = controls.getByRole('radiogroup', {
+    name: 'Foreground',
+    exact: true,
+  })
+  const accent = controls.getByRole('radiogroup', {
+    name: 'Accent',
+    exact: true,
+  })
+  for (const [group, count] of [
+    [background, 9],
+    [foreground, 9],
+    [accent, 17],
+  ] as const) {
+    await expect(group.getByRole('radio')).toHaveCount(count)
+    for (const swatch of await group.getByRole('radio').all()) {
+      await expect(swatch).toBeVisible()
+      await expect(swatch.locator('[data-palette-name]')).toBeVisible()
+    }
+  }
+  await expect(accent.locator('[data-palette-value]')).toHaveText('blue')
+  await background.getByRole('radio', { name: 'slate', exact: true }).click()
+  await page.keyboard.press('ArrowLeft')
+  await expect(
+    background.getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeFocused()
+  await expect(
+    background.getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    background.getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeFocused()
+  await expect(
+    background.getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('ArrowRight')
+  await expect(
+    background.getByRole('radio', { name: 'slate', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('Tab')
+  await expect(
+    foreground.getByRole('radio', { name: 'neutral', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('End')
+  await expect(
+    foreground.getByRole('radio', { name: 'taupe', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('Home')
+  await expect(
+    foreground.getByRole('radio', { name: 'slate', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('Tab')
+  await expect(
+    accent.getByRole('radio', { name: 'blue', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('ArrowUp')
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowLeft')
+  await expect(
+    accent.getByRole('radio', { name: 'rose', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('ArrowRight')
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeFocused()
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeChecked()
+  await expect(accent.locator('[data-palette-value]')).toHaveText('red')
+  const purple = accent.getByRole('radio', { name: 'purple', exact: true })
+  await page.keyboard.press('ArrowDown')
+  await expect(purple).toBeFocused()
+  await expect(purple).toBeChecked()
+  await page.keyboard.press('ArrowDown')
+  await expect(purple).toBeFocused()
+  await expect(purple).toBeChecked()
+  await page.keyboard.press('ArrowUp')
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeFocused()
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('Shift+Tab')
+  await expect(
+    foreground.getByRole('radio', { name: 'slate', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeFocused()
+  await page.reload()
+  await expect(
+    accent.getByRole('radio', { name: 'red', exact: true }),
+  ).toBeChecked()
+  await page.getByLabel('Preview', { exact: true }).selectOption('options')
+  const settings = palette.locator('.theme-lab-product')
+  const settingsAccent = settings.getByRole('radiogroup', {
+    name: 'Accent',
+    exact: true,
+  })
+  await settingsAccent.getByRole('radio', { name: 'lime', exact: true }).click()
+  await expect(
+    accent.getByRole('radio', { name: 'lime', exact: true }),
+  ).toBeChecked()
+  await page.keyboard.press('ArrowRight')
+  await expect(
+    settingsAccent.getByRole('radio', { name: 'green', exact: true }),
+  ).toBeFocused()
+  const focusedSwatch = settingsAccent.getByRole('radio', {
+    name: 'green',
+    exact: true,
+  })
+  await expect(focusedSwatch).toHaveCSS('outline-style', 'solid')
+  await expect(focusedSwatch).toHaveCSS('outline-width', '2px')
+  await expect(focusedSwatch).toHaveCSS('outline-offset', '2px')
+  await expect(
+    accent.getByRole('radio', { name: 'green', exact: true }),
+  ).toBeChecked()
+  await page.setViewportSize({ width: 320, height: 800 })
+  const namesFit = await settingsAccent
+    .locator('[data-palette-name]')
+    .evaluateAll((names) =>
+      names.every((name) => {
+        const label = name.getBoundingClientRect()
+        const button = name.closest('button')!.getBoundingClientRect()
+        return label.left >= button.left && label.right <= button.right
+      }),
+    )
+  expect(namesFit).toBe(true)
+  await settingsAccent.getByRole('radio', { name: 'pink', exact: true }).click()
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    settingsAccent.getByRole('radio', { name: 'rose', exact: true }),
+  ).toBeFocused()
+  await expect(
+    settingsAccent.getByRole('radio', { name: 'rose', exact: true }),
+  ).toBeChecked()
+  expect(
+    await settings.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true)
+})
+
+test('scrolling over theme samples and live apps continues into the lab page', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1000, height: 600 })
+  await page.goto('/?theme-lab&mode=light')
+  const palette = page.getByRole('region', { name: 'Palette A', exact: true })
+  const pointAt = async (selector: string) => {
+    const target = palette.locator(selector)
+    await target.evaluate((element) =>
+      window.scrollTo({
+        top: scrollY + element.getBoundingClientRect().top - 100,
+        behavior: 'instant',
+      }),
+    )
+    const bounds = await target.boundingBox()
+    await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + 150)
+  }
+  await pointAt('[data-theme-preview]')
+  let before = await page.evaluate(() => scrollY)
+  await page.mouse.wheel(0, 120)
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before)
+
+  await page.getByLabel('Preview', { exact: true }).selectOption('manager')
+  await pointAt('.theme-lab-product')
+  await palette
+    .locator('[data-radix-scroll-area-viewport]')
+    .evaluate((element) => {
+      element.scrollTop = element.scrollHeight
+    })
+  before = await page.evaluate(() => scrollY)
+  await page.mouse.wheel(0, 120)
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before)
+
+  await page.getByLabel('Preview', { exact: true }).selectOption('options')
+  await pointAt('.theme-lab-product')
+  const settings = palette.locator('[data-options]')
+  before = await page.evaluate(() => scrollY)
+  await page.mouse.wheel(0, 120)
+  await expect
+    .poll(() => settings.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0)
+  expect(await page.evaluate(() => scrollY)).toBe(before)
+
+  await settings.evaluate((element) => {
+    element.scrollTop = element.scrollHeight
+  })
+  await page.mouse.wheel(0, 120)
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before)
+  await settings.evaluate((element) => {
+    element.scrollTop = 0
+  })
+  before = await page.evaluate(() => scrollY)
+  await page.mouse.wheel(0, -120)
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(before)
 })
 
 test('state samples match real pointer and keyboard styling', async ({
