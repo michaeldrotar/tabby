@@ -118,6 +118,81 @@ button {
 .brand-word > span {
   display: inline-block;
 }
+.footer-cat-home,
+.footer-cat,
+.footer-cat svg {
+  display: block;
+  width: 45px;
+  height: 45px;
+}
+.footer-cat-home {
+  flex: none;
+}
+.footer-cat {
+  position: relative;
+  z-index: 5;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  transform-origin: 50% 80%;
+}
+.footer-cat[data-phase] {
+  pointer-events: none;
+}
+.footer-cat-bait {
+  position: fixed;
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  background: url('./mouse-cursor.svg') no-repeat center / contain;
+}
+.footer-cat-expression {
+  opacity: 0;
+}
+.footer-cat-mouth {
+  transform-origin: 64px 102px;
+}
+.footer-cat:is([data-phase='hunting'], [data-phase='eating'])
+  .footer-cat-expression {
+  opacity: 1;
+}
+.footer-cat[data-phase='hunting'] .footer-cat-mouth {
+  animation: footer-cat-gape 700ms ease-in forwards;
+}
+.footer-cat[data-phase='eating'] .footer-cat-mouth {
+  animation: footer-cat-chomp 360ms ease-in-out forwards;
+}
+html[data-tabby-cursor-mouse],
+html[data-tabby-cursor-mouse] * {
+  cursor:
+    url('./mouse-cursor.svg') 3 5,
+    auto !important;
+}
+html[data-tabby-cursor-hidden='true'],
+html[data-tabby-cursor-hidden='true'] * {
+  cursor: none !important;
+}
+@keyframes footer-cat-gape {
+  from {
+    transform: scale(0.25);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes footer-cat-chomp {
+  30%,
+  80% {
+    transform: scaleY(0.12);
+  }
+  55% {
+    transform: scaleY(0.65);
+  }
+  to {
+    transform: scaleY(0.12);
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .site-header .brand img {
     transition: transform 260ms ease;
