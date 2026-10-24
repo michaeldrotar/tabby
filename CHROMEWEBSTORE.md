@@ -42,6 +42,8 @@ Make Tabby comfortable to use
 
 Choose from fifteen coordinated colorful and tonal themes, each with a light and dark version. Try contrasting hues or a quieter single-color palette. Choose seasonal Tabby icons, including three summer styles. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
+New installs and extension updates start with the Porcelain theme in System mode. Choose another theme in Settings at any time.
+
 Keep your browsing data local
 
 Your tabs, bookmarks, and history are searched on your device. The developer receives none of your browsing data or saved preferences. If you choose Search Google, Google receives the query you send.

@@ -21,7 +21,6 @@ describe('preferences', () => {
       theme: 'dark',
       tabManagerCompactIconMode: 'first',
       themeLightForeground: 'mist',
-      themePreset: null,
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
   })
@@ -73,10 +72,10 @@ describe('preferences', () => {
   })
 })
 
-it('preserves saved colors and validates curated theme choices', () => {
-  expect(
-    normalizePreferences({ themeDarkAccent: 'rose' }).themePreset,
-  ).toBeNull()
+it('selects the default theme for saved palettes and validates curated theme choices', () => {
+  expect(normalizePreferences({ themeDarkAccent: 'rose' }).themePreset).toBe(
+    'tabby',
+  )
   expect(
     normalizePreferences({ themePreset: 'reef', themeDarkAccent: 'rose' })
       .themePreset,

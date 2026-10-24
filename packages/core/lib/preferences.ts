@@ -63,8 +63,7 @@ export interface PreferenceResource {
   dispose: () => void
 }
 
-export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
-  tabManagerCompactIconMode: 'active',
+export const defaultThemePreferences = Object.freeze({
   theme: 'system',
   themePreset: 'tabby',
   themeLightBackground: 'stone',
@@ -73,6 +72,11 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   themeDarkBackground: 'neutral',
   themeDarkForeground: 'zinc',
   themeDarkAccent: 'blue',
+} as const)
+
+export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
+  tabManagerCompactIconMode: 'active',
+  ...defaultThemePreferences,
   seasonalIconsEnabled: true,
   seasonalIconSelections: DEFAULT_SEASONAL_ICON_SELECTIONS,
   seasonalEasterCalendar: 'local',
@@ -109,19 +113,11 @@ export const normalizePreferences = (value: unknown): PreferenceState => {
   return Object.fromEntries(
     Object.entries(defaultPreferences).map(([key, fallback]) => [
       key,
-      key === 'themePreset' &&
-      !Object.hasOwn(record, key) &&
-      Object.keys(record).some(
-        (field) =>
-          /^theme(Light|Dark)(Background|Foreground|Accent)$/.test(field) &&
-          isValidPreference(field, record[field]),
-      )
-        ? null
-        : key === 'seasonalIconSelections'
-          ? normalizeSeasonalIconSelections(record[key])
-          : isValidPreference(key, record[key])
-            ? record[key]
-            : fallback,
+      key === 'seasonalIconSelections'
+        ? normalizeSeasonalIconSelections(record[key])
+        : isValidPreference(key, record[key])
+          ? record[key]
+          : fallback,
     ]),
   ) as unknown as PreferenceState
 }

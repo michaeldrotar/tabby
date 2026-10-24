@@ -30,6 +30,25 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(
     page.getByRole('heading', { name: 'Appearance', exact: true }),
   ).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Porcelain', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  const defaultPaint = await palettePaint(page)
+  await page.evaluate(async () => {
+    await chrome.storage.local.set({
+      'preference-storage-key': {
+        theme: 'light',
+        themeLightBackground: 'slate',
+        themeLightAccent: 'rose',
+        themeLightAccentStrength: 50,
+      },
+    })
+  })
+  await page.reload()
+  await expect(
+    page.getByRole('button', { name: 'Porcelain', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => palettePaint(page)).toEqual(defaultPaint)
   await expect(page.getByText('Accent strength', { exact: true })).toHaveCount(
     0,
   )
@@ -115,7 +134,11 @@ test('the built extension shares preferences and receives live tab changes', asy
     popup.getByRole('option').filter({ hasText: /options\/index\.html/ }),
   ).toBeVisible()
   await popup.getByRole('combobox').fill('unfinished search')
-  await popup.keyboard.down('Escape')
+  try {
+    await popup.keyboard.down('Escape')
+  } catch (error) {
+    if (!popup.isClosed()) throw error
+  }
   await expect.poll(() => popup.isClosed()).toBe(true)
   await page.getByRole('button', { name: 'Rose', exact: true }).click()
   for (const surface of [page, manager])
