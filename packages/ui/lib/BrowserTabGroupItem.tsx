@@ -225,15 +225,6 @@ export const BrowserTabGroupItem = memo(
             aria-hidden="true"
           />
 
-          {active && (
-            <div
-              className={cn(
-                'absolute bottom-2 left-0 top-2 w-0.5 rounded-full',
-                'bg-accent-selected',
-              )}
-            />
-          )}
-
           <div
             data-group-header
             className={`

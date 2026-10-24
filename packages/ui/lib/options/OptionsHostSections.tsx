@@ -1,4 +1,5 @@
 import { ExternalLinkIcon } from '../icons'
+import { SummerMotionControl } from '../SummerTheme'
 import { cn } from '../utils/cn'
 import type { OptionsProps } from './Options'
 
@@ -16,6 +17,9 @@ export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
     <h1 className="text-foreground text-2xl font-semibold tracking-tight">
       Settings
     </h1>
+    <span className="ml-auto">
+      <SummerMotionControl nightOnly />
+    </span>
   </header>
 )
 export const OptionsSidePanelSettings = ({
@@ -35,7 +39,7 @@ export const OptionsSidePanelSettings = ({
         `}
       >
         <p className="text-muted text-sm">
-          Move the Tab manager between the left and right sides of your browser.
+          Choose left or right in Chrome’s Side panel settings.
         </p>
         <button
           onClick={openSidePanelSettings}
@@ -52,22 +56,8 @@ export const OptionsSidePanelSettings = ({
           )}
         >
           <ExternalLinkIcon className="h-4 w-4" />
-          Open appearance settings
+          Open Chrome appearance settings
         </button>
-      </div>
-      <div className={cn('mt-4 rounded-md p-4', 'bg-input/40')}>
-        <h3 className="text-foreground mb-2 text-sm font-medium">
-          How to change the side panel position:
-        </h3>
-        <ol className={`text-muted list-inside list-decimal space-y-2 text-sm`}>
-          <li>Scroll down to the "Side panel" section</li>
-          <li>
-            Choose{' '}
-            <strong className="text-foreground">"Show on left side"</strong> or{' '}
-            <strong className="text-foreground">"Show on right side"</strong>
-          </li>
-          <li>The Tab manager will move to your chosen side</li>
-        </ol>
       </div>
     </div>
   </section>
@@ -91,9 +81,8 @@ export const OptionsReset = ({
         `}
       >
         <div>
-          <h3 className="text-foreground font-medium">Preferences</h3>
           <p className="text-foreground/70 text-sm">
-            Restores default settings for Tabby.
+            Restore default preferences.
           </p>
         </div>
         <button

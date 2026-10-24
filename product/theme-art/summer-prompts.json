@@ -1,0 +1,45 @@
+{
+  "generation": "Built-in image generation",
+  "assets": {
+    "icon": {
+      "file": "chrome-extension/public/seasonal-icons/summer-sunhat-128.png",
+      "reference": "chrome-extension/public/tabby-face-128.png",
+      "transparent_background": true,
+      "prompt": "Use case: identity-preserve. Asset type: transparent square summer variant of the supplied Tabby browser-extension mascot icon. Preserve this exact orange tabby cat's round face, large navy eyes, cream muzzle, orange stripes, thick crisp navy outline, friendly expression, simple flat vector-like illustration and recognizable proportions. Add a jaunty straw sun hat with a coral hatband and small turquoise sunglasses perched on the hat, leaving both eyes and the whole face clearly visible. Head only, no body, centered with all hat and ears fully inside the image and comfortable transparent padding. Bright, cheerful beach-summer character that reads cleanly at 128px and 32px. Actual transparent alpha background. No scene, no text, no lettering, no watermark, no drop shadow."
+    },
+    "night": {
+      "file": "chrome-extension/public/themes/summer/night.jpg",
+      "prompt": "Use case: stylized-concept. Asset type: landscape wallpaper background for a summer theme in a browser sidebar and settings page. A clear warm summer night beside a calm sea: deep midnight-navy sky filled with tiny scattered white and pale gold stars, a very subtle blue Milky Way haze, small naturally clustered stars, and a barely visible indigo ocean horizon along the bottom 12 percent. Clean atmospheric digital illustration with soft luminous stars, refined and peaceful, absolutely not a painting or painterly brushwork. No swirling skies, no Van Gogh reference. Keep the central 70 percent very dark and visually quiet so text and controls can sit on top. Slightly brighter star clusters near the edges, all stars fine and small. No large planets, no large moon, no characters, no text, no watermark. Landscape 3:2 composition."
+    },
+    "day": {
+      "file": "chrome-extension/public/themes/summer/day.jpg",
+      "prompt": "Edit the supplied seaside image into a light, peaceful summer sunset. Preserve its lovely softly shaded polished realistic illustration, turquoise water, golden sandy shore and distant coastline. Add several airy wispy white and peach clouds across the sky, and a small loose flock of 5 tiny distant seabirds with natural dark silhouettes in the upper sky. A low golden setting sun sits just above the horizon toward the left third, with a subtle warm reflection on the water. Sky shifts from very pale powder blue above to soft peach and golden apricot by the horizon, with delicate pink cloud edges. Keep the whole image LIGHT and calm for a light-mode UI, never dark orange or saturated red. Ocean and beach in the lower third, sky in the upper two thirds. No toys, no food, no people, no text. Landscape 3:2 composition. Use natural image details, not pasted symbols or icons."
+    },
+    "ball": {
+      "file": "chrome-extension/public/themes/summer/ball.png",
+      "transparent_background": true,
+      "prompt": "Using the supplied beach image as the visual style reference, create one isolated striped beach ball, coral red, golden yellow, cream and turquoise, with the same beautiful softly shaded polished realistic illustration as the reference. Single ball only, centered, comfortable transparent padding, no beach, no sand, no ground plane, no other objects, no text, no cast shadow outside the ball. Actual transparent alpha background. The ball will appear as a small delightful detail in the corner of a browser tab manager. Square composition."
+    },
+    "iceCream": {
+      "file": "chrome-extension/public/themes/summer/ice-cream.png",
+      "transparent_background": true,
+      "prompt": "Using the supplied beach image as the visual style reference, create one upright waffle ice cream cone in a tidy coral paper sleeve with vanilla and strawberry scoops. Match the beautiful softly shaded polished realistic illustration style and colors of the reference. Cone pointing straight down, scoops on top, neat and appetizing. Single isolated cone only, centered, comfortable transparent padding, absolutely no sand, no beach, no ground plane, no other objects, no text, no cast shadow outside the cone. Actual transparent alpha background. Small UI illustration for the empty state of a browser search popup. Square composition."
+    },
+    "daySky": {
+      "file": "chrome-extension/public/themes/summer/day-sky.jpg",
+      "prompt": "Using the supplied beach illustration as a style reference, create a portrait 2:3 summer sunset seaside background for a narrow browser sidebar. Keep the same beautifully softly shaded realistic illustration style, turquoise sea, pale golden sand and delicate light. Upper 65 percent is a pale powder blue sky with several airy wispy white and peach clouds distributed from top to middle. A loose flock of 5 very small distant seabirds is visible high near the center of the sky, natural dark silhouettes. Low golden setting sun sits near the center just above the sea horizon at 65 percent down, with warm peach/apricot glow, pale pink cloud edges and subtle water reflection. Ocean and beach occupy bottom35percent. Keep all important features near the central half so they survive narrow cropping. Very light and calm, low contrast, suitable behind interface text. No beachballs, no icecream, no toys, no people, no lettering, no UI. Actual tall portrait composition."
+    },
+    "snorkel": {
+      "file": "chrome-extension/public/seasonal-icons/summer-snorkel-128.png",
+      "reference": "chrome-extension/public/tabby-face-128.png",
+      "transparent_background": true,
+      "prompt": "Use the supplied Tabby face as the exact identity reference. Create a summer Snorkel variant of this browser extension mascot: preserve the round orange tabby face, cream muzzle, orange stripes, huge dark navy eyes, friendly smile, crisp thick navy outline and recognizable simple vector-like shapes. Add a turquoise snorkeling mask with clear very pale blue lenses through which both original eyes remain fully visible, plus a small coral snorkel tube along the cat's right side with a turquoise tip. Head only, no body, no water or scene. Cheerful and readable at32px. All ears and snorkel fully inside square canvas with comfortable transparent padding. Actual transparent alpha background. No sunhat, no text, no watermark."
+    },
+    "hibiscus": {
+      "file": "chrome-extension/public/seasonal-icons/summer-hibiscus-128.png",
+      "reference": "chrome-extension/public/tabby-face-128.png",
+      "transparent_background": true,
+      "prompt": "Use the supplied Tabby face as the exact identity reference. Create a summer Hibiscus variant of this browser extension mascot: preserve the round orange tabby face, cream muzzle, orange stripes, huge dark navy eyes, friendly smile, crisp thick navy outline and recognizable simple vector-like shapes. Tuck a cheerful coral-pink hibiscus flower with a small gold center and two turquoise-green leaves behind the cat's left ear. Add a simple short aqua tropical neckerchief peeking below the chin, face remains dominant. Head only, no body, no other accessories, no sunglasses, no hat, no scene. Cheerful and readable at32px. All ears, flower, leaves and scarf fully within square canvas with comfortable transparent padding. Actual transparent alpha background. No text, no watermark."
+    }
+  }
+}

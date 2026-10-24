@@ -41,11 +41,7 @@ button {
   color: inherit;
 }
 
-button:focus-visible,
-select:focus-visible,
-input:focus-visible,
-a:focus-visible,
-summary:focus-visible {
+:is(button, select, input, a, summary):not([data-surface] *):focus-visible {
   outline: 3px solid #9a83e6;
   outline-offset: 2px;
 }
@@ -371,14 +367,14 @@ summary:focus-visible {
 
 .experience-option strong {
   color: #4b5568;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
   line-height: 1.35;
 }
 
 .experience-option small {
-  color: #929aaa;
-  font-size: 9px;
+  color: #626d7e;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -552,7 +548,7 @@ summary:focus-visible {
 
 .guided-intro .eyebrow {
   margin-bottom: 2px;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .guided-intro h3 {
@@ -634,7 +630,7 @@ summary:focus-visible {
 .chapter-cards small {
   overflow: hidden;
   color: #929aaa;
-  font-size: 8px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -768,7 +764,7 @@ summary:focus-visible {
 .anatomy-parts button > span {
   width: 21px;
   height: 21px;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .anatomy-parts button:hover,
@@ -855,7 +851,7 @@ summary:focus-visible {
 
 .instance-title > div > span {
   color: #9199a8;
-  font-size: 8px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -885,9 +881,9 @@ summary:focus-visible {
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: #8a92a0;
+  color: #586276;
   cursor: pointer;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -961,7 +957,10 @@ summary:focus-visible {
   max-width: 800px;
 }
 
-.product-frame[data-product='manager'][data-size='narrow'] {
+.product-frame:is(
+    [data-product='manager'],
+    [data-product='options']
+  )[data-size='narrow'] {
   width: min(390px, 100%);
 }
 
@@ -1077,7 +1076,7 @@ summary:focus-visible {
   border-top: 1px solid #eceef2;
   background: white;
   color: #8b93a2;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .instance-product-label {

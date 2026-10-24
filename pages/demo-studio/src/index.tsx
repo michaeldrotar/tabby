@@ -6,8 +6,11 @@ import {
   TabbySurface,
   TabManagerExperience,
 } from '@extension/app'
-import { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '@extension/core'
-import { neutralSwatchColors as neutralColors } from '@extension/ui/theme-colors'
+import {
+  curatedThemes,
+  defaultPreferences,
+  themeCollections,
+} from '@extension/core'
 import {
   useCallback,
   useEffect,
@@ -22,7 +25,6 @@ import logoUrl from '../../../chrome-extension/public/tabby-face-128.png?url'
 import { DemoTransport } from './DemoTransport'
 import { createScenario } from './scenario'
 import type { Dataset, Product, Scenario, Sharing } from './scenario'
-import type { ThemeAccentPalette } from '@extension/core'
 import type { SurfaceInputMode } from '@extension/ui/Surface'
 
 type InstanceSize = 'wide' | 'narrow'
@@ -35,26 +37,6 @@ type AnatomyPart =
   | 'search-field'
   | 'search-results'
   | 'appearance-settings'
-
-const accentColors: Record<ThemeAccentPalette, string> = {
-  red: '#e5484d',
-  orange: '#f76b15',
-  amber: '#f5a623',
-  yellow: '#f2c230',
-  lime: '#99c221',
-  green: '#30a46c',
-  emerald: '#12a594',
-  teal: '#12a8a1',
-  cyan: '#00a2c7',
-  sky: '#0091ff',
-  blue: '#3e63dd',
-  indigo: '#5753c9',
-  violet: '#6e56cf',
-  purple: '#8e4ec6',
-  fuchsia: '#d6409f',
-  pink: '#d6409f',
-  rose: '#e54666',
-}
 
 const anatomyParts: {
   id: AnatomyPart
@@ -206,7 +188,7 @@ const Panel = ({
         </div>
       </div>
 
-      {navigation.product === 'manager' && (
+      {navigation.product !== 'omnibar' && (
         <div className="instance-tools">
           <div
             className="instance-tool-group"
@@ -232,13 +214,13 @@ const Panel = ({
       <div
         className="product-stage"
         data-product={navigation.product}
-        data-size={navigation.product === 'manager' ? size : undefined}
+        data-size={navigation.product !== 'omnibar' ? size : undefined}
       >
         <div
           ref={root}
           className="product-frame"
           data-product={navigation.product}
-          data-size={navigation.product === 'manager' ? size : undefined}
+          data-size={navigation.product !== 'omnibar' ? size : undefined}
           data-playing={playing}
           data-anatomy={anatomyPart ?? undefined}
         >
@@ -324,7 +306,9 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
   const [ignoreCommands, setIgnoreCommands] = useState(false)
   const [dataset, setDataset] = useState<Dataset>('standard')
   const [mode, setMode] = useState<SurfaceInputMode>('live')
-  const [selectedProduct, setSelectedProduct] = useState<Product>('manager')
+  const [selectedProduct, setSelectedProduct] = useState<Product>(
+    initial.navigation[0]!.getState().product,
+  )
   const [sizes, setSizes] = useState<InstanceSize[]>(['wide', 'wide'])
   const [studioPage, setStudioPage] = useState<StudioPage>('explore')
   const [anatomyPart, setAnatomyPart] = useState<AnatomyPart>('window-switcher')
@@ -466,25 +450,15 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
     appearancePreferences.getSnapshot,
     appearancePreferences.getSnapshot,
   )
-  const appearanceTheme =
-    preferenceState.theme === 'system'
-      ? scenario.resources[appearanceTarget]!.environment.systemTheme
-      : preferenceState.theme
-  const appearancePrefix =
-    appearanceTheme === 'light' ? 'themeLight' : 'themeDark'
-  const setPalettePreference = (
-    field: 'Background' | 'Foreground' | 'Accent',
-    value: string,
-  ) => {
-    const key = `${appearancePrefix}${field}` as
-      | 'themeLightBackground'
-      | 'themeDarkBackground'
-      | 'themeLightForeground'
-      | 'themeDarkForeground'
-      | 'themeLightAccent'
-      | 'themeDarkAccent'
-    void appearancePreferences.set({ [key]: value })
-  }
+  useEffect(() => {
+    const url = new URL(location.href)
+    url.search = ''
+    url.searchParams.set('product', selectedProduct)
+    if (preferenceState.themePreset)
+      url.searchParams.set('theme', preferenceState.themePreset)
+    url.searchParams.set('mode', preferenceState.theme)
+    history.replaceState(null, '', url)
+  }, [selectedProduct, preferenceState.themePreset, preferenceState.theme])
 
   const productParts = anatomyParts.filter(
     (part) => part.product === selectedProduct,
@@ -510,20 +484,13 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
   return (
     <>
       <div className="topbar">
-        <a className="brand" href="/" aria-label="Tabby Demo Studio">
-          <img src={logoUrl} alt="" />
+        <div className="brand">
+          <img src={logoUrl} width={32} height={32} alt="" />
           <span className="brand-name">tabby</span>
           <span className="brand-divider" aria-hidden="true" />
           <span className="brand-context">Demo Studio</span>
-        </a>
+        </div>
         <div className="topbar-actions">
-          <a className="reset-button" href="?theme-lab">
-            Theme lab
-          </a>
-          <span className="local-badge">
-            <span className="status-dot" />
-            Local sample
-          </span>
           <button className="reset-button" onClick={resetDemo}>
             <span aria-hidden="true">↻</span> Reset demo
           </button>
@@ -533,21 +500,10 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
       <main className="studio-shell">
         <section className="studio-intro">
           <div>
-            <p className="eyebrow">A live product sandbox</p>
-            <h1>Make room for the tabs that matter.</h1>
+            <h1>Demo Studio</h1>
             <p className="intro-copy">
-              Explore the real Tabby experiences with sample browser data.
-              Choose a product, explore sample browser data, follow a guided
-              flow, or inspect how its pieces fit together.
+              Try Tabby with sample data. Your browser tabs stay untouched.
             </p>
-          </div>
-          <div className="privacy-note">
-            <span className="privacy-icon" aria-hidden="true">
-              ⌘
-            </span>
-            <span>
-              Nothing here connects to your browser or changes your tabs.
-            </span>
           </div>
         </section>
 
@@ -556,8 +512,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
             <section className="control-card">
               <div className="control-card-heading">
                 <div>
-                  <p className="eyebrow">Customize</p>
-                  <h2>Demo controls</h2>
+                  <h2>Controls</h2>
                 </div>
                 <span className="settings-mark" aria-hidden="true">
                   ✳
@@ -568,7 +523,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                 <div className="control-title-row">
                   <h3>Sample workspace</h3>
                   <span className="control-value">
-                    {dataset === 'large' ? '400 tabs' : 'Memory data'}
+                    {dataset === 'large' ? '400 tabs' : ''}
                   </span>
                 </div>
                 <select
@@ -593,9 +548,6 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                   <option value="error">Loading error</option>
                   <option value="empty">Empty browser</option>
                 </select>
-                <p className="control-help">
-                  Pick the sample browser state shown in each instance.
-                </p>
                 <label className="toggle-row">
                   <input
                     type="checkbox"
@@ -607,7 +559,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                   <span>Ignore data commands</span>
                 </label>
                 <p className="control-help">
-                  Product actions respond, but sample data stays unchanged.
+                  Keep sample data unchanged when testing actions.
                 </p>
               </section>
 
@@ -627,9 +579,6 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                   />
                   <span>Compare a second instance</span>
                 </label>
-                <p className="control-help">
-                  Add another product surface to explore sharing independently.
-                </p>
               </section>
 
               {comparisonEnabled && (
@@ -777,128 +726,52 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
                   role="group"
                   aria-label="Instance appearance"
                 >
-                  <button
-                    aria-pressed={appearanceTheme === 'light'}
-                    onClick={() =>
-                      void appearancePreferences.set({ theme: 'light' })
-                    }
-                  >
-                    Light
-                  </button>
-                  <button
-                    aria-pressed={appearanceTheme === 'dark'}
-                    onClick={() =>
-                      void appearancePreferences.set({ theme: 'dark' })
-                    }
-                  >
-                    Dark
-                  </button>
+                  {(['system', 'light', 'dark'] as const).map((theme) => (
+                    <button
+                      key={theme}
+                      aria-pressed={preferenceState.theme === theme}
+                      onClick={() => void appearancePreferences.set({ theme })}
+                    >
+                      {theme[0]!.toUpperCase() + theme.slice(1)}
+                    </button>
+                  ))}
                 </div>
-                {(['Background', 'Foreground'] as const).map((field) => {
-                  const key = `${appearancePrefix}${field}` as
-                    | 'themeLightBackground'
-                    | 'themeDarkBackground'
-                    | 'themeLightForeground'
-                    | 'themeDarkForeground'
-                  const value = preferenceState[key]
-                  return (
-                    <div className="palette-block" key={field}>
-                      <div className="palette-heading">
-                        <span>{field}</span>
-                        <span className="palette-value">{value}</span>
-                      </div>
-                      <div
-                        className="swatch-row"
-                        role="group"
-                        aria-label={`${field} color`}
-                      >
-                        {THEME_NEUTRAL_PALETTES.map((palette) => (
-                          <button
-                            key={palette}
-                            className="color-swatch"
-                            aria-label={`Choose ${palette} ${field.toLowerCase()} color`}
-                            aria-pressed={value === palette}
-                            title={palette}
-                            onClick={() => setPalettePreference(field, palette)}
-                          >
-                            <span
-                              style={{
-                                backgroundColor: neutralColors[palette],
-                              }}
-                            />
-                          </button>
+                <label className="palette-heading" htmlFor="studio-theme">
+                  Theme
+                </label>
+                <select
+                  id="studio-theme"
+                  value={preferenceState.themePreset ?? ''}
+                  onChange={(event) =>
+                    void appearancePreferences.set({
+                      themePreset: event.target.value as NonNullable<
+                        typeof preferenceState.themePreset
+                      >,
+                    })
+                  }
+                >
+                  {preferenceState.themePreset === null && (
+                    <option value="" disabled>
+                      Your saved colors
+                    </option>
+                  )}
+                  {themeCollections.map((collection) => (
+                    <optgroup key={collection} label={collection}>
+                      {curatedThemes
+                        .filter((theme) => theme.collection === collection)
+                        .map((theme) => (
+                          <option key={theme.id} value={theme.id}>
+                            {theme.name}
+                          </option>
                         ))}
-                      </div>
-                    </div>
-                  )
-                })}
-                <div className="palette-block">
-                  <div className="palette-heading">
-                    <span>Accent</span>
-                    <span className="palette-value">
-                      {
-                        preferenceState[
-                          `${appearancePrefix}Accent` as
-                            | 'themeLightAccent'
-                            | 'themeDarkAccent'
-                        ]
-                      }
-                    </span>
-                  </div>
-                  <div
-                    className="swatch-grid"
-                    role="group"
-                    aria-label="Accent color"
-                  >
-                    {THEME_ACCENT_PALETTES.map((palette) => (
-                      <button
-                        key={palette}
-                        className="color-swatch"
-                        aria-label={`Choose ${palette} accent color`}
-                        aria-pressed={
-                          preferenceState[
-                            `${appearancePrefix}Accent` as
-                              | 'themeLightAccent'
-                              | 'themeDarkAccent'
-                          ] === palette
-                        }
-                        title={palette}
-                        onClick={() => setPalettePreference('Accent', palette)}
-                      >
-                        <span
-                          style={{ backgroundColor: accentColors[palette] }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                    </optgroup>
+                  ))}
+                </select>
               </section>
             </section>
           </aside>
 
           <section className="stage-shell" aria-label="Demo stage">
-            <div className="stage-heading">
-              <div>
-                <p className="eyebrow">Tabby experiences</p>
-                <h2>
-                  {studioPage === 'guided'
-                    ? 'See a workflow unfold.'
-                    : studioPage === 'anatomy'
-                      ? 'Explore the pieces.'
-                      : 'Explore your workspace.'}
-                </h2>
-                <p>
-                  {studioPage === 'guided'
-                    ? 'Follow real mouse and keyboard actions across Tab manager, Omnibar, and Options.'
-                    : studioPage === 'anatomy'
-                      ? `Explore ${productLabels[selectedProduct]} components in the live demo.`
-                      : comparisonEnabled
-                        ? 'Compare how browser data, view state, and preferences are shared.'
-                        : 'Try one product instance with sample browser data.'}
-                </p>
-              </div>
-            </div>
-
             {studioPage !== 'guided' && (
               <nav className="product-picker" aria-label="Product experience">
                 {products.map((product) => (
@@ -917,12 +790,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
               <div className="guided-panel">
                 <div className="guided-intro">
                   <div>
-                    <p className="eyebrow">Guided demo</p>
-                    <h3>One browser, three experiences</h3>
-                    <p>
-                      The same sample data moves from tab management to search
-                      and settings.
-                    </p>
+                    <h2>Guided tour</h2>
                   </div>
                   <span className="guided-duration">{guidedDuration}</span>
                 </div>
@@ -1028,10 +896,6 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
             </div>
           </section>
         </div>
-        <footer className="studio-footer">
-          Tab manager, Omnibar, and Options run with deterministic sample data
-          and local memory resources.
-        </footer>
       </main>
     </>
   )
@@ -1047,12 +911,32 @@ const initialize = async () => {
   }
   applicationRoot = createRoot(document.getElementById('root')!)
   initial.setInputMode('live')
-  if (new URLSearchParams(location.search).has('theme-lab')) {
-    const { ThemeLab } = await import('./ThemeLab')
-    if (!disposed) applicationRoot.render(<ThemeLab scenario={initial} />)
-  } else {
-    applicationRoot.render(<DemoStudio initial={initial} />)
+  const params = new URLSearchParams(location.search)
+  const product =
+    products.find((product) => product === params.get('product')) ?? 'manager'
+  initial.navigation.forEach((navigation) => navigation.setState({ product }))
+  if (params.has('theme') || params.has('mode')) {
+    await initial.resources[0]!.preferences.set({
+      ...(params.has('theme')
+        ? {
+            themePreset:
+              curatedThemes.find((theme) => theme.id === params.get('theme'))
+                ?.id ?? defaultPreferences.themePreset,
+          }
+        : {}),
+      ...(params.has('mode')
+        ? {
+            theme:
+              params.get('mode') === 'system'
+                ? 'system'
+                : params.get('mode') === 'dark'
+                  ? 'dark'
+                  : 'light',
+          }
+        : {}),
+    })
   }
+  if (!disposed) applicationRoot.render(<DemoStudio initial={initial} />)
 }
 void initialize().catch((error: unknown) =>
   console.error('Could not start the Demo Studio', error),

@@ -35,7 +35,32 @@ beforeAll(() => {
 afterEach(cleanup)
 
 describe('Options resources', () => {
-  it('changes only the requested preferences, randomizes the active palette, and resets shared values', async () => {
+  it('keeps seasonal icons independent of the selected color theme', () => {
+    const preferences = createMemoryPreferences({ themePreset: 'reef' })
+    const options = createMemoryOptionsResource({
+      logoUrl: '/tabby-face-128.png',
+    })
+    render(
+      <TabbyProvider
+        {...createTestResources({
+          preferences,
+          options,
+          environment: {
+            now: () => new Date(2026, 9, 24).getTime(),
+            systemTheme: 'light',
+          },
+        })}
+      >
+        <TabbySurface>
+          <OptionsExperience />
+        </TabbySurface>
+      </TabbyProvider>,
+    )
+    expect(
+      screen.getByRole('img', { name: /^Tabby$/ }).getAttribute('src'),
+    ).toBe('/seasonal-icons/halloween-frankenstein-hoodie-128.png')
+  })
+  it('changes theme choices and resets shared values', async () => {
     const preferences = createMemoryPreferences({
       theme: 'system',
       themeLightForeground: 'gray',
@@ -53,23 +78,11 @@ describe('Options resources', () => {
       {},
       { openShortcutsSettings: shortcuts },
     )
-    const controller = createOptionsController(
-      preferences,
-      resource,
-      view,
-      () => 'dark',
-      () => 0,
-    )
-    await controller.change({ themeDarkAccent: 'rose' })
+    const controller = createOptionsController(preferences, resource, view)
+    await controller.change({ themePreset: 'reef' })
     expect(preferences.getSnapshot()).toMatchObject({
-      themeDarkAccent: 'rose',
+      themePreset: 'reef',
       themeLightForeground: 'gray',
-    })
-    await controller.randomize()
-    expect(preferences.getSnapshot()).toMatchObject({
-      themeDarkAccent: 'red',
-      themeDarkBackground: 'slate',
-      themeLightAccent: defaultPreferences.themeLightAccent,
     })
     await controller.openShortcuts()
     expect(shortcuts).toHaveBeenCalledOnce()
@@ -84,12 +97,7 @@ describe('Options resources', () => {
     const preferences = createMemoryPreferences()
     const resource = createMemoryOptionsResource()
     const view = createOptionsView()
-    const controller = createOptionsController(
-      preferences,
-      resource,
-      view,
-      () => 'light',
-    )
+    const controller = createOptionsController(preferences, resource, view)
     vi.spyOn(preferences, 'set').mockRejectedValueOnce(
       new Error('Storage unavailable'),
     )

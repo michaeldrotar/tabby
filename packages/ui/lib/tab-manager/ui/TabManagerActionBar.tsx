@@ -34,6 +34,7 @@ import {
 import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
+import { SummerMotionControl, SummerToolbarArt } from '../../SummerTheme'
 import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
@@ -394,10 +395,11 @@ export const TabManagerActionBar = ({
         aria-label="Tab Manager tools"
         data-keyboard-section="tools"
         className={`
-          border-border flex h-12 shrink-0 items-center justify-between gap-1
-          border-t bg-[var(--manager-chrome)] px-2
+          border-border relative flex h-12 shrink-0 items-center justify-between
+          gap-1 border-t bg-[var(--manager-chrome)] px-2
         `}
       >
+        <SummerToolbarArt />
         <div className="flex items-center gap-1">
           <button
             aria-label="Search everything"
@@ -415,6 +417,7 @@ export const TabManagerActionBar = ({
           >
             <Settings size={18} />
           </button>
+          <SummerMotionControl />
         </div>
         <button
           type="button"

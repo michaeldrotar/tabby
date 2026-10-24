@@ -221,6 +221,7 @@ export const OptionsSeasonalIconsOverview = ({
         </label>
         <button
           type="button"
+          data-open-seasonal-icons
           onClick={onOpen}
           className={cn(
             `
@@ -256,7 +257,11 @@ export const OptionsSeasonalIcons = ({
 
   return (
     <section className="mb-8">
-      <h2 className="text-foreground mb-2 text-lg font-semibold">
+      <h2
+        data-seasonal-heading
+        tabIndex={-1}
+        className="text-foreground mb-2 text-lg font-semibold"
+      >
         Seasonal icons
       </h2>
       <div className="space-y-4">

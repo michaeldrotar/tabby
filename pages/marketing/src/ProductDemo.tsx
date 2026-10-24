@@ -7,23 +7,17 @@ import {
   useTabbyResources,
 } from '@extension/app'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
+import { ThemePalette } from '@extension/ui/options/ThemePalette'
 import { useState } from 'react'
 import { createMarketingDemo, searchExamples } from './demo'
-import type { ThemeAccentPalette } from '@extension/core'
-
-const accents = [
-  { name: 'orange', color: '#db762e' },
-  { name: 'violet', color: '#8764ce' },
-  { name: 'teal', color: '#278c81' },
-  { name: 'rose', color: '#ce5879' },
-] satisfies { name: ThemeAccentPalette; color: string }[]
+import { marketingThemes } from './marketingThemes'
 
 const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
   const { preferences } = useTabbyResources()
   const appearance = useTabbyPreferences()
   return (
     <div className="appearance-controls">
-      {labelled && <span className="demo-control-label">Demo colors</span>}
+      {labelled && <span className="demo-control-label">Demo themes</span>}
       <button
         type="button"
         className="demo-theme-toggle"
@@ -59,28 +53,23 @@ const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
         </span>
         <span>Dark mode</span>
       </button>
-      {accents.map(({ name, color }) => (
-        <button
-          type="button"
-          className="swatch"
-          key={name}
-          aria-label={`${name} accent`}
-          aria-pressed={
-            appearance[
-              appearance.theme === 'dark'
-                ? 'themeDarkAccent'
-                : 'themeLightAccent'
-            ] === name
-          }
-          style={{ backgroundColor: color }}
-          onClick={() =>
-            void preferences.set({
-              themeLightAccent: name,
-              themeDarkAccent: name,
-            })
-          }
-        />
-      ))}
+      <div className="demo-theme-choices" role="group" aria-label="Demo themes">
+        {marketingThemes.map((theme) => (
+          <button
+            type="button"
+            className="demo-theme-choice"
+            key={theme.id}
+            aria-label={`${theme.name} theme`}
+            title={theme.name}
+            aria-pressed={appearance.themePreset === theme.id}
+            onClick={() => void preferences.set({ themePreset: theme.id })}
+          >
+            <ThemePalette
+              colors={theme[appearance.theme === 'dark' ? 'dark' : 'light']}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -201,7 +190,7 @@ export const ProductDemo = ({
           <AppearanceControls labelled={separated} />
         </div>
         <div className="demo-caption" aria-live="polite">
-          {notice || 'Try the tabs, search, and colors. It’s all sample data.'}
+          {notice || 'Try the tabs, search, and themes. It’s all sample data.'}
         </div>
       </MemoryTabbyProvider>
     </div>

@@ -29,6 +29,16 @@ export const SEASONAL_HOLIDAYS = [
     ],
   },
   {
+    id: 'summer',
+    name: 'Summer',
+    dateLabel: 'June–August',
+    iconOptions: [
+      { id: 'summer-sunhat', name: 'Sun hat' },
+      { id: 'summer-snorkel', name: 'Snorkel' },
+      { id: 'summer-hibiscus', name: 'Hibiscus' },
+    ],
+  },
+  {
     id: 'thanksgiving',
     name: 'Thanksgiving',
     iconOptions: [
@@ -74,6 +84,7 @@ export const DEFAULT_SEASONAL_ICON_SELECTIONS: Readonly<SeasonalIconSelections> 
     valentines: 'valentines-heart-hoodie',
     'st-patricks': 'st-patricks-shamrock-hoodie',
     easter: 'easter-chick-hoodie',
+    summer: 'summer-sunhat',
     thanksgiving: 'thanksgiving-pumpkin-hoodie',
     halloween: 'halloween-frankenstein-hoodie',
     christmas: 'christmas-santa-hat',
@@ -91,6 +102,7 @@ const SEASONAL_ICON_LEAD_DAYS: Record<SeasonalHolidayId, number> = {
   valentines: 13,
   'st-patricks': 7,
   easter: 14,
+  summer: 91,
   thanksgiving: 7,
   halloween: 16,
   christmas: 24,
@@ -263,6 +275,8 @@ export const getSeasonalHolidayDate = (
         ? getNthWeekday(year, 9, 1, 2)
         : getNthWeekday(year, 10, 4, 4)
     }
+    case 'summer':
+      return new Date(year, 7, 31)
     case 'halloween':
       return new Date(year, 9, 31)
     case 'christmas':

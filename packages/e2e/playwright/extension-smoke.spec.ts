@@ -15,6 +15,8 @@ const palettePaint = (page: Page) =>
       background: paint('background'),
       foreground: paint('foreground'),
       accent: paint('accent'),
+      chrome: paint('input'),
+      selection: paint('accent-selected'),
     }
   })
 
@@ -31,18 +33,16 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(page.getByText('Accent strength', { exact: true })).toHaveCount(
     0,
   )
-  const background = page.getByRole('radiogroup', {
-    name: 'Background',
-    exact: true,
-  })
-  for (const palette of ['mist', 'mauve', 'olive', 'taupe']) {
-    const swatch = background.getByRole('radio', { name: palette, exact: true })
-    const paint = await swatch
-      .locator('[data-palette-swatch]')
-      .evaluate((node) => getComputedStyle(node).backgroundColor)
-    expect(paint).not.toBe('rgba(0, 0, 0, 0)')
-    expect(paint).not.toBe('transparent')
-  }
+  await expect(
+    page
+      .getByRole('group', { name: 'Tonal themes', exact: true })
+      .getByRole('button'),
+  ).toHaveCount(9)
+  await expect(
+    page
+      .getByRole('group', { name: 'Colorful themes', exact: true })
+      .getByRole('button'),
+  ).toHaveCount(6)
   await page
     .getByRole('group', { name: 'Theme mode', exact: true })
     .getByText('Dark', { exact: true })
@@ -91,23 +91,16 @@ test('the built extension shares preferences and receives live tab changes', asy
         'data-theme',
         theme,
       )
-    for (const [label, palette, token] of [
-      ['Background', theme === 'dark' ? 'mist' : 'taupe', 'background'],
-      ['Foreground', theme === 'dark' ? 'olive' : 'mauve', 'foreground'],
-      ['Accent', theme === 'dark' ? 'rose' : 'teal', 'accent'],
-    ] as const) {
-      const before = await Promise.all(surfaces.map(palettePaint))
-      await page
-        .getByRole('radiogroup', { name: label, exact: true })
-        .getByRole('radio', { name: palette, exact: true })
-        .click()
+    for (const preset of ['Reef', 'Matcha']) {
+      const before = await palettePaint(page)
+      await page.getByRole('button', { name: preset, exact: true }).click()
       const expected = await palettePaint(page)
-      for (const [index, surface] of surfaces.entries()) {
+      expect(expected).not.toEqual(before)
+      for (const surface of surfaces)
         await expect.poll(() => palettePaint(surface)).toEqual(expected)
-        expect(expected[token]).not.toBe(before[index]![token])
-      }
     }
   }
+
   await expect(
     manager.getByRole('button', { name: 'Appearance', exact: true }),
   ).toHaveCount(0)
@@ -124,23 +117,18 @@ test('the built extension shares preferences and receives live tab changes', asy
   await popup.getByRole('combobox').fill('unfinished search')
   await popup.keyboard.down('Escape')
   await expect.poll(() => popup.isClosed()).toBe(true)
-  await page
-    .getByRole('radiogroup', { name: 'Accent', exact: true })
-    .getByRole('radio', { name: 'rose', exact: true })
-    .click()
+  await page.getByRole('button', { name: 'Rose', exact: true }).click()
   for (const surface of [page, manager])
-    await expect(surface.locator('[data-surface]')).toHaveAttribute(
-      'data-theme-accent',
-      'rose',
-    )
+    await expect
+      .poll(() => palettePaint(surface))
+      .toEqual(await palettePaint(page))
   const refreshedPopup = await context.newPage()
   await refreshedPopup.goto(
     `chrome-extension://${extensionId}/omnibar/index.html`,
   )
-  await expect(refreshedPopup.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-accent',
-    'rose',
-  )
+  await expect
+    .poll(() => palettePaint(refreshedPopup))
+    .toEqual(await palettePaint(page))
   await expect(refreshedPopup.getByRole('combobox')).toHaveValue(
     'unfinished search',
   )
@@ -179,10 +167,30 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(
     page.getByRole('radio', { name: 'Dark', exact: true }),
   ).toBeChecked()
-  await expect(page.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-accent',
-    'rose',
-  )
+  await expect(
+    page.getByRole('button', { name: 'Rose', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    page.getByRole('group', { name: 'Seasonal themes', exact: true }),
+  ).toHaveCount(0)
+  await page
+    .getByRole('button', { name: 'Choose seasonal icons', exact: true })
+    .click()
+  const summerIcons = page.getByRole('group', { name: 'Summer', exact: true })
+  await summerIcons
+    .locator('label')
+    .filter({ has: page.getByRole('radio', { name: 'Snorkel', exact: true }) })
+    .click()
+  await expect(
+    summerIcons.getByRole('radio', { name: 'Snorkel', exact: true }),
+  ).toBeChecked()
+  await page.reload()
+  await expect(
+    summerIcons.getByRole('radio', { name: 'Snorkel', exact: true }),
+  ).toBeChecked()
+  await page
+    .getByRole('button', { name: 'Back to settings', exact: true })
+    .click()
   await page
     .getByRole('button', { name: 'Reset preferences', exact: true })
     .click()
@@ -193,8 +201,10 @@ test('the built extension shares preferences and receives live tab changes', asy
     'data-theme',
     'light',
   )
-  await expect(manager.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-accent',
-    'amber',
-  )
+  await expect(
+    page.getByRole('button', { name: 'Porcelain', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect
+    .poll(() => palettePaint(manager))
+    .toEqual(await palettePaint(page))
 })

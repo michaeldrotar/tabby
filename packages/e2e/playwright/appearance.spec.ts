@@ -1,3 +1,4 @@
+import browserData from '../../../scripts/preview/browser-data.json' with { type: 'json' }
 import { expect, test } from './fixtures'
 import type { Locator, Page } from '@playwright/test'
 
@@ -62,7 +63,7 @@ const contrast = (element: Locator) =>
 
 const updatePreferences = (
   page: Page,
-  patch: Record<string, string | number>,
+  patch: Record<string, string | number | null>,
 ) =>
   page.evaluate(async (patch) => {
     const key = 'preference-storage-key'
@@ -77,6 +78,7 @@ for (const theme of ['dark', 'light'] as const) {
     await page.setViewportSize({ width: 480, height: 640 })
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
     await page.goto('/tab-manager/index.html')
+    await updatePreferences(page, { themePreset: null })
     const prefix = theme === 'dark' ? 'themeDark' : 'themeLight'
     const shell = page.locator('[data-tab-manager-shell]')
     const header = page.locator('header')
@@ -228,3 +230,30 @@ for (const theme of ['dark', 'light'] as const) {
     }
   })
 }
+
+test.describe('curated theme text', () => {
+  test.use({
+    browserData: {
+      ...browserData,
+      tabs: browserData.tabs.slice(0, 4).map((tab, index) => ({
+        ...tab,
+        title: index === 1 ? '(3) Project notes' : tab.title,
+      })),
+      preferences: { theme: 'light', themePreset: 'halloween' },
+    },
+  })
+  test('keeps title counts readable when selected and hovered', async ({
+    page,
+  }) => {
+    await page.goto('/tab-manager/index.html')
+    const row = page.getByRole('option', {
+      name: 'Tab: (3) Project notes',
+      exact: true,
+    })
+    await row.click()
+    const count = row.getByText('(3)', { exact: true })
+    expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+    await row.hover()
+    expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+  })
+})
