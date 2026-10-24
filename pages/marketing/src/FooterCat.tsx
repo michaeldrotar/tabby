@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { assets } from './content'
+import { CatFace } from './CatFace'
 
 type Point = { x: number; y: number }
 
@@ -191,8 +191,7 @@ export const FooterCat = () => {
         type="button"
         aria-label="Play with Tabby"
       >
-        <svg viewBox="0 0 128 128" width="45" height="45" aria-hidden="true">
-          <image href={assets.face} width="128" height="128" />
+        <CatFace size={45}>
           <g className="footer-cat-expression">
             <path d="M46 90h36v12H46z" fill="#fcf3e3" />
             <g className="footer-cat-mouth">
@@ -201,7 +200,7 @@ export const FooterCat = () => {
               <ellipse cx="64" cy="114" rx="12" ry="7" fill="#f28b8b" />
             </g>
           </g>
-        </svg>
+        </CatFace>
       </button>
     </span>
   )

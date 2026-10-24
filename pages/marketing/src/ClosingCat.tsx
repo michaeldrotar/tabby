@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { assets } from './content'
+import { CatFace } from './CatFace'
 import { useIdleCue } from './useIdleCue'
 import type { CSSProperties, RefObject } from 'react'
 
@@ -45,13 +45,12 @@ export const ClosingCat = ({
         if (event.target === event.currentTarget) setWink(null)
       }}
     >
-      <svg viewBox="0 0 128 128" width="80" height="80" aria-hidden="true">
+      <CatFace size={80}>
         <defs>
           <clipPath id={eyeClip}>
             <ellipse cx="38" cy="74" rx="15" ry="14" />
           </clipPath>
         </defs>
-        <image href={assets.face} width="128" height="128" />
         <g clipPath={`url(#${eyeClip})`} fill="#fcf3e3">
           <path className="cat-lid cat-lid--upper" d="M22 59h32v16H22z" />
           <path className="cat-lid cat-lid--lower" d="M22 74h32v15H22z" />
@@ -74,7 +73,7 @@ export const ClosingCat = ({
             strokeLinecap="round"
           />
         </g>
-      </svg>
+      </CatFace>
     </button>
   )
 }

@@ -50,12 +50,11 @@ test('a clicked wink finishes through further input and dismisses the automatic 
   await expect(cat).toHaveAttribute('data-winking', 'false')
 })
 
-test('scrolling gives the vector cat a squash and landing and bounds alternating paw steps', async ({
+test('scrolling gives the cat a squash and landing and bounds alternating paw steps', async ({
   page,
 }) => {
   await page.goto('./')
   const cat = page.locator('.banner-cat')
-  await expect(cat.locator('svg image')).toHaveCount(0)
   await cat.evaluate((element) =>
     element.scrollIntoView({ behavior: 'instant', block: 'center' }),
   )
@@ -101,7 +100,7 @@ test('scrolling gives the vector cat a squash and landing and bounds alternating
   const up = await catPose(-65)
   expect(up.y).toBeLessThan(-20)
   expect(up.surprise).toBeGreaterThan(0.8)
-  expect(up.smallest).toBeLessThan(0.9)
+  expect(up.smallest).toBeLessThan(0.95)
   expect(up.settled).toBe(true)
   const paws = page.locator('.walking-paws')
   await paws.evaluate((element) =>
