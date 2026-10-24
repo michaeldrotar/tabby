@@ -199,8 +199,7 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
   })
   const preferences = createMemoryPreferences({
     theme,
-    themeLightAccent: 'orange',
-    themeDarkAccent: 'violet',
+    themePreset: 'tabby-brand',
   })
   const initial: ShowcaseState = {
     browser: scene,
@@ -256,8 +255,7 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
         preferences: {
           ...defaultPreferences,
           theme: theme === 'light' ? 'dark' : 'light',
-          themeDarkAccent: 'violet',
-          themeLightAccent: 'teal',
+          themePreset: 'reef',
         },
       },
     },

@@ -1,3 +1,5 @@
+import { curatedThemes, themeTokens } from '@extension/core'
+import { SummerThemeProvider } from '@extension/ui/SummerTheme'
 import { Surface } from '@extension/ui/Surface'
 import { useSyncExternalStore } from 'react'
 import type { PreferenceResource, PreferenceState } from '@extension/core'
@@ -42,5 +44,20 @@ export const PreferenceSurface = ({
     { ...state, theme: props.theme ?? state.theme },
     systemTheme,
   )
-  return <Surface {...props} palette={palette} theme={palette.theme} />
+  const preset = curatedThemes.find((theme) => theme.id === state.themePreset)
+  return (
+    <SummerThemeProvider
+      theme={preset && 'scene' in preset ? palette.theme : undefined}
+    >
+      <Surface
+        {...props}
+        palette={palette}
+        theme={palette.theme}
+        tokens={{
+          ...(preset ? themeTokens(preset[palette.theme]) : {}),
+          ...props.tokens,
+        }}
+      />
+    </SummerThemeProvider>
+  )
 }

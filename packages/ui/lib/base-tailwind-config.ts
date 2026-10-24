@@ -33,6 +33,8 @@ export default {
 
         focus: 'hsl(from var(--focus-ring) h s l / <alpha-value>)',
         accent: 'hsl(from var(--accent) h s l / <alpha-value>)',
+        'accent-foreground':
+          'hsl(from var(--accent-foreground, var(--accent)) h s l / <alpha-value>)',
         'accent-soft': 'var(--accent-soft)',
         'accent-hover': 'var(--accent-hover)',
         'accent-selected': 'var(--accent-selected)',

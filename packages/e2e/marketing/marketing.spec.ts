@@ -277,7 +277,7 @@ test('homepage ignores unknown and malformed URL fragments', async ({
 
 test('homepage separates the live demo and switches to a video without losing demo changes', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto('./')
   await expect(page.locator('.site')).toHaveClass(/site--home/)
   const showcase = page.locator('.hero-showcase')
@@ -306,34 +306,47 @@ test('homepage separates the live demo and switches to a video without losing de
   ])
   await expect(featureSections.getByRole('img')).toHaveCount(2)
   const seasonalBoard = featureSections.getByRole('group', {
-    name: 'Tabby’s seasonal looks, neutral tones, and accent colors',
+    name: 'Tabby themes and seasonal icons',
   })
   await expect(seasonalBoard).toBeVisible()
   await expect(
     seasonalBoard.getByRole('button', { name: /sticker$/ }).first(),
   ).toBeVisible()
   await expect(
-    seasonalBoard.getByRole('button', { name: /accent paint swatch$/ }).first(),
-  ).toBeVisible()
-  await expect(
     seasonalBoard.getByRole('button', {
-      name: /background and foreground tone stone$/,
+      name: /^Move or toss Summer .* sticker$/,
     }),
-  ).toHaveCount(9)
+  ).toHaveCount(3)
+  const themeCard = seasonalBoard
+    .getByRole('button', { name: /theme card$/ })
+    .first()
+  await expect(
+    seasonalBoard.getByRole('button', { name: /theme card$/ }),
+  ).toHaveCount(15)
+  await expect(
+    seasonalBoard.getByRole('button', { name: /sticker$/ }),
+  ).toHaveCount(21)
   await seasonalBoard.scrollIntoViewIfNeeded()
   await expect(
     seasonalBoard.locator('.playground-piece__arrival.is-entered').first(),
   ).toBeAttached()
-  for (const selector of ['.playground-paint-swatch', '.playground-pebble']) {
-    await expect
-      .poll(() =>
-        seasonalBoard
-          .locator(selector)
-          .first()
-          .evaluate((element) => element.getBoundingClientRect().width),
-      )
-      .toBeGreaterThan(40)
-  }
+  await expect
+    .poll(() =>
+      themeCard.evaluate((element) => element.getBoundingClientRect().width),
+    )
+    .toBeGreaterThan(70)
+  await seasonalBoard.screenshot({
+    path: testInfo.outputPath('theme-playground.png'),
+    animations: 'disabled',
+  })
+  await themeCard.focus()
+  const initialPosition = await themeCard.evaluate(
+    (element) => element.style.left,
+  )
+  await page.keyboard.press('ArrowRight')
+  await expect
+    .poll(() => themeCard.evaluate((element) => element.style.left))
+    .not.toBe(initialPosition)
   await expect(featureSections.locator('img[src$=".jpg"]')).toHaveCount(0)
   await expect(featureSections.locator('.feature-copy a')).toHaveCount(0)
   await expect(
@@ -601,7 +614,7 @@ test('homepage separates the live demo and switches to a video without losing de
 
 test('sample tabs support batch work, local search, appearance, and reset', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto('./')
   const demo = page.locator('.hero [data-demo]')
   await demo.scrollIntoViewIfNeeded()
@@ -617,8 +630,24 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     firstTab
       .locator(':scope > div')
       .evaluate((element) => getComputedStyle(element).backgroundColor)
+  await expect(
+    demo.getByRole('button', { name: 'Seaglass theme', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('#manage [data-surface]')).toHaveCSS(
+    '--background',
+    '#f6f5ef',
+  )
+  await expect(
+    demo
+      .getByRole('group', { name: 'Demo themes', exact: true })
+      .getByRole('button'),
+  ).toHaveCount(6)
+  await demo.screenshot({
+    path: testInfo.outputPath('tabby-marketing-demo.png'),
+    animations: 'disabled',
+  })
   const initialColor = await selectedColor()
-  await demo.getByRole('button', { name: 'violet accent', exact: true }).click()
+  await demo.getByRole('button', { name: 'Arcade theme', exact: true }).click()
   await expect.poll(selectedColor).not.toBe(initialColor)
   await expect(firstTab.getByRole('option')).toHaveAttribute(
     'aria-selected',
@@ -674,15 +703,14 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     demo.getByText('Design references', { exact: true }),
   ).toHaveCount(0)
   await demo.getByRole('switch', { name: 'Dark mode', exact: true }).click()
-  await demo.getByRole('button', { name: 'violet accent', exact: true }).click()
+  await demo.getByRole('button', { name: 'Arcade theme', exact: true }).click()
   await expect(demo.locator('[data-surface]')).toHaveAttribute(
     'data-theme',
     'dark',
   )
-  await expect(demo.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-accent',
-    'violet',
-  )
+  await expect(
+    demo.getByRole('button', { name: 'Arcade theme', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('#manage [data-surface]')).toHaveAttribute(
     'data-theme',
     'light',
@@ -693,6 +721,9 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     'true',
   )
   await expect(themeToggle).not.toBeChecked()
+  await expect(
+    demo.getByRole('button', { name: 'Seaglass theme', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
 
   await expect(
     demo.getByRole('option', { name: 'Tab: Team inbox', exact: true }),
@@ -707,7 +738,10 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     .getByRole('button', { name: 'Settings', exact: true })
     .click()
   await demo
-    .getByRole('button', { name: 'Open appearance settings', exact: true })
+    .getByRole('button', {
+      name: 'Open Chrome appearance settings',
+      exact: true,
+    })
     .click()
   await expect(
     demo.getByText(
@@ -736,7 +770,9 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   )
 })
 
-test('the homepage stays readable on narrow screens', async ({ page }) => {
+test('the homepage stays readable on narrow screens', async ({
+  page,
+}, testInfo) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.goto('./')
   await expect(
@@ -750,6 +786,14 @@ test('the homepage stays readable on narrow screens', async ({ page }) => {
   )
   await expect(page.locator('.intro-note span')).toHaveCount(0)
   await expect(page.locator('.site-header .install')).toBeVisible()
+  await page.locator('.seasonal-playground').scrollIntoViewIfNeeded()
+  await expect(
+    page.locator('.playground-piece__arrival.is-entered').first(),
+  ).toHaveCSS('opacity', '1')
+  await page.locator('#customize').screenshot({
+    path: testInfo.outputPath('themes-mobile.png'),
+    animations: 'disabled',
+  })
   await page.locator('.closing').scrollIntoViewIfNeeded()
   await expect
     .poll(() =>

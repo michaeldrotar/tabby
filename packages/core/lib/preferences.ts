@@ -3,7 +3,9 @@ import {
   isSeasonalIconSelections,
   normalizeSeasonalIconSelections,
 } from './seasonalIcons.js'
+import { curatedThemes } from './themes.js'
 import type { SeasonalIconPreferences } from './seasonalIcons.js'
+import type { ThemePresetId } from './themes.js'
 
 export const THEME_NEUTRAL_PALETTES = [
   'slate',
@@ -43,6 +45,7 @@ export type ThemeMode = 'system' | 'light' | 'dark'
 export interface PreferenceState extends SeasonalIconPreferences {
   tabManagerCompactIconMode: 'active' | 'first'
   theme: ThemeMode
+  themePreset: ThemePresetId | null
   themeLightBackground: ThemeNeutralPalette
   themeLightForeground: ThemeNeutralPalette
   themeLightAccent: ThemeAccentPalette
@@ -63,6 +66,7 @@ export interface PreferenceResource {
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   tabManagerCompactIconMode: 'active',
   theme: 'system',
+  themePreset: 'tabby',
   themeLightBackground: 'stone',
   themeLightForeground: 'neutral',
   themeLightAccent: 'amber',
@@ -76,6 +80,8 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
 })
 
 const isValidPreference = (key: string, value: unknown): boolean => {
+  if (key === 'themePreset')
+    return value === null || curatedThemes.some((theme) => theme.id === value)
   if (key === 'tabManagerCompactIconMode')
     return value === 'active' || value === 'first'
   if (key === 'theme')
@@ -103,11 +109,19 @@ export const normalizePreferences = (value: unknown): PreferenceState => {
   return Object.fromEntries(
     Object.entries(defaultPreferences).map(([key, fallback]) => [
       key,
-      key === 'seasonalIconSelections'
-        ? normalizeSeasonalIconSelections(record[key])
-        : isValidPreference(key, record[key])
-          ? record[key]
-          : fallback,
+      key === 'themePreset' &&
+      !Object.hasOwn(record, key) &&
+      Object.keys(record).some(
+        (field) =>
+          /^theme(Light|Dark)(Background|Foreground|Accent)$/.test(field) &&
+          isValidPreference(field, record[field]),
+      )
+        ? null
+        : key === 'seasonalIconSelections'
+          ? normalizeSeasonalIconSelections(record[key])
+          : isValidPreference(key, record[key])
+            ? record[key]
+            : fallback,
     ]),
   ) as unknown as PreferenceState
 }

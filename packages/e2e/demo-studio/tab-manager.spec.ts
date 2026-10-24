@@ -153,18 +153,19 @@ test('browser data, view state, and preferences can be shared independently', as
     'data-theme',
     'dark',
   )
-  await page
-    .getByRole('group', { name: 'Background color' })
-    .getByRole('button', { name: 'Choose slate background color' })
-    .click()
-  await expect(left.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-background',
-    'slate',
-  )
-  await expect(right.locator('[data-surface]')).toHaveAttribute(
-    'data-theme-background',
-    'slate',
-  )
+  await page.getByLabel('Theme', { exact: true }).selectOption('arcade')
+  for (const instance of [left, right])
+    await expect
+      .poll(() =>
+        instance
+          .locator('[data-surface]')
+          .evaluate((element) =>
+            getComputedStyle(element)
+              .getPropertyValue('--accent-selected')
+              .trim(),
+          ),
+      )
+      .toBe('#234b48')
 })
 
 test('guided playback, anatomy, and product selection stay in sync', async ({
@@ -176,9 +177,7 @@ test('guided playback, anatomy, and product selection stay in sync', async ({
   const products = page.getByRole('navigation', { name: 'Product experience' })
 
   await experience.getByRole('button', { name: /Guided/ }).click()
-  await expect(
-    page.getByRole('heading', { name: 'See a workflow unfold.' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Guided tour' })).toBeVisible()
   const chapters = page.getByRole('group', { name: 'Demo chapters' })
   await chapters.getByRole('button', { name: /Omnibar/ }).click()
   await expect(

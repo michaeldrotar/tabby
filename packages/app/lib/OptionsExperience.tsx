@@ -1,8 +1,4 @@
-import {
-  getUpcomingSeasonalIcon,
-  THEME_ACCENT_PALETTES,
-  THEME_NEUTRAL_PALETTES,
-} from '@extension/core'
+import { getThemeIconId, getUpcomingSeasonalIcon } from '@extension/core'
 import { Options } from '@extension/ui/options/Options'
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useStore } from 'zustand'
@@ -31,8 +27,6 @@ export const createOptionsController = (
   preferences: PreferenceResource,
   resource: OptionsResource,
   view: OptionsView,
-  systemTheme: () => 'light' | 'dark',
-  random: () => number = Math.random,
 ) => {
   let generation = 0
   const run = async (action: () => Promise<void>) => {
@@ -47,41 +41,10 @@ export const createOptionsController = (
         })
     }
   }
-  const different = <T,>(current: T, options: readonly T[]): T => {
-    const choices = options.filter((option) => option !== current)
-    return (
-      choices[
-        Math.min(
-          choices.length - 1,
-          Math.max(0, Math.floor(random() * choices.length)),
-        )
-      ] ?? current
-    )
-  }
   return {
     change: (patch: Partial<PreferenceState>) =>
       run(() => preferences.set(patch)),
     reset: () => run(() => preferences.reset()),
-    randomize: () =>
-      run(() => {
-        const state = preferences.getSnapshot()
-        const mode = state.theme === 'system' ? systemTheme() : state.theme
-        const prefix = mode === 'light' ? 'themeLight' : 'themeDark'
-        return preferences.set({
-          [`${prefix}Background`]: different(
-            state[`${prefix}Background`],
-            THEME_NEUTRAL_PALETTES,
-          ),
-          [`${prefix}Foreground`]: different(
-            state[`${prefix}Foreground`],
-            THEME_NEUTRAL_PALETTES,
-          ),
-          [`${prefix}Accent`]: different(
-            state[`${prefix}Accent`],
-            THEME_ACCENT_PALETTES,
-          ),
-        })
-      }),
     openShortcuts: () => run(resource.openShortcutsSettings),
     openAppearance: () => run(resource.openSidePanelSettings),
     cancel: () => {
@@ -98,7 +61,6 @@ export const OptionsExperience = ({
   const resources = useTabbyResources()
   const resource = resources.options
   const view = resources.views.options
-  const random = resources.environment.random
   const preferences = useSyncExternalStore(
     resources.preferences.subscribe,
     resources.preferences.getSnapshot,
@@ -109,6 +71,7 @@ export const OptionsExperience = ({
     (typeof navigator === 'undefined' ? 'en-US' : navigator.language)
   const selectSeasonalIcon = useCallback(
     (time: number) =>
+      getThemeIconId(preferences) ??
       getUpcomingSeasonalIcon(preferences, new Date(time), locale)?.iconId,
     [locale, preferences],
   )
@@ -121,15 +84,8 @@ export const OptionsExperience = ({
     resource.getSnapshot,
   )
   const controller = useMemo(
-    () =>
-      createOptionsController(
-        resources.preferences,
-        resource,
-        view,
-        () => resources.environment.systemTheme,
-        random,
-      ),
-    [resources.preferences, resources.environment, resource, view, random],
+    () => createOptionsController(resources.preferences, resource, view),
+    [resources.preferences, resource, view],
   )
   useEffect(() => () => controller.cancel(), [controller])
   const shortcutRows = [
@@ -156,10 +112,12 @@ export const OptionsExperience = ({
         ],
     })),
   ]
+  const iconPath = `/seasonal-icons/${seasonalIconId}-128.png`
   const logoUrl =
     seasonalIconId && metadata.logoUrl
-      ? new URL(`seasonal-icons/${seasonalIconId}-128.png`, metadata.logoUrl)
-          .href
+      ? URL.canParse(metadata.logoUrl)
+        ? new URL(iconPath, metadata.logoUrl).href
+        : iconPath
       : metadata.logoUrl
   return (
     <Options
@@ -180,9 +138,6 @@ export const OptionsExperience = ({
       scrollTop={state.scrollTop}
       onScrollChange={(scrollTop) => view.setState({ scrollTop })}
       onPreferenceChange={controller.change}
-      randomizeColors={() => {
-        void controller.randomize()
-      }}
       resetPreferences={() => {
         void controller.reset()
       }}

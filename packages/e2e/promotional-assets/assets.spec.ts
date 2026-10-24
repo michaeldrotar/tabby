@@ -10,7 +10,11 @@ test('promotional layouts show current windows, search, and batch actions', asyn
   page,
 }) => {
   const capture = process.env.TABBY_CAPTURE_PROMOS === '1'
-  for (const asset of [...screenshotAssets, ...promoTileAssets]) {
+  for (const asset of [...screenshotAssets, ...promoTileAssets].filter(
+    (asset) =>
+      !process.env.TABBY_PROMO_ASSET ||
+      asset.id === process.env.TABBY_PROMO_ASSET,
+  )) {
     await page.setViewportSize({ width: asset.width, height: asset.height })
     await page.goto(`./?asset=${asset.id}`)
     const canvas = page.getByRole('main', { name: 'Tabby promotional asset' })
@@ -40,7 +44,7 @@ test('promotional layouts show current windows, search, and batch actions', asyn
       ).toBe(536)
     }
     if (asset.id === 'themes') {
-      await expect(page.locator('.theme-swatch--tone')).toHaveCount(18)
+      await expect(page.locator('.theme-preset-swatch')).toHaveCount(15)
       const palette = await page.locator('.themes-palette').boundingBox()
       const frame = await canvas.boundingBox()
       expect(palette!.y + palette!.height).toBeLessThanOrEqual(

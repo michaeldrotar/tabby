@@ -60,6 +60,23 @@ const createApi = () => {
 }
 
 describe('seasonal action icon', () => {
+  it('uses the chosen summer icon during the summer season', async () => {
+    const { api, mock, setPreferences } = createApi()
+    setPreferences({
+      ...defaultPreferences,
+      themePreset: 'summer',
+      seasonalIconSelections: {
+        ...defaultPreferences.seasonalIconSelections,
+        summer: 'summer-snorkel',
+      },
+    })
+    registerSeasonalActionIcon(api, () => new Date(2026, 6, 24, 12))
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenCalledWith({
+        path: getSeasonalActionIconPaths('summer-snorkel'),
+      }),
+    )
+  })
   it('shows the chosen holiday icon during its lead-in and schedules a local-day refresh', async () => {
     const { api, mock } = createApi()
     registerSeasonalActionIcon(api, () => new Date(2026, 9, 24, 12))

@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import { SearchIcon } from '../icons'
 import { Kbd } from '../Kbd'
+import { SummerMotionControl } from '../SummerTheme'
 
 type OmnibarInputProps = {
   resultsId: string
@@ -47,6 +48,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           onKeyDown={onKeyDown}
         />
         <div className="text-muted flex items-center gap-1 text-xs">
+          <SummerMotionControl nightOnly active={!query} />
           <Kbd>Esc</Kbd>
           <span>to close</span>
         </div>

@@ -963,3 +963,24 @@ body[data-promo-view='gallery'] #root {
     padding: 8px;
   }
 }
+
+.theme-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px 12px;
+}
+.theme-preset-swatch {
+  font-size: 11px;
+  color: #51465a;
+}
+.theme-preset-swatch > span {
+  display: block;
+  height: 22px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+}
+.themes-palette .theme-swatch-group h2 {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 12px;
+}

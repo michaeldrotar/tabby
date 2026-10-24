@@ -1,9 +1,6 @@
-import {
-  SEASONAL_HOLIDAYS,
-  THEME_ACCENT_PALETTES,
-  THEME_NEUTRAL_PALETTES,
-} from '@extension/core'
-import { additionalNeutralColors } from '@extension/ui/theme-colors'
+import { curatedThemes, SEASONAL_HOLIDAYS } from '@extension/core'
+import { ThemePalette } from '@extension/ui/options/ThemePalette'
+import { ThemePreview } from '@extension/ui/options/ThemePreview'
 import {
   useCallback,
   useEffect,
@@ -13,14 +10,14 @@ import {
 } from 'react'
 import { useScrollEntrance } from './MotionReveal'
 import { useIdleCue } from './useIdleCue'
-import type { ThemeAccentPalette, ThemeNeutralPalette } from '@extension/core'
+import type { CuratedTheme, ThemeAppearance } from '@extension/core'
 import type {
   CSSProperties,
   KeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react'
 
-type PieceKind = 'sticker' | 'accent' | 'tone'
+type PieceKind = 'sticker' | 'theme'
 
 type ScenePiece = {
   id: string
@@ -30,11 +27,8 @@ type ScenePiece = {
   y: number
   size: number
   rotation: number
-  name?: string
-  color?: string
-  labelColor?: string
-  highlight?: string
-  shadow?: string
+  theme?: CuratedTheme
+  mode?: ThemeAppearance
   src?: string
   delay: number
   entryX: number
@@ -72,10 +66,6 @@ type ActiveDrag = {
 
 type PieceStyle = CSSProperties & {
   '--piece-size': string
-  '--piece-color'?: string
-  '--piece-label-color'?: string
-  '--piece-highlight'?: string
-  '--piece-shadow'?: string
   '--piece-rotation': string
   '--entry-x': string
   '--entry-y': string
@@ -89,117 +79,9 @@ type PieceStyle = CSSProperties & {
   '--idle-duration'?: string
 }
 
-const accentSwatches: Record<
-  ThemeAccentPalette,
-  { color: string; labelColor: string }
-> = {
-  red: { color: '#ef4444', labelColor: '#641b25' },
-  orange: { color: '#f97316', labelColor: '#6e2b0b' },
-  amber: { color: '#f59e0b', labelColor: '#664006' },
-  yellow: { color: '#eab308', labelColor: '#5c4906' },
-  lime: { color: '#84cc16', labelColor: '#334f0a' },
-  green: { color: '#22c55e', labelColor: '#0c4d27' },
-  emerald: { color: '#10b981', labelColor: '#06493a' },
-  teal: { color: '#14b8a6', labelColor: '#064f49' },
-  cyan: { color: '#06b6d4', labelColor: '#064959' },
-  sky: { color: '#0ea5e9', labelColor: '#073d5a' },
-  blue: { color: '#3b82f6', labelColor: '#102d66' },
-  indigo: { color: '#6366f1', labelColor: '#252765' },
-  violet: { color: '#8b5cf6', labelColor: '#3f236e' },
-  purple: { color: '#a855f7', labelColor: '#4b1f69' },
-  fuchsia: { color: '#d946ef', labelColor: '#601b67' },
-  pink: { color: '#ec4899', labelColor: '#681441' },
-  rose: { color: '#f43f5e', labelColor: '#671626' },
-}
-
-const stickerLayout = [
-  [7, 14, 52, -11],
-  [23, 24, 48, 12],
-  [41, 12, 59, -7],
-  [57, 29, 47, 15],
-  [78, 15, 56, -12],
-  [93, 28, 51, 10],
-  [13, 44, 49, 14],
-  [29, 37, 57, -11],
-  [46, 53, 48, 15],
-  [66, 40, 58, 7],
-  [82, 53, 52, -14],
-  [93, 43, 46, 16],
-  [8, 74, 56, -8],
-  [26, 66, 50, 13],
-  [41, 83, 58, -15],
-  [61, 68, 49, 18],
-  [78, 85, 57, -10],
-  [92, 74, 54, 12],
-] as const
-
-const accentLayout = [
-  [12, 31],
-  [31, 25],
-  [46, 35],
-  [64, 24],
-  [82, 33],
-  [96, 39],
-  [6, 56],
-  [21, 60],
-  [38, 62],
-  [55, 56],
-  [71, 63],
-  [88, 60],
-  [96, 53],
-  [13, 90],
-  [33, 93],
-  [57, 90],
-  [79, 92],
-] as const
-
-const toneLayout = [
-  [90, 88],
-  [49, 20],
-  [72, 23],
-  [30, 83],
-  [10, 48],
-  [8, 18],
-  [90, 45],
-  [52, 91],
-  [48, 49],
-] as const
-
-const neutralStoneStyles: Record<
-  ThemeNeutralPalette,
-  { color: string; highlight: string; shadow: string }
-> = {
-  slate: { color: '#64748b', highlight: '#aab3c1', shadow: '#465367' },
-  gray: { color: '#6b7280', highlight: '#b1b5bb', shadow: '#4b505a' },
-  zinc: { color: '#71717a', highlight: '#b4b4bb', shadow: '#515158' },
-  neutral: { color: '#737373', highlight: '#b8b8b8', shadow: '#525252' },
-  stone: { color: '#78716c', highlight: '#bdb5af', shadow: '#554f4a' },
-  taupe: {
-    color: additionalNeutralColors.taupe[500],
-    highlight: additionalNeutralColors.taupe[300],
-    shadow: additionalNeutralColors.taupe[700],
-  },
-  mauve: {
-    color: additionalNeutralColors.mauve[500],
-    highlight: additionalNeutralColors.mauve[300],
-    shadow: additionalNeutralColors.mauve[700],
-  },
-  mist: {
-    color: additionalNeutralColors.mist[500],
-    highlight: additionalNeutralColors.mist[300],
-    shadow: additionalNeutralColors.mist[700],
-  },
-  olive: {
-    color: additionalNeutralColors.olive[500],
-    highlight: additionalNeutralColors.olive[300],
-    shadow: additionalNeutralColors.olive[700],
-  },
-}
-
 const randomBetween = (minimum: number, maximum: number) =>
   minimum + Math.random() * (maximum - minimum)
 
-const sceneScale = 1.2
 const playgroundVisibility = 0.38
 
 const shuffled = <T,>(values: readonly T[]) => {
@@ -211,12 +93,14 @@ const shuffled = <T,>(values: readonly T[]) => {
   return result
 }
 
-const clusterPosition = (value: number, variation = 4) =>
-  50 +
-  (value - 50) * 0.5 * sceneScale +
-  randomBetween(-variation * sceneScale, variation * sceneScale)
-
-const scaleSceneSize = (size: number) => size * sceneScale
+const pilePosition = (index: number, count: number, phase: number) => {
+  const angle = index * Math.PI * (3 - Math.sqrt(5)) + phase
+  const radius = Math.sqrt((index + 0.5) / count)
+  return {
+    x: 50 + Math.cos(angle) * radius * 28 + randomBetween(-3, 3),
+    y: 48 + Math.sin(angle) * radius * 27 + randomBetween(-3, 3),
+  }
+}
 
 const createPiece = (
   piece: Omit<
@@ -254,58 +138,34 @@ const seasonalStickers = SEASONAL_HOLIDAYS.flatMap((holiday) =>
 )
 
 const createScenePieces = (): ScenePiece[] => {
-  const stickerPoints = shuffled(stickerLayout)
-  const accentPoints = shuffled(accentLayout)
-  const tonePoints = shuffled(toneLayout)
-
-  const stickers = shuffled(seasonalStickers).map((sticker, index) => {
-    const [x, y, size, rotation] = stickerPoints[index]!
-    return createPiece({
+  const stickerPhase = randomBetween(0, Math.PI * 2)
+  const themePhase = randomBetween(0, Math.PI * 2)
+  const stickers = shuffled(seasonalStickers).map((sticker, index) =>
+    createPiece({
       ...sticker,
       id: `sticker-${sticker.id}`,
       kind: 'sticker',
-      x: clusterPosition(x, 4),
-      y: clusterPosition(y, 4),
-      size: scaleSceneSize(size + randomBetween(-4, 5)),
-      rotation: rotation + randomBetween(-22, 22),
-    })
-  })
+      ...pilePosition(index, seasonalStickers.length, stickerPhase),
+      size: randomBetween(54, 72),
+      rotation: randomBetween(-35, 35),
+    }),
+  )
 
-  const accents = shuffled(THEME_ACCENT_PALETTES).map((accent, index) => {
-    const [x, y] = accentPoints[index]!
-    const swatch = accentSwatches[accent]
+  const themes = shuffled(curatedThemes).map((theme, index) => {
+    const mode = index % 2 === 0 ? 'light' : 'dark'
     return createPiece({
-      id: `accent-${accent}`,
-      label: `${accent} accent paint swatch`,
-      kind: 'accent',
-      x: clusterPosition(x, 5),
-      y: clusterPosition(y, 5),
-      size: scaleSceneSize(randomBetween(44, 50.4)),
-      rotation: randomBetween(-16, 16),
-      color: swatch.color,
-      labelColor: swatch.labelColor,
-      name: accent,
+      id: `theme-${theme.id}`,
+      label: `${theme.name} ${mode} theme card`,
+      kind: 'theme',
+      ...pilePosition(index, curatedThemes.length, themePhase),
+      size: randomBetween(96, 108),
+      rotation: randomBetween(-28, 28),
+      theme,
+      mode,
     })
   })
 
-  const tones = shuffled(THEME_NEUTRAL_PALETTES).map((palette, index) => {
-    const [x, y] = tonePoints[index]!
-    const tone = neutralStoneStyles[palette]
-    return createPiece({
-      id: `tone-${palette}`,
-      label: `${palette} background and foreground tone stone`,
-      kind: 'tone',
-      x: clusterPosition(x, 4),
-      y: clusterPosition(y, 4),
-      size: scaleSceneSize(randomBetween(47, 58)),
-      rotation: randomBetween(-16, 16),
-      color: tone.color,
-      highlight: tone.highlight,
-      shadow: tone.shadow,
-    })
-  })
-
-  return shuffled([...stickers, ...accents, ...tones])
+  return shuffled([...stickers, ...themes])
 }
 
 const positionsForScene = (scenePieces: ScenePiece[]) =>
@@ -771,7 +631,7 @@ export const SeasonalStylePlayground = () => {
       ref={containerRef}
       className="feature-art feature-art--customize seasonal-playground"
       role="group"
-      aria-label="Tabby’s seasonal looks, neutral tones, and accent colors"
+      aria-label="Tabby themes and seasonal icons"
       aria-describedby="seasonal-playground-help"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
@@ -802,12 +662,6 @@ export const SeasonalStylePlayground = () => {
           '--cursor-y': '0px',
           '--cursor-rotation': '0deg',
           ...(idle ? { '--idle-duration': `${idle.duration}ms` } : {}),
-          ...(piece.color ? { '--piece-color': piece.color } : {}),
-          ...(piece.labelColor
-            ? { '--piece-label-color': piece.labelColor }
-            : {}),
-          ...(piece.highlight ? { '--piece-highlight': piece.highlight } : {}),
-          ...(piece.shadow ? { '--piece-shadow': piece.shadow } : {}),
         }
         return (
           <button
@@ -859,15 +713,22 @@ export const SeasonalStylePlayground = () => {
                 <span className="playground-sticker">
                   <img src={piece.src} width="128" height="128" alt="" />
                 </span>
-              ) : piece.kind === 'accent' ? (
-                <span className="playground-paint-swatch" aria-hidden="true">
-                  <span className="playground-paint-swatch__name">
-                    {piece.name}
+              ) : piece.theme && piece.mode ? (
+                <span
+                  className="playground-theme-card"
+                  style={{
+                    backgroundColor: piece.theme[piece.mode].surface,
+                    color: piece.theme[piece.mode].text,
+                  }}
+                  aria-hidden="true"
+                >
+                  <ThemePreview theme={piece.theme} mode={piece.mode} />
+                  <span className="playground-theme-card__name">
+                    {piece.theme.name}
                   </span>
+                  <ThemePalette colors={piece.theme[piece.mode]} />
                 </span>
-              ) : (
-                <span className="playground-pebble" aria-hidden="true" />
-              )}
+              ) : null}
             </span>
           </button>
         )

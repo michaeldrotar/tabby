@@ -40,8 +40,7 @@ export const OptionsManagerPreferences = ({
               Window identification
             </h3>
             <p className="text-muted text-sm">
-              Choose which tab supplies a window's name and icon in the sidebar
-              and move menus
+              Use a tab’s title and icon for unnamed windows.
             </p>
           </div>
           <div

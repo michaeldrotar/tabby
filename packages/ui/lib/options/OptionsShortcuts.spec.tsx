@@ -50,7 +50,6 @@ const renderOptions = (hash = '') => {
       shortcutRows={shortcutRows}
       logoUrl=""
       onPreferenceChange={vi.fn()}
-      randomizeColors={vi.fn()}
       resetPreferences={vi.fn()}
       openShortcutsSettings={vi.fn()}
       openSidePanelSettings={vi.fn()}

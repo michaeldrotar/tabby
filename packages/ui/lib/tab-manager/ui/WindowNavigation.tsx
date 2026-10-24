@@ -562,16 +562,7 @@ export const WindowIdentityEditor = ({
         >
           Reset
         </button>
-        <button
-          data-editor-done
-          type="submit"
-          className={`
-            bg-foreground text-background min-h-10 rounded-md px-3 text-sm
-            hover:bg-foreground/90
-            focus-visible:outline-focus focus-visible:outline
-            focus-visible:outline-2 focus-visible:outline-offset-2
-          `}
-        >
+        <button data-editor-done type="submit" className={windowControlClass}>
           Done
         </button>
       </div>
