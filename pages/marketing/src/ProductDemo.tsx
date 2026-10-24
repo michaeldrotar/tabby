@@ -75,6 +75,7 @@ const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
           style={{ backgroundColor: color }}
           onClick={() =>
             void preferences.set({
+              themePreset: null,
               themeLightAccent: name,
               themeDarkAccent: name,
             })

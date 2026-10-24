@@ -21,6 +21,7 @@ describe('preferences', () => {
       theme: 'dark',
       tabManagerCompactIconMode: 'first',
       themeLightForeground: 'mist',
+      themePreset: null,
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
   })
@@ -70,4 +71,31 @@ describe('preferences', () => {
       }),
     ).toThrow('Invalid preference')
   })
+})
+
+it('preserves saved colors and validates curated theme choices', () => {
+  expect(
+    normalizePreferences({ themeDarkAccent: 'rose' }).themePreset,
+  ).toBeNull()
+  expect(
+    normalizePreferences({ themePreset: 'reef', themeDarkAccent: 'rose' })
+      .themePreset,
+  ).toBe('reef')
+  expect(normalizePreferences({ themePreset: 'unknown' }).themePreset).toBe(
+    'tabby',
+  )
+  expect(() =>
+    applyPreferencePatch(defaultPreferences, {
+      themePreset: 'unknown' as never,
+    }),
+  ).toThrow('Invalid preference')
+})
+
+it('replaces hidden seasonal themes without changing other saved preferences', () => {
+  expect(
+    normalizePreferences({ themePreset: 'summer', theme: 'dark' }),
+  ).toEqual({ ...defaultPreferences, theme: 'dark' })
+  expect(() =>
+    applyPreferencePatch(defaultPreferences, { themePreset: 'summer' }),
+  ).toThrow('Invalid preference')
 })

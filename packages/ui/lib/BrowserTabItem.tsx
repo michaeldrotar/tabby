@@ -160,7 +160,8 @@ export const BrowserTabItem = memo(
           const [, numberPart, rest] = numberMatch
           return (
             <>
-              <span className="text-accent">{numberPart}</span> {rest}
+              <span className="text-accent-foreground">{numberPart}</span>{' '}
+              {rest}
             </>
           )
         }
@@ -169,7 +170,8 @@ export const BrowserTabItem = memo(
         if (titleText.startsWith('• ')) {
           return (
             <>
-              <span className="text-accent">•</span> {titleText.slice(2)}
+              <span className="text-accent-foreground">•</span>{' '}
+              {titleText.slice(2)}
             </>
           )
         }

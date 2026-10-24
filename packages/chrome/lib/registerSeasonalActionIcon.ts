@@ -1,6 +1,10 @@
-import { getUpcomingSeasonalIcon, normalizePreferences } from '@extension/core'
+import {
+  getThemeIconId,
+  getUpcomingSeasonalIcon,
+  normalizePreferences,
+} from '@extension/core'
 import { CHROME_PREFERENCES_STORAGE_KEY } from './createChromePreferences.js'
-import type { SeasonalIconId } from '@extension/core'
+import type { SeasonalIconId, ThemeIconId } from '@extension/core'
 
 export const SEASONAL_ICON_DATE_ALARM = 'seasonal-icon-date-check'
 
@@ -15,7 +19,7 @@ const DEFAULT_ICON_PATHS: IconPathSet = {
 }
 
 export const getSeasonalActionIconPaths = (
-  iconId: SeasonalIconId,
+  iconId: SeasonalIconId | ThemeIconId,
 ): IconPathSet =>
   Object.fromEntries(
     ICON_SIZES.map((size) => [size, `seasonal-icons/${iconId}-${size}.png`]),
@@ -48,14 +52,16 @@ export const registerSeasonalActionIcon = (
       const preferences = normalizePreferences(
         values[CHROME_PREFERENCES_STORAGE_KEY],
       )
-      const currentIcon = getUpcomingSeasonalIcon(
-        preferences,
-        currentDate,
-        api.i18n.getUILanguage(),
-      )
+      const currentIcon =
+        getThemeIconId(preferences) ??
+        getUpcomingSeasonalIcon(
+          preferences,
+          currentDate,
+          api.i18n.getUILanguage(),
+        )?.iconId
       await api.action.setIcon({
         path: currentIcon
-          ? getSeasonalActionIconPaths(currentIcon.iconId)
+          ? getSeasonalActionIconPaths(currentIcon)
           : DEFAULT_ICON_PATHS,
       })
     } catch (error: unknown) {

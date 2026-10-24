@@ -1,5 +1,6 @@
 import { CmdIcon, ShiftIcon } from '../icons'
 import { Kbd, KbdGroup } from '../Kbd'
+import { SummerDetails } from '../SummerTheme'
 import { cn } from '../utils/cn'
 
 type QuickAction = {
@@ -34,7 +35,8 @@ export const OmnibarEmptyState = ({
   }
 
   return (
-    <div className="px-4 py-6">
+    <div className="relative isolate px-4 py-6" data-omnibar-empty>
+      <SummerDetails place="search" />
       {/* Quick Actions */}
       {quickActions && quickActions.length > 0 && (
         <div className="mb-4">

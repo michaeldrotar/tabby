@@ -1,4 +1,5 @@
 import { ExternalLinkIcon } from '../icons'
+import { SummerMotionControl } from '../SummerTheme'
 import { cn } from '../utils/cn'
 import type { OptionsProps } from './Options'
 
@@ -16,6 +17,9 @@ export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
     <h1 className="text-foreground text-2xl font-semibold tracking-tight">
       Settings
     </h1>
+    <span className="ml-auto">
+      <SummerMotionControl nightOnly />
+    </span>
   </header>
 )
 export const OptionsSidePanelSettings = ({
