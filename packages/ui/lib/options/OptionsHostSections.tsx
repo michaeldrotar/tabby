@@ -3,21 +3,20 @@ import { cn } from '../utils/cn'
 import type { OptionsProps } from './Options'
 
 export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
-  <div className="mb-10 text-center">
-    <div className="mb-4 flex items-center justify-center gap-3">
-      {logoUrl && (
-        <img
-          src={logoUrl}
-          width={48}
-          height={48}
-          className="h-12 w-12"
-          alt=""
-        />
-      )}
-      <h1 className={cn('text-3xl font-bold', 'text-foreground')}>Tabby</h1>
-    </div>
-    <p className="text-muted">Your friendly tab manager for Chrome</p>
-  </div>
+  <header className="mb-8 flex items-center gap-3">
+    {logoUrl && (
+      <img
+        src={logoUrl}
+        width={36}
+        height={36}
+        className="h-9 w-9"
+        alt="Tabby"
+      />
+    )}
+    <h1 className="text-foreground text-2xl font-semibold tracking-tight">
+      Settings
+    </h1>
+  </header>
 )
 export const OptionsSidePanelSettings = ({
   openSidePanelSettings,

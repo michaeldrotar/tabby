@@ -15,7 +15,9 @@ export const ThemeModeChoices = ({
     <fieldset
       data-theme-mode-choices
       data-hover={hovered || undefined}
-      className="group/theme-mode flex shrink-0 items-center gap-2"
+      className={`
+        group/theme-mode flex min-w-0 shrink-0 flex-wrap items-center gap-2
+      `}
     >
       <legend className="sr-only">Theme mode</legend>
       {(['system', 'light', 'dark'] as const).map((value) => (

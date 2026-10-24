@@ -127,7 +127,13 @@ export const Options = (props: OptionsProps) => {
         'bg-background text-foreground',
       )}
     >
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div
+        className={`
+          mx-auto max-w-2xl px-4 py-6
+          group-data-[wide=true]/options:px-6
+          group-data-[wide=true]/options:py-8
+        `}
+      >
         {error && (
           <p role="alert" className="mb-4 rounded border border-red-500 p-3">
             {error}
@@ -164,7 +170,6 @@ export const Options = (props: OptionsProps) => {
               activeThemeMode={props.activeThemeMode}
               onPreferenceChange={props.onPreferenceChange}
               randomizeColors={props.randomizeColors}
-              controlProps={controlProps}
             />
             <OptionsManagerPreferences
               preferences={props.preferences}
