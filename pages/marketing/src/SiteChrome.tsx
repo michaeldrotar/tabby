@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
+import { CatFace } from './CatFace'
 import { ClosingCat } from './ClosingCat'
-import { assets, storeUrl } from './content'
+import { storeUrl } from './content'
 import { FooterCat } from './FooterCat'
 import { useIdleCue } from './useIdleCue'
 
@@ -62,11 +63,7 @@ export const Brand = ({ linked = true }: { linked?: boolean }) => {
   })
   const content = (
     <>
-      {linked ? (
-        <img src={assets.face} width="45" height="45" alt="" />
-      ) : (
-        <FooterCat />
-      )}
+      {linked ? <CatFace size={45} /> : <FooterCat />}
       <span className="brand-word">
         {'Tabby'.split('').map((letter, index) => (
           <span key={index}>{letter}</span>
@@ -82,7 +79,8 @@ export const Brand = ({ linked = true }: { linked?: boolean }) => {
       aria-label="Tabby home"
       data-hopping={hopping}
       onAnimationEnd={(event) => {
-        if ((event.target as HTMLElement).tagName === 'IMG') setHopping(false)
+        if (event.target === event.currentTarget.querySelector('svg'))
+          setHopping(false)
       }}
     >
       {content}

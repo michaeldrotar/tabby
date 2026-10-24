@@ -244,7 +244,7 @@ test('idle cues repeat in view and pause for interaction and reduced motion', as
       const target = event.target as HTMLElement
       if (
         target.matches(
-          '.brand img, .showcase-sign-label, .playground-piece__arrival > span',
+          '.brand > svg, .showcase-sign-label, .playground-piece__arrival > span',
         )
       )
         target.getAnimations().forEach((animation) => animation.pause())

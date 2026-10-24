@@ -112,7 +112,7 @@ button {
   letter-spacing: -0.055em;
   line-height: 1;
 }
-.brand img {
+.brand > svg {
   object-fit: contain;
 }
 .brand-word > span {
@@ -194,13 +194,13 @@ html[data-tabby-cursor-hidden='true'] * {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .site-header .brand img {
+  .site-header .brand > svg {
     transition: transform 260ms ease;
   }
-  .site-header .brand:is(:hover, :focus-visible) img {
+  .site-header .brand:is(:hover, :focus-visible) > svg {
     transform: rotate(-9deg) translateY(-2px);
   }
-  .site-header .brand[data-hopping='true'] img {
+  .site-header .brand[data-hopping='true'] > svg {
     animation: brand-hop 650ms ease-in-out;
   }
   .site-header .brand:is(:hover, :focus-visible) .brand-word > span {
@@ -1333,7 +1333,7 @@ html[data-tabby-cursor-hidden='true'] * {
 .site-footer .brand {
   font-size: 24px;
 }
-.site-footer .brand img {
+.site-footer .brand > svg {
   width: 33px;
   height: 33px;
 }
@@ -1420,7 +1420,7 @@ html[data-tabby-cursor-hidden='true'] * {
     font-size: 25px;
     gap: 6px;
   }
-  .brand img {
+  .brand > svg {
     width: 36px;
     height: 36px;
   }
@@ -1830,11 +1830,15 @@ html:has(.site--releases) {
       scaleX(calc(1 + var(--cat-squash, 0) * 0.7))
       scaleY(calc(1 - var(--cat-squash, 0)));
   }
-  .banner-cat-eyes {
-    opacity: calc(1 - var(--cat-wide, 0));
+  .banner-cat[data-surprised='true'] .banner-cat-surprise {
+    opacity: 1;
   }
-  .banner-cat-surprise {
-    opacity: var(--cat-wide, 0);
+  .banner-cat-surprise ellipse {
+    ry: calc(16px + var(--cat-wide, 0) * 8px);
+  }
+  .banner-cat-pupil {
+    r: calc(13px - var(--cat-wide, 0) * 7px);
+    cy: calc(75px + var(--cat-wide, 0) * 3px);
   }
   .banner-cat-shadow {
     transform: scaleX(calc(1 - var(--cat-wide, 0) * 0.5));

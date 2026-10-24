@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useId, useRef } from 'react'
+import { CatFace } from './CatFace'
 import { assets } from './content'
 import type { RefObject } from 'react'
 
@@ -85,6 +86,7 @@ export const BannerCat = () => {
   const ref = useRef<HTMLSpanElement>(null)
   const pose = useRef(stillCat())
   const paint = (element: HTMLElement) => {
+    element.dataset.surprised = String(pose.current.lift > 0)
     element.style.setProperty('--cat-lift', `${pose.current.lift}px`)
     element.style.setProperty('--cat-squash', String(pose.current.squash))
     element.style.setProperty(
@@ -144,59 +146,31 @@ export const BannerCat = () => {
   return (
     <span ref={ref} className="banner-cat" aria-hidden="true">
       <span className="banner-cat-shadow" />
-      <svg viewBox="0 0 128 128" width="48" height="48" fill="none">
-        <path
-          d="M8 59 10 18Q11 7 20 13L43 31Q64 24 85 31L108 13Q117 7 118 18L120 59Q129 77 119 97Q104 121 64 123Q24 121 9 97Q-1 77 8 59Z"
-          fill="#fa9c36"
-          stroke="#203b59"
-          strokeWidth="4"
-          strokeLinejoin="round"
-        />
-        <path d="m16 23 2 27 18-13Zm96 0-20 14 18 13Z" fill="#fcf3e3" />
-        <path
-          d="M7 78q16 0 27-15 12-11 30 1 18-12 30-1 11 15 27 15 0 39-57 43Q7 117 7 78Z"
-          fill="#fcf3e3"
-        />
-        <path
-          d="m50 31 3 13m11-15v19m14-17-3 13M9 65l13 4M7 80l13-1m99-14-13 4m15 11-13-1"
-          stroke="#d96724"
-          strokeWidth="7"
-          strokeLinecap="round"
-        />
-        <g className="banner-cat-eyes">
-          {[39, 89].map((x) => (
-            <g key={x}>
-              <ellipse cx={x} cy="74" rx="16" ry="16" fill="white" />
-              <circle cx={x} cy="75" r="12" fill="#203b59" />
-              <circle cx={x + 4} cy="70" r="4" fill="white" />
-            </g>
-          ))}
-        </g>
+      <CatFace size={48}>
         <g className="banner-cat-surprise">
           {[39, 89].map((x) => (
             <g key={x}>
               <ellipse
                 cx={x}
-                cy="72"
+                cy="75"
                 rx="18"
                 ry="24"
-                fill="white"
-                stroke="#203b59"
+                fill="#fff5e4"
+                stroke="#031a39"
                 strokeWidth="2"
               />
-              <circle cx={x} cy="78" r="6" fill="#203b59" />
+              <circle
+                className="banner-cat-pupil"
+                cx={x}
+                cy="78"
+                r="6"
+                fill="#031a39"
+              />
               <circle cx={x + 2} cy="75" r="2" fill="white" />
             </g>
           ))}
         </g>
-        <path d="M58 86q6-4 12 0-1 7-6 7t-6-7Z" fill="#203b59" />
-        <path
-          d="M64 93q-5 10-12 2m12-2q5 10 12 2"
-          stroke="#203b59"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </svg>
+      </CatFace>
     </span>
   )
 }
