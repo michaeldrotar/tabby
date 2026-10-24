@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { ClosingCat } from './ClosingCat'
 import { assets, storeUrl } from './content'
+import { FooterCat } from './FooterCat'
 import { useIdleCue } from './useIdleCue'
 
 const ChromeIcon = () => (
@@ -61,7 +62,11 @@ export const Brand = ({ linked = true }: { linked?: boolean }) => {
   })
   const content = (
     <>
-      <img src={assets.face} width="45" height="45" alt="" />
+      {linked ? (
+        <img src={assets.face} width="45" height="45" alt="" />
+      ) : (
+        <FooterCat />
+      )}
       <span className="brand-word">
         {'Tabby'.split('').map((letter, index) => (
           <span key={index}>{letter}</span>
