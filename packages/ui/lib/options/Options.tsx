@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { SummerDetails } from '../SummerTheme'
 import { useSurface } from '../Surface'
 import { cn } from '../utils/cn'
 import { OptionsAppearance } from './OptionsAppearance'
@@ -46,7 +47,6 @@ export type OptionsProps = {
   logoUrl: string
   error?: string
   onPreferenceChange: (patch: Partial<PreferenceState>) => void | Promise<void>
-  randomizeColors: () => void
   resetPreferences: () => void
   openShortcutsSettings: () => void
   openSidePanelSettings: () => void
@@ -123,10 +123,11 @@ export const Options = (props: OptionsProps) => {
       data-wide={wide}
       onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop)}
       className={cn(
-        'group/options h-full w-full overflow-auto',
+        'group/options relative isolate h-full w-full overflow-auto',
         'bg-background text-foreground',
       )}
     >
+      <SummerDetails place="options" />
       <div
         className={`
           mx-auto max-w-2xl px-4 py-6
@@ -169,7 +170,6 @@ export const Options = (props: OptionsProps) => {
               preferences={props.preferences}
               activeThemeMode={props.activeThemeMode}
               onPreferenceChange={props.onPreferenceChange}
-              randomizeColors={props.randomizeColors}
             />
             <OptionsManagerPreferences
               preferences={props.preferences}

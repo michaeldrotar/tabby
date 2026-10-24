@@ -47,3 +47,5 @@ export const neutralSwatchColors = {
   mist: additionalNeutralColors.mist[500],
   olive: additionalNeutralColors.olive[500],
 } satisfies Record<ThemeNeutralPalette, string>
+
+export { curatedThemes, themeCollections, themeTokens } from '@extension/core'

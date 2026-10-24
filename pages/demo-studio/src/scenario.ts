@@ -402,7 +402,7 @@ export const createScenario = async (
     leftNavigation.setState({ product: 'options' }),
   )
   await step(19200, 'Change the shared appearance preferences', () =>
-    leftPreferences.set({ themeLightAccent: 'rose', themeDarkAccent: 'rose' }),
+    leftPreferences.set({ themePreset: 'rose' }),
   )
   await step(21200, 'Return to the updated Tab manager', () =>
     leftNavigation.setState({ product: 'manager' }),

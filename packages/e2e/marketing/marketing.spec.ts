@@ -313,6 +313,11 @@ test('homepage separates the live demo and switches to a video without losing de
     seasonalBoard.getByRole('button', { name: /sticker$/ }).first(),
   ).toBeVisible()
   await expect(
+    seasonalBoard.getByRole('button', {
+      name: /^Move or toss Summer .* sticker$/,
+    }),
+  ).toHaveCount(3)
+  await expect(
     seasonalBoard.getByRole('button', { name: /accent paint swatch$/ }).first(),
   ).toBeVisible()
   await expect(

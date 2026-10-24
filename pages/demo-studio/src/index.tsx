@@ -6,7 +6,11 @@ import {
   TabbySurface,
   TabManagerExperience,
 } from '@extension/app'
-import { THEME_ACCENT_PALETTES, THEME_NEUTRAL_PALETTES } from '@extension/core'
+import {
+  curatedThemes,
+  THEME_ACCENT_PALETTES,
+  THEME_NEUTRAL_PALETTES,
+} from '@extension/core'
 import { neutralSwatchColors as neutralColors } from '@extension/ui/theme-colors'
 import {
   useCallback,
@@ -483,7 +487,7 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
       | 'themeDarkForeground'
       | 'themeLightAccent'
       | 'themeDarkAccent'
-    void appearancePreferences.set({ [key]: value })
+    void appearancePreferences.set({ [key]: value, themePreset: null })
   }
 
   const productParts = anatomyParts.filter(
@@ -517,6 +521,12 @@ const DemoStudio = ({ initial }: { initial: Scenario }) => {
           <span className="brand-context">Demo Studio</span>
         </a>
         <div className="topbar-actions">
+          <a className="reset-button" href="?curated-themes&page=options">
+            Options preview
+          </a>
+          <a className="reset-button" href="?curated-themes">
+            Theme collection
+          </a>
           <a className="reset-button" href="?theme-lab">
             Theme lab
           </a>
@@ -1047,7 +1057,22 @@ const initialize = async () => {
   }
   applicationRoot = createRoot(document.getElementById('root')!)
   initial.setInputMode('live')
-  if (new URLSearchParams(location.search).has('theme-lab')) {
+  if (new URLSearchParams(location.search).has('curated-themes')) {
+    const params = new URLSearchParams(location.search)
+    await initial.resources[0]!.preferences.set({
+      themePreset:
+        curatedThemes.find((theme) => theme.id === params.get('theme'))?.id ??
+        'tabby',
+      theme:
+        params.get('mode') === 'system'
+          ? 'system'
+          : params.get('mode') === 'light'
+            ? 'light'
+            : 'dark',
+    })
+    const { CuratedThemes } = await import('./CuratedThemes')
+    if (!disposed) applicationRoot.render(<CuratedThemes scenario={initial} />)
+  } else if (new URLSearchParams(location.search).has('theme-lab')) {
     const { ThemeLab } = await import('./ThemeLab')
     if (!disposed) applicationRoot.render(<ThemeLab scenario={initial} />)
   } else {

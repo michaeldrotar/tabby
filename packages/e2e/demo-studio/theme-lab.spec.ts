@@ -361,47 +361,11 @@ test('swatch palettes show every name and wrap keyboard selection between groups
   ).toBeChecked()
   await page.getByLabel('Preview', { exact: true }).selectOption('options')
   const settings = palette.locator('.theme-lab-product')
-  const settingsAccent = settings.getByRole('radiogroup', {
-    name: 'Accent',
-    exact: true,
-  })
-  await settingsAccent.getByRole('radio', { name: 'lime', exact: true }).click()
+  await settings.getByRole('button', { name: 'Matcha', exact: true }).click()
   await expect(
-    accent.getByRole('radio', { name: 'lime', exact: true }),
-  ).toBeChecked()
-  await page.keyboard.press('ArrowRight')
-  await expect(
-    settingsAccent.getByRole('radio', { name: 'green', exact: true }),
-  ).toBeFocused()
-  const focusedSwatch = settingsAccent.getByRole('radio', {
-    name: 'green',
-    exact: true,
-  })
-  await expect(focusedSwatch).toHaveCSS('outline-style', 'solid')
-  await expect(focusedSwatch).toHaveCSS('outline-width', '2px')
-  await expect(focusedSwatch).toHaveCSS('outline-offset', '2px')
-  await expect(
-    accent.getByRole('radio', { name: 'green', exact: true }),
-  ).toBeChecked()
+    settings.getByRole('button', { name: 'Matcha', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
   await page.setViewportSize({ width: 320, height: 800 })
-  const namesFit = await settingsAccent
-    .locator('[data-palette-name]')
-    .evaluateAll((names) =>
-      names.every((name) => {
-        const label = name.getBoundingClientRect()
-        const button = name.closest('button')!.getBoundingClientRect()
-        return label.left >= button.left && label.right <= button.right
-      }),
-    )
-  expect(namesFit).toBe(true)
-  await settingsAccent.getByRole('radio', { name: 'pink', exact: true }).click()
-  await page.keyboard.press('ArrowDown')
-  await expect(
-    settingsAccent.getByRole('radio', { name: 'rose', exact: true }),
-  ).toBeFocused()
-  await expect(
-    settingsAccent.getByRole('radio', { name: 'rose', exact: true }),
-  ).toBeChecked()
   expect(
     await settings.evaluate(
       (element) => element.scrollWidth <= element.clientWidth,

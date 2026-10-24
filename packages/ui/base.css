@@ -310,18 +310,23 @@
   }
 
   [data-tab-manager-shell] {
-    --manager-canvas: var(--background);
-    --manager-chrome: oklch(from var(--background) calc(l - 0.045) c h);
-    --manager-control-hover: oklch(
-      from var(--manager-chrome) calc(l - 0.06) c h
+    --manager-canvas: var(--curated-canvas, var(--background));
+    --manager-chrome: var(
+      --curated-chrome,
+      oklch(from var(--background) calc(l - 0.045) c h)
+    );
+    --manager-control-hover: var(
+      --curated-control-hover,
+      oklch(from var(--manager-chrome) calc(l - 0.06) c h)
     );
   }
 
   [data-theme='dark'] [data-tab-manager-shell] {
-    --manager-canvas: var(--card);
-    --manager-chrome: var(--input);
-    --manager-control-hover: oklch(
-      from var(--manager-chrome) calc(l + 0.08) c h
+    --manager-canvas: var(--curated-canvas, var(--card));
+    --manager-chrome: var(--curated-chrome, var(--input));
+    --manager-control-hover: var(
+      --curated-control-hover,
+      oklch(from var(--manager-chrome) calc(l + 0.08) c h)
     );
   }
 
@@ -411,5 +416,326 @@ code {
   [data-palette-name] {
     text-transform: capitalize;
     white-space: nowrap;
+  }
+}
+
+.curated-card {
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.curated-card:hover {
+  background: var(--input, #e5e8ef);
+}
+
+.curated-card[aria-pressed='true'] {
+  background: var(--accent-selected, #fff);
+  border-color: var(--focus-ring, #7584ac);
+  box-shadow: 0 0 0 2px #7584ac18;
+}
+
+.curated-card-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 3px 1px;
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.curated-mini {
+  position: relative;
+  display: block;
+  height: 78px;
+  overflow: hidden;
+  border: 1px solid #7e829b28;
+  border-radius: 6px;
+}
+
+.curated-mini-chrome {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 15px;
+  padding: 0 7px;
+}
+
+.curated-mini-chrome i {
+  height: 3px;
+  width: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.curated-mini-chrome i:first-child {
+  width: 28px;
+  margin-right: auto;
+  border-radius: 2px;
+}
+
+.curated-mini-body {
+  display: grid;
+  gap: 4px;
+  padding: 7px 6px;
+}
+
+.curated-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 12px;
+  padding: 0 5px;
+  border-radius: 2px;
+}
+
+.curated-mini-row i {
+  width: 5px;
+  height: 5px;
+  border-radius: 2px;
+}
+
+.curated-mini-row b {
+  height: 2px;
+  width: 55%;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.curated-mini > img {
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.curated-card:focus-visible {
+  outline: 2px solid var(--focus-ring, #7584ac);
+  outline-offset: 2px;
+}
+
+/* Seasonal details live behind each product's existing content. */
+[data-tab-manager-shell]:has(> [data-summer-details]) {
+  isolation: isolate;
+}
+[data-summer-details] {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+}
+.summer-atmosphere {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 48px);
+  top: 0;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.48;
+  mask-image: linear-gradient(90deg, #000, #0005 40%, #0005 65%, #000);
+}
+[data-summer-details='manager'] .summer-atmosphere-wide {
+  display: none;
+}
+@container (min-aspect-ratio: 1/1) {
+  [data-summer-details='manager'] .summer-atmosphere-wide {
+    display: block;
+  }
+  .summer-atmosphere-portrait {
+    display: none;
+  }
+}
+[data-summer-details][data-appearance='dark'] .summer-atmosphere {
+  height: 100%;
+  bottom: 0;
+  opacity: 0.18;
+  object-position: center;
+  mask-image: linear-gradient(
+    90deg,
+    #000,
+    transparent 35%,
+    transparent 70%,
+    #000
+  );
+}
+[data-summer-details='options'] .summer-atmosphere {
+  bottom: 0;
+  height: 100%;
+  opacity: 0.45;
+  mask-image: linear-gradient(
+    90deg,
+    #000,
+    transparent 24%,
+    transparent 76%,
+    #000
+  );
+}
+[data-summer-details='options'][data-appearance='dark'] .summer-atmosphere {
+  opacity: 0.38;
+}
+.summer-stars {
+  position: absolute;
+  inset: 0;
+}
+.summer-stars i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff3d2;
+  box-shadow: 0 0 5px #d5edff;
+  animation: summer-twinkle 7s ease-in-out infinite alternate;
+}
+.summer-constellation {
+  position: absolute;
+  right: 6px;
+  bottom: 60px;
+  width: 150px;
+  height: 100px;
+  opacity: 0.25;
+}
+.summer-constellation path {
+  fill: none;
+  stroke: #b2d9ff;
+  stroke-width: 0.65;
+}
+.summer-constellation circle {
+  fill: #e1f0ff;
+}
+[data-summer-details='options'] .summer-constellation {
+  right: 2%;
+  top: 15%;
+  bottom: auto;
+  width: 180px;
+  height: 120px;
+}
+[data-summer-details='search'] .summer-constellation {
+  right: 10px;
+  bottom: 14px;
+  width: 100px;
+  height: 67px;
+}
+.summer-meteor {
+  position: absolute;
+  right: -50px;
+  top: 16%;
+  width: 70px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff9e7, #c8e8ff66 25%, transparent);
+  opacity: 0;
+  animation: summer-meteor 24s linear -8s infinite;
+}
+[data-summer-details='search'] .summer-meteor {
+  animation-duration: 30s;
+}
+.summer-treat {
+  position: absolute;
+  width: 72px;
+  height: 96px;
+  object-fit: contain;
+  right: 10px;
+  bottom: 10px;
+  transform: rotate(9deg);
+}
+[data-omnibar] {
+  container-type: inline-size;
+}
+[data-omnibar]:has([data-summer-details][data-appearance='light'])
+  > div:first-of-type {
+  background: radial-gradient(ellipse at top right, #fff2be99, transparent 65%);
+}
+[data-omnibar]:has([data-summer-details][data-appearance='dark'])
+  > div:first-of-type:focus-within {
+  box-shadow: inset 0 -1px #ffd579;
+}
+.summer-toolbar-ball {
+  position: absolute;
+  right: 57px;
+  bottom: 12px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+  transform-origin: center;
+}
+[data-action-bar-root]:hover .summer-toolbar-ball {
+  animation: summer-roll 1.4s ease-in-out both;
+}
+.summer-motion-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+.summer-motion-control:hover {
+  color: var(--foreground);
+  background: var(--accent-hover);
+}
+.summer-motion-control:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+[data-summer-details][data-paused='true'] *,
+.summer-toolbar-ball[data-paused='true'] {
+  animation: none !important;
+}
+@keyframes summer-twinkle {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+@keyframes summer-meteor {
+  0%,
+  85% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-28deg);
+  }
+  86% {
+    opacity: 0.7;
+  }
+  91%,
+  100% {
+    opacity: 0;
+    transform: translate(-260px, 140px) rotate(-28deg);
+  }
+}
+@keyframes summer-roll {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  50% {
+    transform: translateX(-7px) rotate(-25deg);
+  }
+}
+@container (max-width: 440px) {
+  .summer-treat {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-summer-details] *,
+  .summer-toolbar-ball {
+    animation: none !important;
+  }
+  .summer-motion-control {
+    display: none;
   }
 }

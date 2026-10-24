@@ -67,6 +67,7 @@ const preferencePatch = (
   selection: ThemeSelection,
 ): Partial<PreferenceState> => ({
   theme: selection.mode,
+  themePreset: null,
   [`${selection.mode === 'light' ? 'themeLight' : 'themeDark'}Background`]:
     selection.background,
   [`${selection.mode === 'light' ? 'themeLight' : 'themeDark'}Foreground`]:

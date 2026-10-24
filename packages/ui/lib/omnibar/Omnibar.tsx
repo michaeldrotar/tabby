@@ -213,7 +213,7 @@ export const Omnibar = ({
           onScrollChange?.(viewport.scrollTop)
       }}
       className={cn(
-        'bg-card text-card-foreground flex h-full flex-col',
+        'bg-card text-card-foreground relative isolate flex h-full flex-col',
         className,
       )}
       role="search"

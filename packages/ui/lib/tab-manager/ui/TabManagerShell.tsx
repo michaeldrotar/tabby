@@ -1,4 +1,5 @@
 import { ScrollArea } from '../../ScrollArea'
+import { SummerDetails } from '../../SummerTheme'
 import { useSurface, useSurfaceId } from '../../Surface'
 import { cn } from '../../utils/cn'
 
@@ -37,6 +38,7 @@ export const TabManagerShell = ({
         className,
       )}
     >
+      <SummerDetails place="manager" />
       {header}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ScrollArea
