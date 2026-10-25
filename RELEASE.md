@@ -70,7 +70,7 @@ Run these steps when the user asks to cut a release:
    git push origin vVERSION
    ```
 
-5. Create a GitHub release for that tag and attach the ZIP and finalized notes.
+5. Create a GitHub release for that tag and attach the ZIP and finalized notes. Complete the [marketing-site update](#marketing-site) as part of the release.
 6. Submit the package to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) only when the user asks. Complete the skill's [store review checklist](./.agents/skills/chrome-extensions/references/webstore/review-checklist.md), use `CHROMEWEBSTORE.md` to complete the listing and privacy declarations, and upload the ZIP to the existing listing for review. The Chrome Web Store API v2 may also be used when credentials are configured; neither path is triggered automatically by CI, a merge, or a tag.
 7. When publication is authorized, enable automatic publishing after approval. Verify the submission, record its date and status in `CHROMEWEBSTORE.md`, use the submission date in the release notes, report the result, and end the task. Monitor review or publication only when the user explicitly requests monitoring; do not poll, schedule checks, or wait for approval merely because publication was requested. Handle reported rejections using the skill's [rejection workflow](./.agents/skills/chrome-extensions/references/webstore/store-listing.md#after-rejection).
 8. When the user explicitly requests publication verification, verify the published version and smoke-test the installed Chrome Web Store update.
@@ -83,7 +83,7 @@ Patch releases contain fixes for the latest published version and may include mo
 
 1. Create a branch named for the next patch version from the latest published tag. For example, if the latest tag is `v1.2.0`, create `hotfix/v1.2.1` from `v1.2.0`. Run `pnpm prep patch` on the new branch.
 2. For each fix, create an issue branch from `hotfix/vX.Y.Z` and open a pull request back to that branch. Apply the same CI and independent review process as a feature pull request. Add the fix to the patch notes file.
-3. When the patch is ready, finalize its notes, run the release checks, build and smoke-test the ZIP, then tag the reviewed patch commit as `vX.Y.Z` and create its GitHub release.
+3. When the patch is ready, finalize its notes, run the release checks, build and smoke-test the ZIP, then tag the reviewed patch commit as `vX.Y.Z` and create its GitHub release. Complete the [marketing-site update](#marketing-site) as part of the release.
 4. Forward-port each fix to `main` in a separate issue branch and reviewed pull request. Keep `main`'s active version and notes file; do not add the patch note to the upcoming minor notes. Use `Closes #N` on the forward-port pull request so the issue closes after the fix is retained on `main`.
 5. Submit and publish through the Chrome Web Store only when the user asks. After the patch is published, retire `hotfix/vX.Y.Z`. A later patch gets its own branch from the new latest published tag.
 
@@ -98,4 +98,4 @@ Patch releases contain fixes for the latest published version and may include mo
 
 ## Marketing Site
 
-Use pull-request previews to review marketing-site changes. Deploy production as an explicit release action after the extension is published, so the site does not announce features that are not yet available in the store.
+A request to release a new version includes updating and deploying the marketing site. After publishing the GitHub release, run `pnpm marketing:sync-releases` and review the site’s content and demos for that version. Commit the release snapshot and any website changes through a reviewed pull request to `main`, check the pull-request preview, and merge after both workflow checks pass. Vercel deploys `main` to production; verify that the merged commit is deployed and check the homepage and release notes. Chrome Web Store review proceeds independently.

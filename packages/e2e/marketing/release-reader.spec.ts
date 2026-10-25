@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import releases from '../../../pages/marketing/src/releases.json' with { type: 'json' }
 
 test.use({ viewport: { width: 375, height: 812 }, hasTouch: true })
 
@@ -30,7 +31,7 @@ test('mobile release notes read with the page and support links, swipe, and hist
     await settled
   }
   await selected('v1.6.0')
-  await expect(newer).toHaveCount(0)
+  await expect(newer).toHaveText('v1.7.0')
   await expect(older).toHaveText('v1.5.0')
   await expect(chooser).toHaveCount(1)
   await expect(page.locator('.release-index')).toHaveCount(0)
@@ -162,7 +163,7 @@ test('mobile release notes read with the page and support links, swipe, and hist
     await reader.evaluate((element) => element.getAnimations().length),
   ).toBe(0)
   await page.setViewportSize({ width: 1280, height: 900 })
-  await expect(page.getByRole('article')).toHaveCount(7)
+  await expect(page.getByRole('article')).toHaveCount(releases.length)
   await expect(pagination).toHaveCount(0)
   await expect(page.locator('[id="v1.1.0"]')).toBeInViewport()
 })
@@ -219,7 +220,7 @@ test('desktop navigation marks the visible fraction of each release', async ({
 }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('./whats-new')
-  await expect(page.getByRole('article')).toHaveCount(7)
+  await expect(page.getByRole('article')).toHaveCount(releases.length)
   const { top, height } = await page.evaluate(() => {
     const bounds = ['v1.5.0', 'v1.4.0', 'v1.3.0'].map((version) =>
       document.getElementById(version)!.getBoundingClientRect(),

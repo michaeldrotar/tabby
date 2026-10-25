@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test'
+import releases from '../../../pages/marketing/src/releases.json' with { type: 'json' }
+
+const latestRelease = releases[0]!
 
 test('published release notes stay on the site from the hero and footer', async ({
   page,
@@ -30,7 +33,7 @@ test('published release notes stay on the site from the hero and footer', async 
       await expect(
         page.getByRole('heading', {
           level: 2,
-          name: 'Named windows and a simpler Tab Manager',
+          name: latestRelease.title,
         }),
       ).toBeInViewport()
       await chooser.click()
@@ -93,19 +96,17 @@ test('published release notes stay on the site from the hero and footer', async 
       await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
       expect(await versions.evaluate((element) => element.scrollTop)).toBe(0)
     }
-    expect(await versions.getByRole('link').count()).toBeGreaterThanOrEqual(7)
+    await expect(versions.getByRole('link')).toHaveCount(releases.length)
     await expect(
       page.getByRole('heading', {
         level: 2,
-        name: 'Named windows and a simpler Tab Manager',
+        name: latestRelease.title,
       }),
     ).toBeVisible()
     await expect(
-      page.getByText('Give each window a custom name, icon, and color', {
-        exact: false,
-      }),
+      page.locator(`[id="${latestRelease.version}"] h3`).first(),
     ).toBeVisible()
-    expect(await page.locator('article').count()).toBeGreaterThanOrEqual(7)
+    await expect(page.locator('article')).toHaveCount(releases.length)
     await expect(page.locator('article').last()).toHaveCSS(
       'border-bottom-width',
       '0px',
