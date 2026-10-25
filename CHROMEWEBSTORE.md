@@ -95,7 +95,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 ### Data handling
 
-Tabby handles browsing data locally. The publisher does not collect it or receive saved preferences. The published listing discloses **Web history**.
+Tabby handles browsing data locally. The publisher does not collect it or receive saved preferences. The submitted listing discloses **Web history** and **User activity**.
 
 | Data type                           | Handled?                | Transmitted off-device by Tabby? | Purpose                                                                              | Shared with the publisher? |
 | ----------------------------------- | ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
@@ -141,25 +141,27 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 **Homepage:** [Tabby website](https://www.gettabby.org/).
 
-The homepage URL update was submitted for review on 2026-10-18 with automatic publishing enabled. The extension package remains 1.6.0.
-
 ## Version history
 
-| Version                                                                      | Submission date | Summary                                                                                 | Store status  |
-| ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | ------------- |
-| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | —               | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Not submitted |
-| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published     |
-| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published     |
-| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                  | Published     |
-| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                       | Published     |
-| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                               | Not recorded  |
-| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                            | Not recorded  |
-| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                         | Not recorded  |
-| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                        | Not recorded  |
+| Version                                                                      | Submission date | Summary                                                                                 | Store status   |
+| ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | -------------- |
+| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Pending review |
+| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published      |
+| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published      |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                  | Published      |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                       | Published      |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                               | Not recorded   |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                            | Not recorded   |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                         | Not recorded   |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                        | Not recorded   |
 
 Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 
 ## Review notes
+
+### Latest submission
+
+Version 1.7.0 was submitted on 2026-10-25 with automatic publishing after approval enabled. The [developer dashboard](https://chrome.google.com/webstore/devconsole/671ad32f-f7c3-4765-93ce-bd218ed23ab9/jjkakicjobpalhifpeaggabpgdllmmob/edit/status) confirmed **Pending review**. The submission includes the updated description, five current screenshots, both promotional tiles, storage justification for recent search choices, and Web history and User activity disclosures. The release package and finalized notes are attached to the [GitHub release](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.0).
 
 ### Latest publication
 
