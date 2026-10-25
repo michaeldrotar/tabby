@@ -74,4 +74,4 @@ Agents running servers or browser tests in worktrees must choose other available
 - Follow [RELEASE.md](./RELEASE.md) for versioning and packaging. Follow the Chrome Extensions skill for Chrome Web Store documentation and submission readiness. Never put store credentials in the repository.
 - When authorized to publish a Chrome Web Store release, enable automatic publishing after approval. After verifying submission, record its status, report the result, and end the task.
 - Monitor store review or publication only when the user explicitly requests monitoring. A request to submit or publish alone does not authorize polling, scheduled checks, or waiting for Google's approval.
-- Preview marketing-site changes with their pull requests and deploy production as an explicit release action, coordinated with the published extension.
+- A request to release a new version includes updating and deploying the marketing site. Sync the GitHub release notes, preview and merge the website changes, and deploy production as part of the release. Chrome Web Store review proceeds independently.
