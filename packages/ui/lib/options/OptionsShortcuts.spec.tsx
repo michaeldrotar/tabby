@@ -50,14 +50,13 @@ const renderOptions = (hash = '') => {
       shortcutRows={shortcutRows}
       logoUrl=""
       onPreferenceChange={vi.fn()}
-      resetPreferences={vi.fn()}
       openShortcutsSettings={vi.fn()}
       openSidePanelSettings={vi.fn()}
     />,
   )
 }
 
-it('keeps settings in a flat list with seasonal icons before reset', () => {
+it('keeps options in a flat list ending with seasonal icons', () => {
   renderOptions()
 
   expect(
@@ -71,7 +70,6 @@ it('keeps settings in a flat list with seasonal icons before reset', () => {
     'Global shortcuts',
     'Tab manager shortcuts',
     'Seasonal icons',
-    'Reset',
   ])
   expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
   expect(
@@ -88,11 +86,11 @@ it('opens seasonal choices at a direct link and returns to the main list', () =>
 
   expect(window.location.hash).toBe('#seasonal-icons')
   expect(screen.getByRole('group', { name: "Valentine's Day" })).toBeVisible()
-  fireEvent.click(screen.getByRole('button', { name: 'Back to settings' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Back to options' }))
 
   expect(window.location.hash).toBe('')
   expect(screen.getByRole('heading', { name: 'Appearance' })).toBeVisible()
-  expect(screen.getByRole('heading', { name: 'Reset' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Reset options' })).toBeNull()
   expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
 })
 
@@ -100,7 +98,7 @@ it('opens directly to the seasonal choices from a shared link', () => {
   renderOptions('#seasonal-icons')
 
   expect(screen.getByRole('group', { name: 'Halloween' })).toBeVisible()
-  expect(screen.getByRole('button', { name: 'Back to settings' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Back to options' })).toBeVisible()
 })
 
 it('groups shared modifiers and distinguishes unassigned global shortcuts', () => {

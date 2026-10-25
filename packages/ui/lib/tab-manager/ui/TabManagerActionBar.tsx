@@ -410,8 +410,8 @@ export const TabManagerActionBar = ({
             <Search size={18} />
           </button>
           <button
-            aria-label="Settings"
-            title="Settings"
+            aria-label="Options"
+            title="Options"
             className={cn(windowControlClass, 'size-10 px-0')}
             onClick={() => onIntent({ type: 'open-settings' })}
           >

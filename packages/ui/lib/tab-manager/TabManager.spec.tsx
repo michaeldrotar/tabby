@@ -104,7 +104,7 @@ describe('TabManager presentation', () => {
     for (const name of [
       'Edit window',
       'Search everything',
-      'Settings',
+      'Options',
       'More actions',
     ])
       expect(screen.getByRole('button', { name })).toBeEnabled()

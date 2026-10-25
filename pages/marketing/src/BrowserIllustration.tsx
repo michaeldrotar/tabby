@@ -17,6 +17,7 @@ import {
 } from 'react'
 import { assets } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
+import { useMarketingAppearance } from './MarketingAppearance'
 import { ScaledIllustration } from './ScaledIllustration'
 
 const scheduler = {
@@ -31,7 +32,8 @@ export type BrowserIllustrationProps = { capture?: boolean }
 export const BrowserIllustration = ({
   capture = false,
 }: BrowserIllustrationProps) => {
-  const [demo] = useState(() => createMarketingDemo('light'))
+  const preferences = useMarketingAppearance()
+  const [demo] = useState(() => createMarketingDemo('light', preferences))
   const [player] = useState(() =>
     createDemoPlayer(demo.frames, demo.restore, scheduler, (state) =>
       structuredClone(state),

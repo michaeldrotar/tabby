@@ -275,151 +275,77 @@ body[data-promo-view='gallery'] #root {
 
 .themes-copy {
   position: absolute;
-  z-index: 2;
   top: 118px;
   left: 52px;
-  width: 350px;
-}
-
-.themes-copy .promo-eyebrow {
-  margin-bottom: 12px;
+  width: 780px;
 }
 
 .themes-copy .promo-headline {
-  max-width: 350px;
-  font-size: 48px;
+  max-width: 780px;
+  font-size: 60px;
 }
 
 .themes-copy .promo-body {
-  max-width: 330px;
+  max-width: 660px;
   margin-top: 15px;
-  font-size: 16px;
-}
-
-.themes-palette {
-  position: absolute;
-  left: 52px;
-  top: 360px;
-  display: flex;
-  width: 414px;
-  flex-direction: column;
-  gap: 16px;
-  padding: 22px 24px;
-  border: 1px solid #493d3712;
-  border-radius: 15px;
-  background: #fffdfa;
-  box-shadow: 0 12px 30px #30263113;
-}
-
-.theme-swatch-group h2 {
-  margin: 0 0 11px;
-  color: #6b5965;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-.theme-swatch-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 9px;
-}
-
-.theme-swatch-row--accents {
-  display: grid;
-  grid-template-columns: repeat(6, 34px);
-  gap: 9px 10px;
-}
-
-.theme-swatch {
-  display: block;
-  width: 34px;
-  height: 30px;
-  border: 1px solid #342a3424;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px #ffffff42;
-}
-
-.theme-swatch--tone {
-  width: 58px;
-  height: 34px;
-  border-radius: 7px;
+  font-size: 18px;
 }
 
 .themes-preview-stage {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
+  top: 352px;
+  right: 52px;
+  left: 52px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 30px;
 }
 
-.theme-tab-example {
-  position: absolute;
-  width: 650px;
-  height: 88px;
-  padding: 8px;
-  border-radius: 15px;
-  box-shadow: 0 20px 45px #30263124;
+.theme-manager-example {
+  min-width: 0;
+  margin: 0;
 }
 
-.theme-tab-example--one {
-  top: 96px;
-  right: 54px;
-  width: 660px;
-  height: 92px;
-  transform: rotate(-2.8deg);
+.theme-manager-example:nth-child(1) {
+  transform: rotate(-2deg);
 }
 
-.theme-tab-example--two {
-  top: 224px;
-  right: 0;
-  width: 625px;
-  height: 94px;
-  transform: rotate(2.2deg);
+.theme-manager-example:nth-child(2) {
+  transform: translateY(-22px);
 }
 
-.theme-tab-example--three {
-  top: 354px;
-  right: 116px;
-  width: 660px;
-  height: 92px;
-  transform: rotate(-1.8deg);
+.theme-manager-example:nth-child(3) {
+  transform: rotate(2deg);
 }
 
-.theme-tab-example--four {
-  top: 486px;
-  right: 16px;
-  width: 620px;
-  height: 94px;
-  transform: rotate(2.4deg);
-}
-
-.theme-tab-example--five {
-  top: 620px;
-  right: 86px;
-  width: 650px;
-  height: 92px;
-  transform: rotate(-1.7deg);
-}
-
-.theme-tab-surface {
+.theme-manager-frame {
+  height: 360px;
   overflow: hidden;
-  border-radius: 10px;
-  padding: 5px;
-  background-color: var(--background);
+  border: 1px solid #30263120;
+  border-radius: 15px;
+  box-shadow: 0 18px 40px #30263120;
 }
 
-.theme-tab-favicon {
-  display: inline-flex;
-  width: 20px;
-  height: 20px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  color: white;
-  font-size: 11px;
-  font-weight: 800;
+.theme-manager-surface {
+  height: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.theme-manager-example figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 14px 4px 0;
+  color: var(--promo-ink);
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.theme-manager-example figcaption span:last-child {
+  color: var(--promo-muted);
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .project-windows-copy {
@@ -962,25 +888,4 @@ body[data-promo-view='gallery'] #root {
   .promo-gallery-backdrop {
     padding: 8px;
   }
-}
-
-.theme-preset-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px 12px;
-}
-.theme-preset-swatch {
-  font-size: 11px;
-  color: #51465a;
-}
-.theme-preset-swatch > span {
-  display: block;
-  height: 22px;
-  border-radius: 4px;
-  margin-bottom: 3px;
-}
-.themes-palette .theme-swatch-group h2 {
-  text-transform: none;
-  letter-spacing: normal;
-  font-size: 12px;
 }

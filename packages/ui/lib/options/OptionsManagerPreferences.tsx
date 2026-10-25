@@ -18,7 +18,7 @@ export const OptionsManagerPreferences = ({
   const { tabManagerCompactIconMode } = preferences
   return (
     <section className="mb-6">
-      <h2 className="text-foreground mb-4 text-lg font-semibold">
+      <h2 className="text-foreground mb-4 text-2xl font-semibold">
         Tab manager
       </h2>
       <div
@@ -36,10 +36,10 @@ export const OptionsManagerPreferences = ({
           `}
         >
           <div>
-            <h3 className="text-foreground font-medium">
+            <h3 className="text-foreground text-xl font-medium">
               Window identification
             </h3>
-            <p className="text-muted text-sm">
+            <p className="text-muted text-base">
               Use a tab’s title and icon for unnamed windows.
             </p>
           </div>
@@ -61,15 +61,19 @@ export const OptionsManagerPreferences = ({
               <SelectTrigger
                 aria-label="Window identification"
                 className={`
-                  w-full
+                  w-full text-base
                   group-data-[wide=true]/options:w-[160px]
                 `}
               >
                 <SelectValue placeholder="Select tab" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active tab</SelectItem>
-                <SelectItem value="first">First tab</SelectItem>
+                <SelectItem className="text-base" value="active">
+                  Active tab
+                </SelectItem>
+                <SelectItem className="text-base" value="first">
+                  First tab
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

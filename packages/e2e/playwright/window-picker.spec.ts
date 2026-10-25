@@ -124,7 +124,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true)
-    for (const name of ['Search everything', 'Settings', 'More actions'])
+    for (const name of ['Search everything', 'Options', 'More actions'])
       await expect(
         page.getByRole('button', { name, exact: true }),
       ).toBeInViewport()
@@ -135,7 +135,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         .evaluateAll((buttons) =>
           buttons.map((button) => button.getAttribute('aria-label')),
         ),
-    ).toEqual(['Search everything', 'Settings', 'More actions'])
+    ).toEqual(['Search everything', 'Options', 'More actions'])
     await page.screenshot({
       path: `../../test-results/appearance-tools-${width}.png`,
     })
@@ -143,7 +143,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
       .getByRole('button', { name: 'Search everything' })
       .boundingBox()
     const settings = await tools
-      .getByRole('button', { name: 'Settings' })
+      .getByRole('button', { name: 'Options' })
       .boundingBox()
     const more = await tools
       .getByRole('button', { name: 'More actions' })

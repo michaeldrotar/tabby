@@ -9,9 +9,31 @@ test('previews themes in Options and shares their palette with the product', asy
   const products = page.getByRole('navigation', { name: 'Product experience' })
   const controls = page.getByRole('complementary', { name: 'Demo controls' })
   const mode = product.getByRole('group', { name: 'Theme mode', exact: true })
-  const palette = (name: string) =>
-    product.getByRole('button', { name, exact: true }).locator('.theme-palette')
+  const preview = (name: string) =>
+    product.getByRole('button', { name, exact: true }).locator('.curated-mini')
   await expect(product.locator('[data-tab-manager-shell]')).toHaveCount(0)
+  await expect(
+    product.getByRole('heading', { level: 1, name: 'Options', exact: true }),
+  ).toBeVisible()
+  await expect(product.locator('.theme-palette')).toHaveCount(0)
+  await expect(
+    product.getByText('Every theme includes a light and dark version.'),
+  ).toHaveCount(0)
+  const headings = await product
+    .locator('h1, h2, h3, h4')
+    .evaluateAll((elements) =>
+      elements.map((element) => ({
+        level: Number(element.tagName.slice(1)),
+        size: parseFloat(getComputedStyle(element).fontSize),
+      })),
+    )
+  expect(
+    headings.every(({ level, size }) => size === [0, 30, 24, 20, 18][level]),
+  ).toBe(true)
+  await expect(product.getByRole('heading', { level: 4 })).toHaveText([
+    'Tonal',
+    'Colorful',
+  ])
   await expect(
     product.getByRole('button', { name: 'Seaglass', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
@@ -27,7 +49,7 @@ test('previews themes in Options and shares their palette with the product', asy
   await expect(
     product.getByRole('button', { name: 'Rose', exact: true }),
   ).toBeVisible()
-  await expect(palette('Seaglass').locator('i').nth(0)).toHaveCSS(
+  await expect(preview('Seaglass')).toHaveCSS(
     'background-color',
     'rgb(246, 245, 239)',
   )
@@ -43,7 +65,7 @@ test('previews themes in Options and shares their palette with the product', asy
   })
   await product.getByRole('button', { name: 'Arcade', exact: true }).click()
   await mode.getByText('Dark', { exact: true }).click()
-  await expect(palette('Arcade').locator('i').nth(2)).toHaveCSS(
+  await expect(preview('Arcade').locator('.curated-mini-row').nth(1)).toHaveCSS(
     'background-color',
     'rgb(35, 75, 72)',
   )
@@ -66,15 +88,27 @@ test('previews themes in Options and shares their palette with the product', asy
   await products.getByRole('button', { name: 'Omnibar', exact: true }).click()
   await product.getByRole('combobox').fill('Tabby')
   await expect(product.getByRole('option').first()).toContainText('Tabby')
-  await products.getByRole('button', { name: 'Options', exact: true }).click()
+  await product.getByRole('combobox').fill('')
+  await product
+    .getByRole('button', { name: 'Open options', exact: true })
+    .click()
+  await expect(
+    products.getByRole('button', { name: 'Options', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    product.getByRole('heading', { name: 'Options', exact: true }),
+  ).toBeVisible()
   await product
     .getByRole('button', { name: 'Choose seasonal icons', exact: true })
     .click()
   await expect(
+    product.getByRole('group', { name: 'Summer', exact: true }),
+  ).toHaveCount(0)
+  await expect(
     product.getByRole('heading', { name: 'Seasonal icons', exact: true }),
   ).toBeFocused()
   await product
-    .getByRole('button', { name: 'Back to settings', exact: true })
+    .getByRole('button', { name: 'Back to options', exact: true })
     .click()
   await expect(
     product.getByRole('button', { name: 'Choose seasonal icons', exact: true }),
@@ -89,6 +123,11 @@ test('previews themes in Options and shares their palette with the product', asy
   for (const width of [480, 320]) {
     await page.setViewportSize({ width, height: 800 })
     expect(
+      await product
+        .locator('[data-options]')
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true)
+    expect(
       await product.evaluate(
         (element) => element.scrollWidth <= element.clientWidth,
       ),
@@ -101,13 +140,13 @@ test('previews themes in Options and shares their palette with the product', asy
   }
   await page.setViewportSize({ width: 1440, height: 1000 })
   await instance.getByRole('button', { name: 'Wide', exact: true }).click()
-  await product
-    .getByRole('button', { name: 'Reset preferences', exact: true })
-    .click()
   await expect(
-    product.getByRole('button', { name: 'Porcelain', exact: true }),
-  ).toHaveAttribute('aria-pressed', 'true')
-  await expect(
-    mode.getByRole('radio', { name: 'System', exact: true }),
-  ).toBeChecked()
+    product.getByRole('button', { name: 'Reset options', exact: true }),
+  ).toHaveCount(0)
+  const seasonalIcons = product.getByRole('button', {
+    name: 'Choose seasonal icons',
+    exact: true,
+  })
+  await seasonalIcons.scrollIntoViewIfNeeded()
+  await instance.screenshot({ path: testInfo.outputPath('options-footer.png') })
 })

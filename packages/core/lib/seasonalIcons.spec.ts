@@ -11,7 +11,6 @@ describe('seasonal icon dates', () => {
     ['valentines', new Date(2026, 1, 1), new Date(2026, 1, 14), 13],
     ['st-patricks', new Date(2026, 2, 10), new Date(2026, 2, 17), 7],
     ['easter', new Date(2026, 2, 22), new Date(2026, 3, 5), 14],
-    ['summer', new Date(2026, 5, 1), new Date(2026, 7, 31), 91],
     ['thanksgiving', new Date(2026, 10, 19), new Date(2026, 10, 26), 7],
     ['halloween', new Date(2026, 9, 15), new Date(2026, 9, 31), 16],
     ['christmas', new Date(2026, 11, 1), new Date(2026, 11, 25), 24],

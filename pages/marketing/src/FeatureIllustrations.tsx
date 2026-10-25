@@ -6,6 +6,7 @@ import {
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useState } from 'react'
 import { createMarketingDemo, searchExamples } from './demo'
+import { useMarketingAppearance } from './MarketingAppearance'
 import { MotionReveal } from './MotionReveal'
 import { ScaledIllustration } from './ScaledIllustration'
 import { SeasonalStylePlayground } from './SeasonalStylePlayground'
@@ -30,11 +31,12 @@ const dimensions = {
 const CustomizeIllustration = () => <SeasonalStylePlayground />
 
 const ProductIllustration = ({ feature }: { feature: 'manage' | 'find' }) => {
+  const preferences = useMarketingAppearance()
   const [demo] = useState(() => {
-    const instance = createMarketingDemo('light')
+    const instance = createMarketingDemo('light', preferences)
     if (feature === 'manage') {
-      instance.restore(instance.frames[1]!.state)
       instance.views.tabManager.setState({
+        ...instance.frames[1]!.state.manager,
         scrollTop: 0,
       })
     }

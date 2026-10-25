@@ -172,7 +172,10 @@ export type ShowcaseState = {
   experience: 'manager' | 'search'
 }
 
-export const createMarketingDemo = (theme: 'light' | 'dark') => {
+export const createMarketingDemo = (
+  theme: 'light' | 'dark',
+  sharedPreferences?: ReturnType<typeof createMemoryPreferences>,
+) => {
   const scene = createMarketingScene()
   const backend = new MemoryBackend(scene)
   const views = createTabbyViews()
@@ -197,10 +200,12 @@ export const createMarketingDemo = (theme: 'light' | 'dark') => {
     viewedWindowId: 1,
     selection: selectTabs([scene.tabs[0]!.id]),
   })
-  const preferences = createMemoryPreferences({
-    theme,
-    themePreset: 'tabby-brand',
-  })
+  const preferences =
+    sharedPreferences ??
+    createMemoryPreferences({
+      theme,
+      themePreset: 'tabby',
+    })
   const initial: ShowcaseState = {
     browser: scene,
     manager: structuredClone(views.tabManager.getState()),

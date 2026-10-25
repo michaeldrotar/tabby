@@ -56,7 +56,7 @@ const ShortcutSettingsButton = ({
     className={cn(
       `
         bg-accent-selected text-foreground flex shrink-0 items-center gap-2
-        whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium
+        whitespace-normal rounded-lg px-3 py-2 text-base font-medium
         transition-colors
         hover:bg-accent-selected-hover
         focus-visible:ring-accent focus-visible:ring-offset-background
@@ -80,14 +80,16 @@ const ShortcutValue = ({
   shortcutsLoading: boolean
 }) => {
   if (shortcutsLoading)
-    return <span className="text-muted text-xs">Loading…</span>
+    return <span className="text-muted text-sm">Loading…</span>
   const value = formatShortcut(shortcut, isMac)
   return value ? (
-    <KbdGroup>
-      <Kbd>{value}</Kbd>
+    <KbdGroup className="max-w-full">
+      <Kbd className="h-auto min-h-6 max-w-full whitespace-normal py-1 text-sm">
+        {value}
+      </Kbd>
     </KbdGroup>
   ) : (
-    <span className="text-muted text-xs">Not assigned</span>
+    <span className="text-muted text-sm">Not assigned</span>
   )
 }
 
@@ -95,21 +97,28 @@ const LocalShortcuts = ({ isMac }: Pick<OptionsProps, 'isMac'>) => (
   <div className="grid gap-y-4">
     {tabManagerShortcutGroups(isMac).map(({ title, shortcuts }) => (
       <section key={title} aria-label={`${title} shortcuts`}>
-        <p className="text-muted mb-1 text-xs font-medium">{title}</p>
+        <h3 className="text-foreground mb-2 text-xl font-medium">{title}</h3>
         <dl className="divide-border/60 divide-y">
           {shortcuts.map(({ keys, label }) => (
             <div
               className={`
-                grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-1.5
+                grid grid-cols-1 items-center gap-2 py-1.5
+                group-data-[wide=true]/options:grid-cols-[minmax(0,1fr)_auto]
               `}
               key={keys}
             >
-              <dt className="text-foreground/90 min-w-0 text-xs leading-5">
+              <dt className="text-foreground/90 min-w-0 text-base leading-6">
                 {label}
               </dt>
-              <dd className="shrink-0">
-                <KbdGroup>
-                  <Kbd>{keys}</Kbd>
+              <dd className="min-w-0">
+                <KbdGroup className="max-w-full">
+                  <Kbd
+                    className={`
+                      h-auto min-h-6 max-w-full whitespace-normal py-1 text-sm
+                    `}
+                  >
+                    {keys}
+                  </Kbd>
                 </KbdGroup>
               </dd>
             </div>
@@ -142,15 +151,18 @@ const ShortcutRows = ({
     {rows.map(({ id, name, shortcut }) => (
       <div
         className={cn(
-          'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3',
+          `
+            grid grid-cols-1 items-center gap-3
+            group-data-[wide=true]/options:grid-cols-[minmax(0,1fr)_auto]
+          `,
           windowRows ? 'py-1.5' : 'py-2',
         )}
         key={id}
       >
-        <dt className={cn(windowRows ? 'text-muted text-xs' : 'text-sm')}>
+        <dt className={cn(windowRows ? 'text-muted text-base' : 'text-base')}>
           {name}
         </dt>
-        <dd>
+        <dd className="min-w-0">
           <ShortcutValue
             shortcut={shortcut}
             isMac={isMac}
@@ -188,7 +200,7 @@ const ChromeShortcuts = ({
           group-data-[wide=true]/options:justify-between
         `}
       >
-        <p className="text-muted max-w-sm text-sm">
+        <p className="text-muted max-w-sm text-base">
           These shortcuts work across Chrome and are managed in Chrome settings.
         </p>
         <ShortcutSettingsButton openShortcutsSettings={openShortcutsSettings} />
@@ -233,7 +245,7 @@ export const OptionsShortcuts = ({
       <section aria-labelledby={globalHeadingId}>
         <h2
           id={globalHeadingId}
-          className="text-foreground mb-4 text-lg font-semibold"
+          className="text-foreground mb-4 text-2xl font-semibold"
         >
           Global shortcuts
         </h2>
@@ -244,7 +256,7 @@ export const OptionsShortcuts = ({
       <section aria-labelledby={tabManagerHeadingId}>
         <h2
           id={tabManagerHeadingId}
-          className="text-foreground mb-4 text-lg font-semibold"
+          className="text-foreground mb-4 text-2xl font-semibold"
         >
           Tab manager shortcuts
         </h2>

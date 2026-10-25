@@ -47,26 +47,26 @@ const themeCatalog = [
     id: 'tabby',
     name: 'Porcelain',
     collection: 'Tonal',
-    description: 'Crisp neutrals, a confident blue, and room to breathe.',
+    description: 'Quiet neutrals with warm apricot highlights.',
     light: colors(
-      '#f5f7fb',
-      '#ffffff',
-      '#e7edfa',
-      '#202b45',
-      '#505c76',
-      '#315ddd',
-      '#13817c',
-      '#dbe5ff',
+      '#f5f5f4',
+      '#fafaf9',
+      '#f5f5f4',
+      '#262626',
+      '#54514d',
+      '#9a4b24',
+      '#8e5b3c',
+      '#f2d1ba',
     ),
     dark: colors(
-      '#151923',
-      '#1d2331',
-      '#242e43',
-      '#edf1fc',
-      '#bbc5db',
-      '#8daaff',
-      '#72d4c3',
-      '#2e406b',
+      '#1c1b1a',
+      '#252322',
+      '#1c1b1a',
+      '#f5f3ef',
+      '#c3bdb4',
+      '#e8b58f',
+      '#ba9a7e',
+      '#49382f',
     ),
   },
   {
@@ -206,8 +206,8 @@ const themeCatalog = [
     description: 'Clean graphite and silver, with an understated slate accent.',
     light: colors(
       '#f5f5f6',
-      '#ffffff',
-      '#e3e5e8',
+      '#fafafb',
+      '#f5f5f6',
       '#272b33',
       '#535a67',
       '#4a566b',
@@ -216,8 +216,8 @@ const themeCatalog = [
     ),
     dark: colors(
       '#191b20',
-      '#22252c',
-      '#2c3039',
+      '#202227',
+      '#191b20',
       '#f0f1f4',
       '#c2c7d0',
       '#bdc7da',
@@ -632,7 +632,7 @@ export const curatedThemes = themeCatalog.filter(
 )
 
 export const themeCollections = (
-  ['Colorful', 'Tonal', 'Seasonal'] as const
+  ['Tonal', 'Colorful', 'Seasonal'] as const
 ).filter((collection) =>
   curatedThemes.some((theme) => theme.collection === collection),
 )

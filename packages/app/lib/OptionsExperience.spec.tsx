@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { defaultPreferences } from '@extension/core'
 import {
   createMemoryOptionsResource,
   createMemoryPreferences,
@@ -18,7 +17,6 @@ import {
   createOptionsView,
   OptionsExperience,
 } from './OptionsExperience'
-import { resolveTheme } from './PreferenceSurface'
 import { TabbyProvider, TabbySurface } from './TabbyProvider'
 import { createTestResources } from './testResources'
 
@@ -60,17 +58,10 @@ describe('Options resources', () => {
       screen.getByRole('img', { name: /^Tabby$/ }).getAttribute('src'),
     ).toBe('/seasonal-icons/halloween-frankenstein-hoodie-128.png')
   })
-  it('changes theme choices and resets shared values', async () => {
+  it('changes shared theme choices and opens shortcuts', async () => {
     const preferences = createMemoryPreferences({
       theme: 'system',
       themeLightForeground: 'gray',
-      seasonalIconsEnabled: false,
-      seasonalIconSelections: {
-        ...defaultPreferences.seasonalIconSelections,
-        halloween: 'off',
-      },
-      seasonalEasterCalendar: 'orthodox',
-      seasonalThanksgivingRegion: 'canada',
     })
     const view = createOptionsView()
     const shortcuts = vi.fn(async () => {})
@@ -86,11 +77,6 @@ describe('Options resources', () => {
     })
     await controller.openShortcuts()
     expect(shortcuts).toHaveBeenCalledOnce()
-    await controller.reset()
-    expect(preferences.getSnapshot()).toEqual(defaultPreferences)
-    expect(
-      resolveTheme({ ...defaultPreferences, theme: 'dark' }, 'light').accent,
-    ).toBe(defaultPreferences.themeDarkAccent)
   })
 
   it('reports failed writes and ignores an error from a cancelled action', async () => {

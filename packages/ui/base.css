@@ -390,12 +390,18 @@ code {
   box-shadow: 0 0 0 2px #7584ac18;
 }
 
+.curated-card-content {
+  display: block;
+  min-width: 0;
+}
+
 .curated-card-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 6px 3px 1px;
-  font-size: 11px;
+  font-size: 14px;
+  line-height: 1.5;
   font-weight: 550;
 }
 
@@ -479,6 +485,35 @@ code {
   width: 45px;
   height: 45px;
   object-fit: contain;
+}
+
+.curated-card-content[data-size='compact'] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.curated-card-content[data-size='compact'] .curated-mini {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.curated-card-content[data-size='compact'] .curated-mini-chrome {
+  height: 12px;
+}
+
+.curated-card-content[data-size='compact'] .curated-mini-body {
+  padding: 4px;
+  gap: 2px;
+}
+
+.curated-card-content[data-size='compact'] .curated-mini-row {
+  height: 10px;
+}
+
+.curated-card-content[data-size='compact'] .curated-card-label {
+  font-size: 11px;
 }
 
 .curated-card:focus-visible {

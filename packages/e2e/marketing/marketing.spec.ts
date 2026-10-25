@@ -192,7 +192,7 @@ test('the Chrome demo keeps product controls usable without tour controls', asyn
   await demo.getByRole('button', { name: 'Search with Tabby' }).click()
   const manager = demo.locator('[data-tab-manager]')
   const settings = manager.getByRole('button', {
-    name: 'Settings',
+    name: 'Options',
     exact: true,
   })
   await settings.click()
@@ -209,6 +209,11 @@ test('the Chrome demo keeps product controls usable without tour controls', asyn
     'data-theme',
     'dark',
   )
+  await expect(
+    page
+      .locator('.hero [data-demo]')
+      .getByRole('switch', { name: 'Dark mode', exact: true }),
+  ).toBeChecked()
   await manager.getByRole('button', { name: 'Search everything' }).click()
   const search = demo.locator('[data-omnibar]')
   await search.getByRole('combobox').fill('Design studio')
@@ -309,6 +314,7 @@ test('homepage separates the live demo and switches to a video without losing de
     name: 'Tabby themes and seasonal icons',
   })
   await expect(seasonalBoard).toBeVisible()
+  await expect(seasonalBoard.locator('.theme-palette')).toHaveCount(0)
   await expect(
     seasonalBoard.getByRole('button', { name: /sticker$/ }).first(),
   ).toBeVisible()
@@ -316,7 +322,7 @@ test('homepage separates the live demo and switches to a video without losing de
     seasonalBoard.getByRole('button', {
       name: /^Move or toss Summer .* sticker$/,
     }),
-  ).toHaveCount(3)
+  ).toHaveCount(0)
   const themeCard = seasonalBoard
     .getByRole('button', { name: /theme card$/ })
     .first()
@@ -325,7 +331,7 @@ test('homepage separates the live demo and switches to a video without losing de
   ).toHaveCount(15)
   await expect(
     seasonalBoard.getByRole('button', { name: /sticker$/ }),
-  ).toHaveCount(21)
+  ).toHaveCount(18)
   await seasonalBoard.scrollIntoViewIfNeeded()
   await expect(
     seasonalBoard.locator('.playground-piece__arrival.is-entered').first(),
@@ -437,7 +443,7 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(page.locator('.hero .tab-sticker')).toHaveCount(0)
   await demo
     .getByRole('group', { name: 'Demo experience' })
-    .getByRole('button', { name: 'Settings', exact: true })
+    .getByRole('button', { name: 'Options', exact: true })
     .click()
   await demo.getByRole('button', { name: 'Tabs', exact: true }).click()
   await demo.getByRole('switch', { name: 'Dark mode', exact: true }).click()
@@ -631,11 +637,11 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
       .locator(':scope > div')
       .evaluate((element) => getComputedStyle(element).backgroundColor)
   await expect(
-    demo.getByRole('button', { name: 'Seaglass theme', exact: true }),
+    demo.getByRole('button', { name: 'Porcelain theme', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('#manage [data-surface]')).toHaveCSS(
     '--background',
-    '#f6f5ef',
+    '#f5f5f4',
   )
   await expect(
     demo
@@ -646,9 +652,31 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
     path: testInfo.outputPath('tabby-marketing-demo.png'),
     animations: 'disabled',
   })
+  const surfaces = page.locator('[data-surface]')
+  await expect(surfaces).toHaveCount(5)
+  const expectAppearanceSynced = async () => {
+    const appearance = await demo
+      .locator('[data-surface]')
+      .evaluate((element) => ({
+        mode: element.getAttribute('data-theme'),
+        background: getComputedStyle(element).getPropertyValue('--background'),
+      }))
+    await expect
+      .poll(() =>
+        surfaces.evaluateAll((elements) =>
+          elements.map((element) => ({
+            mode: element.getAttribute('data-theme'),
+            background:
+              getComputedStyle(element).getPropertyValue('--background'),
+          })),
+        ),
+      )
+      .toEqual(Array(5).fill(appearance))
+  }
   const initialColor = await selectedColor()
   await demo.getByRole('button', { name: 'Arcade theme', exact: true }).click()
   await expect.poll(selectedColor).not.toBe(initialColor)
+  await expectAppearanceSynced()
   await expect(firstTab.getByRole('option')).toHaveAttribute(
     'aria-selected',
     'true',
@@ -661,6 +689,7 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await themeToggle.focus()
   await page.keyboard.press('Space')
   await expect(themeToggle).toBeChecked()
+  await expectAppearanceSynced()
   await expect(demo.locator('[data-surface]')).toHaveAttribute(
     'data-theme',
     'dark',
@@ -711,18 +740,16 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await expect(
     demo.getByRole('button', { name: 'Arcade theme', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.locator('#manage [data-surface]')).toHaveAttribute(
-    'data-theme',
-    'light',
-  )
+  await expectAppearanceSynced()
   await demo.getByRole('button', { name: 'Reset', exact: true }).click()
   await expect(firstTab.getByRole('option')).toHaveAttribute(
     'aria-selected',
     'true',
   )
   await expect(themeToggle).not.toBeChecked()
+  await expectAppearanceSynced()
   await expect(
-    demo.getByRole('button', { name: 'Seaglass theme', exact: true }),
+    demo.getByRole('button', { name: 'Porcelain theme', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
 
   await expect(
@@ -735,7 +762,7 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await expect(demo.getByLabel('Tour progress')).toHaveCount(0)
   await demo
     .getByRole('group', { name: 'Demo experience' })
-    .getByRole('button', { name: 'Settings', exact: true })
+    .getByRole('button', { name: 'Options', exact: true })
     .click()
   await demo
     .getByRole('button', {

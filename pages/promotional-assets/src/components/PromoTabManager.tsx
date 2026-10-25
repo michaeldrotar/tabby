@@ -108,16 +108,19 @@ export const PromoTabManager = ({
   model,
   theme = 'light',
   accent = 'orange',
+  tokens,
   className,
 }: {
   model: TabManagerViewModel
   theme?: 'light' | 'dark'
   accent?: PromoPalette['accent']
+  tokens?: SurfaceProps['tokens']
   className?: string
 }) => (
   <Surface
     theme={theme}
     palette={promoPalette(theme, accent)}
+    tokens={tokens}
     inputMode="static"
     motion="reduced"
     className={className}
