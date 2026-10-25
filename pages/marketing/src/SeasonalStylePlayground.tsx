@@ -1,6 +1,5 @@
-import { curatedThemes, SEASONAL_HOLIDAYS } from '@extension/core'
-import { ThemePalette } from '@extension/ui/options/ThemePalette'
-import { ThemePreview } from '@extension/ui/options/ThemePreview'
+import { availableSeasonalHolidays, curatedThemes } from '@extension/core'
+import { ThemeCardContent } from '@extension/ui/options/ThemeCard'
 import {
   useCallback,
   useEffect,
@@ -129,7 +128,7 @@ const createPiece = (
   }
 }
 
-const seasonalStickers = SEASONAL_HOLIDAYS.flatMap((holiday) =>
+const seasonalStickers = availableSeasonalHolidays.flatMap((holiday) =>
   holiday.iconOptions.map((icon) => ({
     id: icon.id,
     label: `${holiday.name} ${icon.name} sticker`,
@@ -722,11 +721,11 @@ export const SeasonalStylePlayground = () => {
                   }}
                   aria-hidden="true"
                 >
-                  <ThemePreview theme={piece.theme} mode={piece.mode} />
-                  <span className="playground-theme-card__name">
-                    {piece.theme.name}
-                  </span>
-                  <ThemePalette colors={piece.theme[piece.mode]} />
+                  <ThemeCardContent
+                    theme={piece.theme}
+                    mode={piece.mode}
+                    size="compact"
+                  />
                 </span>
               ) : null}
             </span>

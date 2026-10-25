@@ -34,6 +34,7 @@ test('the built extension shares preferences and receives live tab changes', asy
     page.getByRole('button', { name: 'Porcelain', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
   const defaultPaint = await palettePaint(page)
+  expect(defaultPaint.chrome).toBe(defaultPaint.background)
   await page.evaluate(async () => {
     await chrome.storage.local.set({
       'preference-storage-key': {
@@ -199,33 +200,34 @@ test('the built extension shares preferences and receives live tab changes', asy
   await page
     .getByRole('button', { name: 'Choose seasonal icons', exact: true })
     .click()
-  const summerIcons = page.getByRole('group', { name: 'Summer', exact: true })
-  await summerIcons
+  await expect(
+    page.getByRole('group', { name: 'Summer', exact: true }),
+  ).toHaveCount(0)
+  const holidayIcons = page.getByRole('group', {
+    name: 'Halloween',
+    exact: true,
+  })
+  await holidayIcons
     .locator('label')
-    .filter({ has: page.getByRole('radio', { name: 'Snorkel', exact: true }) })
+    .filter({
+      has: page.getByRole('radio', { name: 'Vampire fangs', exact: true }),
+    })
     .click()
   await expect(
-    summerIcons.getByRole('radio', { name: 'Snorkel', exact: true }),
+    holidayIcons.getByRole('radio', { name: 'Vampire fangs', exact: true }),
   ).toBeChecked()
   await page.reload()
   await expect(
-    summerIcons.getByRole('radio', { name: 'Snorkel', exact: true }),
+    holidayIcons.getByRole('radio', { name: 'Vampire fangs', exact: true }),
   ).toBeChecked()
   await page
-    .getByRole('button', { name: 'Back to settings', exact: true })
-    .click()
-  await page
-    .getByRole('button', { name: 'Reset preferences', exact: true })
+    .getByRole('button', { name: 'Back to options', exact: true })
     .click()
   await expect(
-    page.getByRole('radio', { name: 'System', exact: true }),
-  ).toBeChecked()
-  await expect(page.locator('[data-surface]')).toHaveAttribute(
-    'data-theme',
-    'light',
-  )
+    page.getByRole('button', { name: 'Reset options', exact: true }),
+  ).toHaveCount(0)
   await expect(
-    page.getByRole('button', { name: 'Porcelain', exact: true }),
+    page.getByRole('button', { name: 'Rose', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
   await expect
     .poll(() => palettePaint(manager))

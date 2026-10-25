@@ -44,10 +44,14 @@ test('promotional layouts show current windows, search, and batch actions', asyn
       ).toBe(536)
     }
     if (asset.id === 'themes') {
-      await expect(page.locator('.theme-preset-swatch')).toHaveCount(15)
-      const palette = await page.locator('.themes-palette').boundingBox()
+      await expect(page.locator('.theme-manager-example')).toHaveCount(3)
+      await expect(
+        page.locator('.theme-manager-example figcaption'),
+      ).toHaveText(['Porcelain Light', 'Graphite Dark', 'Arcade Light'])
+      await expect(page.locator('[data-tab-manager-shell]')).toHaveCount(3)
+      const previews = await page.locator('.themes-preview-stage').boundingBox()
       const frame = await canvas.boundingBox()
-      expect(palette!.y + palette!.height).toBeLessThanOrEqual(
+      expect(previews!.y + previews!.height).toBeLessThanOrEqual(
         frame!.y + frame!.height - 16,
       )
     }

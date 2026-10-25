@@ -1,4 +1,4 @@
-import { SEASONAL_HOLIDAYS } from '@extension/core'
+import { availableSeasonalHolidays } from '@extension/core'
 import { useId } from 'react'
 import {
   Select,
@@ -77,7 +77,7 @@ const ChoiceCard = ({
           motion-reduce:transform-none motion-reduce:transition-none
         `}
       />
-      <span className="text-foreground text-sm font-medium">{label}</span>
+      <span className="text-foreground text-base font-medium">{label}</span>
     </span>
   </label>
 )
@@ -99,7 +99,7 @@ const HolidayDateControl = ({
   const dateClassName = cn(
     `
       text-foreground flex h-10 w-full items-center justify-end px-3 py-2
-      text-right text-sm
+      text-right text-base
     `,
   )
 
@@ -114,13 +114,22 @@ const HolidayDateControl = ({
           })
         }
       >
-        <SelectTrigger aria-label="Easter date" className="text-right">
+        <SelectTrigger
+          aria-label="Easter date"
+          className="text-right text-base"
+        >
           <SelectValue className="min-w-0 flex-1 text-right" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="local">Use browser region</SelectItem>
-          <SelectItem value="western">Western Easter</SelectItem>
-          <SelectItem value="orthodox">Orthodox Easter</SelectItem>
+          <SelectItem className="text-base" value="local">
+            Use browser region
+          </SelectItem>
+          <SelectItem className="text-base" value="western">
+            Western Easter
+          </SelectItem>
+          <SelectItem className="text-base" value="orthodox">
+            Orthodox Easter
+          </SelectItem>
         </SelectContent>
       </Select>
     )
@@ -137,13 +146,22 @@ const HolidayDateControl = ({
           })
         }
       >
-        <SelectTrigger aria-label="Thanksgiving date" className="text-right">
+        <SelectTrigger
+          aria-label="Thanksgiving date"
+          className="text-right text-base"
+        >
           <SelectValue className="min-w-0 flex-1 text-right" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="local">Use browser region</SelectItem>
-          <SelectItem value="us">United States</SelectItem>
-          <SelectItem value="canada">Canada</SelectItem>
+          <SelectItem className="text-base" value="local">
+            Use browser region
+          </SelectItem>
+          <SelectItem className="text-base" value="us">
+            United States
+          </SelectItem>
+          <SelectItem className="text-base" value="canada">
+            Canada
+          </SelectItem>
         </SelectContent>
       </Select>
     )
@@ -171,7 +189,7 @@ export const OptionsSeasonalIconsOverview = ({
   onOpen: () => void
 }) => (
   <section className="mb-8">
-    <h2 className="text-foreground mb-4 text-lg font-semibold">
+    <h2 className="text-foreground mb-4 text-2xl font-semibold">
       Seasonal icons
     </h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
@@ -184,7 +202,7 @@ export const OptionsSeasonalIconsOverview = ({
         `}
       >
         <label className="relative inline-flex cursor-pointer items-center">
-          <span className="text-foreground mr-3 text-sm font-medium">
+          <span className="text-foreground mr-3 text-base font-medium">
             Show seasonal icons
           </span>
           <input
@@ -202,8 +220,8 @@ export const OptionsSeasonalIconsOverview = ({
           <span
             aria-hidden="true"
             className={`
-              border-border bg-input relative h-6 w-11 rounded-full border
-              transition-colors
+              border-border bg-input relative h-6 w-11 shrink-0 rounded-full
+              border transition-colors
               after:border-border after:bg-background after:absolute
               after:left-[2px] after:top-[2px] after:h-5 after:w-5
               after:rounded-full after:border after:transition-transform
@@ -215,7 +233,7 @@ export const OptionsSeasonalIconsOverview = ({
               peer-focus-visible:ring-4
             `}
           />
-          <span className="text-foreground ml-3 text-sm font-medium">
+          <span className="text-foreground ml-3 text-base font-medium">
             {preferences.seasonalIconsEnabled ? 'On' : 'Off'}
           </span>
         </label>
@@ -226,7 +244,7 @@ export const OptionsSeasonalIconsOverview = ({
           className={cn(
             `
               bg-accent-selected text-foreground flex shrink-0 items-center
-              justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium
+              justify-center gap-2 rounded-lg px-3 py-2 text-base font-medium
               transition-colors
               hover:bg-accent-selected-hover
               focus-visible:ring-accent focus-visible:ring-offset-background
@@ -260,12 +278,12 @@ export const OptionsSeasonalIcons = ({
       <h2
         data-seasonal-heading
         tabIndex={-1}
-        className="text-foreground mb-2 text-lg font-semibold"
+        className="text-foreground mb-2 text-2xl font-semibold"
       >
         Seasonal icons
       </h2>
       <div className="space-y-4">
-        {SEASONAL_HOLIDAYS.map((holiday) => {
+        {availableSeasonalHolidays.map((holiday) => {
           const dateLabel =
             'dateLabel' in holiday ? holiday.dateLabel : undefined
           const headingId = `${groupName}-${holiday.id}-heading`
@@ -284,7 +302,10 @@ export const OptionsSeasonalIcons = ({
                   group-data-[wide=true]/options:justify-between
                 `}
               >
-                <h3 id={headingId} className="text-foreground font-medium">
+                <h3
+                  id={headingId}
+                  className="text-foreground text-xl font-medium"
+                >
                   {holiday.name}
                 </h3>
                 <div

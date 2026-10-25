@@ -22,7 +22,7 @@ Search open tabs, windows, tab groups, bookmarks, browsing history, and recently
 
 Recognize every window
 
-Choose active-tab or first-tab defaults in Settings, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
+Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
 
 Organize one window at a time
 
@@ -36,13 +36,13 @@ Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Settings in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
+Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
 
-Choose from fifteen coordinated colorful and tonal themes, each with a light and dark version. Try contrasting hues or a quieter single-color palette. Choose seasonal Tabby icons, including three summer styles. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
+Choose from fifteen coordinated colorful and tonal themes, each with a light and dark version. Try contrasting hues or a quieter single-color palette. Choose seasonal Tabby icons for holidays throughout the year. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
-New installs and extension updates start with the Porcelain theme in System mode. Choose another theme in Settings at any time.
+New installs and extension updates start with Porcelain’s quiet neutral surfaces and warm highlights in System mode. Choose another theme in Options at any time.
 
 Keep your browsing data local
 
@@ -71,7 +71,7 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
 
-The theme screenshot shows coordinated colorful and tonal looks in light and dark mode.
+The theme screenshot shows full Tab Manager previews in Porcelain, Graphite, and Arcade, including light and dark mode.
 
 Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
 
@@ -111,7 +111,7 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset restores appearance defaults. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
+Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
 
 ### Data use certification
 

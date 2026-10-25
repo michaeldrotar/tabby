@@ -69,6 +69,12 @@ export const SEASONAL_HOLIDAYS = [
   },
 ] as const
 
+export const SUMMER_ICONS_ENABLED = false
+
+export const availableSeasonalHolidays = SEASONAL_HOLIDAYS.filter(
+  (holiday) => SUMMER_ICONS_ENABLED || holiday.id !== 'summer',
+)
+
 export type SeasonalHolidayId = (typeof SEASONAL_HOLIDAYS)[number]['id']
 export type SeasonalIconId =
   (typeof SEASONAL_HOLIDAYS)[number]['iconOptions'][number]['id']
@@ -306,7 +312,7 @@ export const getUpcomingSeasonalIcon = (
       }
     | undefined
 
-  for (const holiday of SEASONAL_HOLIDAYS) {
+  for (const holiday of availableSeasonalHolidays) {
     const iconId = preferences.seasonalIconSelections[holiday.id]
     if (iconId === 'off') continue
 

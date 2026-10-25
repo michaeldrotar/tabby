@@ -32,7 +32,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   }
   await page.keyboard.press('Tab')
   await expect(
-    page.getByRole('button', { name: 'Settings', exact: true }),
+    page.getByRole('button', { name: 'Options', exact: true }),
   ).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   await expect(
@@ -161,7 +161,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     .first()
   const newTab = page.getByRole('button', { name: 'New tab', exact: true })
   const search = page.getByRole('button', { name: 'Search everything' })
-  const settings = page.getByRole('button', { name: 'Settings', exact: true })
+  const settings = page.getByRole('button', { name: 'Options', exact: true })
   const more = page.getByRole('button', { name: 'More actions' })
   await firstItem.focus()
   await page.keyboard.press('ArrowUp')

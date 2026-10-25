@@ -1,7 +1,7 @@
 import { curatedThemes } from '@extension/core'
 
 export const marketingThemes = [
-  'tabby-brand',
+  'tabby',
   'reef',
   'arcade',
   'matcha',

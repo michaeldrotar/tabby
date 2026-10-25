@@ -69,7 +69,7 @@ const anatomyParts: {
     title: 'Action bar',
     product: 'manager',
     description:
-      'Search and Settings sit at the left; tab actions sit at the right.',
+      'Search and Options sit at the left; tab actions sit at the right.',
   },
   {
     id: 'search-field',
@@ -241,9 +241,11 @@ const Panel = ({
             {navigation.product === 'omnibar' && (
               <OmnibarExperience
                 className="h-full"
-                onDismiss={() =>
-                  scenario.navigation[index]!.setState({ product: 'manager' })
-                }
+                onDismiss={() => {
+                  const local = scenario.navigation[index]!
+                  if (local.getState().product === 'omnibar')
+                    local.setState({ product: 'manager' })
+                }}
               />
             )}
             {navigation.product === 'options' && <OptionsExperience />}

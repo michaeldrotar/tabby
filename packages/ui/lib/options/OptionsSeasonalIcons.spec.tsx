@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { defaultPreferences, SEASONAL_HOLIDAYS } from '@extension/core'
+import { availableSeasonalHolidays, defaultPreferences } from '@extension/core'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
   cleanup,
@@ -25,9 +25,12 @@ it('shows each holiday and its three illustrated choices plus Off', () => {
     />,
   )
 
-  expect(screen.getAllByRole('group')).toHaveLength(SEASONAL_HOLIDAYS.length)
+  expect(screen.queryByRole('group', { name: 'Summer' })).toBeNull()
+  expect(screen.getAllByRole('group')).toHaveLength(
+    availableSeasonalHolidays.length,
+  )
 
-  for (const holiday of SEASONAL_HOLIDAYS) {
+  for (const holiday of availableSeasonalHolidays) {
     const group = screen.getByRole('group', { name: holiday.name })
     expect(within(group).getAllByRole('radio')).toHaveLength(4)
     expect(

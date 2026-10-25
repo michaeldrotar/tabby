@@ -44,7 +44,6 @@ export const createOptionsController = (
   return {
     change: (patch: Partial<PreferenceState>) =>
       run(() => preferences.set(patch)),
-    reset: () => run(() => preferences.reset()),
     openShortcuts: () => run(resource.openShortcutsSettings),
     openAppearance: () => run(resource.openSidePanelSettings),
     cancel: () => {
@@ -138,9 +137,6 @@ export const OptionsExperience = ({
       scrollTop={state.scrollTop}
       onScrollChange={(scrollTop) => view.setState({ scrollTop })}
       onPreferenceChange={controller.change}
-      resetPreferences={() => {
-        void controller.reset()
-      }}
       openShortcutsSettings={() => {
         void controller.openShortcuts()
       }}

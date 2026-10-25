@@ -9,11 +9,7 @@ import { SummerDetails } from '../SummerTheme'
 import { useSurface } from '../Surface'
 import { cn } from '../utils/cn'
 import { OptionsAppearance } from './OptionsAppearance'
-import {
-  OptionsHeader,
-  OptionsReset,
-  OptionsSidePanelSettings,
-} from './OptionsHostSections'
+import { OptionsHeader, OptionsSidePanelSettings } from './OptionsHostSections'
 import { OptionsManagerPreferences } from './OptionsManagerPreferences'
 import {
   OptionsSeasonalIcons,
@@ -47,7 +43,6 @@ export type OptionsProps = {
   logoUrl: string
   error?: string
   onPreferenceChange: (patch: Partial<PreferenceState>) => void | Promise<void>
-  resetPreferences: () => void
   openShortcutsSettings: () => void
   openSidePanelSettings: () => void
 }
@@ -112,7 +107,7 @@ export const Options = (props: OptionsProps) => {
     if (urlSeasonalIcons && window.location.hash !== SEASONAL_ICONS_HASH)
       window.history.replaceState(null, '', SEASONAL_ICONS_HASH)
   }
-  const backToSettings = () => {
+  const backToOptions = () => {
     pendingNavigation.current = true
     setShowSeasonalIcons(false)
     resetScroll()
@@ -138,7 +133,7 @@ export const Options = (props: OptionsProps) => {
       onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop)}
       className={cn(
         'group/options relative isolate h-full w-full overflow-auto',
-        'bg-background text-foreground',
+        'bg-background text-foreground text-base',
       )}
     >
       <SummerDetails place="options" />
@@ -159,7 +154,7 @@ export const Options = (props: OptionsProps) => {
           <>
             <button
               type="button"
-              onClick={backToSettings}
+              onClick={backToOptions}
               className={cn(
                 `
                   text-muted mb-4 flex items-center gap-2 text-sm font-medium
@@ -171,7 +166,7 @@ export const Options = (props: OptionsProps) => {
               )}
             >
               <span aria-hidden="true">←</span>
-              Back to settings
+              Back to options
             </button>
             <OptionsSeasonalIcons
               preferences={props.preferences}
@@ -204,7 +199,6 @@ export const Options = (props: OptionsProps) => {
               onPreferenceChange={props.onPreferenceChange}
               onOpen={openSeasonalIcons}
             />
-            <OptionsReset resetPreferences={props.resetPreferences} />
           </>
         )}
       </div>

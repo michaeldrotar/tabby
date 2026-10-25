@@ -8,14 +8,14 @@ export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
     {logoUrl && (
       <img
         src={logoUrl}
-        width={36}
-        height={36}
-        className="h-9 w-9"
+        width={48}
+        height={48}
+        className="h-12 w-12"
         alt="Tabby"
       />
     )}
-    <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-      Settings
+    <h1 className="text-foreground text-3xl font-semibold tracking-tight">
+      Options
     </h1>
     <span className="ml-auto">
       <SummerMotionControl nightOnly />
@@ -26,7 +26,7 @@ export const OptionsSidePanelSettings = ({
   openSidePanelSettings,
 }: Pick<OptionsProps, 'openSidePanelSettings'>) => (
   <section className="mb-6">
-    <h2 className="text-foreground mb-4 text-lg font-semibold">
+    <h2 className="text-foreground mb-4 text-2xl font-semibold">
       Side panel position
     </h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
@@ -38,7 +38,7 @@ export const OptionsSidePanelSettings = ({
           group-data-[wide=true]/options:justify-between
         `}
       >
-        <p className="text-muted text-sm">
+        <p className="text-muted text-base">
           Choose left or right in Chrome’s Side panel settings.
         </p>
         <button
@@ -46,7 +46,7 @@ export const OptionsSidePanelSettings = ({
           className={cn(
             `
               bg-accent-selected text-foreground flex shrink-0 items-center
-              gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium
+              gap-2 whitespace-normal rounded-lg px-4 py-2 text-base font-medium
               transition-colors
               hover:bg-accent-selected-hover
               focus-visible:ring-accent focus-visible:ring-offset-background
@@ -57,49 +57,6 @@ export const OptionsSidePanelSettings = ({
         >
           <ExternalLinkIcon className="h-4 w-4" />
           Open Chrome appearance settings
-        </button>
-      </div>
-    </div>
-  </section>
-)
-export const OptionsReset = ({
-  resetPreferences,
-}: Pick<OptionsProps, 'resetPreferences'>) => (
-  <section>
-    <h2 className="text-foreground mb-4 text-lg font-semibold">Reset</h2>
-    <div
-      className={cn(
-        `border-accent-border bg-accent-selected rounded-lg border p-4`,
-      )}
-    >
-      <div
-        className={`
-          flex flex-col gap-3
-          group-data-[wide=true]/options:flex-row
-          group-data-[wide=true]/options:items-start
-          group-data-[wide=true]/options:justify-between
-        `}
-      >
-        <div>
-          <p className="text-foreground/70 text-sm">
-            Restore default preferences.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={resetPreferences}
-          className={cn(
-            `
-              bg-accent-selected text-foreground shrink-0 whitespace-nowrap
-              rounded-lg px-4 py-2 text-sm font-medium transition-colors
-              hover:bg-accent-selected-hover
-              focus-visible:ring-accent focus-visible:ring-offset-background
-              focus-visible:outline-none focus-visible:ring-2
-              focus-visible:ring-offset-2
-            `,
-          )}
-        >
-          Reset preferences
         </button>
       </div>
     </div>

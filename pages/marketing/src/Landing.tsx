@@ -5,6 +5,7 @@ import {
   FeatureIllustration,
   ProductDemo,
 } from './DemoLoader'
+import { MarketingAppearanceProvider } from './MarketingAppearance'
 import { BannerCat, WalkingPaws } from './ScrollDecorations'
 import { Footer, Install, SiteHeader } from './SiteChrome'
 import { useIdleCue } from './useIdleCue'
@@ -303,24 +304,30 @@ export const Landing = () => {
     setWatching(next)
   }
   return (
-    <div className="site site--home">
-      <a className="skip-link" href="#features">
-        Skip to features
-      </a>
-      <SiteHeader />
-      <main>
-        <Hero onShowcase={onShowcase} watching={watching} videoRef={videoRef} />
-        <div className="promise-strip">
-          <span>Find that page.</span>
-          <span>Gather your projects.</span>
-          <span>Make yourself at home.</span>
-          <BannerCat />
-        </div>
-        <BrowserOverview />
-        <HomeFeatures />
-        <Privacy />
-      </main>
-      <Footer />
-    </div>
+    <MarketingAppearanceProvider>
+      <div className="site site--home">
+        <a className="skip-link" href="#features">
+          Skip to features
+        </a>
+        <SiteHeader />
+        <main>
+          <Hero
+            onShowcase={onShowcase}
+            watching={watching}
+            videoRef={videoRef}
+          />
+          <div className="promise-strip">
+            <span>Find that page.</span>
+            <span>Gather your projects.</span>
+            <span>Make yourself at home.</span>
+            <BannerCat />
+          </div>
+          <BrowserOverview />
+          <HomeFeatures />
+          <Privacy />
+        </main>
+        <Footer />
+      </div>
+    </MarketingAppearanceProvider>
   )
 }

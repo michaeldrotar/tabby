@@ -32,7 +32,7 @@ export const ThemeModeChoices = ({
           <span
             className={`
               bg-input text-foreground inline-flex rounded-lg border
-              border-transparent px-3 py-2 text-sm font-medium capitalize
+              border-transparent px-3 py-2 text-base font-medium capitalize
               transition-colors
               hover:bg-input/70
               peer-checked:border-focus peer-checked:bg-accent-selected

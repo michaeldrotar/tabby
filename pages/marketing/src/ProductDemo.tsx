@@ -10,6 +10,7 @@ import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { ThemePalette } from '@extension/ui/options/ThemePalette'
 import { useState } from 'react'
 import { createMarketingDemo, searchExamples } from './demo'
+import { useMarketingAppearance } from './MarketingAppearance'
 import { marketingThemes } from './marketingThemes'
 
 const AppearanceControls = ({ labelled }: { labelled: boolean }) => {
@@ -85,7 +86,8 @@ export const ProductDemo = ({
   initialExperience = 'manager',
   separated = false,
 }: ProductDemoProps) => {
-  const [demo] = useState(() => createMarketingDemo(theme))
+  const preferences = useMarketingAppearance()
+  const [demo] = useState(() => createMarketingDemo(theme, preferences))
   const [experience, setExperience] = useState<
     'manager' | 'search' | 'options'
   >(initialExperience)
@@ -155,7 +157,7 @@ export const ProductDemo = ({
               aria-pressed={shownExperience === 'options'}
               onClick={() => explore('options')}
             >
-              Settings
+              Options
             </button>
           </div>
           <button type="button" className="reset-demo" onClick={reset}>
