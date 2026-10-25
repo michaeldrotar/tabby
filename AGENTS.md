@@ -2,7 +2,9 @@
 
 This is the approved workflow for the repository. `main` is the integration branch for accepted work. Apply the branch and release rules below.
 
-In a worktree, if any tool or server's default port is already in use, use a different available port without asking for confirmation.
+Reserve the default development ports for the user's manual runs: demo studio on 5180, promotional assets on 5181, marketing on 5182, and extension reload on 8081. Keep these defaults consistent; report a conflict instead of silently changing ports.
+
+Agents running servers or browser tests in worktrees must choose other available ports, even when the default ports are free, and provide clickable links to the running pages. Pass explicit port overrides, such as `pnpm marketing --port 5194` or `pnpm demo-studio --port 5195`. For extension UI checks, use `pnpm preview`, which chooses an available port automatically. Do not run `pnpm dev` in a worktree with the default ports.
 
 ## Skill guidance
 
