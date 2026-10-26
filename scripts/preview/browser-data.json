@@ -233,6 +233,58 @@
     "themeLightAccent": "amber",
     "themeDarkBackground": "neutral",
     "themeDarkForeground": "zinc",
-    "themeDarkAccent": "blue"
-  }
+    "themeDarkAccent": "blue",
+    "favoritesFolderId": "10"
+  },
+  "bookmarks": [
+    {
+      "id": "0",
+      "title": "",
+      "children": [
+        {
+          "id": "1",
+          "title": "Bookmarks bar",
+          "children": [
+            {
+              "id": "10",
+              "title": "Tabby Favorites",
+              "parentId": "1",
+              "children": [
+                {
+                  "id": "11",
+                  "parentId": "10",
+                  "title": "Tabby on GitHub",
+                  "url": "https://github.com/michaeldrotar/tabby"
+                },
+                {
+                  "id": "12",
+                  "parentId": "10",
+                  "title": "Chrome extensions",
+                  "url": "https://developer.chrome.com/docs/extensions/"
+                },
+                {
+                  "id": "13",
+                  "parentId": "10",
+                  "title": "Reading",
+                  "children": [
+                    {
+                      "id": "14",
+                      "parentId": "13",
+                      "title": "MDN Web Docs",
+                      "url": "https://developer.mozilla.org/"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Other bookmarks",
+          "children": []
+        }
+      ]
+    }
+  ]
 }

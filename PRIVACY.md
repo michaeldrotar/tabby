@@ -16,6 +16,7 @@ Tabby is designed with privacy as a core value.
 - **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
 - **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
 - **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so repeating that query can bring the same result toward the top. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
+- **Bookmark Favorites:** Tabby shows a bookmark folder you choose and can create a folder, add the current page, or remove individual bookmarks when requested. These remain native Chrome bookmarks. Chrome handles their synchronization according to your browser settings. Tabby saves only the selected folder’s ID in local preferences and does not send bookmarks to the publisher.
 - **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query, and Tabby window names and icons. To recognize restored windows, it also keeps SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
 
 ## Permissions
@@ -29,7 +30,7 @@ To provide its functionality, Tabby requires certain permissions.
 | `tabs`      | Core functionality for listing, switching, and managing your open tabs.                           |
 | `tabGroups` | Enables viewing and organizing your tab groups.                                                   |
 | `sidePanel` | Required to display the tab manager in the browser's side panel.                                  |
-| `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                     |
+| `bookmarks` | Allows searching bookmarks and managing your chosen favorites folder locally.                     |
 | `history`   | Allows searching and navigating your browsing history locally.                                    |
 | `sessions`  | Allows searching and restoring your recently closed tabs and windows.                             |
 

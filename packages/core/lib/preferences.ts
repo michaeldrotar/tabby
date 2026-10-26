@@ -43,6 +43,7 @@ export type ThemeAccentPalette = (typeof THEME_ACCENT_PALETTES)[number]
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface PreferenceState extends SeasonalIconPreferences {
+  favoritesFolderId: string | null
   tabManagerCompactIconMode: 'active' | 'first'
   theme: ThemeMode
   themePreset: ThemePresetId | null
@@ -75,6 +76,7 @@ export const defaultThemePreferences = Object.freeze({
 } as const)
 
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
+  favoritesFolderId: null,
   tabManagerCompactIconMode: 'active',
   ...defaultThemePreferences,
   seasonalIconsEnabled: true,
@@ -84,6 +86,8 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
 })
 
 const isValidPreference = (key: string, value: unknown): boolean => {
+  if (key === 'favoritesFolderId')
+    return value === null || (typeof value === 'string' && value.length > 0)
   if (key === 'themePreset')
     return value === null || curatedThemes.some((theme) => theme.id === value)
   if (key === 'tabManagerCompactIconMode')

@@ -89,7 +89,34 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(manager.locator('[data-window-picker-trigger]')).toContainText(
     'Smoke workspace',
   )
+  const favorites = manager.getByRole('region', {
+    name: 'Favorites',
+    exact: true,
+  })
+  await favorites.getByRole('button', { name: 'Set up favorites' }).click()
+  await favorites
+    .getByRole('button', { name: 'Create Tabby Favorites' })
+    .click()
+  await expect(favorites.getByRole('heading')).toHaveText(
+    'Favorites · Tabby Favorites',
+  )
+  await manager.evaluate(async () => {
+    const preferences = (
+      await chrome.storage.local.get('preference-storage-key')
+    )['preference-storage-key']
+    await chrome.bookmarks.create({
+      parentId: preferences.favoritesFolderId,
+      title: 'Favorite smoke page',
+      url: 'https://example.com/smoke',
+    })
+  })
+  await expect(
+    favorites.getByRole('button', { name: 'Favorite smoke page', exact: true }),
+  ).toBeVisible()
   await manager.reload()
+  await expect(
+    favorites.getByRole('button', { name: 'Favorite smoke page', exact: true }),
+  ).toBeVisible()
   await expect(manager.locator('[data-window-picker-trigger]')).toContainText(
     'Smoke workspace',
   )

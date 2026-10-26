@@ -5,6 +5,7 @@ import {
   TabbyProvider,
 } from '@extension/app'
 import { createChromeBackend } from '@extension/chrome/createChromeBackend'
+import { createChromeBookmarks } from '@extension/chrome/createChromeBookmarks'
 import { createChromeOmnibarResource } from '@extension/chrome/createChromeOmnibarResource'
 import { createChromeOptionsResource } from '@extension/chrome/createChromeOptionsResource'
 import { createChromePreferences } from '@extension/chrome/createChromePreferences'
@@ -64,6 +65,7 @@ export const ChromeTabbyProvider = ({
     })
     return {
       backend,
+      bookmarks: createChromeBookmarks(api),
       preferences,
       views,
       omnibar: createChromeOmnibarResource(api, originalWindowId),
@@ -120,6 +122,7 @@ export const ChromeTabbyProvider = ({
       browserReady,
       resources.omnibar.start(),
       resources.options.start(),
+      surface === 'tab-manager' ? resources.bookmarks.start() : undefined,
     ]).catch((error: unknown) => {
       if (!live) return
       const message =
@@ -143,11 +146,13 @@ export const ChromeTabbyProvider = ({
       resources.preferences.dispose()
       resources.omnibar.dispose()
       resources.options.dispose()
+      resources.bookmarks.dispose()
     }
   }, [resources, surface])
   return (
     <TabbyProvider
       backend={resources.backend}
+      bookmarks={surface === 'tab-manager' ? resources.bookmarks : undefined}
       preferences={resources.preferences}
       omnibar={resources.omnibar}
       options={resources.options}

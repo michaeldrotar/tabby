@@ -191,12 +191,20 @@ export type TabManagerProps = {
   onIntent: (intent: TabManagerIntent) => void | Promise<void>
   className?: string
   focusOnMount?: boolean
+  favorites?: React.ReactNode
 }
 
 const navigationSelector =
   '[data-nav-type="window"], [data-tab-option], [data-group-option], [data-create-item]'
 const controlSelector = 'button,summary,[data-tab-option],[data-group-option]'
-const sectionOrder = ['header', 'tabs', 'windows', 'actions', 'tools']
+const sectionOrder = [
+  'favorites',
+  'header',
+  'tabs',
+  'windows',
+  'actions',
+  'tools',
+]
 
 const sameItem = (
   a: TabManagerItem | null | undefined,
@@ -245,6 +253,7 @@ export const TabManager = ({
   onIntent,
   className,
   focusOnMount = false,
+  favorites,
 }: TabManagerProps) => {
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
@@ -578,6 +587,7 @@ export const TabManager = ({
   const keyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!live || !canFocusInput()) return
     const target = event.target as HTMLElement
+    if (target.closest('[data-keyboard-section="favorites"]')) return
     const section = target.closest<HTMLElement>('[data-keyboard-section]')
     const tabbing =
       event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey
@@ -1022,11 +1032,14 @@ export const TabManager = ({
           </>
         }
         header={
-          <WindowHeader
-            model={model}
-            onIntent={send}
-            revealing={drag.revealing === 'windows'}
-          />
+          <>
+            {favorites}
+            <WindowHeader
+              model={model}
+              onIntent={send}
+              revealing={drag.revealing === 'windows'}
+            />
+          </>
         }
         actionBar={
           <TabManagerActionBar

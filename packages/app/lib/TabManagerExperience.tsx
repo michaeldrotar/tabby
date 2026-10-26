@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { useStore } from 'zustand'
+import { FavoritesExperience } from './FavoritesExperience'
 import { useTabManagerResources } from './TabbyProvider'
 import {
   createTabManagerController,
@@ -26,7 +27,7 @@ export const TabManagerExperience = ({
   focusOnMount?: boolean
 }) => {
   const resources = useTabManagerResources()
-  const { backend, view, environment, preferences, host } = resources
+  const { backend, bookmarks, view, environment, preferences, host } = resources
   const reduceAgePrecision = !!useShouldReduceMotion()
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
@@ -82,6 +83,9 @@ export const TabManagerExperience = ({
       model={model}
       onIntent={controller.dispatch}
       focusOnMount={focusOnMount}
+      favorites={
+        bookmarks ? <FavoritesExperience bookmarks={bookmarks} /> : undefined
+      }
     />
   )
 }

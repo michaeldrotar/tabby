@@ -24,6 +24,10 @@ Recognize every window
 
 Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
 
+Keep favorite pages close
+
+Choose a Chrome bookmark folder or create Tabby Favorites to show its pages above the window controls. Add the current page without duplicates, browse folders, and remove bookmarks from favorite settings. Changes stay in sync with Chrome bookmarks. Click a favorite to focus a tab with the same address in the current window, or open one if needed. Cmd/Ctrl-click or middle-click opens a fresh tab; Shift-click opens a new window.
+
 Organize one window at a time
 
 Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
@@ -71,6 +75,8 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
 
+The overview and project-window screenshots need refreshing to include the favorites section.
+
 The theme screenshot shows full Tab Manager previews in Porcelain, Graphite, and Arcade, including light and dark mode.
 
 Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
@@ -87,7 +93,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 | `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
 | `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
 | `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
-| `bookmarks` | permissions | Search saved bookmarks locally and open the result selected by the user.                                                                    |
+| `bookmarks` | permissions | Search saved bookmarks, show a chosen favorites folder, and create or remove bookmarks at the user's request.                               |
 | `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                   |
 | `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                          |
 
@@ -112,6 +118,8 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
 Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
+
+The favorites folder selection stays in local preferences as a bookmark ID. Favorite pages and folders remain native Chrome bookmarks, managed through Chrome's bookmarks API. Chrome handles their synchronization according to the user's browser settings. Tabby creates a favorites folder only when the user requests it.
 
 ### Data use certification
 
@@ -145,6 +153,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 | Version                                                                      | Submission date | Summary                                                                                 | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | -------------- |
+| [1.8.0](product/releases/v1.8.0-bookmark-favorites.md)                       | —               | Native bookmark favorites in the Tab Manager.                                           | Not submitted  |
 | [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Pending review |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published      |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published      |

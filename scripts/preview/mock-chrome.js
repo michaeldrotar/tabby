@@ -19,6 +19,31 @@
     ...clone(window),
   }))
   const groups = clone(browser.groups ?? [])
+  const bookmarkRoots = clone(
+    browser.bookmarks ?? [
+      {
+        id: '0',
+        title: '',
+        children: [
+          { id: '1', title: 'Bookmarks bar', children: [] },
+          { id: '2', title: 'Other bookmarks', children: [] },
+        ],
+      },
+    ],
+  )
+  const allBookmarks = (nodes = bookmarkRoots) =>
+    nodes.flatMap((node) => [node, ...allBookmarks(node.children ?? [])])
+  const bookmark = (id) => find(allBookmarks(), id)
+  const bookmarkChildren = (id) => {
+    const node = bookmark(id)
+    if (node.url) throw new Error('This bookmark is not a folder.')
+    return (node.children ??= [])
+  }
+  const nextBookmarkId = idSequenceForBookmarks()
+  function idSequenceForBookmarks() {
+    let id = Math.max(0, ...allBookmarks().map((node) => Number(node.id) || 0))
+    return () => String(++id)
+  }
   const tabs = browser.tabs.map((tab, index) => ({
     index: browser.tabs
       .slice(0, index)
@@ -244,7 +269,97 @@
         browser.currentWindowId = windowId
       },
     },
-    bookmarks: { search: async () => [] },
+    bookmarks: {
+      ...events([
+        'onCreated',
+        'onChanged',
+        'onMoved',
+        'onRemoved',
+        'onChildrenReordered',
+        'onImportEnded',
+      ]),
+      getTree: async () => clone(bookmarkRoots),
+      get: async (ids) => clone([].concat(ids).map(bookmark)),
+      getChildren: async (id) => clone(bookmarkChildren(id)),
+      search: async (query) =>
+        clone(
+          allBookmarks().filter((node) =>
+            typeof query === 'string'
+              ? `${node.title} ${node.url ?? ''}`
+                  .toLowerCase()
+                  .includes(query.toLowerCase())
+              : matches(node, query),
+          ),
+        ),
+      create: async (values) => {
+        const parentId = values.parentId ?? '2'
+        const children = bookmarkChildren(parentId)
+        const node = {
+          id: nextBookmarkId(),
+          title: values.title ?? '',
+          parentId,
+          ...(values.url ? { url: values.url } : { children: [] }),
+        }
+        children.splice(values.index ?? children.length, 0, node)
+        children.forEach((child, index) => {
+          child.index = index
+        })
+        api.bookmarks.onCreated.emit(node.id, clone(node))
+        return clone(node)
+      },
+      update: async (id, changes) => {
+        const node = bookmark(id)
+        Object.assign(node, changes)
+        api.bookmarks.onChanged.emit(id, clone(changes))
+        return clone(node)
+      },
+      move: async (id, destination) => {
+        const node = bookmark(id)
+        const parent = allBookmarks().find((parent) =>
+          parent.children?.includes(node),
+        )
+        const oldIndex = parent.children.indexOf(node)
+        const oldParentId = parent.id
+        parent.children.splice(oldIndex, 1)
+        const children = bookmarkChildren(destination.parentId ?? parent.id)
+        node.parentId = destination.parentId ?? parent.id
+        children.splice(destination.index ?? children.length, 0, node)
+        for (const items of [parent.children, children])
+          items.forEach((child, index) => {
+            child.index = index
+          })
+        api.bookmarks.onMoved.emit(id, {
+          parentId: node.parentId,
+          index: node.index,
+          oldParentId,
+          oldIndex,
+        })
+        return clone(node)
+      },
+      remove: async (id) => {
+        const node = bookmark(id)
+        if (node.children?.length)
+          throw new Error('Cannot remove a nonempty folder.')
+        await api.bookmarks.removeTree(id)
+      },
+      removeTree: async (id) => {
+        const node = bookmark(id)
+        const parent = allBookmarks().find((parent) =>
+          parent.children?.includes(node),
+        )
+        if (!parent) throw new Error('Cannot remove a bookmark root.')
+        const index = parent.children.indexOf(node)
+        parent.children.splice(index, 1)
+        parent.children.forEach((child, index) => {
+          child.index = index
+        })
+        api.bookmarks.onRemoved.emit(id, {
+          parentId: parent.id,
+          index,
+          node: clone(node),
+        })
+      },
+    },
     history: { search: async () => [] },
     sessions: { getRecentlyClosed: async () => [] },
     windows: {
@@ -395,7 +510,13 @@
       query: async (query = {}) =>
         clone(
           tabs
-            .filter((tab) => matches(tab, query))
+            .filter((tab) => {
+              const { currentWindow, ...filters } = query
+              return (
+                matches(tab, filters) &&
+                (!currentWindow || tab.windowId === browser.currentWindowId)
+              )
+            })
             .sort((a, b) => a.windowId - b.windowId || a.index - b.index),
         ),
       get: async (id) => clone(find(tabs, id)),

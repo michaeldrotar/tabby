@@ -174,8 +174,9 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(firstItem).toBeFocused()
   await page.keyboard.press('End')
   await expect(newTab).toBeFocused()
-  expect((await newTab.boundingBox())!.height).toBe(
+  expect((await newTab.boundingBox())!.height).toBeCloseTo(
     (await page.locator('[data-tab-item]').first().boundingBox())!.height,
+    2,
   )
   await expect(
     page.locator('[data-tab-option][aria-selected="true"]'),

@@ -102,6 +102,7 @@ export const useTabDrag = (
     target.focus({ preventScroll: true })
     restoration.current = null
   }, [])
+  useLayoutEffect(restore, [restore, snapshot, settlingExpanded])
 
   useEffect(() => {
     const element = root.current
@@ -142,13 +143,15 @@ export const useTabDrag = (
           applied &&
           current.drop?.destination?.windowId ===
             latest.current.model.viewedWindowId
-        if (!applied || local) {
+        const selector =
+          current.source.type === 'tab'
+            ? `[data-tab-id="${current.source.id}"] [data-tab-option]`
+            : `[data-group-id="${current.source.id}"] [data-group-option]`
+        const dropScroll = local ? (viewport()?.scrollTop ?? 0) : undefined
+        if (!applied) {
           restoration.current = {
-            selector:
-              current.source.type === 'tab'
-                ? `[data-tab-id="${current.source.id}"] [data-tab-option]`
-                : `[data-group-id="${current.source.id}"] [data-group-option]`,
-            ...(!applied ? { scrollTop: current.scrollTop } : {}),
+            selector,
+            scrollTop: current.scrollTop,
           }
           requestAnimationFrame(restore)
         }
@@ -165,10 +168,14 @@ export const useTabDrag = (
                 tabIds: current.view!.tabIds,
                 destination,
                 windowId: current.drop!.windowId,
-                ...(local ? { scrollTop: viewport()?.scrollTop ?? 0 } : {}),
+                ...(local ? { scrollTop: dropScroll } : {}),
               })
             } finally {
               setSettlingExpanded([])
+              if (local) {
+                restoration.current = { selector, scrollTop: dropScroll }
+                requestAnimationFrame(restore)
+              }
             }
           })()
         }
