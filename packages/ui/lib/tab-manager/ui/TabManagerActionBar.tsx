@@ -23,8 +23,6 @@ import {
   PinOff,
   Plus,
   RefreshCw,
-  Search,
-  Settings,
   Trash2,
   Ungroup,
   Volume2,
@@ -34,11 +32,11 @@ import {
 import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
-import { SummerMotionControl, SummerToolbarArt } from '../../SummerTheme'
 import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
+import { TabManagerTools } from './TabManagerTools'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -391,34 +389,7 @@ export const TabManagerActionBar = ({
           }
         />
       </div>
-      <nav
-        aria-label="Tab Manager tools"
-        data-keyboard-section="tools"
-        className={`
-          border-border relative flex h-12 shrink-0 items-center justify-between
-          gap-1 border-t bg-[var(--manager-chrome)] px-2
-        `}
-      >
-        <SummerToolbarArt />
-        <div className="flex items-center gap-1">
-          <button
-            aria-label="Search everything"
-            title="Search everything"
-            className={cn(windowControlClass, 'size-10 px-0')}
-            onClick={() => onIntent({ type: 'open-search' })}
-          >
-            <Search size={18} />
-          </button>
-          <button
-            aria-label="Options"
-            title="Options"
-            className={cn(windowControlClass, 'size-10 px-0')}
-            onClick={() => onIntent({ type: 'open-settings' })}
-          >
-            <Settings size={18} />
-          </button>
-          <SummerMotionControl />
-        </div>
+      <TabManagerTools onIntent={onIntent}>
         <button
           type="button"
           data-action-bar-menu-trigger
@@ -437,7 +408,7 @@ export const TabManagerActionBar = ({
         >
           <Ellipsis size={18} />
         </button>
-      </nav>
+      </TabManagerTools>
       {interactive ? (
         <Menu.Root
           open={open}

@@ -4,6 +4,7 @@ import { useSurface, useSurfaceId } from '../../Surface'
 import { cn } from '../../utils/cn'
 
 export type TabManagerShellProps = {
+  mainLabel?: string
   header?: React.ReactNode
   children: React.ReactNode
   /** Optional overlay content (e.g., animation effects) that should cover the entire shell */
@@ -16,6 +17,7 @@ export type TabManagerShellProps = {
 }
 
 export const TabManagerShell = ({
+  mainLabel = 'Tabs',
   header,
   children,
   overlay,
@@ -43,13 +45,16 @@ export const TabManagerShell = ({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ScrollArea
           data-manager-scroll
-          className="min-h-0 flex-1"
+          className={`
+            min-h-0 flex-1
+            [&>[data-radix-scroll-area-viewport]]:[overflow-anchor:none]
+          `}
           orientation="vertical"
         >
           <main
             id={mainId}
             tabIndex={-1}
-            aria-label="Tabs"
+            aria-label={mainLabel}
             className="h-full outline-none"
           >
             <h1 className="sr-only">Tab manager</h1>

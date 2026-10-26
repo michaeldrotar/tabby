@@ -41,6 +41,16 @@
   const nextTabId = idSequence(tabs)
   const nextWindowId = idSequence(windows)
   const nextGroupId = idSequence(groups)
+  const closedSessions = clone(browser.closedSessions ?? [])
+  let nextSessionId = 0
+  const rememberClosed = (value) => {
+    closedSessions.unshift({
+      lastModified: Math.floor(Date.now() / 1000),
+      ...value,
+    })
+    closedSessions.splice(25)
+    api.sessions.onChanged.emit()
+  }
   const find = (items, id) => {
     const item = items.find((candidate) => candidate.id === id)
     if (!item) throw new Error(`No sample browser item with ID ${id}.`)
@@ -71,6 +81,10 @@
   const removeTabs = async (ids, isWindowClosing = false) => {
     for (const id of [].concat(ids)) {
       const tab = find(tabs, id)
+      if (!isWindowClosing)
+        rememberClosed({
+          tab: { ...clone(tab), sessionId: `preview-tab-${++nextSessionId}` },
+        })
       tabs.splice(tabs.indexOf(tab), 1)
       const remaining = windowTabs(tab.windowId)
       const groupTabs =
@@ -246,7 +260,36 @@
     },
     bookmarks: { search: async () => [] },
     history: { search: async () => [] },
-    sessions: { getRecentlyClosed: async () => [] },
+    sessions: {
+      onChanged: event(),
+      getRecentlyClosed: async () => clone(closedSessions.slice(0, 25)),
+      restore: async (sessionId) => {
+        const index = closedSessions.findIndex(
+          (session) => (session.window ?? session.tab)?.sessionId === sessionId,
+        )
+        if (index < 0) throw new Error('Session is no longer available.')
+        const [session] = closedSessions.splice(index, 1)
+        if (session.window) {
+          const restored = await api.windows.create({
+            url: session.window.tabs.map((tab) => tab.url),
+            focused: true,
+          })
+          for (const [index, tab] of restored.tabs.entries())
+            await api.tabs.update(tab.id, {
+              title: session.window.tabs[index].title,
+            })
+          api.sessions.onChanged.emit()
+          return { lastModified: session.lastModified, window: restored }
+        }
+        const tab = await api.tabs.create({
+          windowId: browser.currentWindowId,
+          url: session.tab.url,
+        })
+        await api.tabs.update(tab.id, { title: session.tab.title })
+        api.sessions.onChanged.emit()
+        return { lastModified: session.lastModified, tab }
+      },
+    },
     windows: {
       ...events([
         'onBoundsChanged',
@@ -299,7 +342,16 @@
         return { ...clone(window), tabs: clone(windowTabs(window.id)) }
       },
       remove: async (id) => {
-        find(windows, id)
+        const window = find(windows, id)
+        const closingTabs = windowTabs(id)
+        if (closingTabs.length)
+          rememberClosed({
+            window: {
+              ...clone(window),
+              sessionId: `preview-window-${++nextSessionId}`,
+              tabs: clone(closingTabs),
+            },
+          })
         await removeTabs(
           windowTabs(id).map((tab) => tab.id),
           true,

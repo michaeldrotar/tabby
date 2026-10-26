@@ -8,6 +8,7 @@ import { createChromeBackend } from '@extension/chrome/createChromeBackend'
 import { createChromeOmnibarResource } from '@extension/chrome/createChromeOmnibarResource'
 import { createChromeOptionsResource } from '@extension/chrome/createChromeOptionsResource'
 import { createChromePreferences } from '@extension/chrome/createChromePreferences'
+import { createChromeRecentlyClosedResource } from '@extension/chrome/createChromeRecentlyClosedResource'
 import { createChromeTabManagerHost } from '@extension/chrome/createChromeTabManagerHost'
 import { createSystemThemeResource } from '@extension/chrome/systemTheme'
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
@@ -68,6 +69,7 @@ export const ChromeTabbyProvider = ({
       views,
       omnibar: createChromeOmnibarResource(api, originalWindowId),
       options: createChromeOptionsResource(api),
+      recentlyClosed: createChromeRecentlyClosedResource(api),
       host,
       systemTheme: createSystemThemeResource(
         window.matchMedia('(prefers-color-scheme: dark)'),
@@ -143,6 +145,7 @@ export const ChromeTabbyProvider = ({
       resources.preferences.dispose()
       resources.omnibar.dispose()
       resources.options.dispose()
+      resources.recentlyClosed.dispose()
     }
   }, [resources, surface])
   return (
@@ -154,6 +157,7 @@ export const ChromeTabbyProvider = ({
       views={resources.views}
       environment={environment}
       host={resources.host.capabilities}
+      recentlyClosed={resources.recentlyClosed}
     >
       {children}
     </TabbyProvider>

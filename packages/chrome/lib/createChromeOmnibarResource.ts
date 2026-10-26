@@ -2,6 +2,7 @@ import { createAsyncQueue } from '@extension/core/asyncQueue'
 import { OmnibarCancelledError } from '@extension/core/omnibar'
 import { readOmnibarChoices } from '@extension/core/omnibarChoices'
 import { createOmnibarMatcher } from '@extension/core/omnibarMatching'
+import { normalizeClosedSessions } from './closedSessions.js'
 import { createChromeOmnibarNavigator } from './createChromeOmnibarNavigator.js'
 import { getChromeFaviconUrl } from './favicon.js'
 import type {
@@ -200,33 +201,33 @@ export const createChromeOmnibarResource = (
       const closed: OmnibarResult[] = []
       const matches = createOmnibarMatcher(query)
       if (sessions.status === 'fulfilled')
-        for (const session of sessions.value) {
-          const tabs = session.tab
-            ? [session.tab]
-            : (session.window?.tabs ?? [])
-          tabs.forEach((tab, index) => {
-            const sessionId =
-              session.tab?.sessionId ?? session.window?.sessionId
-            if (!sessionId || !matches(tab.title, tab.url)) return
+        for (const session of normalizeClosedSessions(
+          sessions.value,
+          api.runtime,
+        )) {
+          const tab = session.tabs.find((tab) => matches(tab.title, tab.url))
+          if (tab) {
+            const { sessionId } = session
             closed.push({
-              id: session.tab
-                ? `recently-closed-${sessionId}`
-                : `closed-window-${sessionId}-tab-${index}`,
+              id:
+                session.kind === 'tab'
+                  ? `recently-closed-${sessionId}`
+                  : `closed-window-${sessionId}`,
               type: 'recently-closed',
               title: tab.title || 'Untitled',
               url: tab.url,
-              favIconUrl: tab.url
-                ? getChromeFaviconUrl(api.runtime, tab.url)
-                : tab.favIconUrl,
-              description: session.tab
-                ? 'Recently closed'
-                : 'Recently closed window',
+              favIconUrl: tab.faviconUrl,
+              description:
+                session.kind === 'tab'
+                  ? 'Recently closed'
+                  : 'Restore entire window',
               sessionId,
-              lastVisitTime: session.lastModified * 1000,
-              tabCount: session.window?.tabs?.length,
+              lastVisitTime: session.closedAt,
+              tabCount:
+                session.kind === 'window' ? session.tabs.length : undefined,
               action: { kind: 'restore', sessionId },
             })
-          })
+          }
         }
       const favicon = (url?: string) =>
         url ? getChromeFaviconUrl(api.runtime, url) : undefined

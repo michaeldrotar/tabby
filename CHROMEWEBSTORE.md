@@ -24,6 +24,8 @@ Recognize every window
 
 Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
 
+Use the view switcher at the top of the Tab Manager to browse recently closed tabs and windows. Restore one tab or preview and restore an entire window, then return to your open tabs where you left off. Chrome exposes up to 25 recently closed tabs and windows combined; this list is not a permanent archive. Search shows each matching closed window once and labels whole-window restoration clearly.
+
 Organize one window at a time
 
 Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
@@ -70,6 +72,8 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 | Marquee promo tile         | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/promo-tiles/marquee-1400-560.jpg) |
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
+
+The Recently closed pane includes tabs and windows with expandable window previews; capture that pane when preparing screenshots of restoration.
 
 The theme screenshot shows full Tab Manager previews in Porcelain, Graphite, and Arcade, including light and dark mode.
 
@@ -145,6 +149,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 | Version                                                                      | Submission date | Summary                                                                                 | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | -------------- |
+| [1.8.0](product/releases/v1.8.0-restore-closed-items.md)                     | —               | Browse and restore recently closed tabs and windows in a dedicated pane.                | Unreleased     |
 | [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Pending review |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published      |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published      |

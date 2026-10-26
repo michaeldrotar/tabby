@@ -20,7 +20,7 @@ export const getOmnibarActionLabel = (
     case 'search':
       return 'Search'
     case 'recently-closed':
-      return 'Restore'
+      return item.tabCount === undefined ? 'Restore' : 'Restore entire window'
     default:
       return 'Open'
   }

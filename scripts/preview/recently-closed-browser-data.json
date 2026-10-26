@@ -1,0 +1,58 @@
+{
+  "currentWindowId": 1,
+  "windows": [
+    {
+      "id": 1,
+      "focused": true,
+      "name": "Work",
+      "icon": "briefcase",
+      "iconColor": "blue"
+    }
+  ],
+  "tabs": [
+    {
+      "id": 1,
+      "windowId": 1,
+      "title": "Tabby",
+      "url": "https://tabby.example",
+      "active": true,
+      "groupId": -1
+    }
+  ],
+  "groups": [],
+  "preferences": { "theme": "light" },
+  "closedSessions": [
+    {
+      "lastModified": 1792936800,
+      "tab": {
+        "sessionId": "closed-tab",
+        "title": "A single closed tab",
+        "url": "https://example.com/standalone"
+      }
+    },
+    {
+      "lastModified": 1792936500,
+      "window": {
+        "sessionId": "closed-reading",
+        "tabs": [
+          { "title": "Weekend reading", "url": "https://example.com/reading" },
+          { "title": "Recipes to try", "url": "https://example.com/recipes" }
+        ]
+      }
+    },
+    {
+      "lastModified": 1792936200,
+      "window": {
+        "sessionId": "closed-research",
+        "tabs": [
+          {
+            "title": "Research for the next project",
+            "url": "https://developer.chrome.com/docs/extensions"
+          },
+          { "title": "Design references", "url": "https://example.com/design" },
+          { "title": "Project notes", "url": "https://example.com/notes" }
+        ]
+      }
+    }
+  ]
+}

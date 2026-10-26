@@ -88,7 +88,6 @@ describe('Chrome Omnibar resource', () => {
     const results = await resource.search('e')
     expect(results.map((item) => item.type)).toEqual([
       'recently-closed',
-      'recently-closed',
       'bookmark',
       'history',
     ])

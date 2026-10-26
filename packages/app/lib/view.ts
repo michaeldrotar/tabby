@@ -11,6 +11,7 @@ import type { SelectionModelContext } from '@extension/core/selection/SelectionM
 import type { TabManagerViewModel } from '@extension/ui/tab-manager/TabManager'
 
 export type TabManagerViewState = {
+  pane: string
   viewedWindowId: number | null
   windowPicker: boolean
   editingWindow: {
@@ -38,6 +39,7 @@ export const createTabManagerView = (
   initial: Partial<TabManagerViewState> = {},
 ) =>
   createStore<TabManagerViewState>()(() => ({
+    pane: 'tabs',
     viewedWindowId: null,
     windowPicker: false,
     editingWindow: null,

@@ -10,6 +10,7 @@ import type {
   OptionsResource,
   PreferenceResource,
 } from '@extension/core'
+import type { RecentlyClosedResource } from '@extension/core/recentlyClosed'
 import type { SurfaceProps } from '@extension/ui/Surface'
 import type { PropsWithChildren } from 'react'
 
@@ -28,6 +29,7 @@ export type TabManagerResources = {
   preferences: PreferenceResource
   environment: TabbyEnvironment
   host?: HostCapabilities
+  recentlyClosed?: RecentlyClosedResource
 }
 
 export type TabbyViews = {
@@ -48,8 +50,16 @@ export const TabbyProvider = ({
   children,
   ...resources
 }: PropsWithChildren<TabbyResources>) => {
-  const { backend, views, omnibar, options, preferences, environment, host } =
-    resources
+  const {
+    backend,
+    views,
+    omnibar,
+    options,
+    preferences,
+    environment,
+    host,
+    recentlyClosed,
+  } = resources
   const value = useMemo(
     () => ({
       backend,
@@ -59,8 +69,18 @@ export const TabbyProvider = ({
       preferences,
       environment,
       host,
+      recentlyClosed,
     }),
-    [backend, views, omnibar, options, preferences, environment, host],
+    [
+      backend,
+      views,
+      omnibar,
+      options,
+      preferences,
+      environment,
+      host,
+      recentlyClosed,
+    ],
   )
   return <TabbyContext.Provider value={value}>{children}</TabbyContext.Provider>
 }
@@ -87,11 +107,12 @@ export const useTabbyTheme = () => {
 }
 
 export const useTabManagerResources = (): TabManagerResources => {
-  const { backend, views, preferences, environment, host } = useTabbyResources()
+  const { backend, views, preferences, environment, host, recentlyClosed } =
+    useTabbyResources()
   const view = views.tabManager
   return useMemo(
-    () => ({ backend, view, preferences, environment, host }),
-    [backend, view, preferences, environment, host],
+    () => ({ backend, view, preferences, environment, host, recentlyClosed }),
+    [backend, view, preferences, environment, host, recentlyClosed],
   )
 }
 
