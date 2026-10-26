@@ -1,4 +1,5 @@
 export * from './actions/batchTabActions.js'
+export * from './bookmarks.js'
 export type * from './browser.js'
 export * from './commands.js'
 export type * from './omnibar.js'

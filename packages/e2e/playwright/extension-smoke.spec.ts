@@ -78,6 +78,32 @@ test('the built extension shares preferences and receives live tab changes', asy
   await page.getByRole('option', { name: 'First tab', exact: true }).click()
   const manager = await context.newPage()
   await manager.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  const bookmarkFolderId = await manager.evaluate(async () => {
+    const [root] = await chrome.bookmarks.getTree()
+    const parent = root!.children!.find((node) => !node.unmodifiable)!
+    const folder = await chrome.bookmarks.create({
+      parentId: parent.id,
+      title: 'Smoke bookmarks',
+    })
+    return folder.id
+  })
+  await manager.getByRole('button', { name: 'Bookmarks', exact: true }).click()
+  await manager
+    .getByRole('searchbox', { name: 'Filter bookmarks' })
+    .fill('Smoke bookmarks')
+  await expect(
+    manager.getByRole('listbox', { name: 'Bookmark entries' }),
+  ).toContainText('Smoke bookmarks')
+  await manager.evaluate(
+    (id) => chrome.bookmarks.removeTree(id),
+    bookmarkFolderId,
+  )
+  await expect(
+    manager
+      .getByRole('listbox', { name: 'Bookmark entries' })
+      .getByRole('option'),
+  ).toHaveCount(0)
+  await manager.getByRole('button', { name: 'Tabs', exact: true }).click()
   await manager
     .getByRole('button', { name: 'Edit window', exact: true })
     .click()

@@ -234,5 +234,105 @@
     "themeDarkBackground": "neutral",
     "themeDarkForeground": "zinc",
     "themeDarkAccent": "blue"
-  }
+  },
+  "bookmarks": [
+    {
+      "id": "0",
+      "title": "",
+      "children": [
+        {
+          "id": "1",
+          "parentId": "0",
+          "title": "Bookmarks bar",
+          "children": [
+            {
+              "id": "10",
+              "parentId": "1",
+              "title": "Tabby project",
+              "children": [
+                {
+                  "id": "11",
+                  "parentId": "10",
+                  "title": "Tabby on GitHub",
+                  "url": "https://github.com/michaeldrotar/tabby"
+                },
+                {
+                  "id": "12",
+                  "parentId": "10",
+                  "title": "Chrome extensions",
+                  "url": "https://developer.chrome.com/docs/extensions/"
+                },
+                {
+                  "id": "13",
+                  "parentId": "10",
+                  "title": "Research",
+                  "children": [
+                    {
+                      "id": "14",
+                      "parentId": "13",
+                      "title": "Bookmarks API",
+                      "url": "https://developer.chrome.com/docs/extensions/reference/api/bookmarks"
+                    },
+                    {
+                      "id": "15",
+                      "parentId": "13",
+                      "title": "Design references",
+                      "children": [
+                        {
+                          "id": "16",
+                          "parentId": "15",
+                          "title": "Web interface guidelines",
+                          "url": "https://www.w3.org/WAI/"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "20",
+              "parentId": "1",
+              "title": "Reading list",
+              "children": [
+                {
+                  "id": "21",
+                  "parentId": "20",
+                  "title": "MDN Web Docs",
+                  "url": "https://developer.mozilla.org/"
+                }
+              ]
+            },
+            {
+              "id": "22",
+              "parentId": "1",
+              "title": "Reading list",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "parentId": "0",
+          "title": "Other bookmarks",
+          "children": []
+        },
+        {
+          "id": "3",
+          "parentId": "0",
+          "title": "Managed bookmarks",
+          "unmodifiable": "managed",
+          "children": [
+            {
+              "id": "30",
+              "parentId": "3",
+              "title": "Company handbook",
+              "url": "https://example.com/handbook",
+              "unmodifiable": "managed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

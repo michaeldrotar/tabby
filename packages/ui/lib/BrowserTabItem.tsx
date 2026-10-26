@@ -36,6 +36,9 @@ export type BrowserTabItemProps = Omit<
   /** Handler for when tab is clicked */
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   onActivate?: () => void
+  itemLabel?: string
+  description?: string
+  trailingAction?: ReactNode
 
   // Interactive state props
   /** Whether this tab is currently selected (for keyboard navigation or multi-select) */
@@ -104,6 +107,9 @@ export const BrowserTabItem = memo(
         className,
         onClick,
         onActivate,
+        itemLabel = 'Tab',
+        description,
+        trailingAction,
         selected = false,
         active = false,
         isMultiSelectMode: _isMultiSelectMode = false,
@@ -383,7 +389,7 @@ export const BrowserTabItem = memo(
                 `,
               )}
               onKeyDown={handleKeyDown}
-              aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
+              aria-label={`${itemLabel}: ${title || itemLabel}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
               aria-current={active ? 'page' : undefined}
               aria-busy={loading}
             >
@@ -403,7 +409,7 @@ export const BrowserTabItem = memo(
                 )}
 
                 {/* Domain */}
-                {domain && (
+                {(description || domain) && (
                   <motion.div
                     className={cn(
                       'flex min-w-0 items-center gap-1 text-xs',
@@ -431,7 +437,9 @@ export const BrowserTabItem = memo(
                             }
                     }
                   >
-                    <span className="min-w-0 truncate">{domain}</span>
+                    <span className="min-w-0 truncate">
+                      {description ?? domain}
+                    </span>
                     {ageLabel && (
                       <span className="flex-shrink-0"> • {ageLabel}</span>
                     )}
@@ -491,6 +499,7 @@ export const BrowserTabItem = memo(
                 )}
               </div>
             </div>
+            {trailingAction}
             {onClose && (
               <RowCloseButton
                 label="Close tab"

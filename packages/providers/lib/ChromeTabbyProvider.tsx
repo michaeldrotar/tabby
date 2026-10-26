@@ -5,6 +5,7 @@ import {
   TabbyProvider,
 } from '@extension/app'
 import { createChromeBackend } from '@extension/chrome/createChromeBackend'
+import { createChromeBookmarkResource } from '@extension/chrome/createChromeBookmarkResource'
 import { createChromeOmnibarResource } from '@extension/chrome/createChromeOmnibarResource'
 import { createChromeOptionsResource } from '@extension/chrome/createChromeOptionsResource'
 import { createChromePreferences } from '@extension/chrome/createChromePreferences'
@@ -66,6 +67,10 @@ export const ChromeTabbyProvider = ({
       backend,
       preferences,
       views,
+      bookmarks:
+        surface === 'tab-manager'
+          ? createChromeBookmarkResource(api)
+          : undefined,
       omnibar: createChromeOmnibarResource(api, originalWindowId),
       options: createChromeOptionsResource(api),
       host,
@@ -73,7 +78,7 @@ export const ChromeTabbyProvider = ({
         window.matchMedia('(prefers-color-scheme: dark)'),
       ),
     }
-  }, [api, originalWindowId])
+  }, [api, originalWindowId, surface])
   const systemTheme = useSyncExternalStore(
     resources.systemTheme.subscribe,
     resources.systemTheme.getSnapshot,
@@ -120,6 +125,7 @@ export const ChromeTabbyProvider = ({
       browserReady,
       resources.omnibar.start(),
       resources.options.start(),
+      resources.bookmarks?.start(),
     ]).catch((error: unknown) => {
       if (!live) return
       const message =
@@ -143,10 +149,12 @@ export const ChromeTabbyProvider = ({
       resources.preferences.dispose()
       resources.omnibar.dispose()
       resources.options.dispose()
+      resources.bookmarks?.dispose()
     }
   }, [resources, surface])
   return (
     <TabbyProvider
+      bookmarks={resources.bookmarks}
       backend={resources.backend}
       preferences={resources.preferences}
       omnibar={resources.omnibar}

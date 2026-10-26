@@ -1,11 +1,14 @@
 import { useSurface } from '@extension/ui/Surface'
+import { BookmarkManager } from '@extension/ui/tab-manager/BookmarkManager'
 import { TabManager } from '@extension/ui/tab-manager/TabManager'
+import { ManagerViewSwitch } from '@extension/ui/tab-manager/ui/ManagerViewSwitch'
 import { useShouldReduceMotion } from '@extension/ui/useShouldReduceMotion'
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
+  useState,
   useSyncExternalStore,
 } from 'react'
 import { useStore } from 'zustand'
@@ -27,6 +30,8 @@ export const TabManagerExperience = ({
 }) => {
   const resources = useTabManagerResources()
   const { backend, view, environment, preferences, host } = resources
+  const [section, setSection] = useState<'tabs' | 'bookmarks'>('tabs')
+  const [restoreViewFocus, setRestoreViewFocus] = useState(false)
   const reduceAgePrecision = !!useShouldReduceMotion()
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
@@ -77,11 +82,53 @@ export const TabManagerExperience = ({
     },
     controller.getPreviousSnapshot(),
   )
-  return (
+  const navigation = resources.bookmarks ? (
+    <ManagerViewSwitch
+      view={section}
+      disabled={!live}
+      restoreFocus={restoreViewFocus}
+      onChange={(view) => {
+        setRestoreViewFocus(true)
+        setSection(view)
+      }}
+    />
+  ) : undefined
+  const manager = (
     <TabManager
       model={model}
       onIntent={controller.dispatch}
-      focusOnMount={focusOnMount}
+      focusOnMount={focusOnMount && !restoreViewFocus}
+      navigation={navigation}
     />
   )
+  if (!resources.bookmarks || section === 'tabs') return manager
+  return (
+    <div className="h-full min-h-0" inert={!live || undefined}>
+      <BookmarkExperience
+        actions={resources.bookmarks}
+        windows={model.windows}
+        windowId={model.viewedWindowId}
+        currentWindowId={host?.getCurrentWindowId?.()}
+        navigation={navigation}
+        onSearch={() => {
+          void controller.dispatch({ type: 'open-search' })
+        }}
+        onSettings={() => {
+          void controller.dispatch({ type: 'open-settings' })
+        }}
+      />
+    </div>
+  )
+}
+
+const BookmarkExperience = ({
+  actions,
+  ...props
+}: Omit<Parameters<typeof BookmarkManager>[0], 'snapshot'>) => {
+  const snapshot = useSyncExternalStore(
+    actions.subscribe,
+    actions.getSnapshot,
+    actions.getSnapshot,
+  )
+  return <BookmarkManager snapshot={snapshot} actions={actions} {...props} />
 }

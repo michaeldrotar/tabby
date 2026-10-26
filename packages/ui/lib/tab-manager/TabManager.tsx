@@ -190,6 +190,7 @@ export type TabManagerProps = {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void | Promise<void>
   className?: string
+  navigation?: React.ReactNode
   focusOnMount?: boolean
 }
 
@@ -245,6 +246,7 @@ export const TabManager = ({
   onIntent,
   className,
   focusOnMount = false,
+  navigation,
 }: TabManagerProps) => {
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
@@ -1030,6 +1032,7 @@ export const TabManager = ({
         }
         actionBar={
           <TabManagerActionBar
+            navigation={navigation}
             model={model}
             onIntent={actionBarIntent}
             menuRef={menuRef}
