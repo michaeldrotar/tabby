@@ -309,7 +309,8 @@
     outline-offset: 3px;
   }
 
-  [data-tab-manager-shell] {
+  [data-tab-manager-shell],
+  [data-manager-panes] {
     --manager-canvas: var(--curated-canvas, var(--background));
     --manager-chrome: var(
       --curated-chrome,
@@ -321,7 +322,8 @@
     );
   }
 
-  [data-theme='dark'] [data-tab-manager-shell] {
+  [data-theme='dark'] [data-tab-manager-shell],
+  [data-theme='dark'] [data-manager-panes] {
     --manager-canvas: var(--curated-canvas, var(--card));
     --manager-chrome: var(--curated-chrome, var(--input));
     --manager-control-hover: var(

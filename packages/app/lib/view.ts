@@ -8,9 +8,12 @@ import { createNotificationState } from './notifications'
 import type { NotificationState } from './notifications'
 import type { BrowserSnapshot, BrowserTabGroupColor } from '@extension/core'
 import type { SelectionModelContext } from '@extension/core/selection/SelectionModel'
+import type { ManagerPane } from '@extension/ui/tab-manager/ManagerPaneSwitcher'
 import type { TabManagerViewModel } from '@extension/ui/tab-manager/TabManager'
 
 export type TabManagerViewState = {
+  pane: ManagerPane
+  downloadsMenu: { position?: { x: number; y: number } } | null
   viewedWindowId: number | null
   windowPicker: boolean
   editingWindow: {
@@ -38,6 +41,8 @@ export const createTabManagerView = (
   initial: Partial<TabManagerViewState> = {},
 ) =>
   createStore<TabManagerViewState>()(() => ({
+    pane: 'tabs',
+    downloadsMenu: null,
     viewedWindowId: null,
     windowPicker: false,
     editingWindow: null,

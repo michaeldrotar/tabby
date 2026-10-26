@@ -5,6 +5,7 @@ import {
   TabbyProvider,
 } from '@extension/app'
 import { createChromeBackend } from '@extension/chrome/createChromeBackend'
+import { createChromeDownloadsResource } from '@extension/chrome/createChromeDownloadsResource'
 import { createChromeOmnibarResource } from '@extension/chrome/createChromeOmnibarResource'
 import { createChromeOptionsResource } from '@extension/chrome/createChromeOptionsResource'
 import { createChromePreferences } from '@extension/chrome/createChromePreferences'
@@ -64,6 +65,7 @@ export const ChromeTabbyProvider = ({
     })
     return {
       backend,
+      downloads: createChromeDownloadsResource(api),
       preferences,
       views,
       omnibar: createChromeOmnibarResource(api, originalWindowId),
@@ -143,6 +145,7 @@ export const ChromeTabbyProvider = ({
       resources.preferences.dispose()
       resources.omnibar.dispose()
       resources.options.dispose()
+      resources.downloads.dispose()
     }
   }, [resources, surface])
   return (
@@ -154,6 +157,7 @@ export const ChromeTabbyProvider = ({
       views={resources.views}
       environment={environment}
       host={resources.host.capabilities}
+      downloads={surface === 'tab-manager' ? resources.downloads : undefined}
     >
       {children}
     </TabbyProvider>

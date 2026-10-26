@@ -10,6 +10,7 @@ const mock = readFileSync(
 )
 
 type BrowserFixture = Omit<typeof browser, 'preferences'> & {
+  denyDownloadPermission?: boolean
   preferences: Partial<PreferenceState>
 }
 

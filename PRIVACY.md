@@ -16,22 +16,25 @@ Tabby is designed with privacy as a core value.
 - **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
 - **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
 - **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so repeating that query can bring the same result toward the top. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
+- **Recent Downloads:** If you allow download access, Tabby reads Chrome’s recent download records to show filenames, download status, and source sites, and performs the download actions you choose. Opening files requires separate optional access. Records are read locally while the Downloads pane is selected; Tabby does not save a separate download history or send it to the publisher. Removing a record from history leaves the downloaded file on disk. You can revoke access in Chrome’s extension settings.
 - **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query, and Tabby window names and icons. To recognize restored windows, it also keeps SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
 
 ## Permissions
 
 To provide its functionality, Tabby requires certain permissions.
 
-| Permission  | Reason                                                                                            |
-| :---------- | :------------------------------------------------------------------------------------------------ |
-| `favicon`   | Required to display icons for your tabs, bookmarks, and history items in the search results.      |
-| `storage`   | Used to save preferences, search choices, window labels, and restore fingerprints on your device. |
-| `tabs`      | Core functionality for listing, switching, and managing your open tabs.                           |
-| `tabGroups` | Enables viewing and organizing your tab groups.                                                   |
-| `sidePanel` | Required to display the tab manager in the browser's side panel.                                  |
-| `bookmarks` | Allows searching and navigating your saved bookmarks locally.                                     |
-| `history`   | Allows searching and navigating your browsing history locally.                                    |
-| `sessions`  | Allows searching and restoring your recently closed tabs and windows.                             |
+| Permission       | Reason                                                                                                      |
+| :--------------- | :---------------------------------------------------------------------------------------------------------- |
+| `favicon`        | Required to display icons for your tabs, bookmarks, and history items in the search results.                |
+| `storage`        | Used to save preferences, search choices, window labels, and restore fingerprints on your device.           |
+| `tabs`           | Core functionality for listing, switching, and managing your open tabs.                                     |
+| `tabGroups`      | Enables viewing and organizing your tab groups.                                                             |
+| `sidePanel`      | Required to display the tab manager in the browser's side panel.                                            |
+| `bookmarks`      | Allows searching and navigating your saved bookmarks locally.                                               |
+| `history`        | Allows searching and navigating your browsing history locally.                                              |
+| `sessions`       | Allows searching and restoring your recently closed tabs and windows.                                       |
+| `downloads`      | Optional: show recent downloads and let you reveal, pause, resume, cancel, or remove their history records. |
+| `downloads.open` | Optional: open a completed downloaded file when you choose Open.                                            |
 
 Successful search actions clear the saved query; dismissing search preserves it. Clear a window’s name and choose its automatic icon to remove its saved identity. Uninstalling removes the extension’s saved data. Tabby does not access website content or send your activity to the publisher.
 

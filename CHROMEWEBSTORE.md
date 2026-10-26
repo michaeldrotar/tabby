@@ -32,6 +32,10 @@ Drag tabs, selected tabs, or whole groups to choose their position. Hold over th
 
 Middle-click a tab to close it, or create a new tab directly below an existing tab.
 
+Return to recent downloads
+
+Switch between Tabs and Downloads at the top of the Tab Manager to find your five latest downloads. Select files individually or together and right-click for download actions. Choose whether to allow download access after reading the explanation. Open completed files, reveal them in their folder, and pause, resume, or cancel downloads. Chrome handles files that need a safety review. Removing an entry from history keeps the file on disk.
+
 Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
@@ -52,22 +56,24 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 
 **Category:** Tools, as shown on the published listing.
 
-**Single purpose:** Find and organize the tabs and windows in your browser.
+**Single purpose:** Find and organize your browser’s tabs, windows, and recent downloads.
 
 **Primary language:** English.
 
 ## Graphics and assets
 
-| Asset                      | Dimensions    | Status | File                                                                              |
-| -------------------------- | ------------- | ------ | --------------------------------------------------------------------------------- |
-| Store icon                 | 128 × 128 PNG | Ready  | [Store icon](chrome-extension/public/tabby-face-128.png)                          |
-| Overview screenshot        | 1280 × 800    | Ready  | [Overview](product/promotional-assets/screenshots/01-overview.jpg)                |
-| Search screenshot          | 1280 × 800    | Ready  | [Find anything](product/promotional-assets/screenshots/02-find-anything.jpg)      |
-| Themes screenshot          | 1280 × 800    | Ready  | [Themes](product/promotional-assets/screenshots/03-themes.jpg)                    |
-| Project windows screenshot | 1280 × 800    | Ready  | [Project windows](product/promotional-assets/screenshots/04-project-windows.jpg)  |
-| Bulk actions screenshot    | 1280 × 800    | Ready  | [Bulk actions](product/promotional-assets/screenshots/05-bulk-actions.jpg)        |
-| Small promo tile           | 440 × 280     | Ready  | [Small promo tile](product/promotional-assets/promo-tiles/small-440-280.jpg)      |
-| Marquee promo tile         | 1400 × 560    | Ready  | [Marquee promo tile](product/promotional-assets/promo-tiles/marquee-1400-560.jpg) |
+| Asset                      | Dimensions    | Status       | File                                                                              |
+| -------------------------- | ------------- | ------------ | --------------------------------------------------------------------------------- |
+| Store icon                 | 128 × 128 PNG | Ready        | [Store icon](chrome-extension/public/tabby-face-128.png)                          |
+| Overview screenshot        | 1280 × 800    | Needs update | [Overview](product/promotional-assets/screenshots/01-overview.jpg)                |
+| Search screenshot          | 1280 × 800    | Ready        | [Find anything](product/promotional-assets/screenshots/02-find-anything.jpg)      |
+| Themes screenshot          | 1280 × 800    | Ready        | [Themes](product/promotional-assets/screenshots/03-themes.jpg)                    |
+| Project windows screenshot | 1280 × 800    | Ready        | [Project windows](product/promotional-assets/screenshots/04-project-windows.jpg)  |
+| Bulk actions screenshot    | 1280 × 800    | Needs update | [Bulk actions](product/promotional-assets/screenshots/05-bulk-actions.jpg)        |
+| Small promo tile           | 440 × 280     | Ready        | [Small promo tile](product/promotional-assets/promo-tiles/small-440-280.jpg)      |
+| Marquee promo tile         | 1400 × 560    | Ready        | [Marquee promo tile](product/promotional-assets/promo-tiles/marquee-1400-560.jpg) |
+
+The overview and bulk-actions screenshots need refreshing to include the pane switcher.
 
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
 
@@ -79,17 +85,19 @@ Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config
 
 The manifest declares these permissions. It declares no host permissions or production content scripts.
 
-| Permission  | Type        | Justification                                                                                                                               |
-| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                     |
-| `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
-| `storage`   | permissions | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                 |
-| `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
-| `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
-| `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
-| `bookmarks` | permissions | Search saved bookmarks locally and open the result selected by the user.                                                                    |
-| `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                   |
-| `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                          |
+| Permission       | Type                 | Justification                                                                                                                                                                                                                |
+| ---------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alarms`         | permissions          | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                                                                                                      |
+| `favicon`        | permissions          | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                                                                                                            |
+| `storage`        | permissions          | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                                                                                                  |
+| `tabs`           | permissions          | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user.                                                                                  |
+| `tabGroups`      | permissions          | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                                                                                                            |
+| `sidePanel`      | permissions          | Display the persistent tab manager beside the current browser page.                                                                                                                                                          |
+| `bookmarks`      | permissions          | Search saved bookmarks locally and open the result selected by the user.                                                                                                                                                     |
+| `history`        | permissions          | Search browsing history locally and open the result selected by the user.                                                                                                                                                    |
+| `sessions`       | permissions          | Search recently closed tabs and windows and restore the item selected by the user.                                                                                                                                           |
+| `downloads`      | optional_permissions | Show five recent downloads and their status, reveal files in their folder, and perform the pause, resume, cancel, or history-removal action selected by the user. Requested only after an explanation in the Downloads pane. |
+| `downloads.open` | optional_permissions | Open a completed downloaded file only when the user chooses Open. Explained and requested with optional download access.                                                                                                     |
 
 ## Privacy and data use
 
@@ -97,21 +105,23 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 Tabby handles browsing data locally. The publisher does not collect it or receive saved preferences. The submitted listing discloses **Web history** and **User activity**.
 
-| Data type                           | Handled?                | Transmitted off-device by Tabby? | Purpose                                                                              | Shared with the publisher? |
-| ----------------------------------- | ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
-| Personally identifiable information | No dedicated collection | No                               | —                                                                                    | No                         |
-| Health information                  | No dedicated collection | No                               | —                                                                                    | No                         |
-| Financial information               | No dedicated collection | No                               | —                                                                                    | No                         |
-| Authentication information          | No                      | No                               | —                                                                                    | No                         |
-| Personal communications             | No page-content access  | No                               | —                                                                                    | No                         |
-| Location                            | No                      | No                               | —                                                                                    | No                         |
-| Web history                         | Yes, locally            | No                               | Search titles and addresses locally; use hashed window URLs to restore Tabby labels. | No                         |
-| User activity                       | Search choices, locally | No                               | Remember which result was chosen for a query to improve search ranking.              | No                         |
-| Website content                     | No page-content access  | No                               | —                                                                                    | No                         |
+| Data type                           | Handled?                | Transmitted off-device by Tabby? | Purpose                                                                                                                                | Shared with the publisher? |
+| ----------------------------------- | ----------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Personally identifiable information | No dedicated collection | No                               | —                                                                                                                                      | No                         |
+| Health information                  | No dedicated collection | No                               | —                                                                                                                                      | No                         |
+| Financial information               | No dedicated collection | No                               | —                                                                                                                                      | No                         |
+| Authentication information          | No                      | No                               | —                                                                                                                                      | No                         |
+| Personal communications             | No page-content access  | No                               | —                                                                                                                                      | No                         |
+| Location                            | No                      | No                               | —                                                                                                                                      | No                         |
+| Web history                         | Yes, locally            | No                               | Search titles and addresses locally; restore window labels; show download filenames, statuses, and source sites after optional access. | No                         |
+| User activity                       | Search choices, locally | No                               | Remember which result was chosen for a query to improve search ranking.                                                                | No                         |
+| Website content                     | No page-content access  | No                               | —                                                                                                                                      | No                         |
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
 Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
+
+With optional download access, Chrome’s recent download records are read into memory while the Downloads pane is selected. Tabby stores no separate download history and sends no download records or file contents to the publisher. Removing a history entry leaves its file on disk. Download access and file-opening access can be revoked in Chrome’s extension settings.
 
 ### Data use certification
 
@@ -145,6 +155,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 | Version                                                                      | Submission date | Summary                                                                                 | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | -------------- |
+| [1.8.0](product/releases/v1.8.0-recent-downloads.md)                         | —               | Optional recent downloads in the Tab Manager.                                           | Draft          |
 | [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Pending review |
 | [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published      |
 | [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published      |

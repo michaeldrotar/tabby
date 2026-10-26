@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
-import { forwardRef, memo, useRef } from 'react'
+import { forwardRef, memo, useId, useRef } from 'react'
 import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
 import {
@@ -27,6 +27,8 @@ export type BrowserTabItemProps = Omit<
   tabId?: number | string
   /** Tab title text */
   title?: string
+  itemLabel?: string
+  description?: string
   /** Full URL of the tab */
   url?: string
   /** Custom favicon component (overrides favIconUrl) */
@@ -99,6 +101,8 @@ export const BrowserTabItem = memo(
       {
         tabId,
         title,
+        itemLabel = 'Tab',
+        description,
         url,
         favicon,
         className,
@@ -121,6 +125,7 @@ export const BrowserTabItem = memo(
       forwardedRef,
     ) => {
       const rootRef = useRef<HTMLDivElement>(null)
+      const descriptionId = useId()
       const setRef = (el: HTMLDivElement | null) => {
         ;(rootRef as { current: HTMLDivElement | null }).current = el
         if (typeof forwardedRef === 'function') {
@@ -148,7 +153,7 @@ export const BrowserTabItem = memo(
         }
       }
 
-      const domain = getDomain(url)
+      const domain = description ?? getDomain(url)
 
       // Format title with attention highlighting
       const formatTitle = (titleText?: string): ReactNode => {
@@ -370,6 +375,7 @@ export const BrowserTabItem = memo(
             <div
               role="option"
               aria-selected={selected}
+              aria-describedby={description ? descriptionId : undefined}
               tabIndex={0}
               data-tab-option
               className={cn(
@@ -383,7 +389,7 @@ export const BrowserTabItem = memo(
                 `,
               )}
               onKeyDown={handleKeyDown}
-              aria-label={`Tab: ${title || 'Tab'}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
+              aria-label={`${itemLabel}: ${title || itemLabel}${pinned ? ' (pinned)' : ''}${discarded ? ' (unloaded)' : ''}${audio === 'on' ? ' (playing audio)' : ''}${audio === 'muted' ? ' (muted)' : ''}${duplicate ? ' (duplicate)' : ''}`}
               aria-current={active ? 'page' : undefined}
               aria-busy={loading}
             >
@@ -431,7 +437,12 @@ export const BrowserTabItem = memo(
                             }
                     }
                   >
-                    <span className="min-w-0 truncate">{domain}</span>
+                    <span
+                      id={description ? descriptionId : undefined}
+                      className="min-w-0 truncate"
+                    >
+                      {domain}
+                    </span>
                     {ageLabel && (
                       <span className="flex-shrink-0"> • {ageLabel}</span>
                     )}

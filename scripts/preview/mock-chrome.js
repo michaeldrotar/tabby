@@ -143,7 +143,64 @@
   }
   const matches = (item, query = {}) =>
     Object.entries(query).every(([key, value]) => item[key] === value)
+  const grantedPermissions = new Set(browser.downloadPermissions ?? [])
+  const downloads = clone(browser.downloads ?? [])
+  const downloadEffects = []
+  const updateDownload = async (id, changes) => {
+    Object.assign(find(downloads, id), changes)
+    api.downloads.onChanged.emit({ id })
+  }
   const api = {
+    permissions: {
+      ...events(['onAdded', 'onRemoved']),
+      contains: async ({ permissions }) =>
+        permissions.every((name) => grantedPermissions.has(name)),
+      request: async ({ permissions }) => {
+        if (browser.denyDownloadPermission) return false
+        permissions.forEach((name) => grantedPermissions.add(name))
+        api.permissions.onAdded.emit({ permissions })
+        return true
+      },
+      remove: async ({ permissions }) => {
+        permissions.forEach((name) => grantedPermissions.delete(name))
+        api.permissions.onRemoved.emit({ permissions })
+        return true
+      },
+    },
+    downloads: {
+      ...events(['onCreated', 'onChanged', 'onErased']),
+      search: async ({ id, limit } = {}) =>
+        clone(
+          downloads
+            .filter((item) => id === undefined || item.id === id)
+            .sort((a, b) => b.startTime.localeCompare(a.startTime))
+            .slice(0, limit ?? downloads.length),
+        ),
+      open: async (id) => {
+        find(downloads, id)
+        downloadEffects.push({ action: 'open', id })
+      },
+      show: (id) => {
+        find(downloads, id)
+        downloadEffects.push({ action: 'show', id })
+      },
+      pause: async (id) => updateDownload(id, { paused: true }),
+      resume: async (id) =>
+        updateDownload(id, { paused: false, state: 'in_progress' }),
+      cancel: async (id) =>
+        updateDownload(id, {
+          state: 'interrupted',
+          error: 'USER_CANCELED',
+          canResume: false,
+        }),
+      erase: async ({ id }) => {
+        const item = find(downloads, id)
+        downloads.splice(downloads.indexOf(item), 1)
+        downloadEffects.push({ action: 'erase', id })
+        api.downloads.onErased.emit(id)
+        return [id]
+      },
+    },
     runtime: {
       id: 'preview',
       getPlatformInfo: async () => ({ os: platform }),
@@ -549,6 +606,7 @@
       },
     },
   }
+  globalThis.__TABBY_DOWNLOAD_EFFECTS__ = downloadEffects
   globalThis.chrome = api
 
   if (typeof document !== 'undefined') {
