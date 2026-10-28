@@ -293,13 +293,7 @@ export const OmnibarItem = ({
         {isSelected && (
           <span className="text-muted flex-shrink-0 text-xs">
             {getOmnibarActionLabel(item, actionModifier)}
-            {[
-              'bookmark',
-              'history',
-              'url',
-              'search',
-              'recently-closed',
-            ].includes(item.type) &&
+            {['bookmark', 'history', 'url', 'search'].includes(item.type) &&
               actionModifier && (
                 <span className="ml-1 opacity-50">
                   {actionModifier === 'new-window'

@@ -572,10 +572,11 @@ export const useTabDrag = (
     }
     const nativeOver = (event: DragEvent) => {
       const current = session.current
-      if (!current?.native || !element.contains(event.target as Node)) return
-      event.preventDefault()
+      if (!current?.native) return
       current.x = event.clientX
       current.y = event.clientY
+      if (!element.contains(event.target as Node)) return
+      event.preventDefault()
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
     }
     const nativeDrop = (event: DragEvent) => {

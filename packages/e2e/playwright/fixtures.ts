@@ -11,6 +11,7 @@ const mock = readFileSync(
 
 type BrowserFixture = Omit<typeof browser, 'preferences'> & {
   preferences: Partial<PreferenceState>
+  closedSessions?: readonly unknown[]
 }
 
 export const test = base.extend<{ browserData: BrowserFixture }>({
