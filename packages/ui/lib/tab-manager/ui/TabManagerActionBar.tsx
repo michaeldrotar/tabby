@@ -39,6 +39,7 @@ import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
+import { moveControlFocus } from './managerKeyboard'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -127,12 +128,18 @@ export const TabManagerActionBar = ({
   menuRef,
   menuPosition,
   returnFocus,
+  navigation,
+  selectionCount,
+  showUnselectedActions = false,
 }: {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
   menuPosition: RefObject<{ x: number; y: number } | null>
   returnFocus: RefObject<HTMLElement | null>
+  navigation?: React.ReactNode
+  selectionCount?: number
+  showUnselectedActions?: boolean
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const surface = useSurface()
@@ -150,7 +157,9 @@ export const TabManagerActionBar = ({
     model.actionMenu?.target?.type !== 'window',
   )
   const hasSelection =
-    model.selectedTabIds.length > 0 || model.selectedGroupIds.length > 0
+    selectionCount === undefined
+      ? model.selectedTabIds.length > 0 || model.selectedGroupIds.length > 0
+      : selectionCount > 0
   const interactive =
     (!surface || surface.inputMode === 'live') && canFocusInput()
   const panel = ordered.find(
@@ -269,7 +278,8 @@ export const TabManagerActionBar = ({
       </button>
     )
   }
-  const contents = !hasSelection ? (
+  const showEmpty = !hasSelection && !showUnselectedActions
+  const contents = showEmpty ? (
     <div
       role="status"
       className={`
@@ -393,6 +403,9 @@ export const TabManagerActionBar = ({
       </div>
       <nav
         aria-label="Tab Manager tools"
+        onKeyDownCapture={(event) =>
+          moveControlFocus(event, event.currentTarget)
+        }
         data-keyboard-section="tools"
         className={`
           border-border relative flex h-12 shrink-0 items-center justify-between
@@ -419,6 +432,7 @@ export const TabManagerActionBar = ({
           </button>
           <SummerMotionControl />
         </div>
+        {navigation}
         <button
           type="button"
           data-action-bar-menu-trigger

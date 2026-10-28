@@ -38,6 +38,48 @@
     let id = Math.max(0, ...items.map((item) => item.id))
     return () => ++id
   }
+  const bookmarkTree = clone(
+    browser.bookmarks ?? [
+      {
+        id: '0',
+        title: '',
+        children: [
+          { id: '1', parentId: '0', title: 'Bookmarks bar', children: [] },
+          { id: '2', parentId: '0', title: 'Other bookmarks', children: [] },
+        ],
+      },
+    ],
+  )
+  const bookmarkNodes = () => {
+    const flatten = (nodes) =>
+      nodes.flatMap((node) => [node, ...flatten(node.children ?? [])])
+    return flatten(bookmarkTree)
+  }
+  let bookmarkId = Math.max(
+    0,
+    ...bookmarkNodes().map((node) => Number(node.id) || 0),
+  )
+  const bookmarkNode = (id) => find(bookmarkNodes(), id)
+  const writableBookmark = (node) => {
+    if (node.unmodifiable || node.id === '0')
+      throw new Error('This bookmark is managed.')
+  }
+  const editableBookmark = (node) => {
+    writableBookmark(node)
+    if (node.parentId === '0' || node.folderType)
+      throw new Error('This bookmark is managed.')
+  }
+  const bookmarkFolder = (id) => {
+    const node = bookmarkNode(id)
+    writableBookmark(node)
+    if (node.url !== undefined)
+      throw new Error('The destination is not a folder.')
+    return node
+  }
+  const indexBookmarks = (parent) =>
+    parent.children.forEach((node, index) => {
+      node.index = index
+    })
   const nextTabId = idSequence(tabs)
   const nextWindowId = idSequence(windows)
   const nextGroupId = idSequence(groups)
@@ -244,7 +286,107 @@
         browser.currentWindowId = windowId
       },
     },
-    bookmarks: { search: async () => [] },
+    bookmarks: {
+      ...events([
+        'onCreated',
+        'onChanged',
+        'onMoved',
+        'onRemoved',
+        'onChildrenReordered',
+        'onImportEnded',
+      ]),
+      getTree: async () => clone(bookmarkTree),
+      get: async (ids) => clone([].concat(ids).map(bookmarkNode)),
+      getSubTree: async (id) => clone([bookmarkNode(id)]),
+      search: async (query) =>
+        clone(
+          bookmarkNodes().filter(
+            (node) =>
+              node.url &&
+              node.title.toLowerCase().includes(String(query).toLowerCase()),
+          ),
+        ),
+      create: async ({ parentId = '2', title = '', url, index }) => {
+        const parent = bookmarkFolder(parentId)
+        const node = {
+          id: String(++bookmarkId),
+          parentId,
+          title,
+          ...(url === undefined ? { children: [] } : { url }),
+        }
+        parent.children.splice(index ?? parent.children.length, 0, node)
+        indexBookmarks(parent)
+        api.bookmarks.onCreated.emit(node.id, clone(node))
+        return clone(node)
+      },
+      update: async (id, values) => {
+        const node = bookmarkNode(id)
+        editableBookmark(node)
+        Object.assign(node, values)
+        api.bookmarks.onChanged.emit(id, clone(values))
+        return clone(node)
+      },
+      move: async (id, { parentId, index }) => {
+        const node = bookmarkNode(id)
+        editableBookmark(node)
+        const previous = bookmarkNode(node.parentId)
+        const parent = bookmarkFolder(parentId ?? node.parentId)
+        let ancestor = parent
+        while (ancestor) {
+          if (ancestor.id === id)
+            throw new Error('Cannot move a folder into itself.')
+          ancestor = ancestor.parentId
+            ? bookmarkNode(ancestor.parentId)
+            : undefined
+        }
+        const oldIndex = previous.children.indexOf(node)
+        const oldParentId = node.parentId
+        const insertion = index ?? parent.children.length
+        previous.children.splice(oldIndex, 1)
+        parent.children.splice(
+          insertion - (parent === previous && oldIndex < insertion ? 1 : 0),
+          0,
+          node,
+        )
+        node.parentId = parent.id
+        indexBookmarks(previous)
+        indexBookmarks(parent)
+        api.bookmarks.onMoved.emit(id, {
+          parentId: parent.id,
+          oldParentId,
+          index: node.index,
+          oldIndex,
+        })
+        return clone(node)
+      },
+      remove: async (id) => {
+        const node = bookmarkNode(id)
+        editableBookmark(node)
+        if (node.children?.length) throw new Error('Folder is not empty.')
+        const parent = bookmarkNode(node.parentId)
+        const index = parent.children.indexOf(node)
+        parent.children.splice(index, 1)
+        indexBookmarks(parent)
+        api.bookmarks.onRemoved.emit(id, {
+          parentId: parent.id,
+          index,
+          node: clone(node),
+        })
+      },
+      removeTree: async (id) => {
+        const node = bookmarkNode(id)
+        editableBookmark(node)
+        const parent = bookmarkNode(node.parentId)
+        const index = parent.children.indexOf(node)
+        parent.children.splice(index, 1)
+        indexBookmarks(parent)
+        api.bookmarks.onRemoved.emit(id, {
+          parentId: parent.id,
+          index,
+          node: clone(node),
+        })
+      },
+    },
     history: { search: async () => [] },
     sessions: { getRecentlyClosed: async () => [] },
     windows: {

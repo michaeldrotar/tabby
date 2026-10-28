@@ -51,6 +51,18 @@ Tabby names are separate from Chrome's native window names: the [Chrome windows 
 
 Closed-window fingerprints expire after 90 days, with at most 200 saved identities retained. Private-window labels last for the browser session and are excluded from persistent fingerprints.
 
+## Bookmarks
+
+Use the **Tabs** and **Bookmarks** switch in the bottom bar to move between windows/tabs and Chrome's native bookmarks. Browse folders or filter all bookmarks by name or address. Right-click an entry or use **More actions** for the current selection. Cmd/Ctrl-click toggles selection, Shift-click selects a range, Space enters multi-select mode, and Cmd/Ctrl+A selects the visible entries. Move or delete several entries together. Duplicate names remain separate entries. Chrome-managed folders and bookmarks are read-only. Folder deletion shows the affected bookmark and folder counts before removing the contents from Chrome bookmarks.
+
+A bookmark opens in the current window's active tab. Middle-click opens a new tab; the context menu can open selected bookmarks together in new tabs, a new window, or a new group. Folder actions can open only the direct bookmark children as tabs in the current window, in a new window, or in one new tab group. **Open folder structure as windows and groups** opens direct bookmarks in one window, then each immediate child folder with bookmarks in its own window. Within those windows, the next folder level becomes groups, with deeper descendants flattened into their nearest group. Empty branches are skipped and bookmark order is retained.
+
+**Bookmark a window** saves one chosen window into a new or existing native bookmark folder. Existing folders keep their current entries; the saved tabs are appended. **Restore as one window** opens that folder's direct bookmarks as tabs and child folders as groups. This format preserves URLs, bookmark titles, order, group boundaries, labels, and colors. Restored pages supply their own live tab titles. It does not preserve window geometry, back/forward history, pinned state, active-tab selection, or page/form state. Recently closed pages remain available through Search.
+
+Group folders use `<label> [Tabby group v1:<payload>]` titles, where the payload is a URI-encoded JSON array of group identity, label, and Chrome color. Tabby shows the decoded label; renaming through Tabby preserves the encoding. Editing or removing the encoded suffix in another bookmark manager makes the folder an ordinary group with Chrome's default gray color. The folder remains native bookmark data and follows Chrome's bookmark sync settings. Only the selected sidebar folder is stored locally as a preference.
+
+Tabby skips executable or unsupported addresses when saving/opening folders and reports how many were skipped. If Chrome rejects a supported address while opening a folder, other bookmarks still open and the result reports the rejected count. If Chrome rejects a window save, Tabby removes the entries created by that save and reports any cleanup failure. A single bookmark rejected by Chrome stays available for editing.
+
 ## Privacy and security
 
 Privacy is a core value of Tabby. Searches across your tabs, bookmarks, and history happen locally on your device. If you choose **Search Google**, Tabby opens Google with your query in the search URL.

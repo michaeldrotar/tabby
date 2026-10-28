@@ -4,6 +4,7 @@ import type { OmnibarView } from './OmnibarExperience'
 import type { OptionsView } from './OptionsExperience'
 import type { TabManagerView } from './view'
 import type {
+  BookmarkResource,
   BrowserBackend,
   HostCapabilities,
   OmnibarResource,
@@ -23,6 +24,7 @@ export type TabbyEnvironment = {
 }
 
 export type TabManagerResources = {
+  bookmarks?: BookmarkResource
   backend: BrowserBackend
   view: TabManagerView
   preferences: PreferenceResource
@@ -48,8 +50,16 @@ export const TabbyProvider = ({
   children,
   ...resources
 }: PropsWithChildren<TabbyResources>) => {
-  const { backend, views, omnibar, options, preferences, environment, host } =
-    resources
+  const {
+    backend,
+    views,
+    omnibar,
+    options,
+    preferences,
+    environment,
+    host,
+    bookmarks,
+  } = resources
   const value = useMemo(
     () => ({
       backend,
@@ -59,8 +69,18 @@ export const TabbyProvider = ({
       preferences,
       environment,
       host,
+      bookmarks,
     }),
-    [backend, views, omnibar, options, preferences, environment, host],
+    [
+      backend,
+      views,
+      omnibar,
+      options,
+      preferences,
+      environment,
+      host,
+      bookmarks,
+    ],
   )
   return <TabbyContext.Provider value={value}>{children}</TabbyContext.Provider>
 }
@@ -87,11 +107,12 @@ export const useTabbyTheme = () => {
 }
 
 export const useTabManagerResources = (): TabManagerResources => {
-  const { backend, views, preferences, environment, host } = useTabbyResources()
+  const { backend, views, preferences, environment, host, bookmarks } =
+    useTabbyResources()
   const view = views.tabManager
   return useMemo(
-    () => ({ backend, view, preferences, environment, host }),
-    [backend, view, preferences, environment, host],
+    () => ({ backend, view, preferences, environment, host, bookmarks }),
+    [backend, view, preferences, environment, host, bookmarks],
   )
 }
 

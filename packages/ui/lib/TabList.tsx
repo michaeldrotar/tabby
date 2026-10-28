@@ -13,10 +13,12 @@ export const TabList = ({
   children,
   className,
   deferOffscreen = false,
+  ariaLabel,
 }: {
   children: React.ReactNode
   className?: string
   deferOffscreen?: boolean
+  ariaLabel?: string
 }) => {
   const settleMotion = useContext(TabListMotionContext) || deferOffscreen
   return (
@@ -24,6 +26,7 @@ export const TabList = ({
       <ol
         className={cn('flex flex-col gap-1', className)}
         role="listbox"
+        aria-label={ariaLabel}
         aria-multiselectable="true"
         data-defer-offscreen={deferOffscreen || undefined}
       >

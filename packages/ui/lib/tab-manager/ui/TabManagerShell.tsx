@@ -4,6 +4,7 @@ import { useSurface, useSurfaceId } from '../../Surface'
 import { cn } from '../../utils/cn'
 
 export type TabManagerShellProps = {
+  mainLabel?: string
   header?: React.ReactNode
   children: React.ReactNode
   /** Optional overlay content (e.g., animation effects) that should cover the entire shell */
@@ -17,6 +18,7 @@ export type TabManagerShellProps = {
 
 export const TabManagerShell = ({
   header,
+  mainLabel = 'Tabs',
   children,
   overlay,
   actionBar,
@@ -49,7 +51,7 @@ export const TabManagerShell = ({
           <main
             id={mainId}
             tabIndex={-1}
-            aria-label="Tabs"
+            aria-label={mainLabel}
             className="h-full outline-none"
           >
             <h1 className="sr-only">Tab manager</h1>

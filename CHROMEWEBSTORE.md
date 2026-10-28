@@ -32,6 +32,10 @@ Drag tabs, selected tabs, or whole groups to choose their position. Hold over th
 
 Middle-click a tab to close it, or create a new tab directly below an existing tab.
 
+Keep bookmarks in reach
+
+Switch between Tabs and Bookmarks in the bottom bar. Browse folders, filter saved pages, and create, edit, move, reorder, or delete native bookmarks. Select several entries and use the same right-click actions and keyboard selection patterns as the tab list. Open a folder's direct bookmarks in this window, a new window, or a new tab group. Open a folder structure as windows and groups, or bookmark a window and restore its ordered tabs with group names and colors.
+
 Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
@@ -79,17 +83,17 @@ Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config
 
 The manifest declares these permissions. It declares no host permissions or production content scripts.
 
-| Permission  | Type        | Justification                                                                                                                               |
-| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                     |
-| `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
-| `storage`   | permissions | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                 |
-| `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
-| `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
-| `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
-| `bookmarks` | permissions | Search saved bookmarks locally and open the result selected by the user.                                                                    |
-| `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                   |
-| `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                          |
+| Permission  | Type        | Justification                                                                                                                                             |
+| ----------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                                   |
+| `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                                         |
+| `storage`   | permissions | Save appearance preferences, unfinished queries, recent search choices, window labels, bookmark sidebar preferences, and hashed URL fingerprints locally. |
+| `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user.               |
+| `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                                         |
+| `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                                       |
+| `bookmarks` | permissions | Search, browse, create, edit, move, and delete native bookmarks; save and restore windows using bookmark folders.                                         |
+| `history`   | permissions | Search browsing history locally and open the result selected by the user.                                                                                 |
+| `sessions`  | permissions | Search recently closed tabs and windows and restore the item selected by the user.                                                                        |
 
 ## Privacy and data use
 
