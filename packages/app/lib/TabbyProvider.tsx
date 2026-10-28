@@ -10,6 +10,7 @@ import type {
   OptionsResource,
   PreferenceResource,
 } from '@extension/core'
+import type { DownloadsResource } from '@extension/core/downloads'
 import type { SurfaceProps } from '@extension/ui/Surface'
 import type { PropsWithChildren } from 'react'
 
@@ -23,6 +24,7 @@ export type TabbyEnvironment = {
 }
 
 export type TabManagerResources = {
+  downloads?: DownloadsResource
   backend: BrowserBackend
   view: TabManagerView
   preferences: PreferenceResource
@@ -48,8 +50,16 @@ export const TabbyProvider = ({
   children,
   ...resources
 }: PropsWithChildren<TabbyResources>) => {
-  const { backend, views, omnibar, options, preferences, environment, host } =
-    resources
+  const {
+    backend,
+    views,
+    omnibar,
+    options,
+    preferences,
+    environment,
+    host,
+    downloads,
+  } = resources
   const value = useMemo(
     () => ({
       backend,
@@ -59,8 +69,18 @@ export const TabbyProvider = ({
       preferences,
       environment,
       host,
+      downloads,
     }),
-    [backend, views, omnibar, options, preferences, environment, host],
+    [
+      backend,
+      views,
+      omnibar,
+      options,
+      preferences,
+      environment,
+      host,
+      downloads,
+    ],
   )
   return <TabbyContext.Provider value={value}>{children}</TabbyContext.Provider>
 }
@@ -87,11 +107,12 @@ export const useTabbyTheme = () => {
 }
 
 export const useTabManagerResources = (): TabManagerResources => {
-  const { backend, views, preferences, environment, host } = useTabbyResources()
+  const { backend, views, preferences, environment, host, downloads } =
+    useTabbyResources()
   const view = views.tabManager
   return useMemo(
-    () => ({ backend, view, preferences, environment, host }),
-    [backend, view, preferences, environment, host],
+    () => ({ backend, view, preferences, environment, host, downloads }),
+    [backend, view, preferences, environment, host, downloads],
   )
 }
 

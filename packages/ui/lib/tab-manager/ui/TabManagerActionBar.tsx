@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FileText,
   Focus,
+  FolderOpen,
   FolderPlus,
   Layers,
   Link2,
@@ -18,13 +19,16 @@ import {
   MonitorUp,
   MousePointer2,
   Palette,
+  Pause,
   Pencil,
   Pin,
   PinOff,
+  Play,
   Plus,
   RefreshCw,
   Search,
   Settings,
+  ShieldAlert,
   Trash2,
   Ungroup,
   Volume2,
@@ -57,11 +61,15 @@ const icons = {
   FileText,
   Focus,
   FolderPlus,
+  FolderOpen,
   Layers,
   Link2,
   MemoryStick,
   MonitorUp,
   Palette,
+  Pause,
+  Play,
+  ShieldAlert,
   Pencil,
   Pin,
   PinOff,
@@ -121,6 +129,33 @@ const OptionContent = ({
   </>
 )
 
+export type SelectionActionModel = Pick<
+  TabManagerViewModel,
+  'actions' | 'contextActions' | 'actionPanel' | 'notifications'
+> & {
+  actionMenu?: { target?: { type: string } } | null
+  selectedTabIds?: readonly number[]
+  selectedGroupIds?: readonly number[]
+  selectionCount?: number
+  selectionLabel?: string
+  emptySelectionMessage?: string
+}
+export type SelectionActionIntent = Extract<
+  TabManagerIntent,
+  {
+    type:
+      | 'run-action'
+      | 'open-action-panel'
+      | 'dismiss-action-panel'
+      | 'open-action-menu'
+      | 'dismiss-action-menu'
+      | 'expand-notifications'
+      | 'dismiss-notice'
+      | 'open-search'
+      | 'open-settings'
+  }
+>
+
 export const TabManagerActionBar = ({
   model,
   onIntent,
@@ -128,8 +163,8 @@ export const TabManagerActionBar = ({
   menuPosition,
   returnFocus,
 }: {
-  model: TabManagerViewModel
-  onIntent: (intent: TabManagerIntent) => void
+  model: SelectionActionModel
+  onIntent: (intent: SelectionActionIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
   menuPosition: RefObject<{ x: number; y: number } | null>
   returnFocus: RefObject<HTMLElement | null>
@@ -150,7 +185,9 @@ export const TabManagerActionBar = ({
     model.actionMenu?.target?.type !== 'window',
   )
   const hasSelection =
-    model.selectedTabIds.length > 0 || model.selectedGroupIds.length > 0
+    (model.selectionCount ??
+      (model.selectedTabIds?.length ?? 0) +
+        (model.selectedGroupIds?.length ?? 0)) > 0
   const interactive =
     (!surface || surface.inputMode === 'live') && canFocusInput()
   const panel = ordered.find(
@@ -278,7 +315,9 @@ export const TabManagerActionBar = ({
       `}
     >
       <MousePointer2 size={32} className="text-accent" aria-hidden="true" />
-      <p>Select tabs or groups to see actions.</p>
+      <p>
+        {model.emptySelectionMessage ?? 'Select tabs or groups to see actions.'}
+      </p>
     </div>
   ) : panel ? (
     <>
@@ -419,6 +458,16 @@ export const TabManagerActionBar = ({
           </button>
           <SummerMotionControl />
         </div>
+        {model.selectionLabel ? (
+          <span
+            role="status"
+            className={`
+              text-muted min-w-0 flex-1 truncate px-2 text-right text-xs
+            `}
+          >
+            {model.selectionLabel}
+          </span>
+        ) : null}
         <button
           type="button"
           data-action-bar-menu-trigger
@@ -478,7 +527,7 @@ export const TabManagerActionBar = ({
                   return
                 if (
                   target.closest(
-                    '[data-action-bar-menu-trigger],[data-tab-id],[data-group-id]',
+                    '[data-action-bar-menu-trigger],[data-tab-id],[data-group-id],[data-download-id]',
                   )
                 )
                   event.preventDefault()

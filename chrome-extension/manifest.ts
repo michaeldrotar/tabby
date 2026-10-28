@@ -37,6 +37,7 @@ const manifest = {
     'sessions',
   ],
   options_page: 'options/index.html',
+  optional_permissions: ['downloads', 'downloads.open'],
   background: {
     service_worker: 'background.js',
     type: 'module',

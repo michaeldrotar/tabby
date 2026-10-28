@@ -10,6 +10,7 @@ export type TabManagerShellProps = {
   overlay?: React.ReactNode
   /** Optional action bar rendered below the main content area */
   actionBar?: React.ReactNode
+  mainLabel?: string
   className?: string
   /** Selection mode for visual styling of focus vs selection */
   selectionMode?: 'default' | 'multi-select'
@@ -20,6 +21,7 @@ export const TabManagerShell = ({
   children,
   overlay,
   actionBar,
+  mainLabel = 'Tabs',
   className,
   selectionMode = 'default',
 }: TabManagerShellProps) => {
@@ -43,13 +45,16 @@ export const TabManagerShell = ({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ScrollArea
           data-manager-scroll
-          className="min-h-0 flex-1"
+          className={`
+            min-h-0 flex-1
+            [&>[data-radix-scroll-area-viewport]]:[overflow-anchor:none]
+          `}
           orientation="vertical"
         >
           <main
             id={mainId}
             tabIndex={-1}
-            aria-label="Tabs"
+            aria-label={mainLabel}
             className="h-full outline-none"
           >
             <h1 className="sr-only">Tab manager</h1>

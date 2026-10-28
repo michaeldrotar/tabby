@@ -63,6 +63,7 @@ const begin = async (page: Page, source: Locator) => {
   await expect(page.locator('[data-drag-preview]')).toBeVisible()
 }
 const over = async (page: Page, target: Locator, fraction = 0.5) => {
+  await page.mouse.move(1, 1)
   await target.evaluate((element) =>
     element.scrollIntoView({ block: 'center', behavior: 'instant' }),
   )
