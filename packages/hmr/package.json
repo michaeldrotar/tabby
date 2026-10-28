@@ -34,7 +34,7 @@
     "@rollup/plugin-sucrase": "^5.0.2",
     "@types/ws": "^8.18.1",
     "esm": "^3.2.25",
-    "rollup": "^4.53.3",
+    "rollup": "^4.59.0",
     "ws": "^8.18.3"
   }
 }
