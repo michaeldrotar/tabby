@@ -205,8 +205,17 @@ test('both showcase signs shake after every flip and keep shaking with button fo
   await page.clock.runFor(1100)
   const showcase = page.locator('.hero-showcase')
   const button = showcase.locator('.showcase-toggle')
+  await showcase.scrollIntoViewIfNeeded()
+  await page.clock.runFor(100)
+  await expect(showcase).toBeInViewport({ ratio: 0.6 })
   for (const name of ['Watch it', 'Try it', 'Watch it']) {
     await button.click()
+    await expect(showcase).toHaveAttribute(
+      'data-watching',
+      name === 'Watch it' ? 'true' : 'false',
+    )
+    // Keep the cue target visible after the flip before advancing its timer.
+    await showcase.scrollIntoViewIfNeeded()
     await page.clock.runFor(100)
     for (
       let index = 0;
