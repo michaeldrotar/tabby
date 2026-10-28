@@ -1,5 +1,8 @@
 import { OmnibarCancelledError } from '@extension/core/omnibar'
-import { rememberOmnibarChoice } from '@extension/core/omnibarChoices'
+import {
+  getOmnibarExecutionChoices,
+  rememberOmnibarChoices,
+} from '@extension/core/omnibarChoices'
 import { createOmnibarMatcher } from '@extension/core/omnibarMatching'
 import type {
   BrowserBackend,
@@ -63,6 +66,7 @@ export const createMemoryOmnibarResource = (
       throw new Error(
         result.failures[0]?.message ?? 'The action could not be completed.',
       )
+    return result
   }
   return {
     getSnapshot: () => metadata,
@@ -111,8 +115,17 @@ export const createMemoryOmnibarResource = (
       if (options.commands === 'ignore') return
       const version = queryVersion
       const operation = generation
-      const run = (command: Parameters<BrowserBackend['execute']>[0]) =>
-        assertOutcome(command, operation)
+      const openedTabs: { id: number; url?: string }[] = []
+      const run = async (command: Parameters<BrowserBackend['execute']>[0]) => {
+        const result = await assertOutcome(command, operation)
+        const ids =
+          command.type === 'navigate-tab'
+            ? [command.tabId]
+            : (result.createdTabIds ?? [])
+        openedTabs.push(
+          ...browser.getSnapshot().tabs.filter((tab) => ids.includes(tab.id)),
+        )
+      }
       const snapshot = browser.getSnapshot()
       const windowId =
         options.originalWindowId ??
@@ -206,9 +219,9 @@ export const createMemoryOmnibarResource = (
       if (choice) {
         metadata = {
           ...metadata,
-          choices: rememberOmnibarChoice(
+          choices: rememberOmnibarChoices(
             metadata.choices ?? [],
-            choice,
+            getOmnibarExecutionChoices(choice, openedTabs),
             Math.max(
               choice.selectedAt,
               ...(metadata.choices ?? []).map((item) => item.selectedAt),

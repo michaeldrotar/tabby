@@ -124,6 +124,25 @@ describe('full application preview', () => {
     ).toMatchObject({ choices: [choice] })
   })
 
+  it('searches supplied bookmark and history fixtures by all query words', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        resolve(previewDirectory, 'omnibar-recall-browser-data.json'),
+        'utf8',
+      ),
+    )
+    const api = loadMock(mockSource, fixture)
+    expect(
+      (await api.bookmarks.search('PROJECT atl')).map((item) => item.id),
+    ).toEqual(['atlas'])
+    expect(await api.bookmarks.search('project missing')).toEqual([])
+    expect(
+      (await api.history.search({ text: 'project', maxResults: 20 })).map(
+        (item) => item.id,
+      ),
+    ).toEqual(['old-project'])
+  })
+
   it('loads an alternate fixture and starts each page with fresh sample data', async () => {
     const fixturePath = resolve(directory, 'custom-browser.json')
     const custom = { ...browser, tabs: browser.tabs.slice(0, 1), groups: [] }

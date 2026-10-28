@@ -65,7 +65,6 @@ export const OmnibarExperience = ({
     preferences.getSnapshot,
   )
   const view = views.omnibar
-  const now = environment.now()
   const metadata = useSyncExternalStore(
     resource.subscribe,
     resource.getSnapshot,
@@ -77,6 +76,11 @@ export const OmnibarExperience = ({
     browser.getSnapshot,
   )
   const state = useStore(view)
+  const ranking = useMemo(
+    () => ({ query: state.query, now: environment.now() }),
+    [state.query, environment],
+  )
+  const now = ranking.now
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
   useEffect(() => {
