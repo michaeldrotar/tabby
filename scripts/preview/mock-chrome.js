@@ -141,6 +141,17 @@
       setAccessLevel: async () => undefined,
     }
   }
+  const searchPages = (items = [], query = '') =>
+    clone(
+      items.filter((item) => {
+        const text = `${item.title ?? ''} ${item.url ?? ''}`.toLowerCase()
+        return query
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean)
+          .every((term) => text.includes(term))
+      }),
+    )
   const matches = (item, query = {}) =>
     Object.entries(query).every(([key, value]) => item[key] === value)
   const api = {
@@ -244,8 +255,13 @@
         browser.currentWindowId = windowId
       },
     },
-    bookmarks: { search: async () => [] },
-    history: { search: async () => [] },
+    bookmarks: {
+      search: async (query) => searchPages(browser.bookmarks, query),
+    },
+    history: {
+      search: async ({ text, maxResults }) =>
+        searchPages(browser.history, text).slice(0, maxResults),
+    },
     sessions: { getRecentlyClosed: async () => [] },
     windows: {
       ...events([

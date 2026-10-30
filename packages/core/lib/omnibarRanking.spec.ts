@@ -28,7 +28,7 @@ const day = 24 * 60 * 60 * 1000
 const order = (results: OmnibarResult[]) => results.map((item) => item.id)
 
 describe('Omnibar ranking', () => {
-  it('uses category preference for equal matches when recency is equal', () => {
+  it('uses type preference for equal matches when recency is equal', () => {
     expect(
       order(
         rankOmnibarResults(
@@ -45,7 +45,7 @@ describe('Omnibar ranking', () => {
 
   it('boosts recently visited matches and fades browsing recency daily', () => {
     const recent = { ...items[0]!, lastVisitTime: day }
-    expect(rankOmnibarResults([items[3]!, recent], 'cat', day)[0]?.id).toBe(
+    expect(rankOmnibarResults([items[1]!, recent], 'cat', day)[0]?.id).toBe(
       'tab',
     )
     expect(
@@ -62,7 +62,7 @@ describe('Omnibar ranking', () => {
   })
 
   it.each(items)(
-    'promotes a successful $type choice only for the same normalized query',
+    'promotes a successful $type choice for normalized queries and word prefixes',
     (item) => {
       const choices = rememberOmnibarChoice([], {
         query: '  CAT  ',
@@ -74,16 +74,49 @@ describe('Omnibar ranking', () => {
       )
       expect(
         order(rankOmnibarResults(items, 'ca', day + 1000, choices)),
-      ).toEqual(['command', 'window', 'group', 'tab'])
+      ).toEqual([
+        item.id,
+        ...['command', 'window', 'group', 'tab'].filter((id) => id !== item.id),
+      ])
       expect(rankOmnibarResults(items, 'cat', 70 * day, choices)[0]?.id).toBe(
         'command',
       )
     },
   )
 
-  it('lets complete names outrank a command with a weaker title match', () => {
+  it('prefers open items over ordinary history but allows an explicit recent choice to win', () => {
     const results: OmnibarResult[] = [
-      { ...items[2]!, title: 'Manager' },
+      { ...items[0]!, title: 'Old mail', url: 'https://gmail.test/inbox' },
+      ...(['bookmark', 'recently-closed', 'history'] as const).map((type) => ({
+        id: type,
+        type,
+        title: 'Inbox',
+        lastVisitTime: type === 'bookmark' ? undefined : day,
+        action: { kind: 'url' as const, url: `https://${type}.test` },
+      })),
+    ]
+    expect(order(rankOmnibarResults(results, 'inbox', day))).toEqual([
+      'tab',
+      'bookmark',
+      'recently-closed',
+      'history',
+    ])
+    const history = results.find((item) => item.type === 'history')!
+    const choices = [
+      {
+        query: 'inbox gmail',
+        target: getOmnibarTarget(history),
+        selectedAt: day,
+      },
+    ]
+    expect(
+      order(rankOmnibarResults(results.reverse(), 'inbox', day, choices)),
+    ).toEqual(['history', 'tab', 'bookmark', 'recently-closed'])
+  })
+
+  it('uses text relevance to distinguish matches within the same type', () => {
+    const results: OmnibarResult[] = [
+      { ...items[3]!, id: 'complete', title: 'Manager' },
       {
         ...items[3]!,
         title: 'Chrome: Password manager',
@@ -91,7 +124,7 @@ describe('Omnibar ranking', () => {
       },
     ]
     expect(order(rankOmnibarResults(results, 'manager', 0))).toEqual([
-      'window',
+      'complete',
       'command',
     ])
     expect(

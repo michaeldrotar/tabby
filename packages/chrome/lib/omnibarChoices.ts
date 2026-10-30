@@ -1,6 +1,6 @@
 import {
   readOmnibarChoices,
-  rememberOmnibarChoice,
+  rememberOmnibarChoices,
 } from '@extension/core/omnibarChoices'
 import type { OmnibarChoice } from '@extension/core'
 
@@ -56,22 +56,29 @@ export const loadChromeOmnibarChoices = async (
   }
 }
 
-export const saveChromeOmnibarChoice = async (
+export const saveChromeOmnibarChoices = async (
   api: Api,
-  choice: OmnibarChoice,
+  choices: readonly OmnibarChoice[],
   privateWindow: boolean,
 ) => {
   const key = privateWindow ? OMNIBAR_PRIVATE_CHOICES_KEY : OMNIBAR_CHOICES_KEY
-  const areas = [api.storage.session]
-  if (!privateWindow && !/^(tab|window|group|restore):/.test(choice.target))
-    areas.push(api.storage.local)
+  const areas = privateWindow
+    ? [api.storage.session]
+    : [api.storage.session, api.storage.local]
   for (const area of areas) {
+    const next =
+      area === api.storage.local
+        ? choices.filter(
+            (choice) => !/^(tab|window|group|restore):/.test(choice.target),
+          )
+        : choices
+    if (!next.length) continue
     const stored = await area.get(key)
     const now = Date.now()
     await area.set({
-      [key]: rememberOmnibarChoice(
+      [key]: rememberOmnibarChoices(
         readOmnibarChoices(stored[key], now),
-        choice,
+        next,
         now,
       ),
     })
