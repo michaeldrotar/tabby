@@ -1,5 +1,11 @@
 [
   {
+    "version": "v1.7.1",
+    "title": "More predictable search",
+    "publishedAt": "2026-10-30T03:39:52Z",
+    "body": "# More predictable search\n\n**Version:** 1.7.1\n**Release Date:** 2026-10-29\n\nFixes search priorities, recall of recent choices, and results shifting while a search stays open.\n\n## Bug fixes\n\n### Search priorities\n\nCorrected search priorities to favor commands, open windows, groups, and tabs before opening new pages, while letting recent activity and search choices bring relevant results forward.\n\n### Window results without duplicates\n\nOrdinary searches match windows by their custom names, preventing automatic window titles from duplicating matching tabs. Explicit window commands still list every open window by number.\n\n### Recall with shorter searches\n\nRecent choices retain their priority when you shorten a search, type only the beginning of its words, or reorder the words.\n\n### Return to pages already open\n\nReturning to a recent search favors matching tabs opened or restored from its results, helping you get back to a page without opening another copy. The original destination remains prioritized if the tab no longer matches.\n\n### Stable results\n\nResults stay in place as time passes or unread counts change in otherwise equally ranked page titles.\n"
+  },
+  {
     "version": "v1.7.0",
     "title": "A more polished Tabby",
     "publishedAt": "2026-10-25T06:30:32Z",
