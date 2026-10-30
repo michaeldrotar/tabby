@@ -68,12 +68,14 @@ export const createChromeOmnibarResource = (
     operation: number,
     choice?: OmnibarChoice,
   ) => {
-    if (!choice)
-      return createChromeOmnibarNavigator(
+    if (!choice) {
+      await createChromeOmnibarNavigator(
         api,
         metadata.originalWindowId,
         current,
       )(action, modifier, operation)
+      return
+    }
     const response = await api.runtime.sendMessage({
       type: 'tabby-omnibar-execute',
       action,

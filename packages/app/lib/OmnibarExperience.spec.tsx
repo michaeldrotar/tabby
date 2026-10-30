@@ -132,7 +132,7 @@ describe('Omnibar experience', () => {
         },
       ])
     })
-    expect(screen.getAllByRole('option')[1]).toHaveTextContent('Project')
+    expect(screen.getAllByRole('option').at(-1)).toHaveTextContent('Project')
     expect(
       screen.getByRole('option', { name: /^Tabby project tab/ }),
     ).toHaveAttribute('aria-selected', 'true')
@@ -146,6 +146,51 @@ describe('Omnibar experience', () => {
     fireEvent.change(input, { target: { value: 'project' } })
     expect(screen.getAllByRole('option')[1]).toHaveTextContent('Tabby project')
     expect(screen.getAllByRole('option')[1]).toHaveTextContent('tab')
+  })
+
+  it('keeps recency ranking stable across idle rerenders and refreshes it for a new query', () => {
+    const day = 24 * 60 * 60 * 1000
+    let now = day
+    const resources = setup()
+    const view = createOmnibarView({
+      query: 'inbox',
+      edited: true,
+      resultsQuery: 'inbox',
+      externalResults: [
+        {
+          id: 'older',
+          type: 'history',
+          title: 'Inbox notes',
+          lastVisitTime: day - day * Math.log2(20 / (20 - 8 / 6)) - 1,
+          action: { kind: 'url', url: 'https://older.test' },
+        },
+        {
+          id: 'recent',
+          type: 'history',
+          title: 'Mail inbox',
+          lastVisitTime: day,
+          action: { kind: 'url', url: 'https://recent.test' },
+        },
+      ],
+    })
+    render(
+      <TabbyProvider
+        {...resources}
+        environment={{ now: () => now, systemTheme: 'light' }}
+        views={{ ...resources.views, omnibar: view }}
+      >
+        <OmnibarExperience onDismiss={() => undefined} />
+      </TabbyProvider>,
+    )
+    const titles = () =>
+      screen.getAllByRole('option').map((item) => item.textContent)
+    const initial = titles()
+    expect(initial[1]).toContain('Mail inbox')
+    now += 1000
+    act(() => view.setState({ scrollTop: 1 }))
+    expect(titles()).toEqual(initial)
+    act(() => view.setState({ query: 'Inbox', resultsQuery: 'Inbox' }))
+    expect(titles()[1]).toContain('Inbox notes')
   })
 
   it('finds a renamed window and focuses it without changing its tabs', async () => {

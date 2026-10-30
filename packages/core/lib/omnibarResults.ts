@@ -30,6 +30,7 @@ export const getOmnibarCommands = (
   snapshot: BrowserSnapshot,
   originalWindowId?: number,
   windowSource: 'active' | 'first' = 'active',
+  includeUnnamedWindows = false,
 ): OmnibarResult[] => {
   const incognito = Boolean(
     snapshot.windows.find((window) => window.id === originalWindowId)
@@ -59,28 +60,28 @@ export const getOmnibarCommands = (
         `chrome://${path}`,
       ),
     ),
-    ...windows.map((window, index) => {
-      const active = snapshot.tabs.find(
-        (tab) => tab.windowId === window.id && tab.active,
-      )
-      const identity = getWindowIdentity(window, snapshot.tabs, windowSource)
+    ...windows.flatMap((window, index) => {
       const name = window.name?.trim()
+      if (!name && !includeUnnamedWindows) return []
+      const identity = getWindowIdentity(window, snapshot.tabs, windowSource)
       const tabCount = snapshot.tabs.filter(
         (tab) => tab.windowId === window.id,
       ).length
-      return {
-        id: `window:${window.id}`,
-        type: 'window' as const,
-        title: name || identity.title,
-        searchAliases: [`window ${index + 1}`],
-        url: name ? undefined : active?.url,
-        description: `Window ${index + 1} · ${tabCount} ${tabCount === 1 ? 'tab' : 'tabs'}`,
-        action: { kind: 'window' as const, windowId: window.id },
-        windowId: window.id,
-        windowIcon: identity.icon ?? (identity.iconUrl ? undefined : 'window'),
-        windowIconUrl: identity.iconUrl,
-        windowIconColor: identity.iconColor,
-      }
+      return [
+        {
+          id: `window:${window.id}`,
+          type: 'window' as const,
+          title: name || `Window ${index + 1}`,
+          searchAliases: [`window ${index + 1}`],
+          description: `Window ${index + 1} · ${tabCount} ${tabCount === 1 ? 'tab' : 'tabs'}`,
+          action: { kind: 'window' as const, windowId: window.id },
+          windowId: window.id,
+          windowIcon:
+            identity.icon ?? (identity.iconUrl ? undefined : 'window'),
+          windowIconUrl: identity.iconUrl,
+          windowIconColor: identity.iconColor,
+        },
+      ]
     }),
   ]
 }
@@ -175,10 +176,16 @@ export const getOmnibarResults = (
   query = query.trim()
   const normalized = normalizeOmnibarQuery(query)
   if (!normalized) return []
+  const windowCommandQuery = /^window(?:\s+\d+)?$/.test(normalized)
   const { tabs, groups } = getOmnibarBrowserResults(snapshot)
   const matches = createOmnibarMatcher(query)
   const candidates = [
-    ...getOmnibarCommands(snapshot, originalWindowId, windowSource),
+    ...getOmnibarCommands(
+      snapshot,
+      originalWindowId,
+      windowSource,
+      windowCommandQuery,
+    ),
     ...tabs,
     ...groups,
   ].filter((item) =>
@@ -194,7 +201,7 @@ export const getOmnibarResults = (
       return true
     },
   )
-  const windowCommands = /^window(?:\s+\d+)?$/.test(normalized)
+  const windowCommands = windowCommandQuery
     ? ranked
         .filter((item) => item.type === 'window')
         .sort((a, b) => windowNumber(a) - windowNumber(b))

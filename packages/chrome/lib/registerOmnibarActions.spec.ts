@@ -168,6 +168,70 @@ describe('Worker-owned omnibar choices', () => {
       ),
     ).resolves.toBeUndefined()
   })
+  it('remembers a URL and its opened tab after the popup closes, keeping tab IDs session-only', async () => {
+    const { api, resource, choice } = setup()
+    const popup = resource()
+    await popup.start()
+    api.tabs.create.mockImplementationOnce(async () => {
+      popup.dispose()
+      return { id: 12, url: 'https://atlas.test' }
+    })
+    await expect(
+      popup.execute(
+        { kind: 'url', url: 'https://atlas.test' },
+        'new-tab',
+        choice('url:https://atlas.test'),
+      ),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    const reopened = resource()
+    await reopened.start()
+    expect(
+      reopened
+        .getSnapshot()
+        .choices?.map((item) => item.target)
+        .sort(),
+    ).toEqual(['tab:12', 'url:https://atlas.test'])
+    expect(api.storage.local.values[OMNIBAR_CHOICES_KEY]).toEqual([
+      expect.objectContaining({ target: 'url:https://atlas.test' }),
+    ])
+  })
+
+  it('links every restored window tab and keeps URLs available after session targets expire', async () => {
+    const { api, resource, choice } = setup()
+    api.sessions.restore.mockResolvedValueOnce({
+      window: {
+        tabs: [
+          { id: 20, url: 'https://atlas.test' },
+          { id: 21, url: 'https://notes.test' },
+        ],
+      },
+    })
+    const popup = resource()
+    await popup.start()
+    await popup.execute(
+      { kind: 'restore', sessionId: 'closed' },
+      undefined,
+      choice('restore:closed'),
+    )
+    expect(
+      popup
+        .getSnapshot()
+        .choices?.map((item) => item.target)
+        .sort(),
+    ).toEqual([
+      'restore:closed',
+      'tab:20',
+      'tab:21',
+      'url:https://atlas.test',
+      'url:https://notes.test',
+    ])
+    expect(
+      (api.storage.local.values[OMNIBAR_CHOICES_KEY] as OmnibarChoice[])
+        .map((item) => item.target)
+        .sort(),
+    ).toEqual(['url:https://atlas.test', 'url:https://notes.test'])
+  })
+
   it('starts side-panel opening within the incoming message gesture', async () => {
     const { api, choice } = setup()
     const opening = api.runtime.sendMessage({

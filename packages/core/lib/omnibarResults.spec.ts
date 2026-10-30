@@ -96,16 +96,12 @@ describe('Omnibar result composition', () => {
 
   it('filters all query terms while keeping web search pinned above ranked results', () => {
     const results = getOmnibarResults('zillow 17', snapshot, 10, [], 0)
-    expect(results.map((result) => result.id)).toEqual([
-      'search-google',
-      'window:10',
-      1,
-    ])
+    expect(results.map((result) => result.id)).toEqual(['search-google', 1])
     expect(
       getOmnibarResults('zillow', snapshot, 10, [], 0).map(
         (result) => result.id,
       ),
-    ).toEqual(['search-google', 'window:10', 'tab-group:5', 1])
+    ).toEqual(['search-google', 'tab-group:5', 1])
     expect(
       getOmnibarResults('chrome settings', snapshot, 10, [], 0).map(
         (result) => result.id,
@@ -123,7 +119,6 @@ describe('Omnibar result composition', () => {
     expect(recalled.map((result) => result.id)).toEqual([
       'search-google',
       1,
-      'window:10',
       'tab-group:5',
     ])
     expect(getOmnibarResults('', snapshot, 10, [], 0)).toEqual([])
@@ -156,19 +151,70 @@ describe('Omnibar result composition', () => {
   })
 
   it('puts numbered window commands first and retains pinned URL actions', () => {
-    const results = getOmnibarResults('window', snapshot, 10, [], 0)
-    expect(results.slice(0, 3).map((result) => result.id)).toEqual([
+    const browser = {
+      ...snapshot,
+      windows: snapshot.windows.map((window) =>
+        window.id === 20 ? { ...window, name: 'Workspace' } : window,
+      ),
+    }
+    const results = getOmnibarResults('window', browser, 10, [], 0)
+    expect(results.map((result) => result.id)).toEqual([
       'window:10',
       'window:20',
       'search-google',
     ])
+    expect(results[0]?.title).toBe('Window 1')
     expect(results[0]?.action).toEqual({ kind: 'window', windowId: 10 })
+    expect(results[1]?.title).toBe('Workspace')
+    expect(results[1]?.description).toBe('Window 2 · 1 tab')
+    expect(
+      getOmnibarResults('WINDOW 1', browser, 10, [], 0)[0]?.action,
+    ).toEqual({ kind: 'window', windowId: 10 })
     expect(
       getOmnibarResults('example.com', snapshot, 10, [], 0).map(
         (result) => result.id,
       ),
-    ).toEqual(['url-go', 'search-google', 'window:20', 2])
+    ).toEqual(['url-go', 'search-google', 2])
   })
+  it.each(['active', 'first'] as const)(
+    'searches only custom window names with %s-tab window labels',
+    (windowSource) => {
+      const browser = {
+        ...snapshot,
+        windows: snapshot.windows.map((window) => ({
+          ...window,
+          name: window.id === 20 ? 'Inbox workspace' : '   ',
+          icon: 'book',
+        })),
+        tabs: snapshot.tabs.map((tab) => ({
+          ...tab,
+          title: 'Inbox',
+          url: 'https://mail.test/inbox',
+        })),
+      }
+      const results = getOmnibarResults(
+        'inbox',
+        browser,
+        10,
+        [],
+        0,
+        windowSource,
+        [{ query: 'inbox', target: 'window:10', selectedAt: 0 }],
+      )
+      expect(
+        results
+          .filter((result) => result.type === 'window')
+          .map((result) => result.id),
+      ).toEqual(['window:20'])
+      expect(
+        results
+          .filter((result) => result.type === 'tab')
+          .map((result) => result.id)
+          .sort(),
+      ).toEqual([1, 2])
+    },
+  )
+
   it('finds a named window beyond the numbered shortcut slots without a tab-title match', () => {
     const windows = Array.from({ length: 12 }, (_, index) => ({
       id: index + 1,
