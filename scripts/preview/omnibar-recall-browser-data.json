@@ -1,0 +1,30 @@
+{
+  "currentWindowId": 1,
+  "windows": [{ "id": 1, "focused": true, "name": "Workspace" }],
+  "groups": [],
+  "tabs": [
+    {
+      "id": 1,
+      "windowId": 1,
+      "title": "Project notes",
+      "url": "https://notes.example.test",
+      "active": true
+    }
+  ],
+  "bookmarks": [
+    {
+      "id": "atlas",
+      "title": "Project Atlas",
+      "url": "https://example.test/project-atlas"
+    }
+  ],
+  "history": [
+    {
+      "id": "old-project",
+      "title": "Project archive",
+      "url": "https://example.test/project-archive",
+      "lastVisitTime": 1000
+    }
+  ],
+  "preferences": { "theme": "dark" }
+}
