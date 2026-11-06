@@ -339,6 +339,57 @@ describe('TabManager presentation', () => {
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'edit-window' })
   })
 
+  it('searches window icons without changing the selection and exposes more choices', async () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            editingWindow: {
+              windowId: 1,
+              name: 'Research',
+              icon: 'code',
+              iconColor: 'blue',
+            },
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const search = screen.getByRole('searchbox', { name: 'Search icons' })
+    expect(screen.getByRole('button', { name: 'Code icon' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    const before = screen.getAllByRole('button').length
+    fireEvent.click(screen.getByRole('button', { name: 'Show more icons' }))
+    expect(screen.getAllByRole('button').length).toBeGreaterThan(before)
+    fireEvent.change(search, { target: { value: '  ROCKET  ' } })
+    const rocket = screen.getByRole('button', {
+      name: 'Rocket icon',
+    })
+    expect(rocket).toHaveAttribute('tabindex', '0')
+    expect(onIntent).not.toHaveBeenCalled()
+    fireEvent.keyDown(search, { key: 'Enter' })
+    expect(rocket).toHaveFocus()
+    fireEvent.click(rocket)
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-window-draft',
+      value: { icon: 'rocket' },
+    })
+    await waitFor(() =>
+      expect(rocket.querySelector('svg')).toHaveClass('lucide-rocket'),
+    )
+    fireEvent.change(search, { target: { value: 'no such icon exists' } })
+    expect(screen.getByRole('status')).toHaveTextContent('No icons found')
+    fireEvent.change(search, { target: { value: '' } })
+    expect(screen.getByRole('button', { name: 'Code icon' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
   it('renders a persistent window identity and a controlled rename checkpoint', () => {
     const onIntent = vi.fn()
     const initial: TabManagerViewModel = {

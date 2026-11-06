@@ -14,7 +14,7 @@ import {
   Pencil,
   Plus,
 } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { DragReveal } from '../../components/DragReveal'
 import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
@@ -46,6 +46,10 @@ const icons = {
   heart: Heart,
   globe: Globe,
 }
+const LucideWindowIcon = lazy(() => import('./LucideWindowIcon'))
+const iconLabel = (icon: string) =>
+  icon.charAt(0).toUpperCase() + icon.slice(1).replaceAll('-', ' ')
+
 export const WindowIcon = ({
   icon,
   iconUrl,
@@ -57,15 +61,25 @@ export const WindowIcon = ({
   color?: BrowserTabGroupColor
   size?: number
 }) => {
-  const Icon = icons[icon as keyof typeof icons] ?? Monitor
+  const Icon = icon ? icons[icon as keyof typeof icons] : Monitor
   return !icon && iconUrl ? (
     <img src={iconUrl} width={size} height={size} alt="" className="shrink-0" />
   ) : (
-    <Icon
-      size={size}
-      aria-hidden="true"
-      className={cn('shrink-0', getGroupColorClasses(color).text)}
-    />
+    <Suspense fallback={<Monitor size={size} aria-hidden="true" />}>
+      {Icon ? (
+        <Icon
+          size={size}
+          aria-hidden="true"
+          className={cn('shrink-0', getGroupColorClasses(color).text)}
+        />
+      ) : (
+        <LucideWindowIcon
+          icon={icon ?? 'window'}
+          size={size}
+          className={cn('shrink-0', getGroupColorClasses(color).text)}
+        />
+      )}
+    </Suspense>
   )
 }
 
@@ -344,6 +358,23 @@ export const WindowIdentityEditor = ({
   onIntent: (intent: TabManagerIntent) => void
 }) => {
   const draft = model.editingWindow!
+  const [iconSearch, setIconSearch] = useState('')
+  const [iconLimit, setIconLimit] = useState(80)
+  const terms = iconSearch
+    .toLowerCase()
+    .replaceAll('-', ' ')
+    .trim()
+    .split(/\s+/)
+  const matchingIcons = WINDOW_ICONS.filter((icon) =>
+    terms.every((term) => icon.replaceAll('-', ' ').includes(term)),
+  )
+  const visibleIcons = matchingIcons.slice(0, iconLimit)
+  if (
+    draft.icon &&
+    matchingIcons.includes(draft.icon) &&
+    !visibleIcons.includes(draft.icon)
+  )
+    visibleIcons.unshift(draft.icon)
   const input = useRef<HTMLInputElement>(null)
   const { canFocusInput } = useSurfaceInputOwner()
   useLayoutEffect(() => {
@@ -364,8 +395,23 @@ export const WindowIdentityEditor = ({
       onKeyDownCapture={(event) => {
         if (
           event.key === 'Enter' &&
+          (event.target as HTMLElement).closest(
+            '[data-editor-row="icon-search"]',
+          )
+        ) {
+          event.preventDefault()
+          event.stopPropagation()
+          event.currentTarget
+            .querySelector<HTMLElement>('[data-editor-row="icons"] button')
+            ?.focus()
+          return
+        }
+        if (
+          event.key === 'Enter' &&
           !event.nativeEvent.isComposing &&
-          !(event.target as HTMLElement).closest('[data-editor-reset]') &&
+          !(event.target as HTMLElement).closest(
+            '[data-editor-reset],[data-editor-more]',
+          ) &&
           !event.altKey &&
           !event.ctrlKey &&
           !event.metaKey &&
@@ -432,7 +478,7 @@ export const WindowIdentityEditor = ({
         const target = event.target as HTMLElement
         const horizontal =
           event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-        if (target === input.current && horizontal) return
+        if (target instanceof HTMLInputElement && horizontal) return
         const rows = Array.from(
           event.currentTarget.querySelectorAll<HTMLElement>(
             '[data-editor-row]',
@@ -442,7 +488,7 @@ export const WindowIdentityEditor = ({
         if (!row) return
         const controls = Array.from(
           row.querySelectorAll<HTMLElement>('input,button'),
-        )
+        ).filter((control) => control.closest('[data-editor-row]') === row)
         let destination: HTMLElement | null | undefined
         if (horizontal) {
           const index = controls.indexOf(target)
@@ -495,16 +541,40 @@ export const WindowIdentityEditor = ({
           `}
         />
       </label>
+      <label data-editor-row="icon-search" className="block text-sm">
+        Search icons
+        <input
+          type="search"
+          value={iconSearch}
+          onChange={(event) => {
+            setIconSearch(event.target.value)
+            setIconLimit(80)
+          }}
+          placeholder="Try cat, rocket, or book"
+          className={`
+            border-border bg-input mt-2 block min-h-10 w-full rounded-md border
+            px-3 outline-none
+            focus-visible:ring-focus focus-visible:ring-2
+          `}
+        />
+      </label>
       <fieldset data-editor-row="icons">
         <legend className="mb-2 text-sm">Icon</legend>
-        <div className="flex flex-wrap gap-2">
-          {WINDOW_ICONS.map((icon) => (
+        <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto p-1">
+          {visibleIcons.map((icon) => (
             <button
               key={icon}
               type="button"
-              aria-label={`${icon[0]!.toUpperCase()}${icon.slice(1)} icon`}
+              aria-label={`${iconLabel(icon)} icon`}
+              title={iconLabel(icon)}
               aria-pressed={draft.icon === icon}
-              tabIndex={(draft.icon ?? WINDOW_ICONS[0]) === icon ? 0 : -1}
+              tabIndex={
+                (visibleIcons.includes(draft.icon ?? '')
+                  ? draft.icon
+                  : visibleIcons[0]) === icon
+                  ? 0
+                  : -1
+              }
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
@@ -518,6 +588,23 @@ export const WindowIdentityEditor = ({
             </button>
           ))}
         </div>
+        <p role="status" className="text-muted mt-2 text-xs">
+          {matchingIcons.length
+            ? `${matchingIcons.length} icons`
+            : 'No icons found. Try another search.'}
+        </p>
+        {matchingIcons.length > iconLimit && (
+          <div data-editor-row="more-icons">
+            <button
+              data-editor-more
+              type="button"
+              className={windowControlClass}
+              onClick={() => setIconLimit((limit) => limit + 80)}
+            >
+              Show more icons
+            </button>
+          </div>
+        )}
       </fieldset>
       <fieldset data-editor-row="colors">
         <legend className="mb-2 text-sm">Color</legend>
