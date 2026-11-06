@@ -20,8 +20,10 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
   const editTabStops = [
     name,
-    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+    page.getByRole('tab', { name: 'Icon', exact: true }),
+    page.getByRole('searchbox', { name: 'Search icons' }),
+    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
     page.getByRole('button', { name: 'Done', exact: true }),
     page.getByRole('button', { name: 'Reset', exact: true }),
     page.getByRole('button', { name: 'Search everything' }),
@@ -60,6 +62,23 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(name).toBeFocused()
   await name.press('ArrowDown')
   await expect(
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+  ).toBeFocused()
+  const oldColor = await page.locator(':focus').getAttribute('aria-label')
+  await page.keyboard.press('ArrowLeft')
+  expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
+    oldColor,
+  )
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.getByRole('tab', { name: 'Icon', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.getByRole('searchbox', { name: 'Search icons' }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(
     page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
   ).toBeFocused()
   const oldIcon = await page.locator(':focus').getAttribute('aria-label')
@@ -70,19 +89,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
     oldIcon,
   )
-  await page.keyboard.press('ArrowDown')
-  await expect(
-    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
-  ).toBeFocused()
-  const oldColor = await page.locator(':focus').getAttribute('aria-label')
-  await page.keyboard.press('ArrowLeft')
-  await expect(
-    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
-  ).toBeFocused()
-  expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
-    oldColor,
-  )
-  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Tab')
   await expect(
     page.getByRole('button', { name: 'Done', exact: true }),
   ).toBeFocused()
@@ -124,7 +131,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     await iconChoices.evaluateAll((icons) =>
       icons.map((icon) => getComputedStyle(icon).color),
     ),
-  ).toEqual(choiceColors)
+  ).not.toEqual(choiceColors)
   await expect
     .poll(() => headerIcon.evaluate((icon) => getComputedStyle(icon).color))
     .not.toBe(headerColor)
@@ -149,10 +156,18 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     await selectedIcon.evaluate((node) => getComputedStyle(node).boxShadow),
   ).toBe(iconStyle.ring)
   expect(iconStyle.ring).not.toBe('none')
-  await page.keyboard.press('Enter')
+  await page.getByRole('searchbox', { name: 'Search icons' }).fill(' ROCKET ')
+  await page.getByRole('button', { name: 'Rocket icon', exact: true }).click()
+  await page.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(page.getByRole('form', { name: 'Name and icon' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Edit window' }).click()
   await expect(name).toHaveValue('Working space')
+  await page.getByRole('searchbox', { name: 'Search icons' }).fill('rocket')
+  await expect(
+    page.getByRole('button', { name: 'Rocket icon', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await name.focus()
+  await expect(switcher.locator('svg').first()).toHaveClass(/lucide-rocket/)
   await name.press('Enter')
   await expect(switcher).toContainText('Working space')
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()

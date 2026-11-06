@@ -3,19 +3,9 @@ import type {
   BrowserTabGroupColor,
   BrowserWindow,
 } from './browser.js'
+import type { WindowIconChoices } from './windowIconChoice.js'
 
-export const WINDOW_ICONS = [
-  'window',
-  'briefcase',
-  'code',
-  'book',
-  'flask',
-  'palette',
-  'music',
-  'coffee',
-  'heart',
-  'globe',
-] as const
+export { WINDOW_ICONS } from './windowIcons.js'
 
 export const getWindowIdentity = (
   window: BrowserWindow,
@@ -35,7 +25,11 @@ export const getWindowIdentity = (
       (window.incognito ? 'Private window' : `Window ${window.id}`),
     icon: window.icon,
     iconColor: window.iconColor,
-    iconUrl: window.icon ? undefined : active?.faviconUrl,
+    iconChoices: window.iconChoices,
+    iconUrl:
+      window.icon && window.icon !== 'favicon:auto'
+        ? undefined
+        : active?.faviconUrl,
   }
 }
 
@@ -44,6 +38,7 @@ export type SavedWindowIdentity = {
   key: string
   name: string
   icon?: string
+  iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   hashes: string[]
   updatedAt: number

@@ -136,6 +136,7 @@ describe('Chrome browser backend', () => {
       name: 'Work',
       icon: 'briefcase',
       iconColor: 'blue',
+      iconChoices: { icon: 'book', emoji: 'emoji:😎' },
       provisional: true,
     }
     const onChanged = event()
@@ -148,7 +149,7 @@ describe('Chrome browser backend', () => {
     const backend = createChromeBackend({ ...api, storage })
     await backend.start()
     expect(backend.getSnapshot().windows[0]).toMatchObject({ id: 1 })
-    for (const field of ['name', 'icon', 'iconColor'] as const)
+    for (const field of ['name', 'icon', 'iconColor', 'iconChoices'] as const)
       expect(backend.getSnapshot().windows[0]?.[field]).toBeUndefined()
 
     Object.assign(identity, {

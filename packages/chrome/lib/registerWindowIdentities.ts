@@ -1,10 +1,12 @@
 import { createAsyncQueue } from '@extension/core/asyncQueue'
 import { BROWSER_TAB_GROUP_COLORS } from '@extension/core/browser'
 import {
-  matchWindowIdentities,
-  WINDOW_ICONS,
-} from '@extension/core/windowIdentity'
+  getWindowIconChoices,
+  isWindowIcon,
+} from '@extension/core/windowIconChoice'
+import { matchWindowIdentities } from '@extension/core/windowIdentity'
 import type { BrowserTabGroupColor } from '@extension/core/browser'
+import type { WindowIconChoices } from '@extension/core/windowIconChoice'
 import type { SavedWindowIdentity } from '@extension/core/windowIdentity'
 
 export const WINDOW_IDENTITIES_KEY = 'tabby-window-identities'
@@ -13,6 +15,7 @@ export type WindowIdentityAssignment = {
   key: string
   name: string
   icon?: string
+  iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   provisional?: boolean
 }
@@ -48,6 +51,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       windowId: number
       name: string
       icon?: string
+      iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     },
     removedId?: number,
@@ -102,6 +106,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
           key,
           name: record.name,
           icon: record.icon,
+          iconChoices: record.iconChoices,
           iconColor: record.iconColor,
           provisional:
             !confirmRestores ||
@@ -118,11 +123,15 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       if (!window) throw new Error('This window is no longer available.')
       const existing = assignments[edit.windowId]
       const name = edit.name.trim().slice(0, 120)
-      const icon = WINDOW_ICONS.find((icon) => icon === edit.icon)
+      const icon = isWindowIcon(edit.icon) ? edit.icon : undefined
+      const iconChoices = getWindowIconChoices(
+        icon,
+        edit.iconChoices ?? existing?.iconChoices,
+      )
       const iconColor = BROWSER_TAB_GROUP_COLORS.find(
         (color) => color === edit.iconColor,
       )
-      if (!name && !icon) {
+      if (!name && !icon && !iconColor) {
         delete assignments[edit.windowId]
         saved = saved.filter((record) => record.key !== existing?.key)
       } else
@@ -130,7 +139,8 @@ export const registerWindowIdentities = (api: IdentityApi) => {
           key: existing?.key ?? crypto.randomUUID(),
           name,
           icon,
-          iconColor: icon ? iconColor : undefined,
+          iconChoices,
+          iconColor,
         }
     }
     for (const window of windows) {
@@ -143,6 +153,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         key: assigned.key,
         name: assigned.name,
         icon: assigned.icon,
+        iconChoices: assigned.iconChoices,
         iconColor: assigned.iconColor,
         hashes: hashes.length ? hashes : (existing?.hashes ?? []),
         updatedAt: Math.floor(now / 86400000) * 86400000,
@@ -163,6 +174,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       windowId: number
       name: string
       icon?: string
+      iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     },
     removedId?: number,

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import * as matchers from '@testing-library/jest-dom/matchers'
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -12,6 +13,7 @@ import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Surface } from '../Surface'
 import { TabManager } from './TabManager'
+import * as windowImages from './ui/windowIconImage'
 import type { TabManagerViewModel } from './TabManager'
 
 expect.extend(matchers)
@@ -337,6 +339,191 @@ describe('TabManager presentation', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Edit window' }))
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'edit-window' })
+  })
+
+  it('shows curated window icons and searches the full catalog in an overlay', async () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            editingWindow: {
+              windowId: 1,
+              name: 'Research',
+              icon: 'code',
+              iconColor: 'blue',
+            },
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const search = screen.getByRole('searchbox', { name: 'Search icons' })
+    expect(screen.getByRole('button', { name: 'Code icon' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.queryByRole('button', { name: 'Show more icons' })).toBeNull()
+    expect(
+      screen.getByLabelText('Suggested icons').querySelectorAll('button'),
+    ).toHaveLength(32)
+    fireEvent.change(search, { target: { value: '  ROCKET  ' } })
+    const rocket = screen.getByRole('button', {
+      name: 'Rocket icon',
+    })
+    expect(rocket).toHaveAttribute('tabindex', '0')
+    expect(onIntent).not.toHaveBeenCalled()
+    fireEvent.keyDown(search, { key: 'Enter' })
+    expect(rocket).toHaveFocus()
+    await waitFor(() =>
+      expect(rocket.querySelector('svg')).toHaveClass('lucide-rocket'),
+    )
+    fireEvent.click(rocket)
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-window-draft',
+      value: expect.objectContaining({ icon: 'rocket' }),
+    })
+    fireEvent.change(search, { target: { value: 'no such icon exists' } })
+    expect(screen.getByRole('status')).toHaveTextContent('No icons found')
+    fireEvent.change(search, { target: { value: '' } })
+    expect(screen.getByRole('button', { name: 'Code icon' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
+  it('offers emoji and monograms with colors first and prioritizes favicons from this window', () => {
+    const onIntent = vi.fn()
+    const window = model.windows[0]!
+    const Harness = () => {
+      const [draft, setDraft] = useState<
+        NonNullable<TabManagerViewModel['editingWindow']>
+      >({ windowId: 1, name: 'Research', icon: 'code', iconColor: 'blue' })
+      return (
+        <Surface>
+          <TabManager
+            model={{
+              ...model,
+              windows: [
+                {
+                  ...window,
+                  tabs: [
+                    {
+                      ...window.tabs[0]!,
+                      url: 'https://local.test/one',
+                      faviconUrl: '/local.png',
+                    },
+                  ],
+                },
+                {
+                  ...window,
+                  id: 2,
+                  tabs: [
+                    {
+                      ...window.tabs[0]!,
+                      id: 22,
+                      url: 'https://other.test',
+                      faviconUrl: '/other.png',
+                    },
+                    {
+                      ...window.tabs[0]!,
+                      id: 23,
+                      url: 'https://local.test/two',
+                      faviconUrl: '/local-duplicate.png',
+                    },
+                  ],
+                },
+              ],
+              editingWindow: draft,
+            }}
+            onIntent={(intent) => {
+              onIntent(intent)
+              if (intent.type === 'change-window-draft')
+                setDraft((current) => ({ ...current, ...intent.value }))
+            }}
+          />
+        </Surface>
+      )
+    }
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Emoji' }))
+    expect(screen.getByRole('group', { name: 'Color' })).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Use 🐱' }))
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-window-draft',
+      value: expect.objectContaining({ icon: 'emoji:🐱' }),
+    })
+    fireEvent.click(screen.getByRole('tab', { name: 'Monogram' }))
+    const monogram = screen.getByRole('textbox', {
+      name: 'Monogram character 1',
+    })
+    fireEvent.change(monogram, { target: { value: 'ab' } })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-window-draft',
+      value: expect.objectContaining({ icon: 'monogram:AB' }),
+    })
+    fireEvent.change(monogram, { target: { value: '' } })
+    expect(monogram).toHaveValue('')
+    fireEvent.click(screen.getByRole('tab', { name: 'Favicons' }))
+    const favicons = within(
+      screen.getByRole('toolbar', { name: 'Favicons' }),
+    ).getAllByRole('button')
+    expect(favicons).toHaveLength(2)
+    expect(favicons[0]).toHaveAccessibleName('Use local.test favicon')
+    expect(favicons[1]).toHaveAccessibleName('Use other.test favicon')
+    expect(screen.queryByText('This window')).toBeNull()
+    expect(screen.queryByText('Other windows')).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Follow tab favicon' }),
+    ).toBeNull()
+  })
+
+  it('keeps the newly selected type when an earlier favicon image finishes loading', async () => {
+    const converted = Promise.withResolvers<string>()
+    vi.spyOn(windowImages, 'windowIconImage').mockReturnValue(converted.promise)
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            windows: [
+              {
+                ...model.windows[0]!,
+                tabs: [
+                  {
+                    ...model.windows[0]!.tabs[0]!,
+                    url: 'https://local.test',
+                    faviconUrl: '/local.png',
+                  },
+                ],
+              },
+            ],
+            editingWindow: {
+              windowId: 1,
+              name: '',
+              icon: 'favicon:auto',
+              iconColor: 'blue',
+            },
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Use local.test favicon' }),
+    )
+    fireEvent.click(screen.getByRole('tab', { name: 'Icon' }))
+    await act(async () => {
+      converted.resolve('data:image/png;base64,aWNvbg==')
+      await converted.promise
+    })
+    expect(onIntent).toHaveBeenCalledOnce()
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'change-window-draft',
+      value: expect.objectContaining({ icon: 'window' }),
+    })
   })
 
   it('renders a persistent window identity and a controlled rename checkpoint', () => {

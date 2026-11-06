@@ -4,6 +4,7 @@ import {
   WINDOW_IDENTITIES_KEY,
   WINDOW_LABELS_KEY,
 } from './registerWindowIdentities.js'
+import type { WindowIconChoices } from '@extension/core/windowIconChoice'
 
 const event = () => {
   const listeners = new Set<(...args: unknown[]) => unknown>()
@@ -62,11 +63,19 @@ const setup = (
     name: string,
     icon?: string,
     iconColor?: 'green',
+    iconChoices?: WindowIconChoices,
   ) => {
     const response = new Promise<{ success?: boolean; error?: string }>(
       (resolve) =>
         api.runtime.onMessage.emit(
-          { type: 'tabby-name-window', windowId, name, icon, iconColor },
+          {
+            type: 'tabby-name-window',
+            windowId,
+            name,
+            icon,
+            iconColor,
+            iconChoices,
+          },
           { id: 'tabby' },
           resolve,
         ),
@@ -96,11 +105,25 @@ afterEach(() => vi.useRealTimers())
 describe('stored window identities', () => {
   it('stores names locally with URL hashes, follows live tab changes, and restores after restart with different IDs', async () => {
     const first = setup()
-    expect(await first.edit(1, '  Project Atlas  ', 'globe', 'green')).toEqual({
+    expect(
+      await first.edit(1, '  Project Atlas  ', 'monogram:AB', 'green', {
+        icon: 'book',
+        emoji: 'emoji:😎',
+      }),
+    ).toEqual({
       success: true,
     })
     expect(first.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
-      1: { name: 'Project Atlas', icon: 'globe', iconColor: 'green' },
+      1: {
+        name: 'Project Atlas',
+        icon: 'monogram:AB',
+        iconColor: 'green',
+        iconChoices: {
+          icon: 'book',
+          emoji: 'emoji:😎',
+          monogram: 'monogram:AB',
+        },
+      },
     })
     expect(JSON.stringify(first.local)).not.toContain('https://')
     first.setWindows([
@@ -114,7 +137,16 @@ describe('stored window identities', () => {
     )
     await restarted.tracker.settled()
     expect(restarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
-      88: { name: 'Project Atlas', icon: 'globe', iconColor: 'green' },
+      88: {
+        name: 'Project Atlas',
+        icon: 'monogram:AB',
+        iconColor: 'green',
+        iconChoices: {
+          icon: 'book',
+          emoji: 'emoji:😎',
+          monogram: 'monogram:AB',
+        },
+      },
     })
     expect(await restarted.edit(88, '')).toEqual({ success: true })
     expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([])

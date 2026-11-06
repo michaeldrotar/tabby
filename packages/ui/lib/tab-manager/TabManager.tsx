@@ -30,6 +30,7 @@ import type {
   SelectionItemRef,
   TabPlacement,
 } from '@extension/core'
+import type { WindowIconChoices } from '@extension/core/windowIconChoice'
 import type { KeyboardEvent, MouseEvent } from 'react'
 
 export type TabManagerItem = SelectionItemRef
@@ -59,6 +60,7 @@ export type TabManagerWindowView = {
   title: string
   name?: string
   icon?: string
+  iconChoices?: WindowIconChoices
   iconUrl?: string
   iconColor?: BrowserTabGroupColor
   incognito?: boolean
@@ -100,6 +102,7 @@ export type TabManagerViewModel = {
     useCustom?: boolean
     name: string
     icon?: string
+    iconChoices?: WindowIconChoices
     iconColor?: BrowserTabGroupColor
   } | null
   actions?: TabManagerAction[]
@@ -140,7 +143,12 @@ export type TabManagerIntent =
   | { type: 'edit-window' }
   | {
       type: 'change-window-draft'
-      value: { name?: string; icon?: string; iconColor?: BrowserTabGroupColor }
+      value: {
+        name?: string
+        icon?: string
+        iconChoices?: WindowIconChoices
+        iconColor?: BrowserTabGroupColor
+      }
     }
   | { type: 'save-window' }
   | { type: 'cancel-window-edit' }
