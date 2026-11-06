@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-29
+Last updated: 2026-11-05
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -22,7 +22,7 @@ Search open tabs, custom window names, tab groups, bookmarks, browsing history, 
 
 Recognize every window
 
-Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
+Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Search a library of over 1,600 icons to find a symbol for each window. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
 
 Organize one window at a time
 

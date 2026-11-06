@@ -96,11 +96,13 @@ afterEach(() => vi.useRealTimers())
 describe('stored window identities', () => {
   it('stores names locally with URL hashes, follows live tab changes, and restores after restart with different IDs', async () => {
     const first = setup()
-    expect(await first.edit(1, '  Project Atlas  ', 'globe', 'green')).toEqual({
-      success: true,
-    })
+    expect(await first.edit(1, '  Project Atlas  ', 'rocket', 'green')).toEqual(
+      {
+        success: true,
+      },
+    )
     expect(first.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
-      1: { name: 'Project Atlas', icon: 'globe', iconColor: 'green' },
+      1: { name: 'Project Atlas', icon: 'rocket', iconColor: 'green' },
     })
     expect(JSON.stringify(first.local)).not.toContain('https://')
     first.setWindows([
@@ -114,7 +116,7 @@ describe('stored window identities', () => {
     )
     await restarted.tracker.settled()
     expect(restarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
-      88: { name: 'Project Atlas', icon: 'globe', iconColor: 'green' },
+      88: { name: 'Project Atlas', icon: 'rocket', iconColor: 'green' },
     })
     expect(await restarted.edit(88, '')).toEqual({ success: true })
     expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([])

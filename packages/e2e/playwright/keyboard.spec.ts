@@ -20,7 +20,9 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
   const editTabStops = [
     name,
+    page.getByRole('searchbox', { name: 'Search icons' }),
     page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
+    page.getByRole('button', { name: 'Show more icons' }),
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
     page.getByRole('button', { name: 'Done', exact: true }),
     page.getByRole('button', { name: 'Reset', exact: true }),
@@ -48,6 +50,15 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
       input.selectionEnd,
     ]),
   ).toEqual([0, 5])
+  const moreIcons = page.getByRole('button', { name: 'Show more icons' })
+  const initialIconCount = await page
+    .locator('[data-editor-row="icons"] [aria-pressed]')
+    .count()
+  await moreIcons.focus()
+  await moreIcons.press('Enter')
+  await expect(
+    page.locator('[data-editor-row="icons"] [aria-pressed]'),
+  ).toHaveCount(initialIconCount + 80)
   await name.fill('Working space')
   await name.press('ArrowLeft')
   await expect(name).toBeFocused()
@@ -60,6 +71,10 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(name).toBeFocused()
   await name.press('ArrowDown')
   await expect(
+    page.getByRole('searchbox', { name: 'Search icons' }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(
     page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
   ).toBeFocused()
   const oldIcon = await page.locator(':focus').getAttribute('aria-label')
@@ -70,6 +85,10 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
     oldIcon,
   )
+  await page.keyboard.press('ArrowDown')
+  await expect(
+    page.getByRole('button', { name: 'Show more icons' }),
+  ).toBeFocused()
   await page.keyboard.press('ArrowDown')
   await expect(
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
@@ -149,10 +168,16 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     await selectedIcon.evaluate((node) => getComputedStyle(node).boxShadow),
   ).toBe(iconStyle.ring)
   expect(iconStyle.ring).not.toBe('none')
+  await page.getByRole('searchbox', { name: 'Search icons' }).fill(' ROCKET ')
+  await page.getByRole('button', { name: 'Rocket icon', exact: true }).click()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('form', { name: 'Name and icon' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Edit window' }).click()
   await expect(name).toHaveValue('Working space')
+  await expect(
+    page.getByRole('button', { name: 'Rocket icon', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(switcher.locator('svg').first()).toHaveClass(/lucide-rocket/)
   await name.press('Enter')
   await expect(switcher).toContainText('Working space')
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()

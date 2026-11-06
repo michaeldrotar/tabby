@@ -4,18 +4,7 @@ import type {
   BrowserWindow,
 } from './browser.js'
 
-export const WINDOW_ICONS = [
-  'window',
-  'briefcase',
-  'code',
-  'book',
-  'flask',
-  'palette',
-  'music',
-  'coffee',
-  'heart',
-  'globe',
-] as const
+export { WINDOW_ICONS } from './windowIcons.js'
 
 export const getWindowIdentity = (
   window: BrowserWindow,
