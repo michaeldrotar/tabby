@@ -23,7 +23,7 @@ jobs:
       - run: pnpm --filter @extension/e2e exec playwright install --with-deps chromium
       - run: pnpm e2e
       - run: pnpm test:demo-studio
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: browser-reports
