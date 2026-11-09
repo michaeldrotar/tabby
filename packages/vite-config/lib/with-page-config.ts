@@ -3,8 +3,7 @@ import { getEnv } from '@extension/env/getEnv'
 import { watchI18nPlugin } from '@extension/hmr/plugins/watch-i18n-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
 import react from '@vitejs/plugin-react-swc'
-import deepmerge from 'deepmerge'
-import { defineConfig } from 'vite'
+import { defineConfig, mergeConfig } from 'vite'
 import type { UserConfig } from 'vite'
 
 const ENV = getEnv()
@@ -19,7 +18,7 @@ export const watchOption = ENV['IS_DEV']
 
 export const withPageConfig = (config: UserConfig) => {
   return defineConfig(
-    deepmerge(
+    mergeConfig(
       {
         define: {
           'process.env': env,
