@@ -17,9 +17,9 @@
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "@vitejs/plugin-react-swc": "^4.2.2",
-    "vite": "^7.3.7",
-    "@types/node": "^24.10.1"
+    "@vitejs/plugin-react-swc": "^4.3.3",
+    "vite": "^8.3.5",
+    "@types/node": "^26.6.5"
   },
   "postcss": {
     "plugins": {
