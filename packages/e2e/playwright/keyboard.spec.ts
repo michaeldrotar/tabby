@@ -174,8 +174,19 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(firstItem).toBeFocused()
   await page.keyboard.press('End')
   await expect(newTab).toBeFocused()
-  expect((await newTab.boundingBox())!.height).toBe(
-    (await page.locator('[data-tab-item]').first().boundingBox())!.height,
+  const tabBounds = await page.locator('[data-tab-item]').evaluateAll((rows) =>
+    rows.map((row) => {
+      const { top, bottom, height } = row.getBoundingClientRect()
+      return { top, bottom, height }
+    }),
+  )
+  const rowHeight = tabBounds[0]!.height
+  // Translated bounding boxes retain small floating-point measurement errors.
+  expect(rowHeight).toBeCloseTo(54, 3)
+  expect((await newTab.boundingBox())!.height).toBeCloseTo(rowHeight, 3)
+  expect(tabBounds.at(-1)!.bottom - tabBounds[0]!.top).toBeCloseTo(
+    tabBounds.length * rowHeight + (tabBounds.length - 1) * 4,
+    3,
   )
   await expect(
     page.locator('[data-tab-option][aria-selected="true"]'),
