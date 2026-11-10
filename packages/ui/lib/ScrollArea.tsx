@@ -19,7 +19,7 @@ const ScrollBar = ({
       orientation={orientation}
       className={cn(
         `
-          flex touch-none select-none p-px opacity-50 transition-opacity
+          flex touch-none p-px opacity-50 transition-opacity select-none
           hover:opacity-100
         `,
         orientation === 'vertical' &&
@@ -31,7 +31,7 @@ const ScrollBar = ({
       {...props}
     >
       <ScrollAreaPrimitive.Thumb
-        className={`bg-muted/60 relative flex-1 rounded-full`}
+        className={`relative flex-1 rounded-full bg-muted/60`}
       />
     </ScrollAreaPrimitive.Scrollbar>
   )
@@ -59,7 +59,7 @@ export const ScrollArea = ({
         layoutScroll
         className={cn(
           'size-full overscroll-none rounded-[inherit]',
-          orientation === 'vertical' && '[&>div]:!block',
+          orientation === 'vertical' && '[&>div]:block!',
         )}
       >
         {children}

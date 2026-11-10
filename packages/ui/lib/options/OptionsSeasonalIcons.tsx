@@ -47,13 +47,13 @@ const ChoiceCard = ({
     <span
       className={cn(
         `
-          border-border bg-background flex h-full min-h-28 flex-col items-center
-          justify-between gap-2 rounded-lg border p-3 text-center
+          flex h-full min-h-28 flex-col items-center justify-between gap-2
+          rounded-lg border border-border bg-background p-3 text-center
           transition-colors
-          hover:border-accent-border
-          peer-focus-visible:ring-accent
-          peer-focus-visible:ring-offset-background peer-focus-visible:ring-2
+          peer-focus-visible:ring-2 peer-focus-visible:ring-accent
           peer-focus-visible:ring-offset-2
+          peer-focus-visible:ring-offset-background
+          hover:border-accent-border
         `,
         selected === iconId && `border-accent-border bg-accent-selected`,
       )}
@@ -69,15 +69,15 @@ const ChoiceCard = ({
         loading="lazy"
         alt=""
         className={`
-          h-16 w-16 object-contain transition-transform duration-300 ease-out
-          group-focus-within:-translate-y-1 group-focus-within:rotate-[-4deg]
-          group-focus-within:scale-110
-          group-hover:-translate-y-1 group-hover:rotate-[-4deg]
-          group-hover:scale-110
+          size-16 object-contain transition-transform duration-300 ease-out
+          group-focus-within:-translate-y-1 group-focus-within:scale-110
+          group-focus-within:rotate-[-4deg]
+          group-hover:-translate-y-1 group-hover:scale-110
+          group-hover:rotate-[-4deg]
           motion-reduce:transform-none motion-reduce:transition-none
         `}
       />
-      <span className="text-foreground text-base font-medium">{label}</span>
+      <span className="text-base font-medium text-foreground">{label}</span>
     </span>
   </label>
 )
@@ -98,8 +98,8 @@ const HolidayDateControl = ({
 }: HolidayDateControlProps) => {
   const dateClassName = cn(
     `
-      text-foreground flex h-10 w-full items-center justify-end px-3 py-2
-      text-right text-base
+      flex h-10 w-full items-center justify-end px-3 py-2 text-right text-base
+      text-foreground
     `,
   )
 
@@ -189,7 +189,7 @@ export const OptionsSeasonalIconsOverview = ({
   onOpen: () => void
 }) => (
   <section className="mb-8">
-    <h2 className="text-foreground mb-4 text-2xl font-semibold">
+    <h2 className="mb-4 text-2xl font-semibold text-foreground">
       Seasonal icons
     </h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
@@ -202,7 +202,7 @@ export const OptionsSeasonalIconsOverview = ({
         `}
       >
         <label className="relative inline-flex cursor-pointer items-center">
-          <span className="text-foreground mr-3 text-base font-medium">
+          <span className="mr-3 text-base font-medium text-foreground">
             Show seasonal icons
           </span>
           <input
@@ -220,20 +220,19 @@ export const OptionsSeasonalIconsOverview = ({
           <span
             aria-hidden="true"
             className={`
-              border-border bg-input relative h-6 w-11 shrink-0 rounded-full
-              border transition-colors
-              after:border-border after:bg-background after:absolute
-              after:left-[2px] after:top-[2px] after:h-5 after:w-5
-              after:rounded-full after:border after:transition-transform
-              after:content-['']
+              relative h-6 w-11 shrink-0 rounded-full border border-border
+              bg-input transition-colors
               peer-checked:bg-accent-selected
-              peer-checked:after:border-accent-border
+              peer-focus-visible:ring-4 peer-focus-visible:ring-accent
+              peer-focus-visible:outline-hidden
+              after:absolute after:top-[2px] after:left-[2px] after:size-5
+              after:rounded-full after:border after:border-border
+              after:bg-background after:transition-transform after:content-['']
               peer-checked:after:translate-x-full
-              peer-focus-visible:ring-accent peer-focus-visible:outline-none
-              peer-focus-visible:ring-4
+              peer-checked:after:border-accent-border
             `}
           />
-          <span className="text-foreground ml-3 text-base font-medium">
+          <span className="ml-3 text-base font-medium text-foreground">
             {preferences.seasonalIconsEnabled ? 'On' : 'Off'}
           </span>
         </label>
@@ -243,13 +242,13 @@ export const OptionsSeasonalIconsOverview = ({
           onClick={onOpen}
           className={cn(
             `
-              bg-accent-selected text-foreground flex shrink-0 items-center
-              justify-center gap-2 rounded-lg px-3 py-2 text-base font-medium
+              flex shrink-0 items-center justify-center gap-2 rounded-lg
+              bg-accent-selected px-3 py-2 text-base font-medium text-foreground
               transition-colors
               hover:bg-accent-selected-hover
-              focus-visible:ring-accent focus-visible:ring-offset-background
-              focus-visible:outline-none focus-visible:ring-2
-              focus-visible:ring-offset-2
+              focus-visible:ring-2 focus-visible:ring-accent
+              focus-visible:ring-offset-2 focus-visible:ring-offset-background
+              focus-visible:outline-hidden
             `,
           )}
         >
@@ -278,11 +277,11 @@ export const OptionsSeasonalIcons = ({
       <h2
         data-seasonal-heading
         tabIndex={-1}
-        className="text-foreground mb-2 text-2xl font-semibold"
+        className="mb-2 text-2xl font-semibold text-foreground"
       >
         Seasonal icons
       </h2>
-      <div className="space-y-4">
+      <div className="stack-y-4">
         {availableSeasonalHolidays.map((holiday) => {
           const dateLabel =
             'dateLabel' in holiday ? holiday.dateLabel : undefined
@@ -304,7 +303,7 @@ export const OptionsSeasonalIcons = ({
               >
                 <h3
                   id={headingId}
-                  className="text-foreground text-xl font-medium"
+                  className="text-xl font-medium text-foreground"
                 >
                   {holiday.name}
                 </h3>

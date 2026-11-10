@@ -10,11 +10,11 @@ export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
         src={logoUrl}
         width={48}
         height={48}
-        className="h-12 w-12"
+        className="size-12"
         alt="Tabby"
       />
     )}
-    <h1 className="text-foreground text-3xl font-semibold tracking-tight">
+    <h1 className="text-3xl font-semibold tracking-tight text-foreground">
       Options
     </h1>
     <span className="ml-auto">
@@ -26,7 +26,7 @@ export const OptionsSidePanelSettings = ({
   openSidePanelSettings,
 }: Pick<OptionsProps, 'openSidePanelSettings'>) => (
   <section className="mb-6">
-    <h2 className="text-foreground mb-4 text-2xl font-semibold">
+    <h2 className="mb-4 text-2xl font-semibold text-foreground">
       Side panel position
     </h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
@@ -38,24 +38,24 @@ export const OptionsSidePanelSettings = ({
           group-data-[wide=true]/options:justify-between
         `}
       >
-        <p className="text-muted text-base">
+        <p className="text-base text-muted">
           Choose left or right in Chrome’s Side panel settings.
         </p>
         <button
           onClick={openSidePanelSettings}
           className={cn(
             `
-              bg-accent-selected text-foreground flex shrink-0 items-center
-              gap-2 whitespace-normal rounded-lg px-4 py-2 text-base font-medium
+              flex shrink-0 items-center gap-2 rounded-lg bg-accent-selected
+              px-4 py-2 text-base font-medium whitespace-normal text-foreground
               transition-colors
               hover:bg-accent-selected-hover
-              focus-visible:ring-accent focus-visible:ring-offset-background
-              focus-visible:outline-none focus-visible:ring-2
-              focus-visible:ring-offset-2
+              focus-visible:ring-2 focus-visible:ring-accent
+              focus-visible:ring-offset-2 focus-visible:ring-offset-background
+              focus-visible:outline-hidden
             `,
           )}
         >
-          <ExternalLinkIcon className="h-4 w-4" />
+          <ExternalLinkIcon className="size-4" />
           Open Chrome appearance settings
         </button>
       </div>

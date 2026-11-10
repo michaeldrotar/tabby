@@ -49,17 +49,17 @@ export const TooltipContent = ({
         className={cn(
           `
             animate-in fade-in-0 zoom-in-95
-            origin-(--radix-tooltip-content-transform-origin) bg-popover
-            text-popover-foreground z-50 w-fit text-balance rounded-md px-3
-            py-1.5 text-xs shadow-md
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0
             data-[state=closed]:zoom-out-95
             data-[side=bottom]:slide-in-from-top-2
             data-[side=left]:slide-in-from-right-2
             data-[side=right]:slide-in-from-left-2
             data-[side=top]:slide-in-from-bottom-2
+            z-50 w-fit origin-(--radix-tooltip-content-transform-origin)
+            rounded-md bg-popover px-3 py-1.5 text-xs text-balance
+            text-popover-foreground shadow-md
           `,
-          'bg-tooltip text-tooltip-foreground text-xs',
+          'bg-tooltip text-xs text-tooltip-foreground',
           className,
         )}
         {...props}
@@ -68,8 +68,8 @@ export const TooltipContent = ({
         <TooltipPrimitive.Arrow
           className={cn(
             `
-              bg-popover fill-popover z-50 size-2.5
-              translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]
+              z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]
+              bg-popover fill-popover
             `,
             'bg-tooltip fill-tooltip',
           )}

@@ -165,10 +165,13 @@ export const ProductDemo = ({
           </button>
         </div>
         <div
-          className={`
-            demo-screen
-            demo-screen--${shownExperience}
-          `}
+          className={
+            {
+              manager: 'demo-screen demo-screen--manager',
+              search: 'demo-screen demo-screen--search',
+              options: 'demo-screen demo-screen--options',
+            }[shownExperience]
+          }
         >
           <TabbySurface
             inputMode="live"

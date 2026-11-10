@@ -55,17 +55,17 @@ const ShortcutSettingsButton = ({
     onClick={openShortcutsSettings}
     className={cn(
       `
-        bg-accent-selected text-foreground flex shrink-0 items-center gap-2
-        whitespace-normal rounded-lg px-3 py-2 text-base font-medium
+        flex shrink-0 items-center gap-2 rounded-lg bg-accent-selected px-3 py-2
+        text-base font-medium whitespace-normal text-foreground
         transition-colors
         hover:bg-accent-selected-hover
-        focus-visible:ring-accent focus-visible:ring-offset-background
-        focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-offset-2
+        focus-visible:ring-2 focus-visible:ring-accent
+        focus-visible:ring-offset-2 focus-visible:ring-offset-background
+        focus-visible:outline-hidden
       `,
     )}
   >
-    <ExternalLinkIcon className="h-4 w-4" aria-hidden="true" />
+    <ExternalLinkIcon className="size-4" aria-hidden="true" />
     Open Chrome shortcut settings
   </button>
 )
@@ -80,16 +80,16 @@ const ShortcutValue = ({
   shortcutsLoading: boolean
 }) => {
   if (shortcutsLoading)
-    return <span className="text-muted text-sm">Loading…</span>
+    return <span className="text-sm text-muted">Loading…</span>
   const value = formatShortcut(shortcut, isMac)
   return value ? (
     <KbdGroup className="max-w-full">
-      <Kbd className="h-auto min-h-6 max-w-full whitespace-normal py-1 text-sm">
+      <Kbd className="h-auto min-h-6 max-w-full py-1 text-sm whitespace-normal">
         {value}
       </Kbd>
     </KbdGroup>
   ) : (
-    <span className="text-muted text-sm">Not assigned</span>
+    <span className="text-sm text-muted">Not assigned</span>
   )
 }
 
@@ -97,8 +97,8 @@ const LocalShortcuts = ({ isMac }: Pick<OptionsProps, 'isMac'>) => (
   <div className="grid gap-y-4">
     {tabManagerShortcutGroups(isMac).map(({ title, shortcuts }) => (
       <section key={title} aria-label={`${title} shortcuts`}>
-        <h3 className="text-foreground mb-2 text-xl font-medium">{title}</h3>
-        <dl className="divide-border/60 divide-y">
+        <h3 className="mb-2 text-xl font-medium text-foreground">{title}</h3>
+        <dl className="shortcut-dividers">
           {shortcuts.map(({ keys, label }) => (
             <div
               className={`
@@ -107,14 +107,14 @@ const LocalShortcuts = ({ isMac }: Pick<OptionsProps, 'isMac'>) => (
               `}
               key={keys}
             >
-              <dt className="text-foreground/90 min-w-0 text-base leading-6">
+              <dt className="min-w-0 text-base/6 text-foreground/90">
                 {label}
               </dt>
               <dd className="min-w-0">
                 <KbdGroup className="max-w-full">
                   <Kbd
                     className={`
-                      h-auto min-h-6 max-w-full whitespace-normal py-1 text-sm
+                      h-auto min-h-6 max-w-full py-1 text-sm whitespace-normal
                     `}
                   >
                     {keys}
@@ -144,8 +144,8 @@ const ShortcutRows = ({
 }) => (
   <dl
     className={cn(
-      'divide-border/60 divide-y',
-      windowRows && 'border-border border-t pt-2',
+      'shortcut-dividers',
+      windowRows && 'border-t border-border pt-2',
     )}
   >
     {rows.map(({ id, name, shortcut }) => (
@@ -159,7 +159,7 @@ const ShortcutRows = ({
         )}
         key={id}
       >
-        <dt className={cn(windowRows ? 'text-muted text-base' : 'text-base')}>
+        <dt className={cn(windowRows ? 'text-base text-muted' : 'text-base')}>
           {name}
         </dt>
         <dd className="min-w-0">
@@ -191,7 +191,7 @@ const ChromeShortcuts = ({
   )
 
   return (
-    <div className="space-y-3">
+    <div className="stack-y-3">
       <div
         className={`
           flex flex-col gap-3
@@ -200,7 +200,7 @@ const ChromeShortcuts = ({
           group-data-[wide=true]/options:justify-between
         `}
       >
-        <p className="text-muted max-w-sm text-base">
+        <p className="max-w-sm text-base text-muted">
           These shortcuts work across Chrome and are managed in Chrome settings.
         </p>
         <ShortcutSettingsButton openShortcutsSettings={openShortcutsSettings} />
@@ -241,26 +241,26 @@ export const OptionsShortcuts = ({
   }
 
   return (
-    <div className="mb-6 space-y-4">
+    <div className="stack-y-4 mb-6">
       <section aria-labelledby={globalHeadingId}>
         <h2
           id={globalHeadingId}
-          className="text-foreground mb-4 text-2xl font-semibold"
+          className="mb-4 text-2xl font-semibold text-foreground"
         >
           Global shortcuts
         </h2>
-        <div className="border-border bg-card rounded-lg border p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <ChromeShortcuts {...shortcutsProps} />
         </div>
       </section>
       <section aria-labelledby={tabManagerHeadingId}>
         <h2
           id={tabManagerHeadingId}
-          className="text-foreground mb-4 text-2xl font-semibold"
+          className="mb-4 text-2xl font-semibold text-foreground"
         >
           Tab manager shortcuts
         </h2>
-        <div className="border-border bg-card rounded-lg border p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <LocalShortcuts isMac={isMac} />
         </div>
       </section>

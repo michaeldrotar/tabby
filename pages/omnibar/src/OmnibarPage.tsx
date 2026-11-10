@@ -33,8 +33,8 @@ export const OmnibarPage = () => {
 
   return (
     <ChromeTabbyProvider surface="omnibar" originalWindowId={originalWindowId}>
-      <TabbySurface className="h-full w-full">
-        <OmnibarExperience onDismiss={onDismiss} className="h-full w-full" />
+      <TabbySurface className="size-full">
+        <OmnibarExperience onDismiss={onDismiss} className="size-full" />
       </TabbySurface>
     </ChromeTabbyProvider>
   )
