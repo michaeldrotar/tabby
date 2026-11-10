@@ -12,36 +12,42 @@ const refreshCode = readFileSync(resolve(injectionsPath, 'refresh.js'), 'utf-8')
 const reloadCode = readFileSync(resolve(injectionsPath, 'reload.js'), 'utf-8')
 
 export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
-  const { refresh, reload, id: _id, onStart } = config
+  const {
+    refresh,
+    reload,
+    id: _id,
+    onStart,
+    socketUrl = LOCAL_RELOAD_SOCKET_URL,
+  } = config
   const hmrCode = (refresh ? refreshCode : '') + (reload ? reloadCode : '')
 
   let ws: WebSocket | null = null
 
   const id = _id ?? Math.random().toString(36)
   let reconnectTries = 0
+  let closed = false
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined
 
   const initializeWebSocket = () => {
-    ws = new WebSocket(LOCAL_RELOAD_SOCKET_URL)
+    ws = new WebSocket(socketUrl)
 
     ws.onopen = () => {
-      console.log(`[HMR] Connected to dev-server at ${LOCAL_RELOAD_SOCKET_URL}`)
+      console.log(`[HMR] Connected to dev-server at ${socketUrl}`)
     }
 
     ws.onerror = () => {
-      console.error(
-        `[HMR] Failed to connect server at ${LOCAL_RELOAD_SOCKET_URL}`,
-      )
+      console.error(`[HMR] Failed to connect server at ${socketUrl}`)
       console.warn('Retrying in 3 seconds...')
       ws = null
 
-      if (reconnectTries <= 2) {
-        setTimeout(() => {
+      if (!closed && reconnectTries <= 2) {
+        reconnectTimer = setTimeout(() => {
           reconnectTries++
           initializeWebSocket()
         }, 3_000)
       } else {
         console.error(
-          `[HMR] Cannot establish connection to server at ${LOCAL_RELOAD_SOCKET_URL}`,
+          `[HMR] Cannot establish connection to server at ${socketUrl}`,
         )
       }
     }
@@ -49,6 +55,12 @@ export const watchRebuildPlugin = (config: PluginConfigType): PluginOption => {
 
   return {
     name: 'watch-rebuild',
+    closeWatcher() {
+      closed = true
+      clearTimeout(reconnectTimer)
+      ws?.terminate()
+      ws = null
+    },
     closeBundle() {
       onStart?.()
       if (!ws) {

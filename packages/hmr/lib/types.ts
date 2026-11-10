@@ -15,6 +15,7 @@ export type WebSocketMessageType =
 
 export type PluginConfigType = {
   onStart?: () => void
+  socketUrl?: string
   reload?: boolean
   refresh?: boolean
   id?: string

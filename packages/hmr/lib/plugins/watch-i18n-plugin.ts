@@ -15,6 +15,7 @@ export const watchI18nPlugin = (): PluginOption => ({
       '..',
       '..',
       '..',
+      '..',
       'i18n',
       'locales',
     )
