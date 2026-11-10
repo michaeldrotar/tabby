@@ -9,7 +9,7 @@ permissions:
 jobs:
   e2e:
     name: Browser workflows
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CEB_CI: true
     steps:
