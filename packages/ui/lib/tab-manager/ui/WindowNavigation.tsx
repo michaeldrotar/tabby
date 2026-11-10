@@ -27,7 +27,7 @@ import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 import type { BrowserTabGroupColor } from '@extension/core'
 
 export const windowControlClass =
-  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-[var(--manager-control-hover)] hover:text-foreground data-[hover=true]:bg-[var(--manager-control-hover)] data-[hover=true]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
+  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-[var(--manager-control-hover)] hover:text-foreground data-[hover=true]:bg-[var(--manager-control-hover)] data-[hover=true]:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
 const editorRowEntry = (row: Element) =>
@@ -84,8 +84,8 @@ export const WindowHeader = ({
   return (
     <header
       className={`
-        border-border flex shrink-0 items-center gap-1 border-b
-        bg-[var(--manager-chrome)] p-2
+        flex shrink-0 items-center gap-1 border-b border-border
+        bg-(--manager-chrome) p-2
       `}
       data-keyboard-section="header"
     >
@@ -120,12 +120,12 @@ export const WindowHeader = ({
         </span>
         <span className="min-w-0 flex-1">
           <span
-            className="text-foreground block truncate font-medium"
+            className="block truncate font-medium text-foreground"
             title={window?.title}
           >
             {window?.title ?? 'Windows'}
           </span>
-          <span className="text-foreground mt-0.5 block truncate text-xs">
+          <span className="mt-0.5 block truncate text-xs text-foreground">
             {window
               ? `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.incognito ? ' · Private' : ''}`
               : 'Choose a window'}
@@ -237,7 +237,7 @@ export const WindowPicker = ({
         entries[next]?.scrollIntoView?.({ block: 'nearest' })
       }}
     >
-      <div role="list" aria-label="Windows" className="space-y-1">
+      <div role="list" aria-label="Windows" className="stack-y-1">
         {model.windows.map((window) => (
           <div
             key={window.id}
@@ -280,7 +280,7 @@ export const WindowPicker = ({
                 />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="text-foreground block truncate font-medium">
+                <span className="block truncate font-medium text-foreground">
                   {window.title}
                 </span>
                 <span
@@ -356,7 +356,7 @@ export const WindowIdentityEditor = ({
     <form
       data-window-editor
       aria-label="Name and icon"
-      className="space-y-5 p-4"
+      className="stack-y-5 p-4"
       onSubmit={(event) => {
         event.preventDefault()
         onIntent({ type: 'save-window' })
@@ -489,9 +489,9 @@ export const WindowIdentityEditor = ({
             })
           }
           className={`
-            border-border bg-input mt-2 block min-h-10 w-full rounded-md border
-            px-3 outline-none
-            focus-visible:ring-focus focus-visible:ring-2
+            mt-2 block min-h-10 w-full rounded-md border border-border bg-input
+            px-3 outline-hidden
+            focus-visible:ring-2 focus-visible:ring-focus
           `}
         />
       </label>
@@ -508,7 +508,7 @@ export const WindowIdentityEditor = ({
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
-                draft.icon === icon && 'ring-focus ring-2',
+                draft.icon === icon && 'ring-2 ring-focus',
               )}
               onClick={() =>
                 onIntent({ type: 'change-window-draft', value: { icon } })
@@ -534,7 +534,7 @@ export const WindowIdentityEditor = ({
               className={cn(
                 windowControlClass,
                 'size-10 px-0',
-                draft.iconColor === color && 'ring-focus ring-2',
+                draft.iconColor === color && 'ring-2 ring-focus',
               )}
               onClick={() =>
                 onIntent({

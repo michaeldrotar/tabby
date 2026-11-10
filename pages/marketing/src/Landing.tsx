@@ -257,10 +257,13 @@ const HomeFeatures = () => (
       <section
         key={item.id}
         id={item.id}
-        className={`
-          home-feature
-          home-feature--${item.id}
-        `}
+        className={
+          {
+            manage: 'home-feature home-feature--manage',
+            find: 'home-feature home-feature--find',
+            customize: 'home-feature home-feature--customize',
+          }[item.id]
+        }
         aria-labelledby={`${item.id}-title`}
       >
         <div className="feature-copy">

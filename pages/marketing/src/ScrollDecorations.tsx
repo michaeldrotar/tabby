@@ -271,13 +271,15 @@ export const WalkingPaws = () => {
             <path d="M369 0h655v1024H707Z" />
           </clipPath>
         </defs>
-        {['left', 'right'].map((side) => (
+        {(['left', 'right'] as const).map((side) => (
           <g
             key={side}
-            className={`
-              walking-paw
-              walking-paw--${side}
-            `}
+            className={
+              {
+                left: 'walking-paw walking-paw--left',
+                right: 'walking-paw walking-paw--right',
+              }[side]
+            }
           >
             <image
               href={assets.paws}

@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { featureArtClasses } from './content'
 import { MotionReveal } from './MotionReveal'
 import type { BrowserIllustrationProps } from './BrowserIllustration'
 import type { HomeFeatureId } from './content'
@@ -52,16 +53,7 @@ export const FeatureIllustration = ({
 }: {
   feature: HomeFeatureId
 }) => (
-  <Suspense
-    fallback={
-      <div
-        className={`
-          feature-art
-          feature-art--${feature}
-        `}
-      />
-    }
-  >
+  <Suspense fallback={<div className={featureArtClasses[feature]} />}>
     <FeatureArt feature={feature} />
   </Suspense>
 )

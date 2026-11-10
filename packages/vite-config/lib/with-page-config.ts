@@ -2,6 +2,7 @@ import { env } from '@extension/env/config'
 import { getEnv } from '@extension/env/getEnv'
 import { watchI18nPlugin } from '@extension/hmr/plugins/watch-i18n-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig, mergeConfig } from 'vite'
 import type { UserConfig } from 'vite'
@@ -26,6 +27,7 @@ export const withPageConfig = (config: UserConfig) => {
         },
         base: '',
         plugins: [
+          tailwindcss(),
           react(),
           ENV['IS_DEV'] && watchRebuildPlugin({ refresh: true }),
           ENV['IS_DEV'] && watchI18nPlugin(),

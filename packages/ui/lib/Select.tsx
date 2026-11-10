@@ -200,12 +200,12 @@ export const SelectTrigger = React.forwardRef<
       data-state={context.open ? 'open' : 'closed'}
       className={cn(
         `
-          border-border bg-background ring-offset-background flex h-10 w-full
-          items-center justify-between rounded-md border px-3 py-2 text-sm
+          flex h-10 w-full items-center justify-between rounded-md border
+          border-border bg-background px-3 py-2 text-sm ring-offset-background
           placeholder:text-muted
-          focus-visible:ring-accent focus-visible:outline-none
-          focus-visible:ring-2 focus-visible:ring-offset-2
-          focus:outline-none
+          focus:outline-hidden
+          focus-visible:ring-2 focus-visible:ring-accent
+          focus-visible:ring-offset-2 focus-visible:outline-hidden
           disabled:cursor-not-allowed disabled:opacity-50
           [&>span]:line-clamp-1
         `,
@@ -219,7 +219,7 @@ export const SelectTrigger = React.forwardRef<
       {...props}
     >
       {children}
-      <ChevronDownIcon className="h-4 w-4 opacity-50" />
+      <ChevronDownIcon className="size-4 opacity-50" />
     </button>
   )
 })
@@ -394,9 +394,8 @@ export const SelectContent = React.forwardRef<
           motion-reduce:animate-none
         `,
         `
-          border-border bg-popover text-popover-foreground z-50 max-h-96
-          min-w-[8rem] overflow-auto rounded-md border p-1 shadow-md
-          outline-none
+          z-50 max-h-96 min-w-32 overflow-auto rounded-md border border-border
+          bg-popover p-1 text-popover-foreground shadow-md outline-hidden
         `,
         className,
       )}
@@ -450,11 +449,10 @@ export const SelectItem = React.forwardRef<
         data-disabled={disabled ? '' : undefined}
         className={cn(
           `
-            data-[highlighted]:bg-accent-selected
-            data-[highlighted]:text-foreground
-            relative flex w-full cursor-default select-none items-center
-            rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none
-            data-[disabled]:pointer-events-none data-[disabled]:opacity-50
+            relative flex w-full cursor-default items-center rounded-xs py-1.5
+            pr-2 pl-8 text-sm outline-hidden select-none
+            data-disabled:pointer-events-none data-disabled:opacity-50
+            data-highlighted:bg-accent-selected data-highlighted:text-foreground
           `,
           className,
         )}
@@ -478,11 +476,9 @@ export const SelectItem = React.forwardRef<
         {...props}
       >
         <span
-          className={`
-            absolute left-2 flex h-3.5 w-3.5 items-center justify-center
-          `}
+          className={`absolute left-2 flex size-3.5 items-center justify-center`}
         >
-          {context.value === value && <CheckIcon className="h-4 w-4" />}
+          {context.value === value && <CheckIcon className="size-4" />}
         </span>
         {children}
       </div>
@@ -496,7 +492,7 @@ export const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
+    className={cn('py-1.5 pr-2 pl-8 text-sm font-semibold', className)}
     {...props}
   />
 ))
@@ -508,7 +504,7 @@ export const SelectSeparator = React.forwardRef<
   <div
     ref={ref}
     role="separator"
-    className={cn('bg-border -mx-1 my-1 h-px', className)}
+    className={cn('-mx-1 my-1 h-px bg-border', className)}
     {...props}
   />
 ))

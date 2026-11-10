@@ -30,10 +30,7 @@ export const TabManagerShell = ({
       data-tab-manager-shell
       data-selection-mode={selectionMode}
       className={cn(
-        `
-          relative flex w-full flex-col overflow-hidden
-          bg-[var(--manager-canvas)]
-        `,
+        `relative flex w-full flex-col overflow-hidden bg-(--manager-canvas)`,
         surface ? 'h-full min-h-0' : 'h-screen',
         className,
       )}
@@ -50,7 +47,7 @@ export const TabManagerShell = ({
             id={mainId}
             tabIndex={-1}
             aria-label="Tabs"
-            className="h-full outline-none"
+            className="h-full outline-hidden"
           >
             <h1 className="sr-only">Tab manager</h1>
             {children}

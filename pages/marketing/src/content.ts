@@ -27,3 +27,9 @@ export const homeFeatures = [
 ] as const
 
 export type HomeFeatureId = (typeof homeFeatures)[number]['id']
+
+export const featureArtClasses = {
+  manage: 'feature-art feature-art--manage',
+  find: 'feature-art feature-art--find',
+  customize: 'feature-art feature-art--customize',
+}

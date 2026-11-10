@@ -122,7 +122,7 @@ export const BulkActionsPage = () => (
               ${index === 1 ? 'bulk-menu-hover-discard' : ''}
             `}
           >
-            <PromoTabManager model={model} className="h-full w-full" />
+            <PromoTabManager model={model} className="size-full" />
           </div>
         </article>
       ))}

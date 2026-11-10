@@ -129,8 +129,8 @@ export const Options = (props: OptionsProps) => {
       data-wide={wide}
       onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop)}
       className={cn(
-        'group/options relative isolate h-full w-full overflow-auto',
-        'bg-background text-foreground text-base',
+        'group/options relative isolate size-full overflow-auto',
+        'bg-background text-base text-foreground',
       )}
     >
       <SummerDetails place="options" />
@@ -142,7 +142,7 @@ export const Options = (props: OptionsProps) => {
         `}
       >
         {error && (
-          <p role="alert" className="mb-4 rounded border border-red-500 p-3">
+          <p role="alert" className="mb-4 rounded-sm border border-red-500 p-3">
             {error}
           </p>
         )}
@@ -154,11 +154,11 @@ export const Options = (props: OptionsProps) => {
               onClick={backToOptions}
               className={cn(
                 `
-                  text-muted mb-4 flex items-center gap-2 text-sm font-medium
+                  mb-4 flex items-center gap-2 text-sm font-medium text-muted
                   transition-colors
                   hover:text-foreground
-                  focus-visible:ring-accent focus-visible:outline-none
-                  focus-visible:ring-2
+                  focus-visible:ring-2 focus-visible:ring-accent
+                  focus-visible:outline-hidden
                 `,
               )}
             >

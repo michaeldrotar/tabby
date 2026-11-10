@@ -239,10 +239,7 @@ export const Surface = ({
           motion === 'system' ? undefined : motion === 'reduced'
         }
         className={cn(
-          `
-            text-foreground relative isolate h-full min-h-0 w-full min-w-0
-            font-sans
-          `,
+          `relative isolate size-full min-h-0 min-w-0 font-sans text-foreground`,
           theme === 'dark' && 'dark',
           className,
         )}

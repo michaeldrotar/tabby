@@ -883,12 +883,12 @@ export const TabManager = ({
       className={cn(
         tabRowHeightClass,
         `
-          text-muted flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm
+          flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted
           transition-colors
-          hover:text-foreground hover:bg-accent-hover
-          focus-visible:text-foreground focus-visible:bg-accent-hover
-          focus-visible:ring-focus focus-visible:outline-none
-          focus-visible:ring-2 focus-visible:ring-inset
+          hover:bg-accent-hover hover:text-foreground
+          focus-visible:bg-accent-hover focus-visible:text-foreground
+          focus-visible:ring-2 focus-visible:ring-focus
+          focus-visible:outline-hidden focus-visible:ring-inset
         `,
       )}
       onClick={() => {
@@ -1070,14 +1070,14 @@ export const TabManager = ({
                   {model.error ?? 'Unable to load tabs.'}
                 </p>
               ) : !viewedWindow ? (
-                <p className="text-muted p-4">
+                <p className="p-4 text-muted">
                   Create a window to get started.
                 </p>
               ) : (
                 <div
                   key={`window-tabs-${viewedWindow.id}`}
                   data-tab-pane
-                  className="space-y-4 p-2"
+                  className="stack-y-4 p-2"
                 >
                   <BrowserTabList
                     items={items}

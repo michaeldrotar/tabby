@@ -7,9 +7,12 @@ export const createTailwindConfig = (...configs: Partial<Config>[]): Config => {
       baseConfig,
       ...configs.map(({ content: _content, presets = [], ...config }) => ({
         ...config,
-        presets,
+        ...(presets.length ? { presets } : {}),
       })),
     ],
+    darkMode:
+      configs.findLast((config) => config.darkMode !== undefined)?.darkMode ??
+      baseConfig.darkMode,
     content: configs.flatMap((config) => {
       const content = config.content ?? []
       return Array.isArray(content) ? content : content.files

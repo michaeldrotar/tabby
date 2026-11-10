@@ -117,7 +117,7 @@ export const Omnibar = ({
     if (!hideTabManagerAction && onOpenTabManager) {
       actions.push({
         id: 'open-tab-manager',
-        icon: <LayoutGridIcon className="h-4 w-4" />,
+        icon: <LayoutGridIcon className="size-4" />,
         label: 'Open tab manager',
         shortcut: formatShortcut(openTabManagerShortcut, isMac),
         onClick: openTabManager,
@@ -127,7 +127,7 @@ export const Omnibar = ({
     if (onOpenOptions)
       actions.push({
         id: 'open-options',
-        icon: <SettingsIcon className="h-4 w-4" />,
+        icon: <SettingsIcon className="size-4" />,
         label: 'Open options',
         onClick: async () => {
           try {
@@ -213,7 +213,7 @@ export const Omnibar = ({
           onScrollChange?.(viewport.scrollTop)
       }}
       className={cn(
-        'bg-card text-card-foreground relative isolate flex h-full flex-col',
+        'relative isolate flex h-full flex-col bg-card text-card-foreground',
         className,
       )}
       role="search"
