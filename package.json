@@ -46,9 +46,9 @@
     "postinstall": "pnpm copy-env"
   },
   "dependencies": {
-    "framer-motion": "^12.23.26",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "framer-motion": "^14.6.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -57,8 +57,8 @@
     "@types/chrome": "^0.3.6",
     "@types/eslint-plugin-jsx-a11y": "^6.10.1",
     "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^4.1.12",
     "autoprefixer": "^10.4.22",
     "chalk": "^6.0.1",
