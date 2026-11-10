@@ -65,7 +65,7 @@ export const ModeTransitionEffect = ({
   // Note: This setState-in-effect pattern is intentional for animation triggering -
   // we need to detect prop changes and trigger visual effects in response.
   useEffect(() => {
-    checkModeChange() // eslint-disable-line react-hooks/set-state-in-effect
+    checkModeChange()
   }, [checkModeChange])
 
   const handleAnimationComplete = useCallback(() => {
