@@ -65,7 +65,7 @@ Agents running servers or browser tests in worktrees must choose other available
 ## Patch Releases
 
 - A patch release uses a temporary branch named for its version, such as `hotfix/v1.2.1`, created from the latest published tag, such as `v1.2.0`. It may collect multiple fixes before release.
-- Fix PRs target that version-specific branch and update its patch-version release-notes file. Tag the reviewed patch commit, then forward-port each fix to `main` in a separately reviewed PR. Preserve `main`'s active version and release notes; do not repeat the patch note in the next minor release.
+- Fix PRs target that version-specific branch and update its patch-version release-notes file. Tag the reviewed patch commit, then forward-port each fix to `main` in a separately reviewed PR. Compare `main`'s root `package.json` version with the patch release: preserve it when equal or higher; when lower, advance it to at least the patch version or use an already-approved higher next-release version. Follow the [forward-port version rule](./RELEASE.md#forward-port-versions). Do not repeat the patch note in the next minor release. Forward-porting code or version metadata does not authorize tagging, packaging, uploading, submitting, or publishing a release.
 - Close the issue after the patch fix and its forward-port are merged.
 
 ## Release and Publishing Actions
