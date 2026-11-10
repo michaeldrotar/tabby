@@ -55,7 +55,10 @@ describe('configuration composition', () => {
       plugins: [{ name: 'page', transform }],
       define: { 'process.env': { PAGE_VALUE: 'value' } },
       resolve: { alias: { '@src': resolve('pages/options/src') } },
-      build: { outDir: '/dist/page', rollupOptions: { external: ['custom'] } },
+      build: {
+        outDir: '/dist/page',
+        rolldownOptions: { external: ['custom'] },
+      },
     }
     const output = withPageConfig(input)
     expect(output.base).toBe('/page/')
@@ -71,11 +74,12 @@ describe('configuration composition', () => {
     expect(output.plugins.at(-1).transform).toBe(transform)
     expect(output.build).toMatchObject({
       outDir: '/dist/page',
-      rollupOptions: { external: ['chrome', 'custom'] },
+      target: 'chrome127',
+      rolldownOptions: { external: ['chrome', 'custom'] },
     })
     expect(typeof output.build.sourcemap).toBe('boolean')
-    output.build.rollupOptions.external.push('extra')
-    expect(input.build.rollupOptions.external).toEqual(['custom'])
+    output.build.rolldownOptions.external.push('extra')
+    expect(input.build.rolldownOptions.external).toEqual(['custom'])
     expect(withPageConfig({}).base).toBe('')
   })
 })

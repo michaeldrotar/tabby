@@ -10,8 +10,9 @@ const ENV = getEnv()
 
 export const watchOption = ENV['IS_DEV']
   ? {
-      chokidar: {
-        awaitWriteFinish: true,
+      watcher: {
+        useDebounce: true,
+        debounceDelay: 2000,
       },
     }
   : undefined
@@ -30,12 +31,13 @@ export const withPageConfig = (config: UserConfig) => {
           ENV['IS_DEV'] && watchI18nPlugin(),
         ],
         build: {
+          target: 'chrome127',
           sourcemap: ENV['IS_DEV'] || ENV['ENABLE_SOURCEMAPS'],
           minify: ENV['IS_PROD'] && !ENV['ENABLE_SOURCEMAPS'],
           reportCompressedSize: ENV['IS_PROD'],
           emptyOutDir: ENV['IS_PROD'],
           watch: watchOption,
-          rollupOptions: {
+          rolldownOptions: {
             external: ['chrome'],
           },
         },
