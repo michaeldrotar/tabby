@@ -4,6 +4,7 @@ import { getEnv } from '@extension/env/getEnv'
 import { watchPublicPlugin } from '@extension/hmr/plugins/watch-public-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
 import { watchOption } from '@extension/vite-config/with-page-config'
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin.js'
 
@@ -26,6 +27,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    tailwindcss(),
     watchPublicPlugin(),
     makeManifestPlugin({ outDir }),
     ENV['IS_DEV'] &&

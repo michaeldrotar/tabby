@@ -1,6 +1,8 @@
 import { resolve } from 'node:path'
 import { createJiti } from 'jiti'
-import resolveConfig from 'tailwindcss/resolveConfig.js'
+import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import tailwindcss from '@tailwindcss/vite'
+import { build } from 'vite'
 import { describe, expect, it } from 'vitest'
 
 const jiti = createJiti(import.meta.url)
@@ -15,37 +17,69 @@ const { withPageConfig } = await jiti.import(
 )
 
 describe('configuration composition', () => {
-  it('resolves shared Tailwind presets, content, theme overrides and functions', () => {
-    const color = () => '#123456'
-    const input = {
-      content: ['src/**/*.tsx'],
-      presets: [{ theme: { extend: { spacing: { 128: '32rem' } } } }],
-      theme: { extend: { colors: { custom: color, accent: '#abcdef' } } },
+  it('compiles shared presets, sources, theme functions and overrides', async () => {
+    const directory = await mkdtemp(resolve('.turbo/tailwind-test-'))
+    try {
+      await writeFile(
+        resolve(directory, 'fixture.html'),
+        '<div class="p-128 bg-custom bg-custom/50 bg-accent bg-background/80 dark:bg-custom"></div>',
+      )
+      await writeFile(
+        resolve(directory, 'config.ts'),
+        `
+        import { createTailwindConfig } from '../../packages/ui/lib/create-tailwind-config.ts'
+        import { uiTailwindConfig } from '../../packages/ui/lib/ui-tailwind-config.ts'
+        export default createTailwindConfig(uiTailwindConfig, {
+          content: ['./fixture.html'],
+          presets: [{ theme: { extend: { spacing: { 128: '32rem' }, colors: { fixture: '#123456' } } } }],
+          theme: { extend: { colors: { accent: '#abcdef' }, backgroundColor: ({ theme }) => ({ custom: theme('colors.fixture') }) } },
+        })
+      `,
+      )
+      await writeFile(
+        resolve(directory, 'index.css'),
+        `
+        @import "${resolve('packages/ui/base.css')}";
+        @config "./config.ts";
+
+      `,
+      )
+      const output = await build({
+        configFile: false,
+        root: directory,
+        logLevel: 'silent',
+        plugins: [tailwindcss()],
+        build: {
+          write: false,
+          cssMinify: false,
+          rolldownOptions: { input: resolve(directory, 'index.css') },
+        },
+      })
+      const css = output.output.find((item) =>
+        item.fileName.endsWith('.css'),
+      ).source
+      expect(css).toMatch(/\.p-128\s*\{\s*padding: 32rem;/)
+      expect(css).toMatch(/\.bg-custom\s*\{\s*background-color: #123456;/)
+      expect(css).toContain('.bg-custom\\/50')
+      expect(css).toContain('.bg-background\\/80')
+      expect(css).toContain('50%')
+      const input = {
+        content: ['fixture.html'],
+        theme: { extend: { colors: { custom: '#123456' } } },
+      }
+      const composed = createTailwindConfig(uiTailwindConfig, input)
+      composed.content.push('extra.tsx')
+      expect(input.content).toEqual(['fixture.html'])
+      expect(
+        createTailwindConfig(uiTailwindConfig, input).content,
+      ).toHaveLength(2)
+      expect(css).toContain('#abcdef')
+      expect(css).toContain('var(--background)')
+      expect(css).toContain('data-theme="dark"')
+      expect(css).toContain('prefers-color-scheme: dark')
+    } finally {
+      await rm(directory, { recursive: true, force: true })
     }
-    const output = resolveConfig(createTailwindConfig(uiTailwindConfig, input))
-    expect(output.content.files).toEqual([
-      '../../packages/ui/lib/**/*.{ts,tsx}',
-      'src/**/*.tsx',
-    ])
-    expect(output.theme.spacing[128]).toBe('32rem')
-    expect(output.theme.colors.custom).toBe(color)
-    expect(output.theme.colors.accent).toBe('#abcdef')
-    expect(output.theme.colors.background).toBe(
-      'hsl(from var(--background) h s l / <alpha-value>)',
-    )
-    expect(output.darkMode).toBe('media')
-    expect(
-      resolveConfig(createTailwindConfig(uiTailwindConfig, { content: [] }))
-        .darkMode[0],
-    ).toBe('variant')
-    output.content.files.push('extra.tsx')
-    output.theme.colors.accent = '#000000'
-    expect(input.content).toEqual(['src/**/*.tsx'])
-    expect(input.theme.extend.colors.accent).toBe('#abcdef')
-    expect(
-      resolveConfig(createTailwindConfig(uiTailwindConfig, input)).content
-        .files,
-    ).toHaveLength(2)
   })
 
   it('preserves page aliases, environment defaults, plugins and build overrides', () => {
