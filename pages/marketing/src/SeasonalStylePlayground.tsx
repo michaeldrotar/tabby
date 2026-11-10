@@ -320,7 +320,7 @@ export const SeasonalStylePlayground = () => {
   }, [keepPiecesInBounds])
 
   const runPhysics = useCallback(
-    (timestamp: number) => {
+    function stepPhysics(timestamp: number) {
       const container = containerRef.current
       if (!container) {
         animationFrame.current = null
@@ -376,7 +376,7 @@ export const SeasonalStylePlayground = () => {
       }
 
       if (stillMoving) {
-        animationFrame.current = requestAnimationFrame(runPhysics)
+        animationFrame.current = requestAnimationFrame(stepPhysics)
       } else {
         animationFrame.current = null
         lastPhysicsAt.current = null

@@ -23,7 +23,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.51.1"
+    "@dotenvx/dotenvx": "^2.38.2"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
