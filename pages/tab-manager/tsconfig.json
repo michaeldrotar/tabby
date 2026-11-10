@@ -4,7 +4,13 @@
     "paths": {
       "@src/*": ["./src/*"]
     },
-    "types": ["chrome", "node", "vitest", "@testing-library/jest-dom"]
+    "types": [
+      "vite/client",
+      "chrome",
+      "node",
+      "vitest",
+      "@testing-library/jest-dom"
+    ]
   },
   "include": ["src", "vite.config.mts", "tailwind.config.ts"]
 }

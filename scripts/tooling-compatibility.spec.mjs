@@ -1,6 +1,8 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createRequire } from 'node:module'
+import { execFileSync } from 'node:child_process'
+import ts from 'typescript'
 import { ESLint } from 'eslint'
 import importX from 'eslint-plugin-import-x'
 import { rimraf, rimrafSync } from 'rimraf'
@@ -22,6 +24,55 @@ afterEach(async () => {
 })
 
 describe('tooling compatibility', () => {
+  it('builds referenced declarations with the native compiler and retains the compiler API', async () => {
+    const cwd = await fixture()
+    for (const name of ['library', 'consumer']) {
+      await mkdir(resolve(cwd, name))
+      await writeFile(
+        resolve(cwd, name, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            composite: true,
+            declaration: true,
+            outDir: './dist',
+            rootDir: '.',
+            target: 'ES2022',
+            module: 'NodeNext',
+            moduleResolution: 'NodeNext',
+            types: [],
+          },
+          files: ['index.ts'],
+          references: name === 'consumer' ? [{ path: '../library' }] : [],
+        }),
+      )
+    }
+    await writeFile(
+      resolve(cwd, 'library/index.ts'),
+      'export const value: number = 42',
+    )
+    await writeFile(
+      resolve(cwd, 'consumer/index.ts'),
+      "export { value } from '../library/index.js'",
+    )
+    const compiler = resolve('node_modules/.bin/tsc')
+    expect(
+      execFileSync(compiler, ['--version'], { encoding: 'utf8' }),
+    ).toContain('7.0.2')
+    execFileSync(compiler, ['-b', resolve(cwd, 'consumer')])
+    expect(
+      await readFile(resolve(cwd, 'library/dist/index.d.ts'), 'utf8'),
+    ).toContain('value: number')
+    expect(
+      await readFile(resolve(cwd, 'consumer/dist/index.js'), 'utf8'),
+    ).toContain('../library/index.js')
+    expect(ts.version).toMatch(/^6\.0\./)
+    const program = ts.createProgram([resolve(cwd, 'library/index.ts')], {
+      noEmit: true,
+      types: [],
+    })
+    expect(program.getSemanticDiagnostics()).toEqual([])
+  })
+
   it('discovers configured files and invalidates cached lint results', async () => {
     const cwd = await fixture()
     await mkdir(resolve(cwd, 'src/ignored'), { recursive: true })
