@@ -95,6 +95,7 @@ test('a click hides the cursor until movement without interrupting play', async 
   const bounds = (await home.boundingBox())!
   const x = bounds.x + 110
   const y = bounds.y - 60
+  await setChasePaused(cat, true, 'click')
   await page.mouse.click(x, y)
   const bait = page.locator('.footer-cat-bait')
   await expect(bait).toBeVisible({ timeout: 300 })
@@ -104,6 +105,7 @@ test('a click hides the cursor until movement without interrupting play', async 
   await expect(cat).toHaveAttribute('data-phase', 'hunting')
   await expect(page.locator('body')).toHaveCSS('cursor', 'none')
   expect((await bait.boundingBox())!.x).toBe(placed.x)
+  await setChasePaused(cat, false)
   await expect(bait).toBeHidden()
   await expect(cat).not.toHaveAttribute('data-phase')
   await expect(page.locator('body')).toHaveCSS('cursor', 'none')
