@@ -3,6 +3,8 @@ packages:
   - pages/*
   - packages/*
 
+useNodeVersion: 22.22.2
+
 onlyBuiltDependencies:
   - "@parcel/watcher"
   - "@swc/core"
