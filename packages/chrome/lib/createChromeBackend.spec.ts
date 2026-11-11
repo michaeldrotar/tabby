@@ -1,3 +1,4 @@
+import { getOmnibarResults } from '@extension/core/omnibarResults'
 import { describe, expect, it, vi } from 'vitest'
 import { createChromeBackend } from './createChromeBackend.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
@@ -129,7 +130,7 @@ const mockBrowser = () => {
 }
 
 describe('Chrome browser backend', () => {
-  it('keeps provisional restored names and icons hidden until the match is confirmed', async () => {
+  it('publishes tentative names to search and follows reassignment', async () => {
     const { api } = mockBrowser()
     const identity = {
       key: 'saved-window',
@@ -147,9 +148,17 @@ describe('Chrome browser backend', () => {
     } as unknown as typeof chrome.storage
     const backend = createChromeBackend({ ...api, storage })
     await backend.start()
-    expect(backend.getSnapshot().windows[0]).toMatchObject({ id: 1 })
-    for (const field of ['name', 'icon', 'iconColor'] as const)
-      expect(backend.getSnapshot().windows[0]?.[field]).toBeUndefined()
+    expect(backend.getSnapshot().windows[0]).toMatchObject({
+      id: 1,
+      name: 'Work',
+      icon: 'briefcase',
+      iconColor: 'blue',
+    })
+    expect(
+      getOmnibarResults('Work', backend.getSnapshot(), 1, [], Date.now()),
+    ).toContainEqual(
+      expect.objectContaining({ type: 'window', title: 'Work', windowId: 1 }),
+    )
 
     Object.assign(identity, {
       name: 'Research',
@@ -165,6 +174,11 @@ describe('Chrome browser backend', () => {
       icon: 'book',
       iconColor: 'green',
     })
+    expect(
+      getOmnibarResults('Work', backend.getSnapshot(), 1, [], Date.now()).some(
+        (result) => result.type === 'window',
+      ),
+    ).toBe(false)
     backend.dispose()
   })
 

@@ -1,6 +1,7 @@
 import { createAsyncQueue } from '@extension/core/asyncQueue'
 import { BROWSER_TAB_GROUP_COLORS } from '@extension/core/browser'
 import {
+  countMatchingWindowHashes,
   matchWindowIdentities,
   WINDOW_ICONS,
 } from '@extension/core/windowIdentity'
@@ -9,18 +10,35 @@ import type { SavedWindowIdentity } from '@extension/core/windowIdentity'
 
 export const WINDOW_IDENTITIES_KEY = 'tabby-window-identities'
 export const WINDOW_LABELS_KEY = 'tabby-window-labels-v1'
+export const WINDOW_RESTORE_ALARM = 'tabby-confirm-window-identities'
+const RESTORE_SETTLE_MS = 30_000
 export type WindowIdentityAssignment = {
   key: string
   name: string
   icon?: string
   iconColor?: BrowserTabGroupColor
   provisional?: boolean
+  matchedFull?: boolean
+  confirmAfter?: number
+  hashes?: string[]
+  position?: number
+  cleared?: boolean
 }
 type Assignments = Record<string, WindowIdentityAssignment>
 type IdentityApi = Pick<
   typeof chrome,
-  'windows' | 'tabs' | 'runtime' | 'storage'
+  'windows' | 'tabs' | 'runtime' | 'storage' | 'alarms'
 >
+
+const confirmationDeadline = (
+  prior: WindowIdentityAssignment | undefined,
+  key: string,
+  hashes: string[],
+  now: number,
+) =>
+  prior?.key === key && JSON.stringify(prior.hashes) === JSON.stringify(hashes)
+    ? (prior.confirmAfter ?? now + RESTORE_SETTLE_MS)
+    : now + RESTORE_SETTLE_MS
 
 const fingerprint = async (tabs: chrome.tabs.Tab[]) =>
   Promise.all(
@@ -51,7 +69,6 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       iconColor?: BrowserTabGroupColor
     },
     removedId?: number,
-    confirmRestores = false,
   ) => {
     const [windows, local, session] = await Promise.all([
       api.windows.getAll({ populate: true, windowTypes: ['normal'] }),
@@ -78,13 +95,15 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         previous[window.id] &&
         !previous[window.id]?.provisional
       )
-        assignments[window.id] = previous[window.id]!
+        assignments[window.id] = { ...previous[window.id]! }
     }
     const fingerprints = await Promise.all(
       windows
         .filter((window) => window.id !== undefined && !window.incognito)
-        .map(async (window) => ({
+        .sort((a, b) => a.id! - b.id!)
+        .map(async (window, position) => ({
           id: window.id!,
+          position,
           hashes: await fingerprint(window.tabs ?? []),
         })),
     )
@@ -94,23 +113,87 @@ export const registerWindowIdentities = (api: IdentityApi) => {
     const restored = matchWindowIdentities(
       fingerprints.filter((window) => !assignments[window.id]),
       saved.filter((record) => !boundKeys.has(record.key)),
+      new Map(
+        Object.entries(previous).map(([id, value]) => [Number(id), value.key]),
+      ),
     )
+    const exactKeys = new Set(
+      [...restored]
+        .filter(([id, key]) => {
+          const hashes = fingerprints.find((window) => window.id === id)!.hashes
+          const record = saved.find((record) => record.key === key)!
+          return (
+            hashes.length === record.hashes.length &&
+            countMatchingWindowHashes(hashes, record.hashes) === hashes.length
+          )
+        })
+        .map(([, key]) => key),
+    )
+    const restoreAssignment = (
+      current: (typeof fingerprints)[number],
+      record: SavedWindowIdentity,
+    ): WindowIdentityAssignment => {
+      const { id, hashes } = current
+      const { key } = record
+      const window = windows.find((window) => window.id === id)!
+      const prior = previous[id]
+      const matchedFull =
+        (prior?.key === key && prior.matchedFull === true) ||
+        (exactKeys.has(key) &&
+          !saved.some(
+            (other) =>
+              other.key !== key &&
+              !boundKeys.has(other.key) &&
+              !exactKeys.has(other.key) &&
+              other.hashes.length > hashes.length &&
+              countMatchingWindowHashes(hashes, other.hashes) === hashes.length,
+          ))
+      const confirmAfter = confirmationDeadline(prior, key, hashes, now)
+      const provisional =
+        now < confirmAfter ||
+        !matchedFull ||
+        window.tabs?.some(
+          (tab) =>
+            !(tab.pendingUrl || tab.url) ||
+            (tab.status === 'loading' && !tab.discarded),
+        ) === true
+      return {
+        key,
+        name: record.name,
+        icon: record.icon,
+        iconColor: record.iconColor,
+        provisional,
+        position: current.position,
+        ...(provisional ? { confirmAfter, hashes, matchedFull } : {}),
+      }
+    }
     for (const [id, key] of restored) {
-      if (!assignments[id]) {
-        const record = saved.find((record) => record.key === key)!
-        assignments[id] = {
-          key,
-          name: record.name,
-          icon: record.icon,
-          iconColor: record.iconColor,
-          provisional:
-            !confirmRestores ||
-            windows.some((window) =>
-              window.tabs?.some(
-                (tab) => tab.status === 'loading' && !tab.discarded,
-              ),
-            ),
-        }
+      assignments[id] = restoreAssignment(
+        fingerprints.find((window) => window.id === id)!,
+        saved.find((record) => record.key === key)!,
+      )
+    }
+    // Keep plausible guesses and recognized names unless another window wins them.
+    const assignedKeys = new Set(
+      Object.values(assignments).map((value) => value.key),
+    )
+    for (const window of windows) {
+      const prior = previous[window.id ?? -1]
+      const current = fingerprints.find((item) => item.id === window.id)
+      const record = saved.find((record) => record.key === prior?.key)
+      if (
+        window.id !== undefined &&
+        window.id !== removedId &&
+        prior?.provisional &&
+        !assignments[window.id] &&
+        !assignedKeys.has(prior.key) &&
+        current &&
+        record &&
+        (prior.matchedFull ||
+          matchWindowIdentities([current], [record]).has(window.id))
+      ) {
+        assignments[window.id] = restoreAssignment(current, record)
+        assignedKeys.add(prior.key)
       }
     }
     if (edit) {
@@ -123,19 +206,35 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         (color) => color === edit.iconColor,
       )
       if (!name && !icon) {
-        delete assignments[edit.windowId]
+        assignments[edit.windowId] = { key: '', name: '', cleared: true }
         saved = saved.filter((record) => record.key !== existing?.key)
       } else
         assignments[edit.windowId] = {
-          key: existing?.key ?? crypto.randomUUID(),
+          key: existing?.key || crypto.randomUUID(),
           name,
           icon,
           iconColor: icon ? iconColor : undefined,
+          position: fingerprints.find((window) => window.id === edit.windowId)
+            ?.position,
         }
+    }
+    if (edit) {
+      // Capture a consistent order together; keep it intact as Chrome closes windows.
+      saved = saved.map((record) => ({ ...record, position: undefined }))
+      for (const window of fingerprints) {
+        const assigned = assignments[window.id]
+        if (assigned) assigned.position = window.position
+      }
     }
     for (const window of windows) {
       const assigned = assignments[window.id ?? -1]
-      if (!assigned || assigned.provisional || window.incognito) continue
+      if (
+        !assigned ||
+        assigned.cleared ||
+        assigned.provisional ||
+        window.incognito
+      )
+        continue
       const hashes =
         fingerprints.find((item) => item.id === window.id)?.hashes ?? []
       const existing = saved.find((record) => record.key === assigned.key)
@@ -146,6 +245,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         iconColor: assigned.iconColor,
         hashes: hashes.length ? hashes : (existing?.hashes ?? []),
         updatedAt: Math.floor(now / 86400000) * 86400000,
+        position: assigned.position ?? existing?.position,
       }
       saved = saved.filter((item) => item.key !== record.key)
       saved.push(record)
@@ -157,6 +257,14 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       await api.storage.local.set({ [WINDOW_LABELS_KEY]: saved })
     if (JSON.stringify(assignments) !== JSON.stringify(previous))
       await api.storage.session.set({ [WINDOW_IDENTITIES_KEY]: assignments })
+    const deadlines = Object.values(assignments)
+      .filter((value) => value.provisional && value.confirmAfter! > now)
+      .map((value) => value.confirmAfter!)
+    if (deadlines.length)
+      await api.alarms.create(WINDOW_RESTORE_ALARM, {
+        when: Math.min(...deadlines),
+      })
+    else await api.alarms.clear(WINDOW_RESTORE_ALARM)
   }
   const update = (
     edit?: {
@@ -169,14 +277,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
   ) => queue.run(() => reconcile(edit, removedId))
   let refreshTask: Promise<void> | undefined
   let dirty = false
-  let restoreTimer: ReturnType<typeof setTimeout> | undefined
   const changed = () => {
-    clearTimeout(restoreTimer)
-    restoreTimer = setTimeout(() => {
-      void queue
-        .run(() => reconcile(undefined, undefined, true))
-        .catch(console.error)
-    }, 2000)
     dirty = true
     if (refreshTask) return
     refreshTask = queue.run(async () => {
@@ -206,6 +307,9 @@ export const registerWindowIdentities = (api: IdentityApi) => {
   ]
   for (const event of events) event.addListener(changed)
   api.windows.onRemoved.addListener(removed)
+  api.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === WINDOW_RESTORE_ALARM) changed()
+  })
   api.runtime.onMessage.addListener((message, sender, respond) => {
     if (message?.type !== 'tabby-name-window' || sender.id !== api.runtime.id)
       return
