@@ -347,8 +347,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       lucide-react:
-        specifier: ^1.63.0
-        version: 1.63.0(@types/react@19.3.0)(react@19.3.1)
+        specifier: ^1.64.0
+        version: 1.64.0(@types/react@19.3.0)(react@19.3.1)
       react-spinners:
         specifier: ^0.17.1
         version: 0.17.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1937,6 +1937,9 @@ packages:
 
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
+
+  '@types/estree@1.0.10':
+    resolution: {integrity: sha512-lTyOMnOcmRBzdCv6/4zUZCrEhV0xrqQiUZBZtVcbmLHBXKLnN8q89v/wKRF/Q0HbwVsqbIG3o5HDoFl9sduM+g==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -3567,8 +3570,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.63.0:
-    resolution: {integrity: sha512-GkBfQG+FUJ41x6y3/lNXiOziVU0Rcqqq0TCzhHS8avsFXHZmOdmfBqsVTvHSaVmbI+wbdGkxHRmhYWhD3N4/yA==}
+  lucide-react@1.64.0:
+    resolution: {integrity: sha512-v626F/bcLNvFom6vzztHILtG9tUgXXbgA5AGkd82YkV401+Ko/NHyrWafbPwGofa+6p/EgDJcvEkIwsMH9098w==}
     peerDependencies:
       '@types/react': '*'
       react: '>=19.2.1'
@@ -5805,13 +5808,16 @@ snapshots:
 
   '@types/eslint@9.6.1':
     dependencies:
-      '@types/estree': 1.0.9
+      '@types/estree': 1.0.10
       '@types/json-schema': 7.0.15
     optional: true
 
   '@types/estree-jsx@1.0.5':
     dependencies:
       '@types/estree': 1.0.9
+
+  '@types/estree@1.0.10':
+    optional: true
 
   '@types/estree@1.0.8': {}
 
@@ -7588,7 +7594,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.63.0(@types/react@19.3.0)(react@19.3.1):
+  lucide-react@1.64.0(@types/react@19.3.0)(react@19.3.1):
     dependencies:
       react: 19.3.1
     optionalDependencies:
