@@ -3,6 +3,53 @@ import { expect, test } from './fixtures'
 
 test.use({ browserData: { ...browser, preferences: { theme: 'system' } } })
 
+test('shows tentative restored names and follows corrections in the window picker', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  await page.evaluate(async () => {
+    await chrome.storage.session.set({
+      'tabby-window-identities': {
+        1: { key: 'work', name: 'Work', icon: 'briefcase', provisional: true },
+        2: {
+          key: 'research',
+          name: 'Research',
+          icon: 'book',
+          provisional: true,
+        },
+      },
+    })
+  })
+  const picker = page.locator('[data-window-picker-trigger]')
+  await expect(picker).toContainText('Work')
+  await picker.click()
+  await expect(page.locator('[data-window-choice="1"]')).toContainText('Work')
+  await expect(page.locator('[data-window-choice="2"]')).toContainText(
+    'Research',
+  )
+  await page.evaluate(async () => {
+    await chrome.storage.session.set({
+      'tabby-window-identities': {
+        1: {
+          key: 'research',
+          name: 'Research',
+          icon: 'book',
+          provisional: true,
+        },
+        2: { key: 'work', name: 'Work', icon: 'briefcase', provisional: true },
+      },
+    })
+  })
+  await expect(picker).toContainText('Research')
+  await expect(page.locator('[data-window-choice="1"]')).toContainText(
+    'Research',
+  )
+  await expect(page.locator('[data-window-choice="2"]')).toContainText('Work')
+  await page.locator('[data-window-choice="2"]').click()
+  await expect(picker).toContainText('Work')
+})
+
 test('keeps one full-width pane and usable window navigation at sidebar and wider sizes', async ({
   page,
 }) => {

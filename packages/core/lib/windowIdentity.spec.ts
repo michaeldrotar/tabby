@@ -103,4 +103,108 @@ describe('Tabby window identity', () => {
       ),
     ).toEqual(new Map())
   })
+
+  it('uses order for similar windows, while stronger tab matches override it', () => {
+    const records = [
+      { ...saved('Work', ['a', 'b', 'c', 'd', 'e']), position: 0 },
+      { ...saved('Research', ['a', 'b', 'x', 'y', 'z']), position: 1 },
+    ]
+    expect(
+      matchWindowIdentities(
+        [
+          { id: 10, hashes: ['a', 'b'], position: 0 },
+          { id: 20, hashes: ['a', 'b'], position: 1 },
+        ],
+        records,
+      ),
+    ).toEqual(
+      new Map([
+        [10, 'Work'],
+        [20, 'Research'],
+      ]),
+    )
+    expect(
+      matchWindowIdentities(
+        [
+          { id: 10, hashes: ['a', 'b', 'x', 'y', 'z'], position: 0 },
+          { id: 20, hashes: ['a', 'b', 'c', 'd', 'e'], position: 1 },
+        ],
+        records,
+        new Map([
+          [10, 'Work'],
+          [20, 'Research'],
+        ]),
+      ),
+    ).toEqual(
+      new Map([
+        [10, 'Research'],
+        [20, 'Work'],
+      ]),
+    )
+    expect(
+      matchWindowIdentities(
+        [{ id: 10, hashes: ['unrelated'], position: 0 }],
+        records,
+      ),
+    ).toEqual(new Map())
+  })
+
+  it('keeps a plausible incumbent through close scores and gives a better window its name', () => {
+    const records = [saved('Work', ['a', 'b', 'c', 'd', 'e'])]
+    expect(
+      matchWindowIdentities(
+        [
+          { id: 10, hashes: ['a', 'b'] },
+          { id: 20, hashes: ['a', 'b'] },
+        ],
+        records,
+        new Map([[10, 'Work']]),
+      ),
+    ).toEqual(new Map([[10, 'Work']]))
+    expect(
+      matchWindowIdentities(
+        [
+          { id: 10, hashes: ['a', 'b'] },
+          { id: 20, hashes: ['a', 'b', 'c', 'd', 'e'] },
+        ],
+        records,
+        new Map([[10, 'Work']]),
+      ),
+    ).toEqual(new Map([[20, 'Work']]))
+  })
+
+  it('corrects reversed names when similar windows finish with exact fingerprints', () => {
+    const records = [
+      { ...saved('Work', ['a', 'b', 'c', 'd', 'e']), position: 0 },
+      { ...saved('Research', ['a', 'b', 'c', 'd', 'f']), position: 1 },
+    ]
+    const initial = matchWindowIdentities(
+      [
+        { id: 10, hashes: ['a', 'b'], position: 0 },
+        { id: 20, hashes: ['a', 'b'], position: 1 },
+      ],
+      records,
+    )
+    expect(initial).toEqual(
+      new Map([
+        [10, 'Work'],
+        [20, 'Research'],
+      ]),
+    )
+    expect(
+      matchWindowIdentities(
+        [
+          { id: 10, hashes: ['a', 'b', 'c', 'd', 'f'], position: 0 },
+          { id: 20, hashes: ['a', 'b', 'c', 'd', 'e'], position: 1 },
+        ],
+        records,
+        initial,
+      ),
+    ).toEqual(
+      new Map([
+        [10, 'Research'],
+        [20, 'Work'],
+      ]),
+    )
+  })
 })
