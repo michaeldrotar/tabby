@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -143,7 +143,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 ## Version history
 
-Version 1.8.0 is in development. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 is in development, including clearer instructions for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
