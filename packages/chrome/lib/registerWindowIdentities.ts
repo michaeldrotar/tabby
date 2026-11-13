@@ -8,6 +8,10 @@ import {
   countMatchingWindowHashes,
   matchWindowIdentities,
 } from '@extension/core/windowIdentity'
+import {
+  readWindowNameHistory,
+  WINDOW_NAME_HISTORY_KEY,
+} from '@extension/core/windowNameHistory'
 import type { BrowserTabGroupColor } from '@extension/core/browser'
 import type { WindowIconChoices } from '@extension/core/windowIconChoice'
 import type { SavedWindowIdentity } from '@extension/core/windowIdentity'
@@ -68,6 +72,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
   const queue = createAsyncQueue()
   const reconcile = async (
     edit?: {
+      rememberName?: boolean
       windowId: number
       name: string
       icon?: string
@@ -76,10 +81,11 @@ export const registerWindowIdentities = (api: IdentityApi) => {
     },
     removedId?: number,
   ) => {
-    const [windows, local, session] = await Promise.all([
+    const [windows, local, session, history] = await Promise.all([
       api.windows.getAll({ populate: true, windowTypes: ['normal'] }),
       api.storage.local.get(WINDOW_LABELS_KEY),
       api.storage.session.get(WINDOW_IDENTITIES_KEY),
+      api.storage.local.get(WINDOW_NAME_HISTORY_KEY),
     ])
     const now = Date.now()
     let saved: SavedWindowIdentity[] = Array.isArray(local[WINDOW_LABELS_KEY])
@@ -92,6 +98,20 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         Array.isArray(record.hashes) &&
         now - record.updatedAt < 90 * 86400000,
     )
+    const priorNames = readWindowNameHistory(
+      history[WINDOW_NAME_HISTORY_KEY] ?? saved.map((record) => record.name),
+    )
+    const editedWindow = windows.find((window) => window.id === edit?.windowId)
+    const names = readWindowNameHistory([
+      ...(edit?.rememberName && editedWindow && !editedWindow.incognito
+        ? [edit.name]
+        : []),
+      ...priorNames,
+    ])
+    if (
+      JSON.stringify(names) !== JSON.stringify(history[WINDOW_NAME_HISTORY_KEY])
+    )
+      await api.storage.local.set({ [WINDOW_NAME_HISTORY_KEY]: names })
     const previous = (session[WINDOW_IDENTITIES_KEY] ?? {}) as Assignments
     const assignments: Assignments = {}
     for (const window of windows) {
@@ -281,6 +301,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
   }
   const update = (
     edit?: {
+      rememberName?: boolean
       windowId: number
       name: string
       icon?: string

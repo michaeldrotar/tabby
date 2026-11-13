@@ -522,3 +522,21 @@ describe('sample Chrome interactions', () => {
     ).toBeUndefined()
   })
 })
+
+it('keeps submitted window names in the shared preview storage', async () => {
+  const chrome = loadMock()
+  await chrome.runtime.sendMessage({
+    type: 'tabby-name-window',
+    windowId: 1,
+    name: 'Travel',
+    rememberName: true,
+  })
+  await chrome.runtime.sendMessage({
+    type: 'tabby-name-window',
+    windowId: 1,
+    name: 'Draft',
+  })
+  const stored = await chrome.storage.local.get('tabby-window-name-history')
+  expect(stored['tabby-window-name-history'][0]).toBe('Travel')
+  expect(stored['tabby-window-name-history']).not.toContain('Draft')
+})

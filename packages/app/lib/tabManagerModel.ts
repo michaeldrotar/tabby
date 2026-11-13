@@ -341,6 +341,7 @@ export const projectTabManager = (
     contextActions: catalog.actions,
     windowPicker: current.windowPicker,
     editingWindow: current.editingWindow,
+    windowNameHistory: snapshot.windowNameHistory,
     actionPanel: current.actionPanel,
     renamingGroupId: current.renamingGroupId,
     renamingGroupTitle: current.renamingGroupTitle,
@@ -741,11 +742,13 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   const persistWindow = (
     draft: NonNullable<TabManagerViewState['editingWindow']>,
     onSaved?: () => void,
+    rememberName = false,
   ) =>
     identityWrites.run(async () => {
       try {
         const result = await backend.execute({
           type: 'name-window',
+          ...(rememberName ? { rememberName: true } : {}),
           windowId: draft.windowId,
           name: draft.useCustom === false ? '' : draft.name,
           icon: draft.useCustom === false ? undefined : draft.icon,
@@ -844,12 +847,16 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         'Move tabs',
       )
     } else if (intent.type === 'open-window-picker') {
+      const saved = state.editingWindow
+        ? dispatch({ type: 'save-window' })
+        : undefined
       view.setState({
         windowPicker: true,
         editingWindow: null,
         actionMenu: null,
         actionPanel: null,
       })
+      return saved
     } else if (intent.type === 'dismiss-window-picker') {
       view.setState({ windowPicker: false, actionPanel: null })
     } else if (intent.type === 'edit-window') {
@@ -908,7 +915,10 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       intent.type === 'cancel-window-edit' ||
       intent.type === 'save-window'
     ) {
+      const draft = state.editingWindow
       view.setState({ editingWindow: null })
+      if (draft && draft.useCustom !== false)
+        return persistWindow(draft, undefined, true)
     } else if (intent.type === 'run-action') {
       const catalog = getActions(snapshot, state)
       const descriptor = catalog.actions.find(

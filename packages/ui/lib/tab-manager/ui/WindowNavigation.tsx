@@ -6,13 +6,10 @@ import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { cn } from '../../utils/cn'
-import {
-  editorRowEntry,
-  windowControlClass,
-  windowEditorInputClass,
-} from './windowControls'
+import { editorRowEntry, windowControlClass } from './windowControls'
 import { WindowIcon } from './WindowIcon'
 import { WindowIconPicker } from './WindowIconPicker'
+import { WindowNameInput } from './WindowNameInput'
 import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 
 const windowDropClass = 'bg-highlighted/30 text-foreground'
@@ -315,6 +312,13 @@ export const WindowIdentityEditor = ({
       }}
       onKeyDownCapture={(event) => {
         if (
+          (event.target as HTMLElement).matches('[data-window-name-input]') &&
+          (['ArrowUp', 'ArrowDown'].includes(event.key) ||
+            (['Enter', 'Escape'].includes(event.key) &&
+              event.currentTarget.querySelector('[role="listbox"]')))
+        )
+          return
+        if (
           (event.target as HTMLElement).closest(
             '[data-editor-native],[data-icon-grid]',
           ) &&
@@ -458,21 +462,14 @@ export const WindowIdentityEditor = ({
           destination.click()
       }}
     >
-      <label data-editor-row="name" className="block text-sm">
-        Name
-        <input
-          ref={input}
-          maxLength={120}
-          value={draft.name}
-          onChange={(event) =>
-            onIntent({
-              type: 'change-window-draft',
-              value: { name: event.target.value },
-            })
-          }
-          className={windowEditorInputClass}
-        />
-      </label>
+      <WindowNameInput
+        input={input}
+        value={draft.name}
+        history={model.windowNameHistory ?? []}
+        onChange={(name) =>
+          onIntent({ type: 'change-window-draft', value: { name } })
+        }
+      />
       <WindowIconPicker model={model} onIntent={onIntent} />
       <div data-editor-row="actions" className="flex justify-between">
         <button

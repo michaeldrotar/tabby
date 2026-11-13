@@ -227,3 +227,32 @@ test('focuses the chosen window tab after the picker animation', async ({
     page.locator('[data-tab-id="9"] [data-tab-option]'),
   ).toBeFocused()
 })
+
+test('recalls completed window names and selects matching suggestions with the keyboard', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  await page.getByRole('button', { name: 'Edit window', exact: true }).click()
+  const name = page.getByRole('combobox', { name: 'Name', exact: true })
+  await expect(
+    page.getByRole('option', { name: 'Research', exact: true }),
+  ).toBeVisible()
+  await name.fill('Travel plans')
+  await page.getByRole('button', { name: 'Done', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit window', exact: true }).click()
+  await expect(
+    page.getByRole('option', { name: 'Travel plans', exact: true }),
+  ).toBeVisible()
+  await name.fill('res')
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await name.press('ArrowDown')
+  await name.press('Enter')
+  await expect(name).toHaveValue('Research')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await name.press('Enter')
+  await expect(page.getByRole('combobox')).toHaveCount(0)
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'Research',
+  )
+})

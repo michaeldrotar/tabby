@@ -97,6 +97,7 @@ export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
   windowSource?: 'active' | 'first'
   windowPicker?: boolean
+  windowNameHistory?: readonly string[]
   editingWindow?: {
     windowId: number
     useCustom?: boolean
