@@ -80,6 +80,7 @@ export const TabManagerExperience = ({
   return (
     <TabManager
       model={model}
+      isMac={environment.platform === 'mac'}
       onIntent={controller.dispatch}
       focusOnMount={focusOnMount}
     />

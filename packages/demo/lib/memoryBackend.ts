@@ -9,6 +9,10 @@ import {
   planTabMove,
   planTabPlacement,
 } from '@extension/core'
+import {
+  forgetWindowName,
+  readWindowNameHistory,
+} from '@extension/core/windowNameHistory'
 import type {
   BrowserBackend,
   BrowserCommand,
@@ -124,6 +128,13 @@ export class MemoryBackend implements BrowserBackend {
       return exists
     }
     switch (command.type) {
+      case 'forget-window-name':
+        snapshot.windowNameHistory = forgetWindowName(
+          snapshot.windowNameHistory,
+          command.name,
+        )
+        succeededIds.push(command.windowId)
+        break
       case 'name-window':
         if (
           requireId(
@@ -142,6 +153,16 @@ export class MemoryBackend implements BrowserBackend {
                 }
               : window,
           )
+        if (
+          succeededIds.length &&
+          command.rememberName &&
+          !snapshot.windows.find((window) => window.id === command.windowId)
+            ?.incognito
+        )
+          snapshot.windowNameHistory = readWindowNameHistory([
+            command.name,
+            ...(snapshot.windowNameHistory ?? []),
+          ])
         break
       case 'create-tab': {
         const plan = planTabCreation(snapshot, command)

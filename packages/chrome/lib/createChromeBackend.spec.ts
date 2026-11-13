@@ -1,4 +1,5 @@
 import { getOmnibarResults } from '@extension/core/omnibarResults'
+import { WINDOW_NAME_HISTORY_KEY } from '@extension/core/windowNameHistory'
 import { describe, expect, it, vi } from 'vitest'
 import { createChromeBackend } from './createChromeBackend.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
@@ -689,4 +690,64 @@ describe('Chrome adjacent tab creation', () => {
     expect(group).not.toHaveBeenCalled()
     backend.dispose()
   })
+})
+
+it('loads saved window names and updates them across surfaces', async () => {
+  const { api } = mockBrowser()
+  const onChanged = event()
+  let names = ['Work']
+  const storage = {
+    session: { get: async () => ({}) },
+    local: { get: async () => ({ [WINDOW_NAME_HISTORY_KEY]: names }) },
+    onChanged,
+  } as unknown as typeof chrome.storage
+  const backend = createChromeBackend({ ...api, storage })
+  await backend.start()
+  expect(backend.getSnapshot().windowNameHistory).toEqual(['Work'])
+  names = ['Research', 'Work']
+  onChanged.emit({ [WINDOW_NAME_HISTORY_KEY]: {} }, 'local')
+  await backend.start()
+  expect(backend.getSnapshot().windowNameHistory).toEqual(names)
+  backend.dispose()
+})
+
+it('forwards forgetting a name to the worker and reports storage errors', async () => {
+  const { api } = mockBrowser()
+  const sendMessage = vi.fn(async () => ({
+    success: true,
+    error: undefined as string | undefined,
+  }))
+  const backend = createChromeBackend({
+    ...api,
+    runtime: { getURL: (path) => path, sendMessage },
+  })
+  await backend.start()
+  expect(
+    (
+      await backend.execute({
+        type: 'forget-window-name',
+        windowId: 1,
+        name: 'Work',
+      })
+    ).status,
+  ).toBe('success')
+  expect(sendMessage).toHaveBeenCalledWith({
+    type: 'tabby-forget-window-name',
+    windowId: 1,
+    name: 'Work',
+  })
+  sendMessage.mockResolvedValue({
+    success: false,
+    error: 'Storage unavailable',
+  })
+  expect(
+    (
+      await backend.execute({
+        type: 'forget-window-name',
+        windowId: 1,
+        name: 'Work',
+      })
+    ).failures,
+  ).toEqual([{ id: 1, message: 'Storage unavailable' }])
+  backend.dispose()
 })

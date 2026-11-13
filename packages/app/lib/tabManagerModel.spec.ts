@@ -1393,3 +1393,45 @@ describe('adjacent tab creation', () => {
     expect(model().selectedTabIds).toEqual([created.id])
   })
 })
+
+it('records a name only when the window editor is finished', async () => {
+  const resources = setup()
+  const execute = vi.spyOn(resources.backend, 'execute')
+  await resources.controller.dispatch({ type: 'edit-window' })
+  await resources.controller.dispatch({
+    type: 'change-window-draft',
+    value: { name: 'Work' },
+  })
+  expect(
+    execute.mock.calls.some(
+      ([command]) => command.type === 'name-window' && command.rememberName,
+    ),
+  ).toBe(false)
+  await resources.controller.dispatch({ type: 'open-window-picker' })
+  expect(execute).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      type: 'name-window',
+      name: 'Work',
+      rememberName: true,
+    }),
+  )
+})
+
+it('keeps a forgotten current name out of history when finishing or reopening the editor', async () => {
+  const resources = setup()
+  await resources.controller.dispatch({ type: 'edit-window' })
+  await resources.controller.dispatch({
+    type: 'change-window-draft',
+    value: { name: 'Work' },
+  })
+  await resources.controller.dispatch({
+    type: 'forget-window-name',
+    name: 'Work',
+  })
+  await resources.controller.dispatch({ type: 'save-window' })
+  expect(resources.backend.getSnapshot().windowNameHistory).toEqual([])
+  expect(resources.backend.getSnapshot().windows[0]?.name).toBe('Work')
+  await resources.controller.dispatch({ type: 'edit-window' })
+  await resources.controller.dispatch({ type: 'save-window' })
+  expect(resources.backend.getSnapshot().windowNameHistory).toEqual([])
+})

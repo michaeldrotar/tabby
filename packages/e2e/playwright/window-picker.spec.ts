@@ -227,3 +227,142 @@ test('focuses the chosen window tab after the picker animation', async ({
     page.locator('[data-tab-id="9"] [data-tab-option]'),
   ).toBeFocused()
 })
+
+test('opens name history explicitly, preserves editor navigation, and forgets remembered names', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const edit = page.getByRole('button', { name: 'Edit window', exact: true })
+  await edit.click()
+  const name = page.getByRole('textbox', { name: 'Name', exact: true })
+  const history = page.getByRole('button', {
+    name: 'Previous names',
+    exact: true,
+  })
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await name.fill('Travel plans')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await name.press('ArrowLeft')
+  await expect(name).toBeFocused()
+  await name.press('ArrowRight')
+  await expect(name).toBeFocused()
+  await name.press('ArrowRight')
+  await expect(history).toBeFocused()
+  await expect(page.getByRole('tooltip').locator('kbd')).toHaveText([
+    process.platform === 'darwin' ? '⌥' : 'Alt',
+    '↓',
+  ])
+  const inputBounds = await name.boundingBox()
+  const historyBounds = await history.boundingBox()
+  expect(historyBounds!.x).toBeGreaterThan(inputBounds!.x)
+  expect(historyBounds!.x + historyBounds!.width).toBeLessThanOrEqual(
+    inputBounds!.x + inputBounds!.width,
+  )
+  await history.press('ArrowLeft')
+  await expect(name).toBeFocused()
+  await name.press('ArrowDown')
+  await expect(
+    page.getByRole('button', { name: /icon color$/, pressed: true }),
+  ).toBeFocused()
+  await name.focus()
+  await name.press('Tab')
+  await expect(history).toBeFocused()
+  await history.press('Shift+Tab')
+  await expect(name).toBeFocused()
+  await name.press('Alt+ArrowDown')
+  const popup = page.getByRole('dialog', {
+    name: 'Previous names',
+    exact: true,
+  })
+  await expect(popup.getByRole('searchbox')).toHaveCount(0)
+  await expect(page.getByRole('tooltip')).toHaveCount(0)
+  const work = popup.getByRole('button', { name: 'Work', exact: true })
+  const forgetWork = popup.getByRole('button', {
+    name: 'Forget name: Work',
+    exact: true,
+  })
+  const research = popup.getByRole('button', { name: 'Research', exact: true })
+  const forgetResearch = popup.getByRole('button', {
+    name: 'Forget name: Research',
+    exact: true,
+  })
+  await expect(work).toBeFocused()
+  const popupBounds = await popup.boundingBox()
+  expect(popupBounds!.x).toBe(inputBounds!.x)
+  await work.press('ArrowUp')
+  await expect(name).toBeFocused()
+  await expect(popup).toHaveCount(0)
+  await expect(name).toHaveValue('Travel plans')
+  await name.press('Alt+ArrowDown')
+  await expect(work).toBeFocused()
+  await work.press('ArrowRight')
+  await expect(forgetWork).toBeFocused()
+  await forgetWork.press('ArrowDown')
+  await expect(forgetResearch).toBeFocused()
+  await forgetResearch.press('ArrowLeft')
+  await expect(research).toBeFocused()
+  await research.press('ArrowUp')
+  await expect(work).toBeFocused()
+  await work.press('Tab')
+  await expect(forgetWork).toBeFocused()
+  await forgetWork.press('Shift+Tab')
+  await expect(work).toBeFocused()
+  await work.press('Escape')
+  await expect(history).toBeFocused()
+  await expect(popup).toHaveCount(0)
+  await page.getByRole('button', { name: 'Done', exact: true }).click()
+  await edit.click()
+  await history.click()
+  await expect(
+    popup.getByRole('button', { name: 'Travel plans', exact: true }),
+  ).toBeVisible()
+  await expect(
+    popup.getByRole('button', { name: 'Travel plans', exact: true }),
+  ).toBeFocused()
+  await popup
+    .getByRole('button', { name: 'Travel plans', exact: true })
+    .press('ArrowRight')
+  await popup
+    .getByRole('button', { name: 'Forget name: Travel plans', exact: true })
+    .press('Enter')
+  await expect(
+    popup.getByRole('button', { name: 'Travel plans', exact: true }),
+  ).toHaveCount(0)
+  await expect(work).toBeFocused()
+  await work.press('Escape')
+  await page.getByRole('button', { name: 'Done', exact: true }).click()
+  await edit.click()
+  await history.click()
+  await expect(
+    popup.getByRole('button', { name: 'Travel plans', exact: true }),
+  ).toHaveCount(0)
+  await work.press('ArrowDown')
+  const choice = popup.getByRole('button', { name: 'Research', exact: true })
+  await expect(choice).toBeFocused()
+  await choice.press('Enter')
+  await expect(name).toHaveValue('Research')
+  await expect(name).toBeFocused()
+  await expect(popup).toHaveCount(0)
+  await name.press('Enter')
+  await expect(name).toHaveCount(0)
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'Research',
+  )
+  await page.evaluate(async () => {
+    await chrome.storage.local.set({
+      'tabby-window-name-history': ['Research'],
+    })
+  })
+  await edit.click()
+  await name.press('Alt+ArrowDown')
+  await choice.press('ArrowRight')
+  await popup
+    .getByRole('button', { name: 'Forget name: Research', exact: true })
+    .press('Enter')
+  await expect(popup.getByRole('status')).toHaveText('No previous names yet.')
+  await expect(popup).toBeFocused()
+  await popup.press('ArrowUp')
+  await expect(name).toBeFocused()
+  await expect(popup).toHaveCount(0)
+})

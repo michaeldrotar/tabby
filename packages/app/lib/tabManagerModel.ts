@@ -341,6 +341,7 @@ export const projectTabManager = (
     contextActions: catalog.actions,
     windowPicker: current.windowPicker,
     editingWindow: current.editingWindow,
+    windowNameHistory: snapshot.windowNameHistory,
     actionPanel: current.actionPanel,
     renamingGroupId: current.renamingGroupId,
     renamingGroupTitle: current.renamingGroupTitle,
@@ -741,11 +742,13 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   const persistWindow = (
     draft: NonNullable<TabManagerViewState['editingWindow']>,
     onSaved?: () => void,
+    rememberName = false,
   ) =>
     identityWrites.run(async () => {
       try {
         const result = await backend.execute({
           type: 'name-window',
+          ...(rememberName ? { rememberName: true } : {}),
           windowId: draft.windowId,
           name: draft.useCustom === false ? '' : draft.name,
           icon: draft.useCustom === false ? undefined : draft.icon,
@@ -844,12 +847,16 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         'Move tabs',
       )
     } else if (intent.type === 'open-window-picker') {
+      const saved = state.editingWindow
+        ? dispatch({ type: 'save-window' })
+        : undefined
       view.setState({
         windowPicker: true,
         editingWindow: null,
         actionMenu: null,
         actionPanel: null,
       })
+      return saved
     } else if (intent.type === 'dismiss-window-picker') {
       view.setState({ windowPicker: false, actionPanel: null })
     } else if (intent.type === 'edit-window') {
@@ -874,6 +881,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       const draft = {
         windowId: window.id,
         useCustom: true,
+        rememberName: false,
         name,
         icon,
         iconChoices: getWindowIconChoices(icon, window.iconChoices),
@@ -892,10 +900,32 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       return persistWindow(draft)
     } else if (intent.type === 'change-window-draft') {
       if (!state.editingWindow) return
-      const draft = { ...state.editingWindow, ...intent.value, useCustom: true }
+      const draft = {
+        ...state.editingWindow,
+        ...intent.value,
+        useCustom: true,
+        rememberName:
+          intent.value.name !== undefined || state.editingWindow.rememberName,
+      }
       draft.iconChoices = getWindowIconChoices(draft.icon, draft.iconChoices)
       view.setState({ editingWindow: draft })
       return persistWindow(draft)
+    } else if (intent.type === 'forget-window-name') {
+      if (!state.editingWindow) return
+      const draft = state.editingWindow
+      if (
+        draft.name.trim().toLocaleLowerCase() ===
+        intent.name.toLocaleLowerCase()
+      )
+        view.setState({ editingWindow: { ...draft, rememberName: false } })
+      return execute(
+        {
+          type: 'forget-window-name',
+          windowId: draft.windowId,
+          name: intent.name,
+        },
+        'Forget window name',
+      )
     } else if (intent.type === 'reset-window') {
       if (!state.editingWindow) return
       const draft = { ...state.editingWindow, useCustom: false }
@@ -908,7 +938,10 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       intent.type === 'cancel-window-edit' ||
       intent.type === 'save-window'
     ) {
+      const draft = state.editingWindow
       view.setState({ editingWindow: null })
+      if (draft && draft.useCustom !== false)
+        return persistWindow(draft, undefined, draft.rememberName === true)
     } else if (intent.type === 'run-action') {
       const catalog = getActions(snapshot, state)
       const descriptor = catalog.actions.find(

@@ -57,6 +57,7 @@ export interface BrowserSnapshot {
   windows: readonly BrowserWindow[]
   tabs: readonly BrowserTab[]
   groups: readonly BrowserTabGroup[]
+  windowNameHistory?: readonly string[]
   error?: string
 }
 
@@ -86,12 +87,14 @@ export type TabPlacement = {
 export type BrowserCommand =
   | {
       type: 'name-window'
+      rememberName?: boolean
       windowId: number
       name: string
       icon?: string
       iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     }
+  | { type: 'forget-window-name'; windowId: number; name: string }
   | { type: 'create-window'; url?: string; sourceWindowId?: number }
   | {
       type: 'create-tab'

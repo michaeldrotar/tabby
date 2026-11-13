@@ -121,6 +121,7 @@ export const getCommandTargetIds = (
       return [command.tabId]
     case 'close-window':
     case 'activate-window':
+    case 'forget-window-name':
     case 'name-window':
       return [command.windowId]
     case 'move-group':

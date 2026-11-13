@@ -1,3 +1,4 @@
+import { WINDOW_NAME_HISTORY_KEY } from '@extension/core/windowNameHistory'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   registerWindowIdentities,
@@ -75,12 +76,14 @@ const setup = (
     icon?: string,
     iconColor?: 'green',
     iconChoices?: WindowIconChoices,
+    rememberName = false,
   ) => {
     const response = new Promise<{ success?: boolean; error?: string }>(
       (resolve) =>
         api.runtime.onMessage.emit(
           {
             type: 'tabby-name-window',
+            rememberName,
             windowId,
             name,
             icon,
@@ -440,4 +443,40 @@ describe('stored window identities', () => {
       20: { name: 'Work' },
     })
   })
+})
+
+it('remembers completed names across worker restarts without saving drafts or private names', async () => {
+  const first = setup([sampleWindow(1), sampleWindow(2, [], true)])
+  await first.tracker.settled()
+  await first.edit(1, 'W')
+  expect(first.local[WINDOW_NAME_HISTORY_KEY]).toEqual([])
+  await first.edit(1, ' Work ', undefined, undefined, undefined, true)
+  await first.edit(1, 'Research', undefined, undefined, undefined, true)
+  await first.edit(2, 'Private', undefined, undefined, undefined, true)
+  await first.edit(1, 'work', undefined, undefined, undefined, true)
+  expect(first.local[WINDOW_NAME_HISTORY_KEY]).toEqual(['work', 'Research'])
+  const restarted = setup([sampleWindow(1)], first.local)
+  await restarted.tracker.settled()
+  await restarted.edit(1, '')
+  expect(restarted.local[WINDOW_NAME_HISTORY_KEY]).toEqual(['work', 'Research'])
+})
+
+it('forgets a saved name without clearing its window identity or restoring it on restart', async () => {
+  const first = setup()
+  await first.edit(1, 'Work', undefined, undefined, undefined, true)
+  const result = await new Promise((respond) =>
+    first.api.runtime.onMessage.emit(
+      { type: 'tabby-forget-window-name', windowId: 1, name: 'work' },
+      { id: 'tabby' },
+      respond,
+    ),
+  )
+  expect(result).toEqual({ success: true })
+  expect(first.local[WINDOW_NAME_HISTORY_KEY]).toEqual([])
+  expect(first.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+    1: { name: 'Work' },
+  })
+  const restarted = setup([sampleWindow(1)], first.local)
+  await restarted.tracker.settled()
+  expect(restarted.local[WINDOW_NAME_HISTORY_KEY]).toEqual([])
 })

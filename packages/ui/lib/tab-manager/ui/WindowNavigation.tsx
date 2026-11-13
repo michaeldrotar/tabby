@@ -6,13 +6,10 @@ import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { cn } from '../../utils/cn'
-import {
-  editorRowEntry,
-  windowControlClass,
-  windowEditorInputClass,
-} from './windowControls'
+import { editorRowEntry, windowControlClass } from './windowControls'
 import { WindowIcon } from './WindowIcon'
 import { WindowIconPicker } from './WindowIconPicker'
+import { WindowNameInput } from './WindowNameInput'
 import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
 
 const windowDropClass = 'bg-highlighted/30 text-foreground'
@@ -290,8 +287,10 @@ export const WindowPicker = ({
 export const WindowIdentityEditor = ({
   model,
   onIntent,
+  isMac,
 }: {
   model: TabManagerViewModel
+  isMac?: boolean
   onIntent: (intent: TabManagerIntent) => void
 }) => {
   const draft = model.editingWindow!
@@ -314,6 +313,8 @@ export const WindowIdentityEditor = ({
         onIntent({ type: 'save-window' })
       }}
       onKeyDownCapture={(event) => {
+        if ((event.target as HTMLElement).closest('[data-name-history-popup]'))
+          return
         if (
           (event.target as HTMLElement).closest(
             '[data-editor-native],[data-icon-grid]',
@@ -332,7 +333,7 @@ export const WindowIdentityEditor = ({
           event.key === 'Enter' &&
           !event.nativeEvent.isComposing &&
           !(event.target as HTMLElement).closest(
-            '[data-editor-reset],[role="tab"]',
+            '[data-editor-reset],[data-window-name-history-trigger],[role="tab"]',
           ) &&
           !event.altKey &&
           !event.ctrlKey &&
@@ -361,9 +362,16 @@ export const WindowIdentityEditor = ({
                     row.querySelector<HTMLElement>('[data-editor-done]'),
                     row.querySelector<HTMLElement>('[data-editor-reset]'),
                   ]
-                : row.dataset.editorRow === 'monogram'
-                  ? [...row.querySelectorAll<HTMLInputElement>('input')]
-                  : [editorRowEntry(row)],
+                : row.dataset.editorRow === 'name'
+                  ? [
+                      ...row.querySelectorAll<HTMLElement>('input,button'),
+                    ].filter(
+                      (control) =>
+                        !control.closest('[data-name-history-popup]'),
+                    )
+                  : row.dataset.editorRow === 'monogram'
+                    ? [...row.querySelectorAll<HTMLInputElement>('input')]
+                    : [editorRowEntry(row)],
             )
             .filter((control): control is HTMLElement => !!control)
           const target = event.target as HTMLElement
@@ -414,7 +422,18 @@ export const WindowIdentityEditor = ({
         const target = event.target as HTMLElement
         const horizontal =
           event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-        if (target instanceof HTMLInputElement && horizontal) return
+        if (
+          target instanceof HTMLInputElement &&
+          horizontal &&
+          !(
+            event.key === 'ArrowRight' &&
+            target.hasAttribute('data-window-name-input') &&
+            target.selectionStart === target.value.length &&
+            target.selectionEnd === target.value.length &&
+            !event.nativeEvent.isComposing
+          )
+        )
+          return
         const rows = Array.from(
           event.currentTarget.querySelectorAll<HTMLElement>(
             '[data-editor-row]',
@@ -458,21 +477,16 @@ export const WindowIdentityEditor = ({
           destination.click()
       }}
     >
-      <label data-editor-row="name" className="block text-sm">
-        Name
-        <input
-          ref={input}
-          maxLength={120}
-          value={draft.name}
-          onChange={(event) =>
-            onIntent({
-              type: 'change-window-draft',
-              value: { name: event.target.value },
-            })
-          }
-          className={windowEditorInputClass}
-        />
-      </label>
+      <WindowNameInput
+        input={input}
+        isMac={isMac}
+        value={draft.name}
+        history={model.windowNameHistory ?? []}
+        onForget={(name) => onIntent({ type: 'forget-window-name', name })}
+        onChange={(name) =>
+          onIntent({ type: 'change-window-draft', value: { name } })
+        }
+      />
       <WindowIconPicker model={model} onIntent={onIntent} />
       <div data-editor-row="actions" className="flex justify-between">
         <button

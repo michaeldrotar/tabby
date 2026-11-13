@@ -21,6 +21,7 @@ beforeEach(() => vi.spyOn(window, 'focus').mockImplementation(() => {}))
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 const model: TabManagerViewModel = {
@@ -1020,4 +1021,75 @@ describe('middle-click tab closing', () => {
     )
     expect(onIntent).not.toHaveBeenCalled()
   })
+})
+
+it('opens previous names explicitly and lets users choose or forget a name', async () => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe = vi.fn()
+      unobserve = vi.fn()
+      disconnect = vi.fn()
+    },
+  )
+  const onIntent = vi.fn()
+  render(
+    <Surface>
+      <TabManager
+        model={{
+          ...model,
+          editingWindow: { windowId: 1, name: 'Current', icon: 'book' },
+          windowNameHistory: ['Work', 'Research', 'Workshop'],
+        }}
+        onIntent={onIntent}
+      />
+    </Surface>,
+  )
+  const input = screen.getByRole('textbox', { name: 'Name' })
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  fireEvent.change(input, { target: { value: 'WOR' } })
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  const trigger = screen.getByRole('button', { name: 'Previous names' })
+  expect(trigger).toHaveTextContent('')
+  act(() => trigger.focus())
+  await waitFor(() =>
+    expect(
+      [...screen.getByRole('tooltip').querySelectorAll('kbd')].map(
+        (key) => key.textContent,
+      ),
+    ).toEqual(['Alt', '↓']),
+  )
+  act(() => input.focus())
+  fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true })
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Work' }), {
+    key: 'ArrowUp',
+  })
+  expect(input).toHaveFocus()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true })
+  const dialog = screen.getByRole('dialog', { name: 'Previous names' })
+  expect(within(dialog).queryByRole('searchbox')).not.toBeInTheDocument()
+  expect(within(dialog).getByRole('button', { name: 'Work' })).toHaveFocus()
+  fireEvent.click(
+    within(dialog).getByRole('button', { name: 'Forget name: Work' }),
+  )
+  expect(onIntent).toHaveBeenLastCalledWith({
+    type: 'forget-window-name',
+    name: 'Work',
+  })
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Workshop' }))
+  expect(onIntent).toHaveBeenLastCalledWith({
+    type: 'change-window-draft',
+    value: { name: 'Workshop' },
+  })
+  expect(input).toHaveFocus()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  fireEvent.click(trigger)
+  fireEvent.keyDown(
+    within(screen.getByRole('dialog')).getByRole('button', { name: 'Work' }),
+    { key: 'Escape' },
+  )
+  expect(trigger).toHaveFocus()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(onIntent).not.toHaveBeenCalledWith({ type: 'save-window' })
 })

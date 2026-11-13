@@ -97,9 +97,11 @@ export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
   windowSource?: 'active' | 'first'
   windowPicker?: boolean
+  windowNameHistory?: readonly string[]
   editingWindow?: {
     windowId: number
     useCustom?: boolean
+    rememberName?: boolean
     name: string
     icon?: string
     iconChoices?: WindowIconChoices
@@ -150,6 +152,7 @@ export type TabManagerIntent =
         iconColor?: BrowserTabGroupColor
       }
     }
+  | { type: 'forget-window-name'; name: string }
   | { type: 'save-window' }
   | { type: 'cancel-window-edit' }
   | { type: 'reset-window' }
@@ -198,6 +201,7 @@ export type TabManagerProps = {
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void | Promise<void>
   className?: string
+  isMac?: boolean
   focusOnMount?: boolean
 }
 
@@ -250,6 +254,7 @@ const PaneTransition = ({
 /** Complete controlled presentation; behavior and external effects are supplied by its host. */
 export const TabManager = ({
   model,
+  isMac = false,
   onIntent,
   className,
   focusOnMount = false,
@@ -1065,7 +1070,11 @@ export const TabManager = ({
               className="min-h-full pb-4"
             >
               {model.editingWindow ? (
-                <WindowIdentityEditor model={model} onIntent={send} />
+                <WindowIdentityEditor
+                  model={model}
+                  onIntent={send}
+                  isMac={isMac}
+                />
               ) : pickerVisible ? (
                 <WindowPicker
                   model={model}
