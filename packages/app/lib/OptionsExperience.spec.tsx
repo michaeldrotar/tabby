@@ -9,6 +9,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createTabbyViews } from './createTabbyViews'
@@ -33,6 +34,33 @@ beforeAll(() => {
 afterEach(cleanup)
 
 describe('Options resources', () => {
+  it('shows the two launch shortcuts and opens Chrome shortcut settings', async () => {
+    const openShortcutsSettings = vi.fn(async () => {})
+    const options = createMemoryOptionsResource(
+      { shortcuts: { 'open-omnibar': 'Alt+E' } },
+      { openShortcutsSettings },
+    )
+    render(
+      <TabbyProvider {...createTestResources({ options })}>
+        <TabbySurface>
+          <OptionsExperience />
+        </TabbySurface>
+      </TabbyProvider>,
+    )
+    const shortcuts = within(
+      screen.getByRole('region', { name: 'Global shortcuts' }),
+    )
+    expect(
+      shortcuts.getAllByRole('term').map((term) => term.textContent),
+    ).toEqual(['Open Tabby search', 'Open tab manager'])
+    expect(
+      shortcuts.getAllByRole('definition').map((value) => value.textContent),
+    ).toEqual(['Alt+E', 'Not assigned'])
+    fireEvent.click(
+      shortcuts.getByRole('button', { name: 'Open Chrome shortcut settings' }),
+    )
+    await waitFor(() => expect(openShortcutsSettings).toHaveBeenCalledOnce())
+  })
   it('keeps seasonal icons independent of the selected color theme', () => {
     const preferences = createMemoryPreferences({ themePreset: 'reef' })
     const options = createMemoryOptionsResource({

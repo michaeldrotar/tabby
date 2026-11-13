@@ -32,6 +32,14 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(
     page.getByRole('heading', { name: 'Appearance', exact: true }),
   ).toBeVisible()
+  expect(
+    await page.evaluate(async () =>
+      (await chrome.commands.getAll())
+        .filter(({ name }) => name !== '_execute_action')
+        .map(({ name }) => name)
+        .sort(),
+    ),
+  ).toEqual(['open-omnibar', 'open-tab-manager'])
   await expect(
     page.getByRole('button', { name: 'Porcelain', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
