@@ -1,6 +1,6 @@
 # Privacy policy for Tabby
 
-Last updated: November 11, 2026
+Last updated: November 13, 2026
 
 ## Introduction
 
@@ -16,6 +16,7 @@ Tabby is designed with privacy as a core value.
 - **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
 - **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
 - **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so related searches can bring the same result and matching tabs opened or restored from it toward the top. Page destinations include URLs from restored pages. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
+- **Window Name Suggestions:** Tabby keeps up to 50 previously submitted window names on your device to suggest them while naming windows. Names remain available after a window is renamed, reset, or closed, until replaced by newer choices or the extension is uninstalled. Names entered in private windows are not added to this history.
 - **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query, and Tabby window names and icons. To recognize restored windows, it also keeps their relative order and SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
 
 ## Permissions

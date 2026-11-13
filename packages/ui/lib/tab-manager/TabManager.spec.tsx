@@ -1021,3 +1021,44 @@ describe('middle-click tab closing', () => {
     expect(onIntent).not.toHaveBeenCalled()
   })
 })
+
+it('suggests previous window names on focus, filters them, and supports keyboard and pointer choices', () => {
+  const onIntent = vi.fn()
+  render(
+    <Surface>
+      <TabManager
+        model={{
+          ...model,
+          editingWindow: { windowId: 1, name: 'Current', icon: 'book' },
+          windowNameHistory: ['Work', 'Research', 'Workshop'],
+        }}
+        onIntent={onIntent}
+      />
+    </Surface>,
+  )
+  const input = screen.getByRole('combobox', { name: 'Name' })
+  expect(
+    screen.getAllByRole('option').map((option) => option.textContent),
+  ).toEqual(['Work', 'Research', 'Workshop'])
+  fireEvent.change(input, { target: { value: 'WOR' } })
+  expect(
+    screen.getAllByRole('option').map((option) => option.textContent),
+  ).toEqual(['Work', 'Workshop'])
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(onIntent).toHaveBeenLastCalledWith({
+    type: 'change-window-draft',
+    value: { name: 'Work' },
+  })
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  fireEvent.click(input)
+  fireEvent.click(screen.getByRole('option', { name: 'Workshop' }))
+  expect(onIntent).toHaveBeenLastCalledWith({
+    type: 'change-window-draft',
+    value: { name: 'Workshop' },
+  })
+  fireEvent.focus(input)
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  expect(onIntent).not.toHaveBeenCalledWith({ type: 'save-window' })
+})

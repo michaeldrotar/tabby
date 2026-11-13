@@ -57,6 +57,7 @@ export interface BrowserSnapshot {
   windows: readonly BrowserWindow[]
   tabs: readonly BrowserTab[]
   groups: readonly BrowserTabGroup[]
+  windowNameHistory?: readonly string[]
   error?: string
 }
 
@@ -86,6 +87,7 @@ export type TabPlacement = {
 export type BrowserCommand =
   | {
       type: 'name-window'
+      rememberName?: boolean
       windowId: number
       name: string
       icon?: string

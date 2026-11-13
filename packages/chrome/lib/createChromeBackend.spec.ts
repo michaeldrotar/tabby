@@ -1,4 +1,5 @@
 import { getOmnibarResults } from '@extension/core/omnibarResults'
+import { WINDOW_NAME_HISTORY_KEY } from '@extension/core/windowNameHistory'
 import { describe, expect, it, vi } from 'vitest'
 import { createChromeBackend } from './createChromeBackend.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
@@ -689,4 +690,23 @@ describe('Chrome adjacent tab creation', () => {
     expect(group).not.toHaveBeenCalled()
     backend.dispose()
   })
+})
+
+it('loads saved window names and updates them across surfaces', async () => {
+  const { api } = mockBrowser()
+  const onChanged = event()
+  let names = ['Work']
+  const storage = {
+    session: { get: async () => ({}) },
+    local: { get: async () => ({ [WINDOW_NAME_HISTORY_KEY]: names }) },
+    onChanged,
+  } as unknown as typeof chrome.storage
+  const backend = createChromeBackend({ ...api, storage })
+  await backend.start()
+  expect(backend.getSnapshot().windowNameHistory).toEqual(['Work'])
+  names = ['Research', 'Work']
+  onChanged.emit({ [WINDOW_NAME_HISTORY_KEY]: {} }, 'local')
+  await backend.start()
+  expect(backend.getSnapshot().windowNameHistory).toEqual(names)
+  backend.dispose()
 })

@@ -182,7 +182,21 @@
           return
         }
         if (message.type !== 'tabby-name-window') return
-        find(windows, message.windowId)
+        const window = find(windows, message.windowId)
+        if (message.rememberName && !window.incognito && message.name.trim()) {
+          const historyKey = 'tabby-window-name-history'
+          const prior =
+            (await api.storage.local.get(historyKey))[historyKey] ?? []
+          const name = message.name.trim().slice(0, 120)
+          await api.storage.local.set({
+            [historyKey]: [
+              name,
+              ...prior.filter(
+                (item) => item.toLocaleLowerCase() !== name.toLocaleLowerCase(),
+              ),
+            ].slice(0, 50),
+          })
+        }
         const key = 'tabby-window-identities'
         const values = await api.storage.session.get(key)
         await api.storage.session.set({
@@ -225,7 +239,14 @@
     },
     storage: {
       local: storageArea(
-        { 'preference-storage-key': browser.preferences ?? {} },
+        {
+          'preference-storage-key': browser.preferences ?? {},
+          'tabby-window-name-history': browser.windowNameHistory ?? [
+            'Work',
+            'Research',
+            'Personal',
+          ],
+        },
         'local',
       ),
       session: storageArea(

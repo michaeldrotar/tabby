@@ -9,6 +9,10 @@ import {
   planTabMove,
 } from '@extension/core/commands'
 import { planTabPlacement } from '@extension/core/tabPlacement'
+import {
+  readWindowNameHistory,
+  WINDOW_NAME_HISTORY_KEY,
+} from '@extension/core/windowNameHistory'
 import { getChromeFaviconUrl } from './favicon.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
 import type { WindowIdentityAssignment } from './registerWindowIdentities.js'
@@ -138,13 +142,16 @@ export const createChromeBackend = (
       do {
         observedRevision = eventRevision
         try {
-          const [windows, tabs, groups, identities] = await Promise.all([
-            api.windows.getAll({ windowTypes: ['normal'] }),
-            api.tabs.query({}),
-            api.tabGroups?.query({}) ?? Promise.resolve([]),
-            api.storage?.session.get(WINDOW_IDENTITIES_KEY) ??
-              Promise.resolve({} as Record<string, unknown>),
-          ])
+          const [windows, tabs, groups, identities, history] =
+            await Promise.all([
+              api.windows.getAll({ windowTypes: ['normal'] }),
+              api.tabs.query({}),
+              api.tabGroups?.query({}) ?? Promise.resolve([]),
+              api.storage?.session.get(WINDOW_IDENTITIES_KEY) ??
+                Promise.resolve({} as Record<string, unknown>),
+              api.storage?.local?.get(WINDOW_NAME_HISTORY_KEY) ??
+                Promise.resolve({} as Record<string, unknown>),
+            ])
           if (!running || generation !== currentGeneration) return
           // An event during a query may make its records stale. Requery before
           // publishing so removed records cannot be resurrected on initial load.
@@ -163,6 +170,9 @@ export const createChromeBackend = (
           >
           publish({
             state: 'loaded',
+            windowNameHistory: readWindowNameHistory(
+              history[WINDOW_NAME_HISTORY_KEY],
+            ),
             ...data,
             windows: data.windows.map((window) => {
               const identity = assigned[window.id]
@@ -234,7 +244,11 @@ export const createChromeBackend = (
         changes: Record<string, chrome.storage.StorageChange>,
         area: string,
       ) => {
-        if (area === 'session' && changes[WINDOW_IDENTITIES_KEY]) onChange()
+        if (
+          (area === 'session' && changes[WINDOW_IDENTITIES_KEY]) ||
+          (area === 'local' && changes[WINDOW_NAME_HISTORY_KEY])
+        )
+          onChange()
       }
       api.storage.onChanged.addListener(onStorage)
       removeListeners.push(() =>
