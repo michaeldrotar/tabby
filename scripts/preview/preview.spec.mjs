@@ -173,6 +173,7 @@ describe('sample Chrome interactions', () => {
     let onMutation
     const chrome = loadMock(mockSource, browser, {
       location: { origin: 'http://localhost:5175' },
+      Image: class {},
       document: {
         documentElement: {},
         querySelectorAll: () =>

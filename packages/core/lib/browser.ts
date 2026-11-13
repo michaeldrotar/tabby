@@ -1,3 +1,5 @@
+import type { WindowIconChoices } from './windowIconChoice.js'
+
 export const BROWSER_TAB_GROUP_COLORS = [
   'grey',
   'blue',
@@ -15,6 +17,7 @@ export interface BrowserWindow {
   id: number
   name?: string
   icon?: string
+  iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   type?: string
   incognito?: boolean
@@ -86,6 +89,7 @@ export type BrowserCommand =
       windowId: number
       name: string
       icon?: string
+      iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     }
   | { type: 'create-window'; url?: string; sourceWindowId?: number }

@@ -1,73 +1,24 @@
-import { WINDOW_ICONS } from '@extension/core/windowIdentity'
-import {
-  BookOpen,
-  Briefcase,
-  ChevronDown,
-  Code,
-  Coffee,
-  FlaskConical,
-  Globe,
-  Heart,
-  Monitor,
-  Music,
-  Palette,
-  Pencil,
-  Plus,
-} from 'lucide-react'
+import { useIsPresent } from 'framer-motion'
+import { ChevronDown, Pencil, Plus } from 'lucide-react'
 import { useLayoutEffect, useRef } from 'react'
 import { DragReveal } from '../../components/DragReveal'
 import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
-import {
-  getGroupColorClasses,
-  TAB_GROUP_COLOR_IDS,
-} from '../../tab-group/tabGroupColors'
+import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { cn } from '../../utils/cn'
+import {
+  editorRowEntry,
+  windowControlClass,
+  windowEditorInputClass,
+} from './windowControls'
+import { WindowIcon } from './WindowIcon'
+import { WindowIconPicker } from './WindowIconPicker'
 import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
-import type { BrowserTabGroupColor } from '@extension/core'
 
-export const windowControlClass =
-  'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-[var(--manager-control-hover)] hover:text-foreground data-[hover=true]:bg-[var(--manager-control-hover)] data-[hover=true]:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
-const editorRowEntry = (row: Element) =>
-  row.querySelector<HTMLElement>('[data-editor-done]') ??
-  row.querySelector<HTMLElement>('[aria-pressed="true"]') ??
-  row.querySelector<HTMLElement>('input,button')
-const icons = {
-  window: Monitor,
-  briefcase: Briefcase,
-  code: Code,
-  book: BookOpen,
-  flask: FlaskConical,
-  palette: Palette,
-  music: Music,
-  coffee: Coffee,
-  heart: Heart,
-  globe: Globe,
-}
-export const WindowIcon = ({
-  icon,
-  iconUrl,
-  size = 20,
-  color = 'blue',
-}: {
-  icon?: string
-  iconUrl?: string
-  color?: BrowserTabGroupColor
-  size?: number
-}) => {
-  const Icon = icons[icon as keyof typeof icons] ?? Monitor
-  return !icon && iconUrl ? (
-    <img src={iconUrl} width={size} height={size} alt="" className="shrink-0" />
-  ) : (
-    <Icon
-      size={size}
-      aria-hidden="true"
-      className={cn('shrink-0', getGroupColorClasses(color).text)}
-    />
-  )
-}
+export { windowControlClass } from './windowControls'
+export { WindowIcon } from './WindowIcon'
 
 export const WindowHeader = ({
   model,
@@ -344,28 +295,45 @@ export const WindowIdentityEditor = ({
   onIntent: (intent: TabManagerIntent) => void
 }) => {
   const draft = model.editingWindow!
+  const present = useIsPresent()
   const input = useRef<HTMLInputElement>(null)
   const { canFocusInput } = useSurfaceInputOwner()
   useLayoutEffect(() => {
-    if (canFocusInput()) {
+    if (present && canFocusInput()) {
       input.current?.focus()
       input.current?.select()
     }
-  }, [canFocusInput])
+  }, [canFocusInput, present])
   return (
     <form
       data-window-editor
       aria-label="Name and icon"
-      className="stack-y-5 p-4"
+      className="stack-y-3 p-3"
       onSubmit={(event) => {
         event.preventDefault()
         onIntent({ type: 'save-window' })
       }}
       onKeyDownCapture={(event) => {
         if (
+          (event.target as HTMLElement).closest(
+            '[data-editor-native],[data-icon-grid]',
+          ) &&
+          !['Tab', 'Escape'].includes(event.key)
+        )
+          return
+        if (
+          (event.target as HTMLElement).closest(
+            '[data-icon-grid],input[data-editor-native]',
+          ) &&
+          event.key === 'Escape'
+        )
+          return
+        if (
           event.key === 'Enter' &&
           !event.nativeEvent.isComposing &&
-          !(event.target as HTMLElement).closest('[data-editor-reset]') &&
+          !(event.target as HTMLElement).closest(
+            '[data-editor-reset],[role="tab"]',
+          ) &&
           !event.altKey &&
           !event.ctrlKey &&
           !event.metaKey &&
@@ -393,11 +361,25 @@ export const WindowIdentityEditor = ({
                     row.querySelector<HTMLElement>('[data-editor-done]'),
                     row.querySelector<HTMLElement>('[data-editor-reset]'),
                   ]
-                : [editorRowEntry(row)],
+                : row.dataset.editorRow === 'monogram'
+                  ? [...row.querySelectorAll<HTMLInputElement>('input')]
+                  : [editorRowEntry(row)],
             )
             .filter((control): control is HTMLElement => !!control)
           const target = event.target as HTMLElement
-          const index = stops.indexOf(target)
+          const exactIndex = stops.indexOf(target)
+          const index =
+            exactIndex >= 0
+              ? exactIndex
+              : stops.findIndex(
+                  (control) =>
+                    control === target ||
+                    (control
+                      .closest('[data-editor-row]')
+                      ?.getAttribute('data-editor-row') !== 'actions' &&
+                      control.closest('[data-editor-row]') ===
+                        target.closest('[data-editor-row]')),
+                )
           const destination =
             stops[index + (event.shiftKey ? -1 : 1)] ??
             manager?.querySelector<HTMLElement>(
@@ -432,7 +414,7 @@ export const WindowIdentityEditor = ({
         const target = event.target as HTMLElement
         const horizontal =
           event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-        if (target === input.current && horizontal) return
+        if (target instanceof HTMLInputElement && horizontal) return
         const rows = Array.from(
           event.currentTarget.querySelectorAll<HTMLElement>(
             '[data-editor-row]',
@@ -442,7 +424,7 @@ export const WindowIdentityEditor = ({
         if (!row) return
         const controls = Array.from(
           row.querySelectorAll<HTMLElement>('input,button'),
-        )
+        ).filter((control) => control.closest('[data-editor-row]') === row)
         let destination: HTMLElement | null | undefined
         if (horizontal) {
           const index = controls.indexOf(target)
@@ -471,7 +453,7 @@ export const WindowIdentityEditor = ({
         destination.scrollIntoView({ block: 'nearest' })
         if (
           horizontal &&
-          ['icons', 'colors'].includes(row.dataset.editorRow ?? '')
+          ['icons', 'colors', 'types'].includes(row.dataset.editorRow ?? '')
         )
           destination.click()
       }}
@@ -488,71 +470,10 @@ export const WindowIdentityEditor = ({
               value: { name: event.target.value },
             })
           }
-          className={`
-            mt-2 block min-h-10 w-full rounded-md border border-border bg-input
-            px-3 outline-hidden
-            focus-visible:ring-2 focus-visible:ring-focus
-          `}
+          className={windowEditorInputClass}
         />
       </label>
-      <fieldset data-editor-row="icons">
-        <legend className="mb-2 text-sm">Icon</legend>
-        <div className="flex flex-wrap gap-2">
-          {WINDOW_ICONS.map((icon) => (
-            <button
-              key={icon}
-              type="button"
-              aria-label={`${icon[0]!.toUpperCase()}${icon.slice(1)} icon`}
-              aria-pressed={draft.icon === icon}
-              tabIndex={(draft.icon ?? WINDOW_ICONS[0]) === icon ? 0 : -1}
-              className={cn(
-                windowControlClass,
-                'size-10 px-0',
-                draft.icon === icon && 'ring-2 ring-focus',
-              )}
-              onClick={() =>
-                onIntent({ type: 'change-window-draft', value: { icon } })
-              }
-            >
-              <WindowIcon icon={icon} color="grey" />
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset data-editor-row="colors">
-        <legend className="mb-2 text-sm">Color</legend>
-        <div className="flex flex-wrap gap-2">
-          {TAB_GROUP_COLOR_IDS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-label={`${color[0]!.toUpperCase()}${color.slice(1)} icon color`}
-              aria-pressed={draft.iconColor === color}
-              tabIndex={
-                (draft.iconColor ?? TAB_GROUP_COLOR_IDS[0]) === color ? 0 : -1
-              }
-              className={cn(
-                windowControlClass,
-                'size-10 px-0',
-                draft.iconColor === color && 'ring-2 ring-focus',
-              )}
-              onClick={() =>
-                onIntent({
-                  type: 'change-window-draft',
-                  value: { iconColor: color },
-                })
-              }
-            >
-              <span
-                className={cn(
-                  'size-5 rounded-full',
-                  getGroupColorClasses(color).dot,
-                )}
-              />
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <WindowIconPicker model={model} onIntent={onIntent} />
       <div data-editor-row="actions" className="flex justify-between">
         <button
           data-editor-reset

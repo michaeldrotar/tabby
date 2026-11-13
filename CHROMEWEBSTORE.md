@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -22,7 +22,7 @@ Search open tabs, custom window names, tab groups, bookmarks, browsing history, 
 
 Recognize every window
 
-Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device and appear as soon as restored windows are recognized, adjusting as more windows return.
+Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Choose an icon, emoji, monogram, uploaded image, or favicon from an open tab. Each type remembers your choice, and a shared color sets the background. Open the editor to start with the current tab’s title selected for renaming, a suggested icon, and a color. Search over 1,600 icons or find emoji by name and keyword, with favicons from the current window listed first. Images and selected favicons are saved as local thumbnails. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device and appear as soon as restored windows are recognized, adjusting as more windows return.
 
 Organize one window at a time
 

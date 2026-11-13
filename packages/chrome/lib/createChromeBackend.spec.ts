@@ -137,6 +137,7 @@ describe('Chrome browser backend', () => {
       name: 'Work',
       icon: 'briefcase',
       iconColor: 'blue',
+      iconChoices: { icon: 'book', emoji: 'emoji:😎' },
       provisional: true,
     }
     const onChanged = event()
@@ -153,6 +154,7 @@ describe('Chrome browser backend', () => {
       name: 'Work',
       icon: 'briefcase',
       iconColor: 'blue',
+      iconChoices: { icon: 'book', emoji: 'emoji:😎' },
     })
     expect(
       getOmnibarResults('Work', backend.getSnapshot(), 1, [], Date.now()),
