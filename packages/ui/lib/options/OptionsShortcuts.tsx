@@ -200,9 +200,16 @@ const ChromeShortcuts = ({
           group-data-[wide=true]/options:justify-between
         `}
       >
-        <p className="max-w-sm text-base text-muted">
-          These shortcuts work across Chrome and are managed in Chrome settings.
-        </p>
+        <div className="stack-y-3 max-w-sm text-base text-muted">
+          <p>
+            These Tabby shortcuts work across Chrome. Chrome manages extension
+            shortcuts and only lets you change them in its own settings.
+          </p>
+          <p>
+            To change one, open Chrome shortcut settings, find Tabby, click the
+            pencil next to the shortcut, and press the keys you want to use.
+          </p>
+        </div>
         <ShortcutSettingsButton openShortcutsSettings={openShortcutsSettings} />
       </div>
       <ShortcutRows

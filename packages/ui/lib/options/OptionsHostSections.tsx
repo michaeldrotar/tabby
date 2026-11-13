@@ -39,7 +39,8 @@ export const OptionsSidePanelSettings = ({
         `}
       >
         <p className="text-base text-muted">
-          Choose left or right in Chrome’s Side panel settings.
+          To move Tabby, open Chrome’s appearance settings. Under Side panel
+          position, set Chrome Panels to Left or Right.
         </p>
         <button
           onClick={openSidePanelSettings}
