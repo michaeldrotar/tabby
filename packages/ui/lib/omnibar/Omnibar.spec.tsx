@@ -59,6 +59,27 @@ describe('Omnibar', () => {
   const mockOnDismiss = vi.fn()
   const renderOmnibar = render
 
+  it.each(['click', 'Escape'])(
+    'dismisses search with %s without clearing the query',
+    (method) => {
+      const onDismiss = vi.fn()
+      const onQueryChange = vi.fn()
+      render(
+        <Omnibar
+          results={mockTabs}
+          query="Tab"
+          onQueryChange={onQueryChange}
+          onDismiss={onDismiss}
+        />,
+      )
+      const close = screen.getByRole('button', { name: 'Close search' })
+      if (method === 'click') fireEvent.click(close)
+      else fireEvent.keyDown(close, { key: 'Escape' })
+      expect(onDismiss).toHaveBeenCalledTimes(1)
+      expect(onQueryChange).not.toHaveBeenCalled()
+    },
+  )
+
   it('keeps keyboard input with the initiating surface when shared omnibars mount', async () => {
     const Shared = () => {
       const [open, setOpen] = useState(false)
