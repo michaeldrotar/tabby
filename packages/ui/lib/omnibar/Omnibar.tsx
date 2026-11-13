@@ -239,6 +239,7 @@ export const Omnibar = ({
           setQuery(e.target.value)
         }}
         onKeyDown={handleKeyDown}
+        onDismiss={onDismiss}
       />
 
       <ScrollArea orientation="vertical" className="flex-1">
