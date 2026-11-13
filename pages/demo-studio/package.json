@@ -19,6 +19,6 @@
     "@extension/tsconfig": "workspace:*",
     "@vitejs/plugin-react-swc": "4.3.3",
     "vite": "8.3.5",
-    "@types/node": "^24.10.1"
+    "@types/node": "^26.6.6"
   }
 }
