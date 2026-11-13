@@ -48,6 +48,7 @@ type BrowserTabRenderArgs = {
   isMultiSelectMode: boolean
   onClick?: (event: React.MouseEvent<HTMLDivElement>) => void
   onActivate?: () => void
+  onUnpin?: () => void
   onClose?: () => void
 }
 
@@ -89,6 +90,7 @@ export type BrowserTabListProps = {
     tab: BrowserTabListTab,
     event: React.MouseEvent<HTMLDivElement>,
   ) => void
+  onTabUnpin?: (tab: BrowserTabListTab) => void
   onTabClose?: (tab: BrowserTabListTab) => void
   onTabActivate?: (tab: BrowserTabListTab) => void
   onGroupSelect?: (group: BrowserTabListGroup, event: React.MouseEvent) => void
@@ -121,6 +123,7 @@ const renderDefaultTab = ({
   onClick,
   onActivate,
   onClose,
+  onUnpin,
 }: BrowserTabRenderArgs) => (
   <BrowserTabItem
     tabId={tab.id}
@@ -146,6 +149,7 @@ const renderDefaultTab = ({
     onClick={onClick}
     onActivate={onActivate}
     onClose={onClose}
+    onUnpin={onUnpin}
     data-focus={focused || undefined}
     data-hover={hovered || undefined}
   />
@@ -157,18 +161,24 @@ const TabRow = memo(
     onTabClick,
     onTabActivate,
     onTabClose,
+    onTabUnpin,
     renderTabItem,
     ...state
-  }: Omit<BrowserTabRenderArgs, 'onClick' | 'onClose'> &
+  }: Omit<BrowserTabRenderArgs, 'onClick' | 'onClose' | 'onUnpin'> &
     Pick<
       BrowserTabListProps,
-      'onTabClick' | 'onTabActivate' | 'onTabClose' | 'renderTabItem'
+      | 'onTabClick'
+      | 'onTabActivate'
+      | 'onTabClose'
+      | 'onTabUnpin'
+      | 'renderTabItem'
     >) =>
     (renderTabItem ?? renderDefaultTab)({
       ...state,
       tab,
       onClick: (event) => onTabClick?.(tab, event),
       onActivate: onTabActivate ? () => onTabActivate(tab) : undefined,
+      onUnpin: onTabUnpin ? () => onTabUnpin(tab) : undefined,
       onClose: onTabClose ? () => onTabClose(tab) : undefined,
     }),
   (previous, next) => {
@@ -196,6 +206,7 @@ export const BrowserTabList = memo(
     onTabClick,
     onTabActivate,
     onTabClose,
+    onTabUnpin,
     onGroupSelect,
     onGroupToggleCollapse,
     onGroupRenameComplete,
@@ -265,6 +276,7 @@ export const BrowserTabList = memo(
                     isMultiSelectMode={isMultiSelectMode}
                     onTabClick={onTabClick}
                     onTabActivate={onTabActivate}
+                    onTabUnpin={onTabUnpin}
                     onTabClose={onTabClose}
                     renderTabItem={renderTabItem}
                   />
@@ -296,6 +308,7 @@ export const BrowserTabList = memo(
                             isMultiSelectMode={isMultiSelectMode}
                             onTabClick={onTabClick}
                             onTabActivate={onTabActivate}
+                            onTabUnpin={onTabUnpin}
                             onTabClose={onTabClose}
                             renderTabItem={renderTabItem}
                           />

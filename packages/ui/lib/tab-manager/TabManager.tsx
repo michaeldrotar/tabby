@@ -185,6 +185,7 @@ export type TabManagerIntent =
   | { type: 'close-tabs'; tabIds: number[] }
   | { type: 'close-item'; item: TabManagerItem }
   | { type: 'close-window'; windowId: number }
+  | { type: 'unpin-tab'; tabId: number }
   | { type: 'activate-tab'; tabId: number }
   | { type: 'activate-window'; windowId: number }
   | { type: 'set-group-collapsed'; groupId: number; collapsed: boolean }
@@ -406,6 +407,11 @@ export const TabManager = ({
       send({ type: 'activate-tab', tabId: Number(tab.id) }),
     [send],
   )
+  const onTabUnpin = useCallback(
+    (tab: BrowserTabListTab) =>
+      send({ type: 'unpin-tab', tabId: Number(tab.id) }),
+    [send],
+  )
   const onTabClose = useCallback(
     (tab: BrowserTabListTab) =>
       send({ type: 'close-item', item: { type: 'tab', id: Number(tab.id) } }),
@@ -616,6 +622,20 @@ export const TabManager = ({
       section &&
       ['tabs', 'windows'].includes(section.dataset.keyboardSection ?? '')
     ) {
+      const row = target.closest<HTMLElement>('[data-tab-id]')
+      const rowControl = event.shiftKey
+        ? target.matches('button[data-tab-pin]')
+          ? row?.querySelector<HTMLElement>('[data-tab-option]')
+          : undefined
+        : target.matches('[data-tab-option]')
+          ? row?.querySelector<HTMLElement>('button[data-tab-pin]')
+          : undefined
+      if (rowControl) {
+        event.preventDefault()
+        event.stopPropagation()
+        focusControl(rowControl)
+        return
+      }
       const sections = sectionOrder.flatMap((name) => {
         const element = rootRef.current?.querySelector<HTMLElement>(
           `[data-keyboard-section="${name}"]`,
@@ -1114,6 +1134,7 @@ export const TabManager = ({
                     }
                     onTabClick={onTabClick}
                     onTabActivate={onTabActivate}
+                    onTabUnpin={onTabUnpin}
                     onTabClose={onTabClose}
                     onGroupSelect={(group, event) =>
                       select({ type: 'group', id: Number(group.id) }, event)

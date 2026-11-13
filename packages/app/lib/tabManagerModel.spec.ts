@@ -44,6 +44,25 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('unpins only the requested tab and preserves selection and activation', async () => {
+    const { backend, view, controller } = setup()
+    await backend.execute({
+      type: 'tab-action',
+      action: 'pin',
+      tabIds: [11, 12],
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    const selection = view.getState().selection
+    await controller.dispatch({ type: 'unpin-tab', tabId: 12 })
+    const tabs = backend.getSnapshot().tabs
+    expect(tabs.find((tab) => tab.id === 12)?.pinned).toBe(false)
+    expect(tabs.find((tab) => tab.id === 11)).toMatchObject({
+      pinned: true,
+      active: true,
+    })
+    expect(view.getState().selection).toEqual(selection)
+  })
+
   it('clears ordinary row selection at creation controls and preserves explicit multiple selection', () => {
     const { backend, view, controller } = setup()
     const selected = () =>
