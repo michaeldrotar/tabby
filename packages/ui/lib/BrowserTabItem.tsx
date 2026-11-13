@@ -65,6 +65,8 @@ export type BrowserTabItemProps = Omit<
   /** Whether this tab is a duplicate (same URL as another tab) */
   duplicate?: boolean
 
+  /** Called when the pin indicator is clicked. */
+  onUnpin?: () => void
   /** Called when the close button is clicked or Delete/Backspace is pressed. When provided, a close button is shown. */
   onClose?: () => void
 }
@@ -116,6 +118,7 @@ export const BrowserTabItem = memo(
         ageLabel,
         duplicate = false,
         onClose,
+        onUnpin,
         ...props
       },
       forwardedRef,
@@ -473,20 +476,39 @@ export const BrowserTabItem = memo(
                     <Layers className="size-3.5" aria-hidden />
                   </div>
                 )}
-
-                {/* Pinned indicator */}
-                {pinned && !loading && (
-                  <div
-                    data-tab-pin
-                    className="shrink-0 text-muted"
-                    aria-label="Pinned"
-                    title="Pinned tab"
-                  >
-                    <Pin className="size-3.5" aria-hidden />
-                  </div>
-                )}
               </div>
             </div>
+            {pinned &&
+              !loading &&
+              (onUnpin ? (
+                <button
+                  type="button"
+                  data-tab-pin
+                  aria-label="Unpin tab"
+                  title="Unpin tab"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onUnpin()
+                  }}
+                  className="
+                    mr-2 flex size-7 shrink-0 items-center justify-center
+                    rounded-sm text-muted
+                    hover:text-foreground
+                    focus-visible:outline-hidden
+                  "
+                >
+                  <Pin className="size-3.5" aria-hidden />
+                </button>
+              ) : (
+                <div
+                  data-tab-pin
+                  className="mr-2 shrink-0 text-muted"
+                  aria-label="Pinned"
+                  title="Pinned tab"
+                >
+                  <Pin className="size-3.5" aria-hidden />
+                </div>
+              ))}
             {onClose && (
               <RowCloseButton
                 label="Close tab"

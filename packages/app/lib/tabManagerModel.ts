@@ -1268,6 +1268,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
     } else if (intent.type === 'close-window') {
       return execute(intent, 'Close window')
+    } else if (intent.type === 'unpin-tab') {
+      return execute(
+        { type: 'tab-action', action: 'unpin', tabIds: [intent.tabId] },
+        'Unpin tab',
+      )
     } else if (intent.type === 'activate-tab') {
       dispatch({ type: 'select-item', item: { type: 'tab', id: intent.tabId } })
       return execute(intent, 'Activate tab')

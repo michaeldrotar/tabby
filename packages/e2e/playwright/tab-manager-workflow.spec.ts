@@ -317,3 +317,45 @@ test('moves a whole group through a submenu and closes duplicates in other windo
     0,
   )
 })
+
+test.describe('pin indicators', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      groups: [],
+      tabs: browser.tabs
+        .filter((tab) => tab.windowId === 1)
+        .map((tab) => ({
+          ...tab,
+          groupId: -1,
+          pinned: tab.id === 1 || tab.id === 2,
+        })),
+    },
+  })
+
+  test('unpins by pointer and keyboard without activating or selecting another tab', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const tab = (id: number) => page.locator(`[data-tab-id="${id}"]`)
+    await tab(1).locator('[data-tab-option]').click()
+    await tab(2).getByRole('button', { name: 'Unpin tab', exact: true }).click()
+    await expect(tab(2)).not.toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+    await expect(tab(1)).toHaveAttribute('data-selected', 'true')
+    await expect(tab(2)).toHaveAttribute('data-selected', 'false')
+    const pin = tab(1).getByRole('button', { name: 'Unpin tab', exact: true })
+    const option = tab(1).locator('[data-tab-option]')
+    await option.click()
+    await option.press('Tab')
+    await expect(pin).toBeFocused()
+    await pin.press('Shift+Tab')
+    await expect(option).toBeFocused()
+    await option.press('Tab')
+    await pin.press('Enter')
+    await expect(tab(1)).not.toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+  })
+})
