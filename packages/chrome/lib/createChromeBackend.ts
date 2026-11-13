@@ -166,15 +166,13 @@ export const createChromeBackend = (
             ...data,
             windows: data.windows.map((window) => {
               const identity = assigned[window.id]
-              return identity?.provisional
-                ? window
-                : {
-                    ...window,
-                    name: identity?.name,
-                    icon: identity?.icon,
-                    iconChoices: identity?.iconChoices,
-                    iconColor: identity?.iconColor,
-                  }
+              return {
+                ...window,
+                name: identity?.name,
+                icon: identity?.icon,
+                iconChoices: identity?.iconChoices,
+                iconColor: identity?.iconColor,
+              }
             }),
           })
         } catch (error) {

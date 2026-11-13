@@ -22,7 +22,7 @@ Search open tabs, custom window names, tab groups, bookmarks, browsing history, 
 
 Recognize every window
 
-Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Choose an icon, emoji, monogram, uploaded image, or favicon from an open tab. Each type remembers your choice, and a shared color sets the background. Open the editor to start with the current tab’s title selected for renaming, a suggested icon, and a color. Search over 1,600 icons or find emoji by name and keyword, with favicons from the current window listed first. Images and selected favicons are saved as local thumbnails. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
+Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Choose an icon, emoji, monogram, uploaded image, or favicon from an open tab. Each type remembers your choice, and a shared color sets the background. Open the editor to start with the current tab’s title selected for renaming, a suggested icon, and a color. Search over 1,600 icons or find emoji by name and keyword, with favicons from the current window listed first. Images and selected favicons are saved as local thumbnails. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device and appear as soon as restored windows are recognized, adjusting as more windows return.
 
 Organize one window at a time
 
@@ -81,7 +81,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 | Permission  | Type        | Justification                                                                                                                               |
 | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alarms`    | permissions | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                     |
+| `alarms`    | permissions | Schedule local checks for seasonal toolbar icons and confirmation of restored window names.                                                 |
 | `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
 | `storage`   | permissions | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                 |
 | `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
@@ -111,7 +111,7 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time. A choice also remembers tabs opened or restored from it and their page destinations; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
+Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, their relative order, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time. A choice also remembers tabs opened or restored from it and their page destinations; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
 
 ### Data use certification
 
@@ -142,6 +142,8 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 **Homepage:** [Tabby website](https://www.gettabby.org/).
 
 ## Version history
+
+Version 1.8.0 is in development. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
