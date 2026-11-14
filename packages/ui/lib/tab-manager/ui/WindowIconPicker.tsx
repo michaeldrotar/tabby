@@ -15,6 +15,7 @@ import {
 import { cn } from '../../utils/cn'
 import {
   editorRowEntry,
+  windowChoiceSelectedClass,
   windowControlClass,
   windowEditorInputClass,
 } from './windowControls'
@@ -147,8 +148,7 @@ const WindowIconGrid = ({
         }
         className={cn(
           choiceClass,
-          selected === icon &&
-            'bg-accent-selected ring-2 ring-focus ring-inset',
+          selected === icon && windowChoiceSelectedClass,
         )}
         onClick={() => onChoose(icon)}
       >
@@ -293,7 +293,7 @@ export const WindowIconPicker = ({
       )
     choose(icon)
   }
-  const gridKey = (event: KeyboardEvent<HTMLDivElement>) => {
+  const gridKey = (event: KeyboardEvent<HTMLElement>) => {
     const target = event.target as HTMLElement
     if (event.key === 'Escape') {
       event.preventDefault()
@@ -319,7 +319,9 @@ export const WindowIconPicker = ({
     event.preventDefault()
     event.stopPropagation()
     const buttons = [
-      ...event.currentTarget.querySelectorAll<HTMLButtonElement>('button'),
+      ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        'button:not(:disabled)',
+      ),
     ]
     const index = buttons.indexOf(target as HTMLButtonElement)
     const step =
@@ -340,8 +342,11 @@ export const WindowIconPicker = ({
       (next < 0 && event.key === 'ArrowUp') ||
       (next >= buttons.length && event.key === 'ArrowDown')
     ) {
+      if (overlay && event.key === 'ArrowDown') return
       const rows = [
-        ...region.current!.querySelectorAll<HTMLElement>('[data-editor-row]'),
+        ...event.currentTarget
+          .closest('form')!
+          .querySelectorAll<HTMLElement>('[data-editor-row]'),
       ]
       const row = event.currentTarget.closest<HTMLElement>('[data-editor-row]')!
       const destination = rows[rows.indexOf(row) + (next < 0 ? -1 : 1)]
@@ -355,38 +360,59 @@ export const WindowIconPicker = ({
       const button = buttons[(next + buttons.length) % buttons.length]
       button?.focus()
       button?.scrollIntoView({ block: 'nearest' })
-      if (!overlay && kind === 'icon') button?.click()
     }
   }
-  const seen = new Set<string>()
+  const currentWindow = model.windows.find(
+    (window) => window.id === draft.windowId,
+  )
+  const selectedFaviconUrl =
+    !draft.icon || draft.icon === 'favicon:auto'
+      ? (currentWindow?.iconUrl ??
+        (
+          currentWindow?.tabs.find((tab) => tab.active) ??
+          currentWindow?.tabs[0]
+        )?.faviconUrl)
+      : selectedFavicon
   const faviconWindows = [...model.windows].sort(
     (a, b) => Number(b.id === draft.windowId) - Number(a.id === draft.windowId),
   )
-  const favicons = faviconWindows.flatMap((window) =>
-    window.tabs.flatMap((tab) => {
-      if (!tab.faviconUrl || !tab.url) return []
+  const byHostname = new Map<
+    string,
+    { url: string; hostname: string; title: string }
+  >()
+  for (const window of faviconWindows) {
+    for (const tab of window.tabs) {
+      if (!tab.faviconUrl || !tab.url) continue
       let hostname: string
       try {
         hostname = new URL(tab.url).hostname
       } catch {
-        return []
+        continue
       }
-      if (!hostname || seen.has(hostname)) return []
-      seen.add(hostname)
-      return [
-        {
+      if (
+        hostname &&
+        (!byHostname.has(hostname) || tab.faviconUrl === selectedFaviconUrl)
+      )
+        byHostname.set(hostname, {
           url: tab.faviconUrl,
           hostname,
           title: tab.title,
-        },
-      ]
-    }),
-  )
+        })
+    }
+  }
+  const favicons = [...byHostname.values()]
   return (
     <div ref={region} className="stack-y-3">
       <fieldset data-editor-row="colors">
         <legend className="mb-1 text-xs">Color</legend>
-        <div className="grid grid-cols-9 gap-1">
+        <div
+          data-icon-grid
+          data-columns={9}
+          role="toolbar"
+          aria-label="Icon colors"
+          onKeyDown={gridKey}
+          className="grid grid-cols-9 gap-1"
+        >
           {TAB_GROUP_COLOR_IDS.map((color) => (
             <button
               key={color}
@@ -399,7 +425,7 @@ export const WindowIconPicker = ({
               className={cn(
                 control,
                 'h-9 min-h-9 min-w-0',
-                draft.iconColor === color && 'ring-2 ring-focus ring-inset',
+                draft.iconColor === color && windowChoiceSelectedClass,
               )}
               onClick={() =>
                 onIntent({
@@ -422,9 +448,7 @@ export const WindowIconPicker = ({
         role="tablist"
         aria-label="Icon type"
         data-editor-row="types"
-        className="
-          flex gap-1 overflow-x-auto rounded-lg bg-(--manager-chrome) p-1
-        "
+        className="flex gap-2 overflow-x-auto"
       >
         {types.map((type) => (
           <button
@@ -437,9 +461,14 @@ export const WindowIconPicker = ({
             tabIndex={kind === type.id ? 0 : -1}
             className={cn(
               control,
-              'min-h-9 min-w-max flex-1 px-2 text-xs whitespace-nowrap',
-              kind === type.id &&
-                'bg-accent-selected font-medium text-foreground',
+              `
+                min-h-9 min-w-max flex-1 px-2 text-sm whitespace-nowrap
+                hover:bg-transparent
+                data-[hover=true]:bg-transparent
+              `,
+              kind === type.id
+                ? 'font-semibold text-foreground'
+                : 'font-normal text-muted',
             )}
             onClick={() => changeType(type.id)}
           >
@@ -564,7 +593,6 @@ export const WindowIconPicker = ({
               }}
             />
             <button
-              data-editor-native
               type="button"
               disabled={busy}
               onClick={() => upload.current?.click()}
@@ -618,9 +646,9 @@ export const WindowIconPicker = ({
                     tabIndex={
                       (
                         favicons.some(
-                          (choice) => choice.url === selectedFavicon,
+                          (choice) => choice.url === selectedFaviconUrl,
                         )
-                          ? selectedFavicon === favicon.url
+                          ? selectedFaviconUrl === favicon.url
                           : index === 0
                       )
                         ? 0
@@ -628,11 +656,11 @@ export const WindowIconPicker = ({
                     }
                     aria-label={`Use ${favicon.hostname} favicon`}
                     title={`${favicon.title} · ${favicon.hostname}`}
-                    aria-pressed={selectedFavicon === favicon.url}
+                    aria-pressed={selectedFaviconUrl === favicon.url}
                     className={cn(
                       choiceClass,
-                      selectedFavicon === favicon.url &&
-                        'bg-accent-selected ring-2 ring-focus ring-inset',
+                      selectedFaviconUrl === favicon.url &&
+                        windowChoiceSelectedClass,
                     )}
                     onClick={() => void imageChoice(favicon.url, 'favicon')}
                   >
