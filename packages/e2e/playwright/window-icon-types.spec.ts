@@ -44,6 +44,30 @@ test('chooses each window icon type and keeps image choices after reopening', as
           .getBoundingClientRect().top,
     ),
   ).toBe(true)
+  await search.press('ArrowUp')
+  await expect(
+    page.getByRole('tab', { name: 'Icon', exact: true }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(search).toBeFocused()
+  await search.press('ArrowDown')
+  await expect(results.getByRole('button').first()).toBeFocused()
+  await page.keyboard.press('End')
+  await expect(results.getByRole('button').last()).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(results.getByRole('button').last()).toBeFocused()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('ArrowUp')
+  await expect(search).toBeFocused()
+  await search.press('ArrowDown')
+  await page.keyboard.press('Escape')
+  await expect(search).toBeFocused()
+  await expect(results).toHaveCount(0)
+  await search.fill('a')
+  await search.press('ArrowDown')
+  await page.keyboard.press('Tab')
+  await expect(done).toBeFocused()
+  await search.fill('a')
   await search.press('Escape')
   await expect(results).toHaveCount(0)
   await expect(page.getByRole('form', { name: 'Name and icon' })).toBeVisible()
@@ -69,6 +93,10 @@ test('chooses each window icon type and keeps image choices after reopening', as
   ).toBeVisible()
   await expect(header).toContainText('😎')
   await emojiSearch.press('ArrowDown')
+  await expect(
+    emojiResults.getByRole('button', { name: 'Use 🦔' }),
+  ).toBeFocused()
+  await page.keyboard.press('ArrowDown')
   await expect(
     emojiResults.getByRole('button', { name: 'Use 🦔' }),
   ).toBeFocused()
@@ -120,6 +148,11 @@ test('chooses each window icon type and keeps image choices after reopening', as
   await expect(
     page.getByRole('button', { name: 'Follow tab favicon', exact: true }),
   ).toHaveCount(0)
+  await expect(localButtons.first()).toHaveAttribute('aria-pressed', 'true')
+  await expect(localButtons.first().locator('img')).toHaveAttribute(
+    'src',
+    (await header.locator('img').getAttribute('src'))!,
+  )
   await localButtons.first().focus()
   await page.keyboard.press('ArrowRight')
   await expect(localButtons.nth(1)).toBeFocused()
@@ -136,6 +169,23 @@ test('chooses each window icon type and keeps image choices after reopening', as
   ).toHaveAttribute('aria-selected', 'true')
   await expect(header.locator('img')).toHaveAttribute('src', favicon!)
   await page.getByRole('tab', { name: 'Upload', exact: true }).click()
+  const uploadType = page.getByRole('tab', { name: 'Upload', exact: true })
+  const chooseImage = page.getByRole('button', {
+    name: 'Choose an image',
+    exact: false,
+  })
+  await uploadType.press('ArrowDown')
+  await expect(chooseImage).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await expect(uploadType).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await expect(done).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await expect(chooseImage).toBeFocused()
+  const chooser = page.waitForEvent('filechooser')
+  await page.keyboard.press('Enter')
+  await (await chooser).setFiles([])
   const file = page.getByLabel('Upload window image', { exact: true })
   await file.setInputFiles({
     name: 'broken.png',

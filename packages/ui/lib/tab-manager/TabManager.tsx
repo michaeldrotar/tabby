@@ -204,7 +204,15 @@ export type TabManagerProps = {
 const navigationSelector =
   '[data-nav-type="window"], [data-tab-option], [data-group-option], [data-create-item]'
 const controlSelector = 'button,summary,[data-tab-option],[data-group-option]'
-const sectionOrder = ['header', 'tabs', 'windows', 'actions', 'tools']
+const sectionOrder = [
+  'header',
+  'tabs',
+  'new-tab',
+  'windows',
+  'new-window',
+  'actions',
+  'tools',
+]
 
 const sameItem = (
   a: TabManagerItem | null | undefined,
@@ -569,8 +577,12 @@ export const TabManager = ({
     if (item) send({ type: 'focus-item', item })
   }
   const sectionControls = (section: Element) =>
-    Array.from(section.querySelectorAll<HTMLElement>(controlSelector)).filter(
+    [
+      ...(section.matches(controlSelector) ? [section as HTMLElement] : []),
+      ...section.querySelectorAll<HTMLElement>(controlSelector),
+    ].filter(
       (control) =>
+        control.closest('[data-keyboard-section]') === section &&
         !control.closest('[inert],[aria-hidden="true"]') &&
         !control.matches(':disabled,[tabindex="-1"]'),
     )
@@ -614,24 +626,44 @@ export const TabManager = ({
       tabbing &&
       !target.closest('input,textarea,[contenteditable="true"]') &&
       section &&
-      ['tabs', 'windows'].includes(section.dataset.keyboardSection ?? '')
+      (['tabs', 'windows', 'new-tab', 'new-window'].includes(
+        section.dataset.keyboardSection ?? '',
+      ) ||
+        target ===
+          (event.shiftKey
+            ? sectionControls(section)[0]
+            : sectionControls(section).at(-1)))
     ) {
       const sections = sectionOrder.flatMap((name) => {
         const element = rootRef.current?.querySelector<HTMLElement>(
           `[data-keyboard-section="${name}"]`,
         )
-        return element && sectionControls(element).length ? [element] : []
+        return element &&
+          (name === 'tabs'
+            ? navigationEntries(element).some((entry) => itemAt(entry))
+            : sectionControls(element).length)
+          ? [element]
+          : []
       })
       const next =
         sections[sections.indexOf(section) + (event.shiftKey ? -1 : 1)]
       if (!next) return
-      const controls = sectionControls(next)
+      const controls =
+        next.dataset.keyboardSection === 'tabs'
+          ? navigationEntries(next).filter((entry) => itemAt(entry))
+          : sectionControls(next)
       const entry =
-        controls.find((control) =>
-          sameItem(model.focusedItem, itemAt(control)),
-        ) ??
-        controls.find((control) => control.matches('[data-viewing="true"]')) ??
-        controls[0]
+        next.dataset.keyboardSection === 'tabs'
+          ? (controls.find((control) =>
+              sameItem(model.focusedItem, itemAt(control)),
+            ) ?? controls[0])
+          : next.dataset.keyboardSection === 'windows'
+            ? (controls.find((control) =>
+                control.matches('[data-viewing="true"]'),
+              ) ?? controls[0])
+            : event.shiftKey
+              ? controls.at(-1)
+              : controls[0]
       if (entry) {
         event.preventDefault()
         event.stopPropagation()
@@ -692,10 +724,14 @@ export const TabManager = ({
       !event.ctrlKey &&
       !event.metaKey
     ) {
-      const list = section.dataset.keyboardSection === 'tabs'
+      const list = ['tabs', 'new-tab'].includes(
+        section.dataset.keyboardSection ?? '',
+      )
       const horizontal = ['ArrowLeft', 'ArrowRight'].includes(event.key)
       const entries = list
-        ? navigationEntries(section)
+        ? navigationEntries(
+            rootRef.current?.querySelector('[data-manager-main]'),
+          )
         : sectionControls(section)
       const current = entries.findIndex(
         (entry) =>
@@ -879,6 +915,7 @@ export const TabManager = ({
       type="button"
       data-nav-type="action"
       data-create-item="tab"
+      data-keyboard-section={groupId === undefined ? 'new-tab' : undefined}
       aria-label={
         groupId === undefined
           ? t('tabManager_newTab')
