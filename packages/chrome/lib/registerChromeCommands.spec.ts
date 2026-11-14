@@ -7,12 +7,6 @@ const setup = () => {
     commands: { onCommand: { addListener: vi.fn() } },
     windows: {
       getLastFocused: vi.fn(async () => ({ id: 7, incognito: false })),
-      getAll: vi.fn(async () => [
-        { id: 7, incognito: false },
-        { id: 9, incognito: false },
-        { id: 11, incognito: true },
-      ]),
-      update: vi.fn(async () => ({})),
     },
     action: { openPopup: vi.fn(async () => {}) },
     sidePanel: {
@@ -50,11 +44,5 @@ describe('Chrome commands', () => {
       [{ windowId: 7 }],
       [{ windowId: 9 }],
     ])
-  })
-
-  it('keeps numbered window shortcuts within the initiating privacy context', async () => {
-    const { api, command } = setup()
-    await command('focus-window-01', { windowId: 11, incognito: true })
-    expect(api.windows.update).toHaveBeenCalledWith(11, { focused: true })
   })
 })

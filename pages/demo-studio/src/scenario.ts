@@ -183,7 +183,6 @@ export const createScenario = async (
         shortcuts: {
           'open-omnibar': 'Alt+E',
           'open-tab-manager': 'Alt+T',
-          'focus-window-01': 'Alt+1',
         },
       },
       {

@@ -101,15 +101,6 @@ export const OptionsExperience = ({
       description: 'Opens the side panel',
       shortcut: metadata.shortcuts['open-tab-manager'],
     },
-    ...Array.from({ length: 10 }, (_, index) => ({
-      id: `focus-window-${index + 1}`,
-      name: `Focus window ${index + 1}`,
-      description: 'Focuses the numbered window and keeps its current tab',
-      shortcut:
-        metadata.shortcuts[
-          `focus-window-${String(index + 1).padStart(2, '0')}`
-        ],
-    })),
   ]
   const iconPath = `/seasonal-icons/${seasonalIconId}-128.png`
   const logoUrl =
