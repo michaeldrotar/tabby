@@ -518,7 +518,7 @@ describe('Tab Manager controller', () => {
     expect(
       model.actions?.find((action) => action.id === 'close-duplicate-tabs')
         ?.label,
-    ).toBe('Close 2 duplicates')
+    ).toBe('Remove 2 duplicates')
 
     await controller.dispatch({
       type: 'run-action',

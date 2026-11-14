@@ -255,7 +255,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   await expect(row(2)).toBeVisible()
   await row(2).click({ button: 'right' })
   const remove = page.getByRole('menuitem', {
-    name: 'Close 2 duplicates',
+    name: 'Remove 2 duplicates',
     exact: true,
   })
   await expect(remove).toBeVisible()
