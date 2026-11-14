@@ -395,9 +395,12 @@ test('organizes a tab with local action keys and keeps native focus through pinn
     .evaluateAll((keys) => keys.map((key) => key.getBoundingClientRect().right))
   expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1)
   await page.setViewportSize({ width: 320, height: 640 })
-  const menuBounds = (await page.getByRole('menu').boundingBox())!
-  expect(menuBounds.x).toBeGreaterThanOrEqual(0)
-  expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(320)
+  await expect
+    .poll(async () => {
+      const bounds = (await page.getByRole('menu').boundingBox())!
+      return bounds.x >= 0 && bounds.x + bounds.width <= 320
+    })
+    .toBe(true)
   await page.keyboard.press('p')
   await expect(page.getByRole('menu')).toHaveCount(0)
   await expect(page.locator('[data-tab-id="5"]')).toHaveAttribute(
@@ -543,4 +546,112 @@ test.describe('pin indicators', () => {
     await expect(page.getByRole('tooltip')).toHaveCount(0)
     await expect(tab(1)).toHaveAttribute('data-active', 'true')
   })
+})
+
+test.describe('context menu placement', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      windows: [
+        ...browser.windows,
+        ...Array.from({ length: 20 }, (_, index) => ({
+          ...browser.windows[1],
+          id: 100 + index,
+          focused: false,
+        })),
+      ],
+    },
+  })
+
+  test('repositions an open menu to another item before preserving its new direction', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const row = (id: number) =>
+      page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+    const menu = page.getByRole('menu')
+    await row(1).click({ button: 'right', position: { x: 4, y: 4 } })
+    await expect(menu).toBeVisible()
+    await row(6).click({ button: 'right', position: { x: 4, y: 4 } })
+    await expect(menu).toHaveAttribute('data-side', 'top')
+    const initial = (await menu.boundingBox())!
+    await page.keyboard.press('c')
+    await expect(
+      page.getByRole('menuitem', { name: 'Back', exact: true }),
+    ).toBeVisible()
+    await expect(menu).toHaveAttribute('data-side', 'top')
+    await expect
+      .poll(async () => {
+        const bounds = (await menu.boundingBox())!
+        return Math.abs(bounds.y + bounds.height - initial.y - initial.height)
+      })
+      .toBeLessThan(0.5)
+    await page.keyboard.press('ArrowLeft')
+    await expect.poll(() => menu.boundingBox()).toEqual(initial)
+  })
+
+  for (const { height, tabId, side, toolbar } of [
+    { height: 1000, tabId: 1, side: 'bottom', toolbar: false },
+    { height: 640, tabId: 6, side: 'top', toolbar: false },
+    { height: 640, tabId: 6, side: 'top', toolbar: true },
+  ]) {
+    test(`keeps ${toolbar ? 'toolbar' : side + '-opening'} menus steady through short and scrolling submenus`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 480, height })
+      await page.goto('/tab-manager/index.html')
+      const row = page.locator(`[data-tab-id="${tabId}"] [data-tab-option]`)
+      if (toolbar) {
+        await row.click()
+        await page
+          .getByRole('button', { name: 'More actions', exact: true })
+          .click()
+      } else {
+        await row.click({ button: 'right' })
+      }
+      const menu = page.getByRole('menu')
+      await expect(menu).toHaveAttribute('data-side', side)
+      const initial = (await menu.boundingBox())!
+      expect(initial.width).toBe(320)
+      for (const key of ['c', 'w']) {
+        await page.keyboard.press(key)
+        await expect(
+          page.getByRole('menuitem', { name: 'Back', exact: true }),
+        ).toBeVisible()
+        await expect(menu).toHaveAttribute('data-side', side)
+        const submenu = (await menu.boundingBox())!
+        expect(submenu.width).toBe(initial.width)
+        expect(submenu.height).toBeLessThanOrEqual(initial.height)
+        expect(submenu.x).toBe(initial.x)
+        await expect
+          .poll(async () => {
+            const bounds = (await menu.boundingBox())!
+            return Math.abs(
+              (side === 'top' ? bounds.y + bounds.height : bounds.y) -
+                (side === 'top' ? initial.y + initial.height : initial.y),
+            )
+          })
+          .toBeLessThan(0.5)
+        if (key === 'w') {
+          expect(
+            await menu.evaluate(
+              (element) => element.scrollHeight > element.clientHeight,
+            ),
+          ).toBe(true)
+        }
+        await page.keyboard.press('ArrowLeft')
+        await expect(
+          page.getByRole('menuitem', { name: 'Back', exact: true }),
+        ).toHaveCount(0)
+        await expect.poll(() => menu.boundingBox()).toEqual(initial)
+      }
+      await page.keyboard.press('Escape')
+      await page.setViewportSize({ width: 280, height: 640 })
+      await row.click({ button: 'right' })
+      const narrow = (await menu.boundingBox())!
+      expect(narrow.x).toBeGreaterThanOrEqual(8)
+      expect(narrow.x + narrow.width).toBeLessThanOrEqual(272)
+    })
+  }
 })

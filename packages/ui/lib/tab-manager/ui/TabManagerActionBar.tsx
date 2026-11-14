@@ -33,7 +33,7 @@ import {
   VolumeOff,
   X,
 } from 'lucide-react'
-import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
 import { Kbd } from '../../Kbd'
@@ -89,7 +89,7 @@ const ActionIcon = ({ name }: { name?: string }) => {
 const itemClass =
   'text-popover-foreground flex min-h-9 w-full cursor-default select-none items-center gap-3 rounded px-3 py-2 text-left text-sm outline-hidden data-[highlighted]:bg-highlighted/50 data-[state=open]:bg-highlighted/50 data-[disabled]:opacity-45'
 const menuClass =
-  'bg-popover border-border text-popover-foreground z-[80] min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border p-1 shadow-lg outline-hidden'
+  'bg-popover border-border text-popover-foreground z-[80] w-80 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border p-1 shadow-lg outline-hidden'
 const OptionContent = ({
   option,
   windows,
@@ -125,6 +125,77 @@ const OptionContent = ({
     )}
   </>
 )
+
+const StableMenuContent = ({
+  menuRef,
+  position,
+  side,
+  style,
+  ...props
+}: React.ComponentProps<typeof Menu.Content> & {
+  menuRef: RefObject<HTMLDivElement | null>
+  position: { x: number; y: number } | null
+}) => {
+  const [layout, setLayout] = useState<{
+    position: typeof position
+    side: 'top' | 'bottom'
+    height: number
+  } | null>(null)
+  const captureLayout = useRef<() => void>(() => {})
+  useLayoutEffect(() => {
+    const menu = menuRef.current
+    const wrapper = menu?.parentElement
+    if (!menu || !wrapper) return
+    let frame = 0
+    const capture = () => {
+      if (wrapper.style.transform.includes('-200%') || !menu.offsetHeight)
+        return
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+      setLayout({
+        position,
+        side: menu.dataset.side === 'top' ? 'top' : 'bottom',
+        height: menu.offsetHeight,
+      })
+    }
+    captureLayout.current = capture
+    const observer = new MutationObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(capture)
+      })
+    })
+    observer.observe(wrapper, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ['style', 'data-side'],
+    })
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [menuRef, position])
+  const openingLayout = layout?.position === position ? layout : null
+  return (
+    <Menu.Content
+      {...props}
+      ref={menuRef}
+      side={openingLayout?.side ?? side}
+      onKeyDownCapture={() => {
+        if (!openingLayout) captureLayout.current()
+      }}
+      onPointerDownCapture={() => {
+        if (!openingLayout) captureLayout.current()
+      }}
+      style={{
+        ...style,
+        ...(openingLayout && {
+          maxHeight: `min(${openingLayout.height}px, 75vh, var(--radix-popper-available-height))`,
+        }),
+      }}
+    />
+  )
+}
 
 export const TabManagerActionBar = ({
   model,
@@ -416,7 +487,7 @@ export const TabManagerActionBar = ({
     event.stopPropagation()
     activateAction(action)
   }
-  const popupClass = cn(menuClass, !hasSelection && 'w-56')
+  const popupClass = menuClass
   const staticPopup = open && (
     <div
       ref={menuRef}
@@ -424,11 +495,7 @@ export const TabManagerActionBar = ({
       aria-label={panel?.label ?? 'Selection actions'}
       data-manager-action-menu
       data-action-bar-menu
-      className={cn(
-        popupClass,
-        'absolute right-2 max-h-[75%]',
-        hasSelection && 'w-[min(22rem,calc(100%-1rem))]',
-      )}
+      className={cn(popupClass, 'absolute right-2 max-h-[75%]')}
       style={{
         bottom: 57 + (model.notifications?.items.length ? 53 : 0),
       }}
@@ -519,45 +586,48 @@ export const TabManagerActionBar = ({
         >
           <Menu.Anchor virtualRef={anchor} />
           <Menu.Portal container={surface?.portalHost ?? undefined}>
-            <Menu.Content
-              ref={menuRef}
-              data-manager-action-menu
-              data-action-bar-menu
-              aria-label={panel?.label ?? 'Selection actions'}
-              side={position ? 'bottom' : 'top'}
-              align={position ? 'start' : 'end'}
-              sideOffset={position ? 0 : 12}
-              collisionBoundary={surface?.root ?? undefined}
-              collisionPadding={8}
-              loop
-              className={popupClass}
-              style={{
-                maxHeight: 'min(75vh, var(--radix-popper-available-height))',
-                maxWidth: surface?.root
-                  ? Math.max(160, surface.root.clientWidth - 16)
-                  : undefined,
-              }}
-              onCloseAutoFocus={restoreFocus}
-              onInteractOutside={(event) => {
-                const target = event.detail.originalEvent.target
-                if (
-                  !(target instanceof Element) ||
-                  !rootRef.current
-                    ?.closest('[data-tab-manager]')
-                    ?.contains(target)
-                )
-                  return
-                if (
-                  target.closest(
-                    '[data-action-bar-menu-trigger],[data-tab-id],[data-group-id]',
+            {open && (
+              <StableMenuContent
+                menuRef={menuRef}
+                position={position}
+                data-manager-action-menu
+                data-action-bar-menu
+                aria-label={panel?.label ?? 'Selection actions'}
+                side={position ? 'bottom' : 'top'}
+                align={position ? 'start' : 'end'}
+                sideOffset={position ? 0 : 12}
+                collisionBoundary={surface?.root ?? undefined}
+                collisionPadding={8}
+                loop
+                className={popupClass}
+                style={{
+                  maxHeight: 'min(75vh, var(--radix-popper-available-height))',
+                  maxWidth: surface?.root
+                    ? `min(calc(100vw - 1rem), ${Math.max(160, surface.root.clientWidth - 16)}px)`
+                    : undefined,
+                }}
+                onCloseAutoFocus={restoreFocus}
+                onInteractOutside={(event) => {
+                  const target = event.detail.originalEvent.target
+                  if (
+                    !(target instanceof Element) ||
+                    !rootRef.current
+                      ?.closest('[data-tab-manager]')
+                      ?.contains(target)
                   )
-                )
-                  event.preventDefault()
-              }}
-              onKeyDown={onKeyDown}
-            >
-              {contents}
-            </Menu.Content>
+                    return
+                  if (
+                    target.closest(
+                      '[data-action-bar-menu-trigger],[data-tab-id],[data-group-id]',
+                    )
+                  )
+                    event.preventDefault()
+                }}
+                onKeyDown={onKeyDown}
+              >
+                {contents}
+              </StableMenuContent>
+            )}
           </Menu.Portal>
         </Menu.Root>
       ) : surface?.portalHost ? (
