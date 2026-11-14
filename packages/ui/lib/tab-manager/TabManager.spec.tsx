@@ -494,7 +494,14 @@ describe('TabManager presentation', () => {
                 tabs: [
                   {
                     ...model.windows[0]!.tabs[0]!,
-                    url: 'https://local.test',
+                    url: 'https://local.test/first',
+                    faviconUrl: '/first.png',
+                  },
+                  {
+                    ...model.windows[0]!.tabs[0]!,
+                    id: 11,
+                    active: true,
+                    url: 'https://local.test/active',
                     faviconUrl: '/local.png',
                   },
                 ],
@@ -511,6 +518,14 @@ describe('TabManager presentation', () => {
         />
       </Surface>,
     )
+    expect(
+      screen.getByRole('button', { name: 'Use local.test favicon' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen
+        .getByRole('button', { name: 'Use local.test favicon' })
+        .querySelector('img'),
+    ).toHaveAttribute('src', '/local.png')
     fireEvent.click(
       screen.getByRole('button', { name: 'Use local.test favicon' }),
     )
