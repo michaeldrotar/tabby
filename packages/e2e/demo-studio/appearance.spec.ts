@@ -90,7 +90,7 @@ test('previews themes in Options and shares their palette with the product', asy
   await expect(product.getByRole('option').first()).toContainText('Tabby')
   await product.getByRole('combobox').fill('')
   await product
-    .getByRole('button', { name: 'Open options', exact: true })
+    .getByRole('option', { name: 'Open options', exact: true })
     .click()
   await expect(
     products.getByRole('button', { name: 'Options', exact: true }),
