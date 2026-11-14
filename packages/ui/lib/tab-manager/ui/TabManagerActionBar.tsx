@@ -210,6 +210,10 @@ export const TabManagerActionBar = ({
   )
   const run = (action: TabManagerAction, optionId?: string) =>
     onIntent({ type: 'run-action', actionId: action.id, optionId })
+  const activateAction = (action: TabManagerAction) =>
+    action.panel
+      ? onIntent({ type: 'open-action-panel', actionId: action.id })
+      : run(action)
   const restoreFocus = (event: Event) => {
     event.preventDefault()
     if (canFocusInput()) {
@@ -355,10 +359,7 @@ export const TabManagerActionBar = ({
             </span>
           </span>
         </>,
-        () =>
-          action.panel
-            ? onIntent({ type: 'open-action-panel', actionId: action.id })
-            : run(action),
+        () => activateAction(action),
         {
           disabled: action.disabled,
           reason: action.disabledReason,
@@ -374,7 +375,30 @@ export const TabManagerActionBar = ({
       event.preventDefault()
       event.stopPropagation()
       onIntent({ type: 'dismiss-action-panel' })
+      return
     }
+    if (
+      panel ||
+      !interactive ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.repeat ||
+      event.nativeEvent.isComposing
+    )
+      return
+    const action = ordered.find(
+      (action) =>
+        !action.disabled &&
+        action.shortcut
+          ?.split(' / ')
+          .some((key) => key.toLowerCase() === event.key.toLowerCase()),
+    )
+    if (!action) return
+    event.preventDefault()
+    event.stopPropagation()
+    activateAction(action)
   }
   const popupClass = cn(menuClass, !hasSelection && 'w-56')
   const staticPopup = open && (

@@ -398,6 +398,22 @@ test('organizes a tab with local action keys and keeps native focus through pinn
   const menuBounds = (await page.getByRole('menu').boundingBox())!
   expect(menuBounds.x).toBeGreaterThanOrEqual(0)
   expect(menuBounds.x + menuBounds.width).toBeLessThanOrEqual(320)
+  await page.keyboard.press('p')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id="5"]')).toHaveAttribute(
+    'data-pinned',
+    'true',
+  )
+  await expect(row()).toBeFocused()
+  await row().click({ button: 'right' })
+  await page.keyboard.press('p')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id="5"]')).not.toHaveAttribute(
+    'data-pinned',
+  )
+  await row().click({ button: 'right' })
+  await page.keyboard.press('g')
+  await expect(page.getByRole('menu', { name: 'Group 1 tab' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)
   await expect(row()).toBeFocused()
@@ -406,7 +422,8 @@ test('organizes a tab with local action keys and keeps native focus through pinn
     ['w', /Move/],
     ['c', /Copy/],
   ] as const) {
-    await row().press(key)
+    await row().click({ button: 'right' })
+    await page.keyboard.press(key)
     await expect(page.getByRole('menu', { name })).toBeVisible()
     await expect(page.getByRole('menuitem').first()).toBeFocused()
     await page.keyboard.press('Escape')
@@ -417,4 +434,9 @@ test('organizes a tab with local action keys and keeps native focus through pinn
   await expect(row()).toHaveAttribute('aria-label', /unloaded/)
   await row().press('n')
   await expect(page.locator('[data-tab-id]')).toHaveCount(8)
+  await row().click({ button: 'right' })
+  await page.keyboard.press('Backspace')
+  await expect(page.locator('[data-tab-id="5"]')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id]')).toHaveCount(7)
+  await expect(page.getByRole('menu')).toHaveCount(0)
 })

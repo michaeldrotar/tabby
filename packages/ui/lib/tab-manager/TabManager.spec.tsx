@@ -57,6 +57,95 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('activates advertised menu shortcuts without depending on the highlighted item', () => {
+    const onIntent = vi.fn()
+    const actions: TabManagerViewModel['actions'] = [
+      {
+        id: 'pin-selected-tabs',
+        label: 'Pin 1 tab',
+        icon: 'Pin',
+        kind: 'primary',
+        shortcut: 'P',
+      },
+      {
+        id: 'group-selected-tabs',
+        label: 'Group 1 tab',
+        icon: 'FolderPlus',
+        kind: 'primary',
+        shortcut: 'G',
+        panel: 'groups',
+        options: [],
+      },
+      {
+        id: 'close-selected-tabs',
+        label: 'Close 1 tab',
+        icon: 'Trash2',
+        kind: 'primary',
+        shortcut: 'Delete / Backspace',
+      },
+      {
+        id: 'reload-selected-tabs',
+        label: 'Reload 1 tab',
+        icon: 'RefreshCw',
+        kind: 'primary',
+        shortcut: 'R',
+        disabled: true,
+      },
+    ]
+    const { rerender } = render(
+      <Surface>
+        <TabManager
+          model={{ ...model, actions, actionMenu: {} }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const menu = screen.getByRole('menu')
+    fireEvent.keyDown(menu, { key: 'p' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'run-action',
+      actionId: 'pin-selected-tabs',
+      optionId: undefined,
+    })
+    fireEvent.keyDown(menu, { key: 'g' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'open-action-panel',
+      actionId: 'group-selected-tabs',
+    })
+    for (const key of ['Delete', 'Backspace']) {
+      fireEvent.keyDown(menu, { key })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'run-action',
+        actionId: 'close-selected-tabs',
+        optionId: undefined,
+      })
+    }
+    onIntent.mockClear()
+    for (const props of [
+      { key: 'r' },
+      { key: 'p', metaKey: true },
+      { key: 'p', repeat: true },
+      { key: 'p', isComposing: true },
+    ])
+      fireEvent.keyDown(menu, props)
+    expect(onIntent).not.toHaveBeenCalled()
+    rerender(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            actions,
+            actionMenu: {},
+            actionPanel: { actionId: 'group-selected-tabs' },
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'p' })
+    expect(onIntent).not.toHaveBeenCalled()
+  })
+
   it('routes local letter shortcuts only from rows without modifiers or key repetition', () => {
     const onIntent = vi.fn()
     render(
