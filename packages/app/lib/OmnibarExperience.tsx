@@ -65,7 +65,6 @@ export const OmnibarExperience = ({
     preferences.getSnapshot,
   )
   const view = views.omnibar
-  const now = environment.now()
   const metadata = useSyncExternalStore(
     resource.subscribe,
     resource.getSnapshot,
@@ -77,6 +76,11 @@ export const OmnibarExperience = ({
     browser.getSnapshot,
   )
   const state = useStore(view)
+  const ranking = useMemo(
+    () => ({ query: state.query, now: environment.now() }),
+    [state.query, environment],
+  )
+  const now = ranking.now
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
   useEffect(() => {
@@ -176,10 +180,7 @@ export const OmnibarExperience = ({
       : results.findIndex(
           (result) => resultIdentity(result) === state.selectedTarget,
         )
-  const selectedIndex =
-    retainedIndex >= 0
-      ? retainedIndex
-      : Math.min(state.selectedIndex, Math.max(0, results.length - 1))
+  const selectedIndex = retainedIndex >= 0 ? retainedIndex : state.selectedIndex
   const dismiss = onDismiss
   const error = (error: unknown) => {
     if (error instanceof OmnibarCancelledError) return
@@ -228,7 +229,7 @@ export const OmnibarExperience = ({
         autofocus={metadata.loaded}
       />
       {state.error && (
-        <div role="alert" className="bg-card text-foreground px-4 py-2 text-sm">
+        <div role="alert" className="bg-card px-4 py-2 text-sm text-foreground">
           {state.error}
         </div>
       )}

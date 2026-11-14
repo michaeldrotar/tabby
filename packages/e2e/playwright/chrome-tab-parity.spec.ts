@@ -14,9 +14,8 @@ test('creates tabs below and closes exactly one with middle-click', async ({
     page.getByRole('menuitem', { name, exact: true })
   await row(2).click({ button: 'right' })
   await action('New tab below').click()
-  const created = await page.evaluate(
-    async () =>
-      (await chrome.tabs.query({})).find((tab) => tab.title === 'New Tab')!,
+  const created = await page.evaluate(async () =>
+    (await chrome.tabs.query({})).find((tab) => tab.title === 'New Tab')!,
   )
   expect(created.groupId).toBe(10)
   expect(created.index).toBe(2)
@@ -36,11 +35,10 @@ test('creates tabs below and closes exactly one with middle-click', async ({
   await row(2).focus()
   await page.keyboard.press('Shift+F10')
   await action('New tab below').click()
-  const next = await page.evaluate(
-    async () =>
-      (await chrome.tabs.query({ windowId: 1 })).find(
-        (tab) => tab.title === 'New Tab',
-      )!,
+  const next = await page.evaluate(async () =>
+    (await chrome.tabs.query({ windowId: 1 })).find(
+      (tab) => tab.title === 'New Tab',
+    )!,
   )
   expect(next.groupId).toBe(10)
   expect(next.index).toBe(2)

@@ -1,4 +1,5 @@
 import { additionalNeutralColors } from './tailwind-neutral-colors.js'
+import { utilityColors } from './utility-colors.js'
 import type { Config } from 'tailwindcss'
 
 export default {
@@ -11,6 +12,7 @@ export default {
     ],
   ],
   theme: {
+    colors: utilityColors,
     extend: {
       colors: {
         ...additionalNeutralColors,

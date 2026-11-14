@@ -10,26 +10,26 @@ export const Slider = React.forwardRef<
     <SliderPrimitive.Root
       ref={ref}
       className={cn(
-        'relative flex w-full touch-none select-none items-center',
+        'relative flex w-full touch-none items-center select-none',
         className,
       )}
       {...props}
     >
       <SliderPrimitive.Track
         className={`
-          bg-input relative h-2 w-full grow overflow-hidden rounded-full
+          relative h-2 w-full grow overflow-hidden rounded-full bg-input
         `}
       >
-        <SliderPrimitive.Range className="bg-accent absolute h-full" />
+        <SliderPrimitive.Range className="absolute h-full bg-accent" />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb
         aria-label={props['aria-label']}
         aria-labelledby={props['aria-labelledby']}
         className={`
-          border-accent bg-card ring-offset-background block h-5 w-5
-          rounded-full border-2 transition-colors
-          focus-visible:ring-focus focus-visible:outline-none
-          focus-visible:ring-2 focus-visible:ring-offset-2
+          block size-5 rounded-full border-2 border-accent bg-card
+          ring-offset-background transition-colors
+          focus-visible:ring-2 focus-visible:ring-focus
+          focus-visible:ring-offset-2 focus-visible:outline-hidden
           disabled:pointer-events-none disabled:opacity-50
         `}
       />

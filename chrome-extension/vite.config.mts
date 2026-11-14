@@ -4,10 +4,9 @@ import { getEnv } from '@extension/env/getEnv'
 import { watchPublicPlugin } from '@extension/hmr/plugins/watch-public-plugin'
 import { watchRebuildPlugin } from '@extension/hmr/plugins/watch-rebuild-plugin'
 import { watchOption } from '@extension/vite-config/with-page-config'
-import libAssetsPlugin from '@laynezh/vite-plugin-lib-assets'
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import makeManifestPlugin from './utils/plugins/make-manifest-plugin.js'
-import type { PluginOption } from 'vite'
 
 const ENV = getEnv()
 
@@ -28,9 +27,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    libAssetsPlugin({
-      outputPath: outDir,
-    }) as PluginOption,
+    tailwindcss(),
     watchPublicPlugin(),
     makeManifestPlugin({ outDir }),
     ENV['IS_DEV'] &&
@@ -38,6 +35,7 @@ export default defineConfig({
   ],
   publicDir: resolve(rootDir, 'public'),
   build: {
+    target: 'chrome127',
     lib: {
       name: 'BackgroundScript',
       fileName: 'background',
@@ -50,7 +48,7 @@ export default defineConfig({
     minify: ENV['IS_PROD'],
     reportCompressedSize: ENV['IS_PROD'],
     watch: watchOption,
-    rollupOptions: {
+    rolldownOptions: {
       external: ['chrome'],
     },
   },

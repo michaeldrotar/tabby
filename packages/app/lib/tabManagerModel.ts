@@ -17,7 +17,11 @@ import {
   remapSelectedTabIds,
 } from '@extension/core/selection/TabIdentity'
 import { formatTimeAgo } from '@extension/core/time'
-import { getWindowIdentity, WINDOW_ICONS } from '@extension/core/windowIdentity'
+import {
+  getWindowIconChoices,
+  SUGGESTED_WINDOW_ICONS,
+} from '@extension/core/windowIconChoice'
+import { getWindowIdentity } from '@extension/core/windowIdentity'
 import { tt } from '@extension/i18n/catalog'
 import { createNotificationController } from './notifications'
 import { getTabManagerActions } from './tabManagerActions'
@@ -323,6 +327,7 @@ export const projectTabManager = (
                 name: custom ? draft.name : undefined,
                 icon: custom ? draft.icon : undefined,
                 iconColor: custom ? draft.iconColor : undefined,
+                iconChoices: custom ? draft.iconChoices : undefined,
               },
               snapshot.tabs,
               options.windowSource,
@@ -745,6 +750,8 @@ export const createTabManagerController = (resources: TabManagerResources) => {
           name: draft.useCustom === false ? '' : draft.name,
           icon: draft.useCustom === false ? undefined : draft.icon,
           iconColor: draft.useCustom === false ? undefined : draft.iconColor,
+          iconChoices:
+            draft.useCustom === false ? undefined : draft.iconChoices,
         })
         if (result.status === 'failed' || result.status === 'partial') {
           setNotice({
@@ -852,18 +859,24 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
       if (!window) return
       const random = resources.environment.random ?? Math.random
-      const name = getWindowIdentity(
-        { ...window, name: undefined, icon: undefined },
-        snapshot.tabs,
-        resources.preferences.getSnapshot().tabManagerCompactIconMode,
-      ).title
+      const name =
+        window.name ||
+        getWindowIdentity(
+          { ...window, name: undefined, icon: undefined },
+          snapshot.tabs,
+          resources.preferences.getSnapshot().tabManagerCompactIconMode,
+        ).title
+      const icon =
+        window.icon ??
+        SUGGESTED_WINDOW_ICONS[
+          Math.floor(random() * SUGGESTED_WINDOW_ICONS.length)
+        ]!
       const draft = {
         windowId: window.id,
         useCustom: true,
-        name: window.name || name,
-        icon:
-          window.icon ??
-          WINDOW_ICONS[Math.floor(random() * WINDOW_ICONS.length)]!,
+        name,
+        icon,
+        iconChoices: getWindowIconChoices(icon, window.iconChoices),
         iconColor:
           window.iconColor ??
           BROWSER_TAB_GROUP_COLORS[
@@ -880,6 +893,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     } else if (intent.type === 'change-window-draft') {
       if (!state.editingWindow) return
       const draft = { ...state.editingWindow, ...intent.value, useCustom: true }
+      draft.iconChoices = getWindowIconChoices(draft.icon, draft.iconChoices)
       view.setState({ editingWindow: draft })
       return persistWindow(draft)
     } else if (intent.type === 'reset-window') {

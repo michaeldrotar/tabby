@@ -75,13 +75,13 @@ export const ProjectWindowsPage = () => (
             useCustom: true,
           },
         }}
-        className="h-full w-full"
+        className="size-full"
       />
     </div>
     <div className="project-window-picker" aria-label="Named project windows">
       <PromoTabManager
         model={{ ...base, windowPicker: true }}
-        className="h-full w-full"
+        className="size-full"
       />
     </div>
   </PromoFrame>

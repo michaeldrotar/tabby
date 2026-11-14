@@ -21,8 +21,8 @@ export const ManagerPaneSwitcher = ({
       role="tablist"
       aria-label="Manager panes"
       className={`
-        border-border flex shrink-0 gap-1 overflow-x-auto border-b
-        bg-[var(--manager-chrome)] px-2
+        flex shrink-0 gap-1 overflow-x-auto border-b border-border
+        bg-(--manager-chrome) px-2
       `}
     >
       {panes.map(({ id: pane, label, icon: Icon }, index) => (
@@ -35,16 +35,16 @@ export const ManagerPaneSwitcher = ({
           tabIndex={active === pane ? 0 : -1}
           className={cn(
             `
-              focus-visible:ring-focus focus-visible:ring-2
-              focus-visible:ring-inset
               relative flex min-h-11 shrink-0 items-center gap-2 px-3 text-sm
-              outline-none
+              outline-hidden
+              focus-visible:ring-2 focus-visible:ring-focus
+              focus-visible:ring-inset
             `,
             active === pane
               ? `
-                text-foreground font-medium
-                after:bg-accent after:absolute after:inset-x-3 after:bottom-0
-                after:h-0.5
+                font-medium text-foreground
+                after:absolute after:inset-x-3 after:bottom-0 after:h-0.5
+                after:bg-accent
               `
               : `
                 text-muted

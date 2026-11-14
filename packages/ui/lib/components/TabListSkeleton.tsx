@@ -21,13 +21,13 @@ export const TabListSkeleton = ({ count = 8 }: TabListSkeletonProps) => {
 
 const TabItemSkeleton = () => {
   return (
-    <div className="flex h-8 items-center gap-2 rounded px-2">
+    <div className="flex h-8 items-center gap-2 rounded-sm px-2">
       {/* Favicon placeholder */}
-      <Skeleton className="size-4 shrink-0 rounded" />
+      <Skeleton className="size-4 shrink-0 rounded-sm" />
       {/* Title placeholder - variable width for natural look */}
       <Skeleton className="h-3.5 flex-1" />
       {/* Close button placeholder */}
-      <Skeleton className="size-4 shrink-0 rounded" />
+      <Skeleton className="size-4 shrink-0 rounded-sm" />
     </div>
   )
 }

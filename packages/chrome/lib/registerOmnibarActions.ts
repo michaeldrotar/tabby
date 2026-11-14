@@ -1,10 +1,13 @@
 import { createAsyncQueue } from '@extension/core/asyncQueue'
-import { readOmnibarChoices } from '@extension/core/omnibarChoices'
+import {
+  getOmnibarExecutionChoices,
+  readOmnibarChoices,
+} from '@extension/core/omnibarChoices'
 import { createChromeOmnibarNavigator } from './createChromeOmnibarNavigator.js'
 import {
   isPrivateOmnibar,
   loadChromeOmnibarChoices,
-  saveChromeOmnibarChoice,
+  saveChromeOmnibarChoices,
 } from './omnibarChoices.js'
 import type { OmnibarAction } from '@extension/core'
 
@@ -97,7 +100,7 @@ export const registerOmnibarActions = (api: typeof chrome) => {
     const privacy = isPrivateOmnibar(api, windowId).catch(() => undefined)
     void (async () => {
       try {
-        await opening
+        const openedTabs = await opening
         const privateWindow = await privacy
         const now = Date.now()
         const choices = readOmnibarChoices(
@@ -107,7 +110,13 @@ export const registerOmnibarActions = (api: typeof chrome) => {
         if (privateWindow !== undefined && choices[0]) {
           const choice = choices[0]
           await writes
-            .run(() => saveChromeOmnibarChoice(api, choice, privateWindow))
+            .run(() =>
+              saveChromeOmnibarChoices(
+                api,
+                getOmnibarExecutionChoices(choice, openedTabs),
+                privateWindow,
+              ),
+            )
             .catch(() => undefined)
         }
         respond({ success: true })

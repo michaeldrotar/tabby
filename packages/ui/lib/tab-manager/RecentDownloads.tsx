@@ -13,13 +13,13 @@ export const DownloadsHeader = ({
 }) => (
   <header
     className={`
-      border-border flex min-h-[72px] shrink-0 items-center border-b
-      bg-[var(--manager-chrome)] px-5 py-3
+      flex min-h-[72px] shrink-0 items-center border-b border-border
+      bg-(--manager-chrome) px-5 py-3
     `}
   >
     <div className="min-w-0">
       <h2 className="text-sm font-medium">Downloads</h2>
-      <p className="text-muted text-xs">
+      <p className="text-xs text-muted">
         {snapshot.status === 'ready'
           ? `${snapshot.items.length} recent download${snapshot.items.length === 1 ? '' : 's'}`
           : 'Recent files from Chrome'}
@@ -60,14 +60,14 @@ export const RecentDownloads = ({
       </p>
     ) : null}
     {snapshot.status === 'loading' ? (
-      <p role="status" className="text-muted px-3 py-4 text-sm">
+      <p role="status" className="px-3 py-4 text-sm text-muted">
         Loading downloads…
       </p>
     ) : snapshot.status === 'permission' ? (
       <div className="space-y-4 px-3 py-6">
         <Download size={24} className="text-muted" aria-hidden="true" />
         <h2 className="text-base font-medium">Your recent downloads</h2>
-        <p className="text-muted text-sm leading-relaxed">
+        <p className="text-sm/relaxed text-muted">
           Allow Tabby to read your download history and open downloaded files.
           Your downloads stay on this device.
         </p>
@@ -81,7 +81,7 @@ export const RecentDownloads = ({
     ) : (
       <>
         {!snapshot.canOpen ? (
-          <div className="space-y-2 px-3 py-3 text-sm">
+          <div className="space-y-2 p-3 text-sm">
             <p>To open files here, allow Tabby to open downloaded files.</p>
             <button className={windowControlClass} onClick={onRequestAccess}>
               Allow opening files
@@ -115,7 +115,7 @@ export const RecentDownloads = ({
             ))}
           </TabList>
         ) : (
-          <p className="text-muted px-3 py-6 text-sm">
+          <p className="px-3 py-6 text-sm text-muted">
             No recent downloads. Files you download in Chrome will appear here.
           </p>
         )}

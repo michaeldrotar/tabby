@@ -257,3 +257,56 @@ test.describe('curated theme text', () => {
     expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+test('animates seasonal controls and honors reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/options/index.html')
+  const toggle = page.getByRole('switch', { name: 'Show seasonal icons' })
+  await expect(toggle).toBeVisible()
+  const thumb = toggle.locator('..').locator('span[aria-hidden]')
+  await toggle.locator('..').click()
+  await expect
+    .poll(() =>
+      thumb.evaluate(
+        (node) =>
+          node
+            .getAnimations({ subtree: true })
+            .filter(
+              (animation) =>
+                animation instanceof CSSTransition &&
+                ['translate', 'transform'].includes(
+                  animation.transitionProperty,
+                ),
+            ).length,
+      ),
+    )
+    .toBeGreaterThan(0)
+  await page.locator('[data-open-seasonal-icons]').click()
+  const choice = page.getByRole('radio').first()
+  const image = choice.locator('..').locator('img')
+  await image.scrollIntoViewIfNeeded()
+  await page.mouse.move(0, 0)
+  await choice.focus()
+  await expect
+    .poll(() => image.evaluate((node) => node.getAnimations().length))
+    .toBeGreaterThan(0)
+  await image.evaluate(async (node) => {
+    await Promise.all(
+      node.getAnimations().map((animation) => animation.finished),
+    )
+  })
+  const active = await image.boundingBox()
+  await choice.blur()
+  await image.evaluate(async (node) => {
+    await Promise.all(
+      node.getAnimations().map((animation) => animation.finished),
+    )
+  })
+  const resting = await image.boundingBox()
+  expect(active!.width).toBeGreaterThan(resting!.width)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await choice.focus()
+  expect(await image.evaluate((node) => node.getAnimations().length)).toBe(0)
+})

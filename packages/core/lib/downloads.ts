@@ -1,10 +1,5 @@
 export type DownloadAction =
-  | 'open'
-  | 'show'
-  | 'pause'
-  | 'resume'
-  | 'cancel'
-  | 'erase'
+  'open' | 'show' | 'pause' | 'resume' | 'cancel' | 'erase'
 
 export type RecentDownload = {
   id: number

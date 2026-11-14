@@ -98,12 +98,12 @@ export const OmnibarItem = ({
         data-omnibar-result={item.id}
         className={cn(
           `
-            focus-visible:ring-accent focus-visible:ring-offset-background
-            focus-visible:outline-none focus-visible:ring-2
-            focus-visible:ring-offset-2
             relative flex w-full items-center gap-3 rounded-md px-4 py-2
             text-left text-sm
-            focus:outline-none
+            focus:outline-hidden
+            focus-visible:ring-2 focus-visible:ring-accent
+            focus-visible:ring-offset-2 focus-visible:ring-offset-background
+            focus-visible:outline-hidden
           `,
           isSelected
             ? 'bg-accent-selected text-foreground'
@@ -120,8 +120,8 @@ export const OmnibarItem = ({
         {item.windowIcon || item.windowIconUrl ? (
           <span
             className={`
-              bg-input text-muted flex size-8 shrink-0 items-center
-              justify-center rounded
+              flex size-8 shrink-0 items-center justify-center rounded-sm
+              bg-input text-muted
             `}
           >
             <WindowIcon
@@ -134,8 +134,8 @@ export const OmnibarItem = ({
           <div
             className={cn(
               `
-                bg-input relative flex h-8 w-8 flex-shrink-0 items-center
-                justify-center rounded ring-1 ring-black/5
+                relative flex size-8 shrink-0 items-center justify-center
+                rounded-sm bg-input ring-1 ring-black/5
                 dark:ring-white/10
               `,
               groupColorClasses?.bg,
@@ -143,14 +143,14 @@ export const OmnibarItem = ({
           >
             <LayersIcon
               aria-hidden="true"
-              className={cn('h-4 w-4', groupColorClasses?.text)}
+              className={cn('size-4', groupColorClasses?.text)}
             />
             <span
               aria-hidden="true"
               className={cn(
                 `
-                  ring-card absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full
-                  ring-2
+                  absolute -top-1 -right-1 size-2.5 rounded-full ring-2
+                  ring-card
                 `,
                 groupColorClasses?.dot,
               )}
@@ -162,8 +162,8 @@ export const OmnibarItem = ({
         ) : item.type === 'command' ? (
           <div
             className={`
-              bg-input text-muted flex h-8 w-8 items-center justify-center
-              rounded text-xs font-bold
+              flex size-8 items-center justify-center rounded-sm bg-input
+              text-xs font-bold text-muted
             `}
           >
             &gt;
@@ -171,15 +171,11 @@ export const OmnibarItem = ({
         ) : item.type === 'search' ? (
           <div
             className={`
-              bg-card ring-border flex h-8 w-8 flex-shrink-0 items-center
-              justify-center rounded-full p-0.5 shadow-sm ring-1
+              flex size-8 shrink-0 items-center justify-center rounded-full
+              bg-card p-0.5 shadow-xs ring-1 ring-border
             `}
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-full w-full"
-            >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="size-full">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -202,7 +198,7 @@ export const OmnibarItem = ({
           <Favicon
             pageUrl={item.url}
             faviconUrl={item.favIconUrl}
-            className="h-8 w-8 flex-shrink-0"
+            className="size-8 shrink-0"
             size={32}
           />
         )}
@@ -214,7 +210,7 @@ export const OmnibarItem = ({
           <div className="flex items-center gap-2 text-xs">
             <span
               className={cn(
-                'flex-shrink-0 font-medium',
+                'shrink-0 font-medium',
                 getOmnibarTypeColor(item.type),
               )}
             >
@@ -224,7 +220,7 @@ export const OmnibarItem = ({
             {item.tabCount && item.tabCount > 1 && (
               <span
                 className={cn(
-                  'flex-shrink-0',
+                  'shrink-0',
                   isSelected ? 'text-foreground/70' : 'text-muted',
                 )}
               >
@@ -235,7 +231,7 @@ export const OmnibarItem = ({
             {item.type === 'tab-group' && item.groupTabCount !== undefined && (
               <span
                 className={cn(
-                  'flex-shrink-0',
+                  'shrink-0',
                   isSelected ? 'text-foreground/70' : 'text-muted',
                 )}
               >
@@ -257,7 +253,7 @@ export const OmnibarItem = ({
             {item.type === 'tab-group' && item.groupCollapsed && (
               <span
                 className={cn(
-                  'flex-shrink-0',
+                  'shrink-0',
                   isSelected ? 'text-foreground/70' : 'text-muted',
                 )}
               >
@@ -268,7 +264,7 @@ export const OmnibarItem = ({
             {item.ageLabel && (
               <span
                 className={cn(
-                  'flex-shrink-0',
+                  'shrink-0',
                   isSelected ? 'text-foreground/70' : 'text-muted',
                 )}
               >
@@ -291,7 +287,7 @@ export const OmnibarItem = ({
         </div>
 
         {isSelected && (
-          <span className="text-muted flex-shrink-0 text-xs">
+          <span className="shrink-0 text-xs text-muted">
             {getOmnibarActionLabel(item, actionModifier)}
             {[
               'bookmark',

@@ -110,10 +110,7 @@ export type BatchTabActionPorts = {
 }
 
 export type TabDiscardStatus =
-  | 'missing'
-  | 'discardable'
-  | 'active'
-  | 'already-discarded'
+  'missing' | 'discardable' | 'active' | 'already-discarded'
 
 export const getTabDiscardStatus = (
   tab: Pick<BatchTabRecord, 'active' | 'discarded'> | undefined,

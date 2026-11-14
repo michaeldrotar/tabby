@@ -9,7 +9,7 @@ const item = (
 ): OmnibarRankableResult => ({ id, title, lastVisitTime, type: 'tab' })
 
 describe('Omnibar score ordering', () => {
-  it('orders by score then title and stable identity, regardless of browsing activity', () => {
+  it('orders equal scores by stable identity regardless of live titles or browsing activity', () => {
     const results = [
       { item: item('2', 'Beta', 100), score: 50 },
       { item: item('3', 'Alpha'), score: 50 },
@@ -19,8 +19,20 @@ describe('Omnibar score ordering', () => {
     expect(results.map((result) => result.item.id)).toEqual([
       '4',
       '1',
-      '3',
       '2',
+      '3',
     ])
+  })
+  it('keeps equal-score results in place when unread counts change', () => {
+    const results = [
+      { item: item('2', 'Inbox (9)'), score: 50 },
+      { item: item('1', 'Inbox (10)'), score: 50 },
+    ]
+    const order = () =>
+      [...results].sort(compareOmnibarScoredItems).map(({ item }) => item.id)
+    const initial = order()
+    results[0]!.item.title = 'Inbox (11)'
+    results[1]!.item.title = 'Inbox (9)'
+    expect(order()).toEqual(initial)
   })
 })

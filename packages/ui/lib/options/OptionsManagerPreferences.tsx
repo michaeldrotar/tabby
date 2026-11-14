@@ -18,7 +18,7 @@ export const OptionsManagerPreferences = ({
   const { tabManagerCompactIconMode } = preferences
   return (
     <section className="mb-6">
-      <h2 className="text-foreground mb-4 text-2xl font-semibold">
+      <h2 className="mb-4 text-2xl font-semibold text-foreground">
         Tab manager
       </h2>
       <div
@@ -36,10 +36,10 @@ export const OptionsManagerPreferences = ({
           `}
         >
           <div>
-            <h3 className="text-foreground text-xl font-medium">
+            <h3 className="text-xl font-medium text-foreground">
               Window identification
             </h3>
-            <p className="text-muted text-base">
+            <p className="text-base text-muted">
               Use a tab’s title and icon for unnamed windows.
             </p>
           </div>

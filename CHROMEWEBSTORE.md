@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-10-25
+Last updated: 2026-11-14
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -18,11 +18,11 @@ Find the page you need and organize your open browser windows with Tabby.
 
 Find a page
 
-Search open tabs, windows, tab groups, bookmarks, browsing history, and recently closed pages in one place. Repeat a search to bring the result you recently chose toward the top. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window. If a destination cannot be opened, Tabby explains the problem and keeps your query so you can try again.
+Search open tabs, custom window names, tab groups, bookmarks, browsing history, and recently closed pages in one place. Search “window” or “window” followed by a number to jump to an open window. Search favors commands, open windows, groups, and tabs before opening new pages. Recent choices help bring matching results and the tabs opened or restored from them toward the top, including when you shorten or reorder search words. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window. If a destination cannot be opened, Tabby explains the problem and keeps your query so you can try again.
 
 Recognize every window
 
-Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device, with conservative matching for restored windows.
+Choose active-tab or first-tab defaults in Options, or use the pencil to give a window a custom name, icon, and color. Choose an icon, emoji, monogram, uploaded image, or favicon from an open tab. Each type remembers your choice, and a shared color sets the background. Open the editor to start with the current tab’s title selected for renaming, a suggested icon, and a color. Search over 1,600 icons or find emoji by name and keyword, with favicons from the current window listed first. Images and selected favicons are saved as local thumbnails. Changes save immediately; Reset returns that window to the global default. Picking a window brings it forward and opens its Tab Manager. Tabby names appear in search and move destinations. Search a custom window name in the omnibar and choose its Window result to focus it without changing its active tab. Names are stored on your device and appear as soon as restored windows are recognized, adjusting as more windows return.
 
 Organize one window at a time
 
@@ -40,7 +40,7 @@ Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
+Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. From an empty search, use the arrow keys to select Open tab manager and Open options while keeping search ready to type. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
 
@@ -87,7 +87,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 | Permission       | Type                 | Justification                                                                                                                                                                                                                |
 | ---------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alarms`         | permissions          | Schedule a local daily check so the toolbar icon updates when a seasonal display window begins or ends.                                                                                                                      |
+| `alarms`         | permissions          | Schedule local checks for seasonal toolbar icons and confirmation of restored window names.                                                                                                                                  |
 | `favicon`        | permissions          | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                                                                                                            |
 | `storage`        | permissions          | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                                                                                                  |
 | `tabs`           | permissions          | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user.                                                                                  |
@@ -119,7 +119,7 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
+Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, their relative order, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time. A choice also remembers tabs opened or restored from it and their page destinations; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor removes that window’s saved custom identity. Uninstalling removes the extension’s saved data.
 
 With optional download access, Chrome’s recent download records are read into memory while the Downloads pane is selected. Tabby stores no separate download history and sends no download records or file contents to the publisher. Removing a history entry leaves its file on disk. Download access and file-opening access can be revoked in Chrome’s extension settings.
 
@@ -153,18 +153,20 @@ With optional download access, Chrome’s recent download records are read into 
 
 ## Version history
 
-| Version                                                                      | Submission date | Summary                                                                                 | Store status   |
-| ---------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- | -------------- |
-| [1.8.0](product/releases/v1.8.0-recent-downloads.md)                         | —               | Optional recent downloads in the Tab Manager.                                           | Draft          |
-| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search. | Pending review |
-| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                | Published      |
-| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                         | Published      |
-| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                  | Published      |
-| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                       | Published      |
-| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                               | Not recorded   |
-| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                            | Not recorded   |
-| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                         | Not recorded   |
-| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                        | Not recorded   |
+Version 1.8.0 is in development. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+
+| Version                                                                      | Submission date | Summary                                                                                      | Store status   |
+| ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
+| [1.7.1](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.1)          | 2026-10-29      | Fix search priorities, recent-choice recall, duplicate window results, and shifting results. | Pending review |
+| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search.      | Published      |
+| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                     | Published      |
+| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                              | Published      |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                       | Published      |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                            | Published      |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                                    | Not recorded   |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                                 | Not recorded   |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                              | Not recorded   |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                             | Not recorded   |
 
 Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 
@@ -172,11 +174,11 @@ Version links open detailed release notes or the patch changes. Submission dates
 
 ### Latest submission
 
-Version 1.7.0 was submitted on 2026-10-25 with automatic publishing after approval enabled. The [developer dashboard](https://chrome.google.com/webstore/devconsole/671ad32f-f7c3-4765-93ce-bd218ed23ab9/jjkakicjobpalhifpeaggabpgdllmmob/edit/status) confirmed **Pending review**. The submission includes the updated description, five current screenshots, both promotional tiles, storage justification for recent search choices, and Web history and User activity disclosures. The release package and finalized notes are attached to the [GitHub release](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.0).
+Version 1.7.1 was submitted on 2026-10-29 with automatic publishing after approval enabled. The [developer dashboard](https://chrome.google.com/webstore/devconsole/671ad32f-f7c3-4765-93ce-bd218ed23ab9/jjkakicjobpalhifpeaggabpgdllmmob/edit/status) confirmed **Pending review**. The submission includes the updated search description, existing screenshots and promotional tiles, unchanged permissions, and Web history and User activity disclosures. The public privacy policy describes recall of related searches and opened or restored pages. The tested package and finalized notes are attached to the [GitHub release](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.1).
 
 ### Latest publication
 
-Version 1.6.0 is published in the [Chrome Web Store](https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob), verified on 2026-10-18. Its submission date is 2026-10-17. The listing includes the updated description, five screenshots, both promotional tiles, and storage justification for named windows. Distribution regions, permission justifications, and privacy disclosures were checked against the [pre-publish checklist](.agents/skills/chrome-extensions/references/webstore/review-checklist.md). Publishing status is available in the [developer dashboard](https://chrome.google.com/webstore/devconsole/671ad32f-f7c3-4765-93ce-bd218ed23ab9/jjkakicjobpalhifpeaggabpgdllmmob/edit/status).
+Version 1.7.0 is published in the [Chrome Web Store](https://chromewebstore.google.com/detail/tabby/jjkakicjobpalhifpeaggabpgdllmmob), verified in the developer dashboard on 2026-10-29. Its submission date is 2026-10-25. The listing includes five screenshots, both promotional tiles, and Web history and User activity disclosures.
 
 ### Known limitations
 
