@@ -728,8 +728,8 @@ export const BookmarkManager = ({
           <header
             data-keyboard-section="header"
             className={`
-              border-border shrink-0 space-y-2 border-b
-              bg-[var(--manager-chrome)] p-2
+              shrink-0 space-y-2 border-b border-border bg-(--manager-chrome)
+              p-2
             `}
           >
             <div className="flex min-w-0 items-center gap-1">
@@ -755,7 +755,7 @@ export const BookmarkManager = ({
                       ? bookmarkLabel(folder) || 'Untitled folder'
                       : 'Bookmarks'}
                 </h2>
-                <p aria-live="polite" className="text-muted truncate text-xs">
+                <p aria-live="polite" className="truncate text-xs text-muted">
                   {busy
                     ? 'Working…'
                     : selected.length
@@ -802,13 +802,13 @@ export const BookmarkManager = ({
             </div>
             <label
               className={`
-                border-border bg-input flex items-center gap-2 rounded-md border
+                flex items-center gap-2 rounded-md border border-border bg-input
                 px-2
               `}
             >
               <Search
                 size={16}
-                className="text-muted shrink-0"
+                className="shrink-0 text-muted"
                 aria-hidden="true"
               />
               <input
@@ -823,8 +823,8 @@ export const BookmarkManager = ({
                 }}
                 placeholder="Filter all bookmarks"
                 className={`
-                  focus-visible:ring-focus focus-visible:ring-2
-                  min-h-10 min-w-0 flex-1 bg-transparent text-sm outline-none
+                  min-h-10 min-w-0 flex-1 bg-transparent text-sm outline-hidden
+                  focus-visible:ring-2 focus-visible:ring-focus
                 `}
               />
             </label>
@@ -876,7 +876,7 @@ export const BookmarkManager = ({
             ref={listRef}
             tabIndex={-1}
             data-keyboard-section="bookmarks"
-            className="outline-none"
+            className="outline-hidden"
           >
             <TabList
               ariaLabel="Bookmark entries"
@@ -983,7 +983,7 @@ export const BookmarkManager = ({
               ))}
             </TabList>
             {snapshot.status === 'ready' && !items.length && (
-              <p className="text-muted p-3 text-sm">
+              <p className="p-3 text-sm text-muted">
                 {query
                   ? 'No matching bookmarks.'
                   : 'This folder is empty. Add a bookmark or folder to get started.'}
@@ -994,11 +994,11 @@ export const BookmarkManager = ({
               className={cn(
                 tabRowHeightClass,
                 `
-                  text-muted flex w-full items-center gap-3 rounded-md px-3 py-2
-                  text-sm
-                  hover:text-foreground hover:bg-accent-hover
-                  focus-visible:ring-focus focus-visible:outline-none
-                  focus-visible:ring-2 focus-visible:ring-inset
+                  flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm
+                  text-muted
+                  hover:bg-accent-hover hover:text-foreground
+                  focus-visible:ring-2 focus-visible:ring-focus
+                  focus-visible:outline-hidden focus-visible:ring-inset
                 `,
               )}
               disabled={busy}

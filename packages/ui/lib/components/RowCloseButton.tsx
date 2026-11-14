@@ -25,23 +25,23 @@ export const RowCloseButton = ({
     }}
     className={cn(
       `
-        text-muted flex h-11 min-h-[44px] w-11 min-w-[44px] shrink-0
-        items-center justify-center rounded transition-opacity
+        flex size-11 min-h-[44px] min-w-[44px] shrink-0 items-center
+        justify-center rounded-sm text-muted transition-opacity
         hover:text-foreground
-        focus:outline-none focus:ring-0
-        focus-visible:outline-none
+        focus:ring-0 focus:outline-hidden
+        focus-visible:outline-hidden
       `,
       active
         ? 'opacity-100'
         : `
           opacity-0
           group-hover/closable-row:opacity-100
-          group-has-[:focus-visible]/closable-row:opacity-100
+          group-has-focus-visible/closable-row:opacity-100
           group-data-[hover=true]/closable-row:opacity-100
         `,
       className,
     )}
   >
-    <X className="h-4 w-4" />
+    <X className="size-4" />
   </button>
 )

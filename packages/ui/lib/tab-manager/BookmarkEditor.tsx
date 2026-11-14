@@ -11,9 +11,9 @@ import type { TabManagerWindowView } from './TabManager'
 import type { BookmarkNode } from '@extension/core/bookmarks'
 
 export const bookmarkControlClass =
-  'rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50'
+  'rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50'
 const inputClass =
-  'mt-1 block min-h-10 w-full rounded-md border border-border bg-input px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+  'mt-1 block min-h-10 w-full rounded-md border border-border bg-input px-3 text-sm text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
 export type BookmarkEditorRequest = {
   kind: 'bookmark' | 'folder' | 'edit' | 'move' | 'delete' | 'save'
   ids: string[]
@@ -121,7 +121,7 @@ export const BookmarkEditor = ({
     <form
       ref={form}
       aria-label="Bookmark editor"
-      className="border-border space-y-3 rounded-md border p-3 text-sm"
+      className="space-y-3 rounded-md border border-border p-3 text-sm"
       onSubmit={(event) => {
         event.preventDefault()
         onSubmit({
@@ -182,7 +182,7 @@ export const BookmarkEditor = ({
               />
               Create a new folder
             </label>
-            <p className="text-muted text-xs">
+            <p className="text-xs text-muted">
               Saves URLs, titles, order, and group names and colors. Page state,
               history, pinned tabs, active selection, and window size or
               position are not saved.
@@ -249,7 +249,7 @@ export const BookmarkEditor = ({
           </>
         )}
         {kind === 'delete' && (
-          <p className="break-words">
+          <p className="wrap-break-word">
             Delete{' '}
             {targets.length === 1
               ? `“${bookmarkLabel(targets[0]!) || 'Untitled'}”`

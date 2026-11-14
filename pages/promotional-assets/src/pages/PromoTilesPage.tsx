@@ -58,10 +58,7 @@ export const SmallPromoPage = () => (
       className="small-promo-manager"
       aria-label="Tabby across browser windows"
     >
-      <PromoTabManager
-        model={smallTileManagerModel}
-        className="h-full w-full"
-      />
+      <PromoTabManager model={smallTileManagerModel} className="size-full" />
     </div>
     <div className="small-promo-omnibar" aria-label="Search preview">
       <PromoOmnibar query="inbox" results={findAnythingResults.slice(0, 2)} />
@@ -83,7 +80,7 @@ export const MarqueePromoPage = () => (
       className="marquee-promo-manager"
       aria-label="Tabby across browser windows"
     >
-      <PromoTabManager model={tileManagerModel} className="h-full w-full" />
+      <PromoTabManager model={tileManagerModel} className="size-full" />
     </div>
     <div className="marquee-promo-omnibar" aria-label="Search preview">
       <PromoOmnibar query="inbox" results={findAnythingResults} />

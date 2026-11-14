@@ -688,7 +688,7 @@ export const useTabDrag = (
           width={1}
           height={1}
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-0"
+          className="pointer-events-none absolute top-0 left-0"
         />
         {view ? (
           <div
@@ -700,26 +700,26 @@ export const useTabDrag = (
             <div
               ref={marker}
               data-drop-indicator
-              className="bg-accent absolute h-0.5 rounded-full"
+              className="absolute h-0.5 rounded-full bg-accent"
             />
             <div
               ref={ghost}
               data-drag-preview
               style={{ visibility: 'hidden' }}
               className={`
-                border-accent/50 bg-background/95 text-foreground absolute
-                left-0 top-0 max-w-72 rounded-lg border px-3 py-2 text-sm
-                shadow-lg
+                absolute top-0 left-0 max-w-72 rounded-lg border
+                border-accent/50 bg-background/95 px-3 py-2 text-sm
+                text-foreground shadow-lg
               `}
             >
               <div className="truncate font-medium">{view.title}</div>
               {view.description ? (
-                <div className="text-muted truncate text-xs">
+                <div className="truncate text-xs text-muted">
                   {view.description}
                 </div>
               ) : null}
               {feedback ? (
-                <div className="text-muted max-w-64 text-xs">{feedback}</div>
+                <div className="max-w-64 text-xs text-muted">{feedback}</div>
               ) : null}
             </div>
           </div>

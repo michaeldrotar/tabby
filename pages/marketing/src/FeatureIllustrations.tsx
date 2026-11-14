@@ -5,6 +5,7 @@ import {
 } from '@extension/app'
 import { MemoryTabbyProvider } from '@extension/providers/memory'
 import { useState } from 'react'
+import { featureArtClasses } from './content'
 import { createMarketingDemo, searchExamples } from './demo'
 import { useMarketingAppearance } from './MarketingAppearance'
 import { MotionReveal } from './MotionReveal'
@@ -46,10 +47,7 @@ const ProductIllustration = ({ feature }: { feature: 'manage' | 'find' }) => {
     <MotionReveal className="feature-arrival">
       <ScaledIllustration
         {...dimensions[feature]}
-        className={`
-          feature-art
-          feature-art--${feature}
-        `}
+        className={featureArtClasses[feature]}
       >
         <MemoryTabbyProvider
           resources={{ backend: demo.backend, preferences: demo.preferences }}

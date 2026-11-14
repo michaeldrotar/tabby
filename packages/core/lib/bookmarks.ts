@@ -23,11 +23,7 @@ export type BookmarkSnapshot = {
   error?: string
 }
 export type BookmarkDestination =
-  | 'tabs'
-  | 'window'
-  | 'group'
-  | 'structure'
-  | 'restore'
+  'tabs' | 'window' | 'group' | 'structure' | 'restore'
 export type BookmarkResource = {
   getSnapshot: () => BookmarkSnapshot
   subscribe: (listener: () => void) => () => void

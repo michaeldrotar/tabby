@@ -13,23 +13,23 @@ export const OptionsAppearance = ({
   'preferences' | 'activeThemeMode' | 'onPreferenceChange'
 >) => (
   <section className="mb-6">
-    <h2 className="text-foreground mb-4 text-2xl font-semibold">Appearance</h2>
+    <h2 className="mb-4 text-2xl font-semibold text-foreground">Appearance</h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-foreground text-xl font-medium">Mode</h3>
+          <h3 className="text-xl font-medium text-foreground">Mode</h3>
         </div>
         <ThemeModeChoices
           theme={preferences.theme}
           onChange={(theme) => onPreferenceChange({ theme })}
         />
       </div>
-      <div className="border-border mt-4 border-t pt-4">
+      <div className="mt-4 border-t border-border pt-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-foreground text-xl font-medium">Theme</h3>
+            <h3 className="text-xl font-medium text-foreground">Theme</h3>
           </div>
-          <span className="text-muted text-sm" aria-live="polite">
+          <span className="text-sm text-muted" aria-live="polite">
             {curatedThemes.find((theme) => theme.id === preferences.themePreset)
               ?.name ?? 'Your saved colors'}
           </span>
@@ -41,7 +41,7 @@ export const OptionsAppearance = ({
             role="group"
             aria-label={`${collection} themes`}
           >
-            <h4 className="text-foreground mb-2 text-lg font-medium">
+            <h4 className="mb-2 text-lg font-medium text-foreground">
               {collection}
             </h4>
             <div

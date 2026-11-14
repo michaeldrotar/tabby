@@ -28,7 +28,7 @@ export const ErrorDisplay = ({
       lg:px-8
     `}
   >
-    <div className="w-full max-w-md space-y-8">
+    <div className="stack-y-8 w-full max-w-md">
       <ErrorHeader title={title} description={description} />
       <ErrorStackTraceList
         error={error}

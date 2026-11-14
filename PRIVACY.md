@@ -1,6 +1,6 @@
 # Privacy policy for Tabby
 
-Last updated: October 25, 2026
+Last updated: November 11, 2026
 
 ## Introduction
 
@@ -15,9 +15,9 @@ Tabby is designed with privacy as a core value.
 - **No Backend Server:** Tabby does not have a backend server. I do not receive your browsing history, bookmarks, or saved preferences.
 - **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
 - **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
-- **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so repeating that query can bring the same result toward the top. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
+- **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so related searches can bring the same result and matching tabs opened or restored from it toward the top. Page destinations include URLs from restored pages. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
 - **Bookmark Management:** Bookmark browsing and editing use Chrome's native bookmarks. Saving a window creates ordered bookmarks and folders; group names and colors are encoded in group-folder titles. Chrome may sync these bookmarks according to your Chrome settings. Only the sidebar's selected folder is stored as an extension preference. Native bookmarks remain when Tabby is uninstalled.
-- **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query, and Tabby window names and icons. To recognize restored windows, it also keeps SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
+- **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query, and Tabby window names and icons. To recognize restored windows, it also keeps their relative order and SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
 
 ## Permissions
 

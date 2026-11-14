@@ -124,6 +124,47 @@ describe('full application preview', () => {
     ).toMatchObject({ choices: [choice] })
   })
 
+  it('searches supplied bookmark and history fixtures by all query words', async () => {
+    const fixture = JSON.parse(
+      await readFile(
+        resolve(previewDirectory, 'omnibar-recall-browser-data.json'),
+        'utf8',
+      ),
+    )
+    const api = loadMock(mockSource, fixture)
+    expect(
+      (await api.bookmarks.search('PROJECT atl')).map((item) => item.id),
+    ).toEqual(['atlas'])
+    expect(await api.bookmarks.search('project missing')).toEqual([])
+    const nested = loadMock(mockSource, {
+      ...fixture,
+      bookmarks: [
+        {
+          id: '0',
+          title: '',
+          children: [
+            { id: '2', parentId: '0', title: 'Other bookmarks', children: [] },
+          ],
+        },
+      ],
+    })
+    const saved = await nested.bookmarks.create({
+      parentId: '2',
+      title: 'Project Atlas',
+      url: 'https://example.test/project-atlas',
+    })
+    expect(
+      (await nested.bookmarks.search('ATLAS project')).map((item) => item.id),
+    ).toEqual([saved.id])
+    await nested.bookmarks.remove(saved.id)
+    expect(await nested.bookmarks.search('atlas')).toEqual([])
+    expect(
+      (await api.history.search({ text: 'project', maxResults: 20 })).map(
+        (item) => item.id,
+      ),
+    ).toEqual(['old-project'])
+  })
+
   it('loads an alternate fixture and starts each page with fresh sample data', async () => {
     const fixturePath = resolve(directory, 'custom-browser.json')
     const custom = { ...browser, tabs: browser.tabs.slice(0, 1), groups: [] }
@@ -154,6 +195,7 @@ describe('sample Chrome interactions', () => {
     let onMutation
     const chrome = loadMock(mockSource, browser, {
       location: { origin: 'http://localhost:5175' },
+      Image: class {},
       document: {
         documentElement: {},
         querySelectorAll: () =>

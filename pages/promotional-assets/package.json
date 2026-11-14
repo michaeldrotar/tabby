@@ -13,14 +13,8 @@
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "@vitejs/plugin-react-swc": "^4.2.2",
+    "@vitejs/plugin-react-swc": "4.3.3",
     "@types/node": "^24.10.1",
-    "vite": "^7.2.6"
-  },
-  "postcss": {
-    "plugins": {
-      "tailwindcss": {},
-      "autoprefixer": {}
-    }
+    "vite": "8.3.5"
   }
 }

@@ -239,6 +239,7 @@ export const createFixtureBuilder = ({
         type: window.type,
         ...(window.name === undefined ? {} : { name: window.name }),
         ...(window.icon === undefined ? {} : { icon: window.icon }),
+        ...(window.iconChoices ? { iconChoices: window.iconChoices } : {}),
         ...(window.iconColor === undefined
           ? {}
           : { iconColor: window.iconColor }),

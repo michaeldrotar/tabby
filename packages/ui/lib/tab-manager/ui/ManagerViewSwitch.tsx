@@ -26,7 +26,7 @@ export const ManagerViewSwitch = ({
       ref={root}
       role="group"
       aria-label="Tab manager views"
-      className="bg-background/40 flex items-center gap-0.5 rounded-lg p-0.5"
+      className="flex items-center gap-0.5 rounded-lg bg-background/40 p-0.5"
     >
       {(['tabs', 'bookmarks'] as const).map((value) => (
         <button
@@ -37,10 +37,10 @@ export const ManagerViewSwitch = ({
           disabled={disabled}
           className={cn(
             `
-              text-muted min-h-10 rounded-md px-2 text-xs
+              min-h-10 rounded-md px-2 text-xs text-muted
               hover:bg-accent-hover hover:text-foreground
-              focus-visible:ring-focus focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-inset
+              focus-visible:ring-2 focus-visible:ring-focus
+              focus-visible:outline-hidden focus-visible:ring-inset
               disabled:opacity-50
             `,
             view === value && 'bg-accent-selected text-foreground',

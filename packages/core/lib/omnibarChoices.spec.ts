@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  getOmnibarChoiceBonus,
+  getOmnibarExecutionChoices,
   getOmnibarTarget,
   OMNIBAR_CHOICE_LIMIT,
   readOmnibarChoices,
@@ -40,6 +42,41 @@ describe('Omnibar choices', () => {
       ),
     ).toEqual([])
     expect(readOmnibarChoices({}, 101 * day)).toEqual([])
+  })
+
+  it('recalls shortened and reordered words using the freshest related choice without stacking bonuses', () => {
+    const choices = [
+      { query: 'inbox gmail', target: 'tab:1', selectedAt: day },
+      { query: 'gmail inbox', target: 'tab:1', selectedAt: 2 * day },
+    ]
+    for (const query of ['inbox gmail', 'INBOX', 'in', 'gm in']) {
+      expect(getOmnibarChoiceBonus(choices, query, 'tab:1', 2 * day)).toBe(80)
+    }
+    for (const query of ['', 'box', 'inbox outlook', 'invoice']) {
+      expect(getOmnibarChoiceBonus(choices, query, 'tab:1', 2 * day)).toBe(0)
+    }
+    expect(getOmnibarChoiceBonus(choices, 'in', 'tab:2', 2 * day)).toBe(0)
+    expect(getOmnibarChoiceBonus(choices, 'in', 'tab:1', 100 * day)).toBe(0)
+  })
+
+  it('links a chosen source to its opened tabs and URLs without learning web searches', () => {
+    const choice = {
+      query: 'project',
+      target: 'restore:session',
+      selectedAt: day,
+    }
+    const tabs = [
+      { id: 7, url: 'https://project.test' },
+      { id: 7, url: 'https://project.test' },
+    ]
+    expect(getOmnibarExecutionChoices(choice, tabs)).toEqual([
+      choice,
+      { ...choice, target: 'tab:7' },
+      { ...choice, target: 'url:https://project.test' },
+    ])
+    expect(
+      getOmnibarExecutionChoices({ ...choice, target: 'search:google' }, tabs),
+    ).toEqual([])
   })
 
   it('ignores web searches without replacing a remembered destination', () => {

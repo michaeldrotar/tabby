@@ -20,11 +20,11 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
     return (
       <div
         className={`
-          border-b-accent-border flex items-center border-b px-4 py-3
+          flex items-center border-b border-b-accent-border px-4 py-3
           focus-within:border-b-accent
         `}
       >
-        <SearchIcon aria-hidden="true" className="text-muted mr-3 h-5 w-5" />
+        <SearchIcon aria-hidden="true" className="mr-3 size-5 text-muted" />
         <input
           ref={ref}
           data-omnibar-query
@@ -39,7 +39,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           autoComplete="off"
           spellCheck={false}
           className={`
-            text-foreground flex-1 bg-transparent text-lg outline-none
+            flex-1 bg-transparent text-lg text-foreground outline-hidden
             placeholder:text-muted
           `}
           placeholder="Search tabs, windows, groups, bookmarks, history…"
@@ -47,7 +47,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           onChange={onChange}
           onKeyDown={onKeyDown}
         />
-        <div className="text-muted flex items-center gap-1 text-xs">
+        <div className="flex items-center gap-1 text-xs text-muted">
           <SummerMotionControl nightOnly active={!query} />
           <Kbd>Esc</Kbd>
           <span>to close</span>

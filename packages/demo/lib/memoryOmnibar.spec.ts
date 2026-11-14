@@ -96,6 +96,76 @@ describe('memory Omnibar', () => {
     },
   )
 
+  it('recalls the opened tab before its source and falls back to the source after navigation', async () => {
+    const backend = setup()
+    backend.restoreSnapshot({
+      ...backend.getSnapshot(),
+      windows: [{ id: 1, focused: true, name: 'Workspace' }],
+    })
+    const bookmark = {
+      id: 'bookmark',
+      type: 'bookmark' as const,
+      title: 'Project Atlas',
+      url: 'https://atlas.test',
+      action: { kind: 'url' as const, url: 'https://atlas.test' },
+    }
+    const resource = createMemoryOmnibarResource(backend, {
+      originalWindowId: 1,
+      results: [bookmark],
+    })
+    const now = 24 * 60 * 60 * 1000
+    await resource.execute(bookmark.action, 'new-tab', {
+      query: 'project atlas',
+      target: getOmnibarTarget(bookmark),
+      selectedAt: now,
+    })
+    const opened = backend
+      .getSnapshot()
+      .tabs.find((tab) => tab.url === bookmark.url)!
+    backend.restoreSnapshot({
+      ...backend.getSnapshot(),
+      tabs: backend.getSnapshot().tabs.map((tab) =>
+        tab.id === opened.id
+          ? {
+              ...tab,
+              title: 'Project Atlas',
+              url: 'https://atlas.test/workspace',
+            }
+          : tab,
+      ),
+    })
+    const results = () =>
+      getOmnibarResults(
+        'proj',
+        backend.getSnapshot(),
+        1,
+        [bookmark],
+        now,
+        'active',
+        resource.getSnapshot().choices,
+      )
+    expect(results().map((result) => result.type)).toEqual([
+      'search',
+      'tab',
+      'bookmark',
+    ])
+    expect(
+      resource
+        .getSnapshot()
+        .choices?.map((choice) => choice.target)
+        .sort(),
+    ).toEqual([`tab:${opened.id}`, 'url:https://atlas.test'].sort())
+    await backend.execute({
+      type: 'navigate-tab',
+      tabId: opened.id,
+      url: 'https://calendar.test',
+    })
+    expect(results().map((result) => result.type)).toEqual([
+      'search',
+      'bookmark',
+    ])
+  })
+
   it('finds demo results using title and URL substrings', async () => {
     const backend = setup()
     const results = [

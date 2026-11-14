@@ -54,7 +54,7 @@ export const OverviewPage = () => (
     </section>
     <section className="overview-stage" aria-label="Tabby overview">
       <div className="overview-manager">
-        <PromoTabManager model={managerModel} className="h-full w-full" />
+        <PromoTabManager model={managerModel} className="size-full" />
       </div>
       <div className="overview-omnibar">
         <PromoOmnibar query="design" results={overviewResults} />

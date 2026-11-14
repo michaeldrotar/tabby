@@ -68,12 +68,14 @@ export const createChromeOmnibarResource = (
     operation: number,
     choice?: OmnibarChoice,
   ) => {
-    if (!choice)
-      return createChromeOmnibarNavigator(
+    if (!choice) {
+      await createChromeOmnibarNavigator(
         api,
         metadata.originalWindowId,
         current,
       )(action, modifier, operation)
+      return
+    }
     const response = await api.runtime.sendMessage({
       type: 'tabby-omnibar-execute',
       action,
@@ -235,33 +237,29 @@ export const createChromeOmnibarResource = (
         ...(bookmarks.status === 'fulfilled'
           ? bookmarks.value
               .filter((bookmark) => bookmark.url)
-              .map(
-                (bookmark): OmnibarResult => ({
-                  id: bookmark.id,
-                  type: 'bookmark',
-                  title: bookmark.title,
-                  url: bookmark.url,
-                  favIconUrl: favicon(bookmark.url),
-                  description: 'Bookmark',
-                  action: { kind: 'url', url: bookmark.url! },
-                }),
-              )
+              .map((bookmark): OmnibarResult => ({
+                id: bookmark.id,
+                type: 'bookmark',
+                title: bookmark.title,
+                url: bookmark.url,
+                favIconUrl: favicon(bookmark.url),
+                description: 'Bookmark',
+                action: { kind: 'url', url: bookmark.url! },
+              }))
           : []),
         ...(history.status === 'fulfilled'
           ? history.value
               .filter((item) => item.url)
-              .map(
-                (item): OmnibarResult => ({
-                  id: item.id,
-                  type: 'history',
-                  title: item.title || item.url || 'Untitled',
-                  url: item.url,
-                  favIconUrl: favicon(item.url),
-                  description: 'History',
-                  lastVisitTime: item.lastVisitTime,
-                  action: { kind: 'url', url: item.url! },
-                }),
-              )
+              .map((item): OmnibarResult => ({
+                id: item.id,
+                type: 'history',
+                title: item.title || item.url || 'Untitled',
+                url: item.url,
+                favIconUrl: favicon(item.url),
+                description: 'History',
+                lastVisitTime: item.lastVisitTime,
+                action: { kind: 'url', url: item.url! },
+              }))
           : []),
       ]
     },
