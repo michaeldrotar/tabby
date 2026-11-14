@@ -47,7 +47,6 @@ export type TabManagerTabView = {
   discarded?: boolean
   audio?: 'muted' | 'on' | 'off'
   groupId?: number
-  ageLabel?: string
 }
 export type TabManagerGroupView = {
   id: number
@@ -914,15 +913,11 @@ export const TabManager = ({
     })
   }
 
-  const toTab = (tab: TabManagerTabView): BrowserTabListTab => ({
-    ...tab,
-    ageLabel: tab.ageLabel ?? '',
-  })
   const items: BrowserTabListItemData[] = []
   const seenGroups = new Set<number>()
   for (const tab of viewedWindow?.tabs ?? []) {
     const group = viewedWindow?.groups.find((group) => group.id === tab.groupId)
-    if (!group) items.push({ type: 'tab', tab: toTab(tab) })
+    if (!group) items.push({ type: 'tab', tab })
     else if (!seenGroups.has(group.id)) {
       seenGroups.add(group.id)
       items.push({
@@ -930,9 +925,7 @@ export const TabManager = ({
         group: drag.expanded.includes(group.id)
           ? { ...group, collapsed: false }
           : group,
-        tabs: viewedWindow!.tabs
-          .filter((tab) => tab.groupId === group.id)
-          .map(toTab),
+        tabs: viewedWindow!.tabs.filter((tab) => tab.groupId === group.id),
       })
     }
   }

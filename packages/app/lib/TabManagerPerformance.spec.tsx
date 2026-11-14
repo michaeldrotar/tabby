@@ -15,8 +15,7 @@ afterEach(() => {
 })
 
 it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
-  let now = 10_000_000
-  const pending: Array<() => void> = []
+  const now = 10_000_000
   const fixture = createFixtureBuilder({ now })
   const group = fixture.generateGroup({ title: 'Performance group' })
   const tabs = Array.from({ length: 200 }, (_, index) =>
@@ -39,13 +38,6 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     environment: {
       now: () => now,
       systemTheme: 'light',
-      schedule: (callback) => {
-        pending.push(callback)
-        return () => {
-          const index = pending.indexOf(callback)
-          if (index >= 0) pending.splice(index, 1)
-        }
-      },
     },
   })
   resources.views.tabManager.setState({ viewedWindowId: 1 })
@@ -121,26 +113,6 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
   expect(
     container.querySelector(`[data-tab-id="${tabs[0]!.id}"]`)?.textContent,
   ).toContain('Renamed tab')
-  await measure('idleClock', () => {
-    now += 1000
-    pending.shift()!()
-  })
-  await measure('recentAge', () => {
-    const snapshot = backend.exportSnapshot()
-    backend.restoreSnapshot({
-      ...snapshot,
-      tabs: snapshot.tabs.map((tab) =>
-        tab.id === tabs[0]!.id ? { ...tab, lastAccessed: now - 1000 } : tab,
-      ),
-    })
-  })
-  await measure('changingAge', () => {
-    now += 1000
-    pending.shift()!()
-  })
-  expect(
-    container.querySelector(`[data-tab-id="${tabs[0]!.id}"]`)?.textContent,
-  ).toContain('• 2s')
   await measure('activateFirst', () => {
     fireEvent.click(
       container.querySelector(
@@ -196,9 +168,6 @@ it('limits row renders to changed tabs in a 200-tab data fixture', async () => {
     collapse: 0,
     expand: 100,
     renameTab: 1,
-    idleClock: 0,
-    recentAge: 1,
-    changingAge: 1,
     activateFirst: 4,
     activateSecond: 4,
     openBackgroundTab: 1,

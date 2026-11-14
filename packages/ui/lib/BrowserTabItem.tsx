@@ -59,10 +59,6 @@ export type BrowserTabItemProps = Omit<
   // Status indicator props
   /** Audio state: 'muted' shows muted icon, 'on' shows playing icon, 'off' shows nothing */
   audio?: 'muted' | 'on' | 'off'
-  /** Timestamp in milliseconds when the tab was last accessed */
-  lastAccessed?: number
-  /** Explicit display text; skips clock-based updates when supplied. */
-  ageLabel?: string
   /** Whether this tab is a duplicate (same URL as another tab) */
   duplicate?: boolean
 
@@ -115,8 +111,6 @@ export const BrowserTabItem = memo(
         pinned = false,
         discarded = false,
         audio,
-        lastAccessed: _lastAccessed,
-        ageLabel,
         duplicate = false,
         onClose,
         onUnpin,
@@ -435,9 +429,6 @@ export const BrowserTabItem = memo(
                     }
                   >
                     <span className="min-w-0 truncate">{domain}</span>
-                    {ageLabel && (
-                      <span className="shrink-0"> • {ageLabel}</span>
-                    )}
                   </motion.div>
                 )}
               </div>
