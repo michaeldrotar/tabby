@@ -57,6 +57,37 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('routes local letter shortcuts only from rows without modifiers or key repetition', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{ ...model, focusedItem: { type: 'tab', id: 10 } }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const row = screen.getByRole('option', { name: 'Tab: Tabby' })
+    for (const key of ['p', 'm', 'd', 'r', 'g', 'u', 'w', 'c', 'n', 'z']) {
+      fireEvent.keyDown(row, { key })
+      expect(onIntent).toHaveBeenLastCalledWith({ type: 'navigate', key })
+    }
+    onIntent.mockClear()
+    for (const extra of [
+      { ctrlKey: true },
+      { metaKey: true },
+      { altKey: true },
+      { shiftKey: true },
+      { repeat: true },
+      { isComposing: true },
+    ])
+      fireEvent.keyDown(row, { key: 'p', ...extra })
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Options' }), {
+      key: 'p',
+    })
+    expect(onIntent).not.toHaveBeenCalled()
+  })
+
   it('keeps the requested tab revealed when mounting loaded data', async () => {
     const original = HTMLElement.prototype.scrollIntoView
     HTMLElement.prototype.scrollIntoView = function () {
@@ -173,6 +204,7 @@ describe('TabManager presentation', () => {
     const input = screen.getByRole('textbox', { name: 'Group name' })
     fireEvent.keyDown(input, { key: 'ArrowDown' })
     fireEvent.keyDown(input, { key: 'Delete' })
+    fireEvent.keyDown(input, { key: 'p' })
     expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(true)
     expect(onIntent).not.toHaveBeenCalled()
     expect(

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ChevronUp,
   Copy,
+  Delete,
   Ellipsis,
   ExternalLink,
   FileText,
@@ -34,6 +35,7 @@ import {
 import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
+import { Kbd } from '../../Kbd'
 import { SummerMotionControl, SummerToolbarArt } from '../../SummerTheme'
 import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
@@ -235,10 +237,12 @@ export const TabManagerActionBar = ({
       reason?: string
       destructive?: boolean
       panel?: boolean
+      shortcut?: string
     } = {},
   ) => {
     const props = {
       'data-action-id': id,
+      'aria-keyshortcuts': settings.shortcut?.replace(' / ', ' '),
       title: settings.reason,
       disabled: settings.disabled,
       className: cn(itemClass, settings.destructive && 'text-destructive'),
@@ -321,9 +325,35 @@ export const TabManagerActionBar = ({
             <ActionIcon name={action.icon} />
           </span>
           <span className="min-w-0 flex-1 text-left">{action.label}</span>
-          {action.panel && (
-            <ChevronRight size={14} className="shrink-0 text-muted" />
-          )}
+          <span
+            aria-hidden="true"
+            title={
+              action.shortcut === 'Delete / Backspace'
+                ? 'Delete or Backspace'
+                : action.shortcut
+            }
+            className="
+              ml-auto inline-grid shrink-0 grid-cols-[1.75rem_0.875rem]
+              items-center gap-2
+            "
+          >
+            <span className="flex w-7 justify-end">
+              {action.shortcut && (
+                <Kbd className="w-7" data-shortcut={action.shortcut}>
+                  {action.id === 'close-selected-tabs' ? (
+                    <Delete className="size-3.5" />
+                  ) : (
+                    action.shortcut
+                  )}
+                </Kbd>
+              )}
+            </span>
+            <span className="flex size-3.5 items-center">
+              {action.panel && (
+                <ChevronRight size={14} className="text-muted" />
+              )}
+            </span>
+          </span>
         </>,
         () =>
           action.panel
@@ -334,6 +364,7 @@ export const TabManagerActionBar = ({
           reason: action.disabledReason,
           destructive: action.destructive,
           panel: !!action.panel,
+          shortcut: action.shortcut,
         },
       ),
     )

@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-12
+Last updated: 2026-11-14
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -36,7 +36,7 @@ Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
+Use Tab to reach controls and arrow keys to browse tabs, groups, and the window picker. Reorder tabs and groups with Alt+Up/Down. Use P to pin or unpin, M to mute or unmute tabs with audio, D to duplicate, R to reload, G to choose a group, U to ungroup, W to move, C to copy, N to create a new tab below, and Z to discard eligible tabs. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. See shortcut keys beside actions in the menu. Keyboard choosers open beside the focused item. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
 

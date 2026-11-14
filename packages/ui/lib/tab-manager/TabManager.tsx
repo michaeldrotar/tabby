@@ -1,3 +1,4 @@
+import { getTabManagerActionShortcut } from '@extension/core/tabManagerShortcuts'
 import { t } from '@extension/i18n/catalog'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -247,6 +248,11 @@ const PaneTransition = ({
   )
 }
 
+const itemMenuPosition = (target: HTMLElement) => {
+  const bounds = target.getBoundingClientRect()
+  return { x: bounds.left, y: bounds.bottom }
+}
+
 /** Complete controlled presentation; behavior and external effects are supplied by its host. */
 export const TabManager = ({
   model,
@@ -353,7 +359,8 @@ export const TabManager = ({
       if (
         intent.type === 'open-action-menu' ||
         (intent.type === 'navigate' &&
-          (intent.key === 'ContextMenu' ||
+          (getTabManagerActionShortcut(intent.key)?.opensPanel ||
+            intent.key === 'ContextMenu' ||
             (intent.shift && ['F10', 'Enter'].includes(intent.key))))
       ) {
         pendingMenuFocus.current = true
@@ -648,6 +655,31 @@ export const TabManager = ({
       return
     }
     if (target.closest('[role="menu"]')) return
+    const shortcut = getTabManagerActionShortcut(event.key)
+    if (shortcut) {
+      if (
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.repeat ||
+        event.nativeEvent.isComposing ||
+        model.actionMenu ||
+        model.actionPanel ||
+        !target.matches('[data-tab-option],[data-group-option]')
+      )
+        return
+      const item = itemAt(target)
+      if (!item) return
+      event.preventDefault()
+      event.stopPropagation()
+      pendingKeyboardFocus.current = !shortcut.opensPanel
+      if (shortcut.opensPanel) menuPosition.current = itemMenuPosition(target)
+      if (!sameItem(model.focusedItem, item)) send({ type: 'focus-item', item })
+      send({ type: 'navigate', key: event.key })
+      return
+    }
+
     const groupItem = itemAt(target)
     if (
       target.matches('[data-group-option]') &&
@@ -836,8 +868,7 @@ export const TabManager = ({
       (event.shiftKey && (event.key === 'F10' || event.key === 'Enter'))
     pendingCreatedFocus.current = null
     if (opensMenu) {
-      const bounds = target.getBoundingClientRect()
-      menuPosition.current = { x: bounds.left, y: bounds.bottom }
+      menuPosition.current = itemMenuPosition(target)
       pendingMenuFocus.current = true
       pendingKeyboardFocus.current = false
     } else {
