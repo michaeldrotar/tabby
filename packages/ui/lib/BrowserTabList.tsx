@@ -22,8 +22,6 @@ export type BrowserTabListTab = {
   pinned?: boolean
   discarded?: boolean
   audio?: 'muted' | 'on' | 'off'
-  lastAccessed?: number
-  ageLabel?: string
 }
 
 export type BrowserTabListGroup = {
@@ -135,8 +133,6 @@ const renderDefaultTab = ({
     pinned={tab.pinned}
     discarded={tab.discarded}
     audio={tab.audio}
-    ageLabel={tab.ageLabel}
-    lastAccessed={tab.lastAccessed}
     favicon={
       tab.favicon ??
       (tab.faviconUrl ? (

@@ -39,7 +39,6 @@ export const promoTab = (
     title,
     url: `https://${domain}`,
     faviconUrl: favicon(title.trim()[0]?.toUpperCase() ?? 'T', iconColor),
-    ageLabel: '2m',
     ...options,
   }
 }

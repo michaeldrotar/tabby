@@ -1,92 +1,58 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import {
-  createFixtureBuilder,
-  createMemoryPreferences,
-  MemoryBackend,
-} from '@extension/demo'
+import { createFixtureBuilder, MemoryBackend } from '@extension/demo'
 import { Surface } from '@extension/ui/Surface'
-import { act, cleanup, render, screen } from '@testing-library/react'
-import { Profiler } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createTabbyViews } from './createTabbyViews'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, expect, it, vi } from 'vitest'
 import { TabbyProvider } from './TabbyProvider'
 import { TabManagerExperience } from './TabManagerExperience'
 import { createTestResources } from './testResources'
-import { createTabManagerView } from './view'
 
 afterEach(cleanup)
-describe('experience clock', () => {
-  it('updates live tab ages using the host clock and stops when a frame becomes inert', () => {
-    let now = 100000
-    const fixture = createFixtureBuilder({ now })
-    const backend = new MemoryBackend(
-      fixture.generateScene({
-        windows: [
-          fixture.generateWindow({
-            tabs: [
-              fixture.generateTab({ title: 'Clock tab', lastAccessed: now }),
-            ],
-          }),
-        ],
-      }),
-    )
-    const preferences = createMemoryPreferences()
-    const view = createTabManagerView()
-    const pending: Array<() => void> = []
-    const onRender = vi.fn()
-    const environment = {
-      now: () => now,
-      systemTheme: 'light' as const,
-      schedule: (callback: () => void) => {
-        pending.push(callback)
-        return () => {
-          const index = pending.indexOf(callback)
-          if (index >= 0) pending.splice(index, 1)
-        }
-      },
-    }
-    const product = (inputMode: 'live' | 'scripted' | 'static') => (
-      <TabbyProvider
-        {...createTestResources({ backend, preferences, environment })}
-        views={createTabbyViews({ tabManager: view })}
-      >
-        <Surface inputMode={inputMode} motion="full">
-          <Profiler id="manager" onRender={onRender}>
-            <TabManagerExperience />
-          </Profiler>
-        </Surface>
-      </TabbyProvider>
-    )
-    const { rerender } = render(product('live'))
-    expect(screen.getByText('• just now')).toBeInTheDocument()
-    act(() => {
-      now += 1000
-      pending.shift()!()
-    })
-    expect(screen.getByText('• 1s')).toBeInTheDocument()
-    act(() => {
-      now += 59000
-      pending.shift()!()
-    })
-    expect(screen.getByText('• 1m')).toBeInTheDocument()
-    onRender.mockClear()
-    act(() => {
-      now += 1000
-      pending.shift()!()
-    })
-    expect(screen.getByText('• 1m')).toBeInTheDocument()
-    expect(onRender).not.toHaveBeenCalled()
-    act(() => {
-      now += 59000
-      pending.shift()!()
-    })
-    expect(screen.getByText('• 2m')).toBeInTheDocument()
-    rerender(product('scripted'))
-    expect(pending).toHaveLength(0)
-    now += 10000
-    expect(screen.getByText('• 2m')).toBeInTheDocument()
-    rerender(product('static'))
-    expect(pending).toHaveLength(0)
-  })
+
+it('shows tab titles and domains without activity times or clock updates', () => {
+  const now = 100000
+  const fixture = createFixtureBuilder({ now })
+  const backend = new MemoryBackend(
+    fixture.generateScene({
+      windows: [
+        fixture.generateWindow({
+          tabs: [
+            fixture.generateTab({
+              title: 'Recent tab',
+              url: 'https://recent.test/page',
+              lastAccessed: now,
+            }),
+            fixture.generateTab({
+              title: 'Older tab',
+              url: 'https://older.test/page',
+              lastAccessed: now - 60000,
+            }),
+          ],
+        }),
+      ],
+    }),
+  )
+  const schedule = vi.fn(() => () => {})
+  const { container } = render(
+    <TabbyProvider
+      {...createTestResources({
+        backend,
+        environment: { now: () => now, systemTheme: 'light', schedule },
+      })}
+    >
+      <Surface inputMode="live" motion="full">
+        <TabManagerExperience />
+      </Surface>
+    </TabbyProvider>,
+  )
+  expect(screen.getByRole('option', { name: 'Tab: Recent tab' })).toBeVisible()
+  expect(screen.getByRole('option', { name: 'Tab: Older tab' })).toBeVisible()
+  expect(
+    Array.from(
+      container.querySelectorAll('[data-tab-details]'),
+      (element) => element.textContent,
+    ),
+  ).toEqual(['Recent tabrecent.test', 'Older tabolder.test'])
+  expect(schedule).not.toHaveBeenCalled()
 })
