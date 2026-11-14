@@ -56,6 +56,126 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('activates advertised menu shortcuts without depending on the highlighted item', () => {
+    const onIntent = vi.fn()
+    const actions: TabManagerViewModel['actions'] = [
+      {
+        id: 'pin-selected-tabs',
+        label: 'Pin 1 tab',
+        icon: 'Pin',
+        kind: 'primary',
+        shortcut: 'P',
+      },
+      {
+        id: 'group-selected-tabs',
+        label: 'Group 1 tab',
+        icon: 'FolderPlus',
+        kind: 'primary',
+        shortcut: 'G',
+        panel: 'groups',
+        options: [],
+      },
+      {
+        id: 'close-selected-tabs',
+        label: 'Close 1 tab',
+        icon: 'Trash2',
+        kind: 'primary',
+        shortcut: 'Delete / Backspace',
+      },
+      {
+        id: 'reload-selected-tabs',
+        label: 'Reload 1 tab',
+        icon: 'RefreshCw',
+        kind: 'primary',
+        shortcut: 'R',
+        disabled: true,
+      },
+    ]
+    const { rerender } = render(
+      <Surface>
+        <TabManager
+          model={{ ...model, actions, actionMenu: {} }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const menu = screen.getByRole('menu')
+    fireEvent.keyDown(menu, { key: 'p' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'run-action',
+      actionId: 'pin-selected-tabs',
+      optionId: undefined,
+    })
+    fireEvent.keyDown(menu, { key: 'g' })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'open-action-panel',
+      actionId: 'group-selected-tabs',
+    })
+    for (const key of ['Delete', 'Backspace']) {
+      fireEvent.keyDown(menu, { key })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'run-action',
+        actionId: 'close-selected-tabs',
+        optionId: undefined,
+      })
+    }
+    onIntent.mockClear()
+    for (const props of [
+      { key: 'r' },
+      { key: 'p', metaKey: true },
+      { key: 'p', repeat: true },
+      { key: 'p', isComposing: true },
+    ])
+      fireEvent.keyDown(menu, props)
+    expect(onIntent).not.toHaveBeenCalled()
+    rerender(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            actions,
+            actionMenu: {},
+            actionPanel: { actionId: 'group-selected-tabs' },
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'p' })
+    expect(onIntent).not.toHaveBeenCalled()
+  })
+
+  it('routes local letter shortcuts only from rows without modifiers or key repetition', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{ ...model, focusedItem: { type: 'tab', id: 10 } }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const row = screen.getByRole('option', { name: 'Tab: Tabby' })
+    for (const key of ['p', 'm', 'd', 'r', 'g', 'u', 'w', 'c', 'n', 'z']) {
+      fireEvent.keyDown(row, { key })
+      expect(onIntent).toHaveBeenLastCalledWith({ type: 'navigate', key })
+    }
+    onIntent.mockClear()
+    for (const extra of [
+      { ctrlKey: true },
+      { metaKey: true },
+      { altKey: true },
+      { shiftKey: true },
+      { repeat: true },
+      { isComposing: true },
+    ])
+      fireEvent.keyDown(row, { key: 'p', ...extra })
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Options' }), {
+      key: 'p',
+    })
+    expect(onIntent).not.toHaveBeenCalled()
+  })
+
   it('keeps the requested tab revealed when mounting loaded data', async () => {
     const original = HTMLElement.prototype.scrollIntoView
     HTMLElement.prototype.scrollIntoView = function () {
@@ -172,6 +292,7 @@ describe('TabManager presentation', () => {
     const input = screen.getByRole('textbox', { name: 'Group name' })
     fireEvent.keyDown(input, { key: 'ArrowDown' })
     fireEvent.keyDown(input, { key: 'Delete' })
+    fireEvent.keyDown(input, { key: 'p' })
     expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(true)
     expect(onIntent).not.toHaveBeenCalled()
     expect(

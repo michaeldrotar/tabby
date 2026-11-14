@@ -1,3 +1,4 @@
+import { TAB_MANAGER_ACTION_SHORTCUTS } from '@extension/core/tabManagerShortcuts'
 import { formatShortcut } from '@extension/shared/utils/platform'
 import { useId } from 'react'
 import { ExternalLinkIcon } from '../icons'
@@ -44,6 +45,10 @@ const tabManagerShortcutGroups = (isMac: boolean) =>
           label: 'Reorder tab or group',
         },
         { keys: 'F2', label: 'Rename group' },
+        ...TAB_MANAGER_ACTION_SHORTCUTS.map(({ key, label }) => ({
+          keys: key.toUpperCase(),
+          label,
+        })),
       ],
     },
   ] satisfies { title: string; shortcuts: TabManagerShortcut[] }[]

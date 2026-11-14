@@ -16,6 +16,7 @@ import {
   findTabIdReplacements,
   remapSelectedTabIds,
 } from '@extension/core/selection/TabIdentity'
+import { getTabManagerActionShortcut } from '@extension/core/tabManagerShortcuts'
 import {
   getWindowIconChoices,
   SUGGESTED_WINDOW_ICONS,
@@ -164,10 +165,11 @@ export const reconcileTabManagerView = (
       base.groupIds.size !== filter(base.groupIds, groupIds).size)
   const menuTarget = state.actionMenu?.target
   const invalidMenu =
-    menuTarget &&
-    (menuTarget.type === 'window'
-      ? menuTarget.id !== selectedWindow
-      : !(menuTarget.type === 'tab' ? tabIds : groupIds).has(menuTarget.id))
+    selectedWindow !== state.viewedWindowId ||
+    (menuTarget &&
+      (menuTarget.type === 'window'
+        ? menuTarget.id !== selectedWindow
+        : !(menuTarget.type === 'tab' ? tabIds : groupIds).has(menuTarget.id)))
   if (
     !selectionChanged &&
     selectedWindow === state.viewedWindowId &&
@@ -1100,6 +1102,33 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         else if (state.windowPicker) view.setState({ windowPicker: false })
         else clearSelection()
         return
+      }
+      const shortcut = getTabManagerActionShortcut(intent.key)
+      if (shortcut) {
+        if (
+          intent.alt ||
+          intent.toggle ||
+          intent.shift ||
+          state.actionMenu ||
+          state.actionPanel
+        )
+          return
+        const item = state.focusedItem
+        if (!item || item.type === 'window') return
+        if (
+          !isSelectionItemRepresented(item, state.selection.selection, snapshot)
+        )
+          dispatch({ type: 'select-item', item })
+        const action = getActions(snapshot, view.getState()).actions.find(
+          (action) =>
+            shortcut.actionIds.some((id) => id === action.id) &&
+            !action.disabled,
+        )
+        if (!action) return
+        return dispatch({
+          type: action.panel ? 'open-action-panel' : 'run-action',
+          actionId: action.id,
+        })
       }
       if (intent.alt) {
         const item = state.focusedItem

@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ChevronUp,
   Copy,
+  Delete,
   Ellipsis,
   ExternalLink,
   FileText,
@@ -35,11 +36,13 @@ import {
 import { Fragment, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NotificationStack } from '../../components/NotificationStack'
+import { Kbd } from '../../Kbd'
 import { SummerMotionControl, SummerToolbarArt } from '../../SummerTheme'
 import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
+import { getTabManagerFocusSelector } from '../itemFocus'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -137,6 +140,15 @@ export const TabManagerActionBar = ({
   returnFocus: RefObject<HTMLElement | null>
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const focusSelector = getTabManagerFocusSelector(
+    model.focusedItem,
+    model.windowPicker,
+  )
+  // Menu teardown can call an earlier render's focus handler.
+  const latestFocusSelector = useRef(focusSelector)
+  useLayoutEffect(() => {
+    latestFocusSelector.current = focusSelector
+  }, [focusSelector])
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const actions =
@@ -210,6 +222,10 @@ export const TabManagerActionBar = ({
   )
   const run = (action: TabManagerAction, optionId?: string) =>
     onIntent({ type: 'run-action', actionId: action.id, optionId })
+  const activateAction = (action: TabManagerAction) =>
+    action.panel
+      ? onIntent({ type: 'open-action-panel', actionId: action.id })
+      : run(action)
   const restoreFocus = (event: Event) => {
     event.preventDefault()
     if (canFocusInput()) {
@@ -220,11 +236,15 @@ export const TabManagerActionBar = ({
         !menuRef.current?.contains(active)
       )
         return
-      const target = returnFocus.current?.isConnected
-        ? returnFocus.current
-        : (
-            surface?.root ?? rootRef.current?.closest('[data-tab-manager]')
-          )?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
+      const manager = rootRef.current?.closest('[data-tab-manager]')
+      const origin = returnFocus.current
+      const target =
+        origin?.isConnected && !origin.closest('[inert],[aria-hidden="true"]')
+          ? origin
+          : (manager?.querySelector<HTMLElement>(latestFocusSelector.current) ??
+            manager?.querySelector<HTMLElement>(
+              '[data-action-bar-menu-trigger]',
+            ))
       target?.focus({ preventScroll: true })
     }
   }
@@ -237,10 +257,12 @@ export const TabManagerActionBar = ({
       reason?: string
       destructive?: boolean
       panel?: boolean
+      shortcut?: string
     } = {},
   ) => {
     const props = {
       'data-action-id': id,
+      'aria-keyshortcuts': settings.shortcut?.replace(' / ', ' '),
       title: settings.reason,
       disabled: settings.disabled,
       className: cn(itemClass, settings.destructive && 'text-destructive'),
@@ -323,19 +345,43 @@ export const TabManagerActionBar = ({
             <ActionIcon name={action.icon} />
           </span>
           <span className="min-w-0 flex-1 text-left">{action.label}</span>
-          {action.panel && (
-            <ChevronRight size={14} className="shrink-0 text-muted" />
-          )}
+          <span
+            aria-hidden="true"
+            title={
+              action.shortcut === 'Delete / Backspace'
+                ? 'Delete or Backspace'
+                : action.shortcut
+            }
+            className="
+              ml-auto inline-grid shrink-0 grid-cols-[1.75rem_0.875rem]
+              items-center gap-2
+            "
+          >
+            <span className="flex w-7 justify-end">
+              {action.shortcut && (
+                <Kbd className="w-7" data-shortcut={action.shortcut}>
+                  {action.id === 'close-selected-tabs' ? (
+                    <Delete className="size-3.5" />
+                  ) : (
+                    action.shortcut
+                  )}
+                </Kbd>
+              )}
+            </span>
+            <span className="flex size-3.5 items-center">
+              {action.panel && (
+                <ChevronRight size={14} className="text-muted" />
+              )}
+            </span>
+          </span>
         </>,
-        () =>
-          action.panel
-            ? onIntent({ type: 'open-action-panel', actionId: action.id })
-            : run(action),
+        () => activateAction(action),
         {
           disabled: action.disabled,
           reason: action.disabledReason,
           destructive: action.destructive,
           panel: !!action.panel,
+          shortcut: action.shortcut,
         },
       ),
     )
@@ -345,7 +391,30 @@ export const TabManagerActionBar = ({
       event.preventDefault()
       event.stopPropagation()
       onIntent({ type: 'dismiss-action-panel' })
+      return
     }
+    if (
+      panel ||
+      !interactive ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.repeat ||
+      event.nativeEvent.isComposing
+    )
+      return
+    const action = ordered.find(
+      (action) =>
+        !action.disabled &&
+        action.shortcut
+          ?.split(' / ')
+          .some((key) => key.toLowerCase() === event.key.toLowerCase()),
+    )
+    if (!action) return
+    event.preventDefault()
+    event.stopPropagation()
+    activateAction(action)
   }
   const popupClass = cn(menuClass, !hasSelection && 'w-56')
   const staticPopup = open && (

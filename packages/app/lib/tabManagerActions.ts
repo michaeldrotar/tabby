@@ -9,6 +9,7 @@ import {
   getTabMoveUnits,
   resolveSelectedTabIds,
 } from '@extension/core'
+import { getTabManagerActionShortcutLabel } from '@extension/core/tabManagerShortcuts'
 import { getWindowIdentity } from '@extension/core/windowIdentity'
 import { t, tt } from '@extension/i18n/catalog'
 import type { TabManagerViewState } from './view'
@@ -486,12 +487,14 @@ const buildTabManagerActions = (
     'close-other-tabs': t('tabContextMenu_closeOtherTabs'),
     'close-tabs-below': t('tabContextMenu_closeTabsBelow'),
   }
-  for (const action of actions)
+  for (const action of actions) {
+    action.shortcut = getTabManagerActionShortcutLabel(action.id)
     if (labels[action.id])
       action.label =
         wholeGroup && action.id === 'move-selected-tabs'
           ? 'Move tab group to window'
           : labels[action.id]!
+  }
   return { actions, operations }
 }
 

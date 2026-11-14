@@ -44,6 +44,163 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('dismisses selection menus and choosers when their window closes', async () => {
+    const { backend, view, controller } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({ type: 'open-action-menu' })
+    controller.dispatch({
+      type: 'open-action-panel',
+      actionId: 'move-selected-tabs',
+    })
+    await backend.execute({ type: 'close-window', windowId: 1 })
+    controller.reconcile()
+    expect(view.getState()).toMatchObject({
+      viewedWindowId: 2,
+      actionMenu: null,
+      actionPanel: null,
+      focusedItem: { type: 'tab', id: 13 },
+    })
+  })
+
+  it('opens move and copy choosers for the focused selection and copies the chosen content', async () => {
+    const resources = setup()
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    for (const [key, actionId] of [
+      ['w', 'move-selected-tabs'],
+      ['c', 'copy-selected-tabs'],
+    ] as const) {
+      await controller.dispatch({ type: 'navigate', key })
+      expect(resources.view.getState().actionPanel).toEqual({ actionId })
+      if (key === 'c')
+        await controller.dispatch({
+          type: 'run-action',
+          actionId,
+          optionId: 'urls',
+        })
+      else await controller.dispatch({ type: 'navigate', key: 'Escape' })
+    }
+    expect(writeClipboardText).toHaveBeenCalledWith(
+      resources.snapshot.tabs.find((tab) => tab.id === 12)!.url,
+    )
+  })
+
+  it('discards eligible tabs and creates a tab below only a single selected tab', async () => {
+    const { controller, backend } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({ type: 'navigate', key: 'z' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.discarded,
+    ).toBeFalsy()
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    await controller.dispatch({ type: 'navigate', key: 'n' })
+    expect(backend.getSnapshot().tabs).toHaveLength(3)
+    await controller.dispatch({ type: 'navigate', key: 'z' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 12)?.discarded,
+    ).toBe(true)
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.discarded,
+    ).toBeFalsy()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'n' })
+    const tabs = backend
+      .getSnapshot()
+      .tabs.filter((tab) => tab.windowId === 1)
+      .sort((a, b) => a.index - b.index)
+    expect(tabs).toHaveLength(3)
+    expect(tabs.map((tab) => tab.id).slice(0, 2)).toEqual([11, 12])
+    expect(tabs[2]!.active).toBe(true)
+  })
+
+  it('reloads selected tabs without intercepting modified action keys', async () => {
+    const { controller, backend } = setup()
+    const execute = vi.spyOn(backend, 'execute')
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'r', toggle: true })
+    expect(execute).not.toHaveBeenCalled()
+    await controller.dispatch({ type: 'navigate', key: 'r' })
+    expect(execute).toHaveBeenCalledWith({
+      type: 'tab-action',
+      action: 'reload',
+      tabIds: [12],
+    })
+  })
+
+  it('toggles pin and audio for the selection and falls back to an unselected focused tab', async () => {
+    const { controller, backend, view } = setup()
+    backend.restoreSnapshot({
+      ...backend.getSnapshot(),
+      tabs: backend
+        .getSnapshot()
+        .tabs.map((tab) => ({ ...tab, audible: true })),
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 11 } })
+    const selectedTabs = () =>
+      backend.getSnapshot().tabs.filter((tab) => [11, 12].includes(tab.id))
+    for (const [key, property] of [
+      ['p', 'pinned'],
+      ['m', 'muted'],
+    ] as const) {
+      await controller.dispatch({ type: 'navigate', key })
+      expect(selectedTabs().map((tab) => tab[property])).toEqual([true, true])
+      await controller.dispatch({ type: 'navigate', key })
+      expect(selectedTabs().map((tab) => !!tab[property])).toEqual([
+        false,
+        false,
+      ])
+    }
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'p' })
+    expect(selectedTabs().map((tab) => !!tab.pinned)).toEqual([true, false])
+    expect(view.getState().selection.selection.tabIds).toEqual(new Set([12]))
+  })
+
+  it('uses the existing group chooser and ungroup actions and respects unavailable actions', async () => {
+    const { controller, backend, view } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({ type: 'navigate', key: 'g' })
+    expect(view.getState().actionPanel).toEqual({
+      actionId: 'group-selected-tabs',
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'group-selected-tabs',
+      optionId: 'new',
+    })
+    controller.reconcile()
+    const groupId = backend
+      .getSnapshot()
+      .tabs.find((tab) => tab.id === 11)!.groupId!
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'group', id: groupId },
+    })
+    await controller.dispatch({ type: 'navigate', key: 'p' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.pinned,
+    ).toBeFalsy()
+    await controller.dispatch({ type: 'navigate', key: 'u' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.groupId,
+    ).toBeUndefined()
+  })
+
   it('unpins only the requested tab and preserves selection and activation', async () => {
     const { backend, view, controller } = setup()
     await backend.execute({
