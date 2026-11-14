@@ -4,6 +4,7 @@ import { useId } from 'react'
 import { ExternalLinkIcon } from '../icons'
 import { Kbd, KbdGroup } from '../Kbd'
 import { cn } from '../utils/cn'
+import { ChromeSettingsGuide } from './ChromeSettingsGuide'
 import type { OptionsProps } from './Options'
 
 type TabManagerShortcut = {
@@ -140,33 +141,21 @@ const ShortcutRows = ({
   rows,
   isMac,
   shortcutsLoading,
-  windowRows = false,
 }: {
   rows: readonly ShortcutRow[]
   isMac: boolean
   shortcutsLoading: boolean
-  windowRows?: boolean
 }) => (
-  <dl
-    className={cn(
-      'shortcut-dividers',
-      windowRows && 'border-t border-border pt-2',
-    )}
-  >
+  <dl className="shortcut-dividers">
     {rows.map(({ id, name, shortcut }) => (
       <div
-        className={cn(
-          `
-            grid grid-cols-1 items-center gap-3
-            group-data-[wide=true]/options:grid-cols-[minmax(0,1fr)_auto]
-          `,
-          windowRows ? 'py-1.5' : 'py-2',
-        )}
+        className={`
+          grid grid-cols-1 items-center gap-3 py-2
+          group-data-[wide=true]/options:grid-cols-[minmax(0,1fr)_auto]
+        `}
         key={id}
       >
-        <dt className={cn(windowRows ? 'text-base text-muted' : 'text-base')}>
-          {name}
-        </dt>
+        <dt className="text-base">{name}</dt>
         <dd className="min-w-0">
           <ShortcutValue
             shortcut={shortcut}
@@ -188,13 +177,6 @@ const ChromeShortcuts = ({
   OptionsProps,
   'isMac' | 'shortcutRows' | 'shortcutsLoading' | 'openShortcutsSettings'
 >) => {
-  const generalRows = shortcutRows.filter(
-    ({ id }) => !id.startsWith('focus-window-'),
-  )
-  const windowRows = shortcutRows.filter(({ id }) =>
-    id.startsWith('focus-window-'),
-  )
-
   return (
     <div className="stack-y-3">
       <div
@@ -206,23 +188,16 @@ const ChromeShortcuts = ({
         `}
       >
         <p className="max-w-sm text-base text-muted">
-          These shortcuts work across Chrome and are managed in Chrome settings.
+          Chrome manages these shortcuts, so changes happen in Chrome.
         </p>
         <ShortcutSettingsButton openShortcutsSettings={openShortcutsSettings} />
       </div>
       <ShortcutRows
-        rows={generalRows}
+        rows={shortcutRows}
         isMac={isMac}
         shortcutsLoading={shortcutsLoading}
       />
-      {windowRows.length > 0 && (
-        <ShortcutRows
-          rows={windowRows}
-          isMac={isMac}
-          shortcutsLoading={shortcutsLoading}
-          windowRows
-        />
-      )}
+      <ChromeSettingsGuide kind="shortcuts" isMac={isMac} />
     </div>
   )
 }

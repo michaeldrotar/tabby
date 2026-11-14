@@ -1,6 +1,7 @@
 import { ExternalLinkIcon } from '../icons'
 import { SummerMotionControl } from '../SummerTheme'
 import { cn } from '../utils/cn'
+import { ChromeSettingsGuide } from './ChromeSettingsGuide'
 import type { OptionsProps } from './Options'
 
 export const OptionsHeader = ({ logoUrl }: Pick<OptionsProps, 'logoUrl'>) => (
@@ -39,7 +40,7 @@ export const OptionsSidePanelSettings = ({
         `}
       >
         <p className="text-base text-muted">
-          Choose left or right in Chrome’s Side panel settings.
+          Move Tabby to the left or right in Chrome.
         </p>
         <button
           onClick={openSidePanelSettings}
@@ -59,6 +60,7 @@ export const OptionsSidePanelSettings = ({
           Open Chrome appearance settings
         </button>
       </div>
+      <ChromeSettingsGuide kind="side-panel" />
     </div>
   </section>
 )

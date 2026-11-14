@@ -1,9 +1,5 @@
 import { TABBY_COMMANDS } from '@extension/shared/utils/commands'
 import { browserWindowTypes } from './window/browserWindowTypes.js'
-import {
-  getWindowSwitchSlotEntries,
-  getWindowSwitchSlotIndexFromCommand,
-} from './window/windowSwitchSlots.js'
 
 export const registerChromeCommands = (
   api: Pick<
@@ -30,37 +26,6 @@ export const registerChromeCommands = (
       : undefined
   }
 
-  const focusWindowSlot = async (
-    index: number,
-    sourceIncognito?: boolean,
-  ): Promise<void> => {
-    const windowsPromise = api.windows.getAll({
-      windowTypes: browserWindowTypes,
-    })
-    const focusedWindowPromise =
-      sourceIncognito === undefined
-        ? api.windows.getLastFocused({ windowTypes: browserWindowTypes })
-        : Promise.resolve(undefined)
-    const [windows, focusedWindow] = await Promise.all([
-      windowsPromise,
-      focusedWindowPromise,
-    ])
-    const incognito = sourceIncognito ?? focusedWindow?.incognito ?? false
-    const eligibleWindows = windows.filter(
-      (
-        browserWindow,
-      ): browserWindow is chrome.windows.Window & { id: number } =>
-        typeof browserWindow.id === 'number',
-    )
-    const targetWindow = getWindowSwitchSlotEntries(eligibleWindows, incognito)[
-      index
-    ]?.window
-
-    if (targetWindow) {
-      await api.windows.update(targetWindow.id, { focused: true })
-    }
-  }
-
   const openOmnibar = async (sourceWindowId?: number) => {
     try {
       const windowId = sourceWindowId ?? (await getFocusedWindowId())
@@ -76,10 +41,7 @@ export const registerChromeCommands = (
 
   api.commands.onCommand.addListener(async (command, tab) => {
     try {
-      const windowSlotIndex = getWindowSwitchSlotIndexFromCommand(command)
-      if (windowSlotIndex !== undefined) {
-        await focusWindowSlot(windowSlotIndex, tab?.incognito)
-      } else if (command === TABBY_COMMANDS.openOmnibar) {
+      if (command === TABBY_COMMANDS.openOmnibar) {
         await openOmnibar(tab?.windowId)
       } else if (command === TABBY_COMMANDS.openTabManager) {
         const windowId = tab?.windowId ?? (await getFocusedWindowId())
