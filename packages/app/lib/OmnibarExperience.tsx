@@ -180,10 +180,7 @@ export const OmnibarExperience = ({
       : results.findIndex(
           (result) => resultIdentity(result) === state.selectedTarget,
         )
-  const selectedIndex =
-    retainedIndex >= 0
-      ? retainedIndex
-      : Math.min(state.selectedIndex, Math.max(0, results.length - 1))
+  const selectedIndex = retainedIndex >= 0 ? retainedIndex : state.selectedIndex
   const dismiss = onDismiss
   const error = (error: unknown) => {
     if (error instanceof OmnibarCancelledError) return
