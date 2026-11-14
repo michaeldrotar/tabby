@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { SearchIcon } from '../icons'
+import { CloseIcon, SearchIcon } from '../icons'
 import { Kbd } from '../Kbd'
 import { SummerMotionControl } from '../SummerTheme'
 
@@ -10,11 +10,20 @@ type OmnibarInputProps = {
   query: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onKeyDown: (e: React.KeyboardEvent) => void
+  onDismiss: () => void
 }
 
 export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
   (
-    { query, onChange, onKeyDown, resultsId, activeResultId, hasResults },
+    {
+      query,
+      onChange,
+      onKeyDown,
+      onDismiss,
+      resultsId,
+      activeResultId,
+      hasResults,
+    },
     ref,
   ) => {
     return (
@@ -39,7 +48,7 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           autoComplete="off"
           spellCheck={false}
           className={`
-            flex-1 bg-transparent text-lg text-foreground outline-hidden
+            min-w-0 flex-1 bg-transparent text-lg text-foreground outline-hidden
             placeholder:text-muted
           `}
           placeholder="Search tabs, windows, groups, bookmarks, history…"
@@ -47,10 +56,23 @@ export const OmnibarInput = forwardRef<HTMLInputElement, OmnibarInputProps>(
           onChange={onChange}
           onKeyDown={onKeyDown}
         />
-        <div className="flex items-center gap-1 text-xs text-muted">
+        <div className="flex shrink-0 items-center gap-1 text-xs text-muted">
           <SummerMotionControl nightOnly active={!query} />
-          <Kbd>Esc</Kbd>
-          <span>to close</span>
+          <button
+            type="button"
+            aria-label="Close search"
+            title="Close search (Esc)"
+            onClick={onDismiss}
+            className={`
+              flex min-h-8 items-center gap-2 rounded-sm px-2
+              hover:bg-accent-hover hover:text-foreground
+              focus-visible:outline-2 focus-visible:outline-offset-2
+              focus-visible:outline-accent
+            `}
+          >
+            <Kbd>Esc</Kbd>
+            <CloseIcon aria-hidden="true" className="size-4" />
+          </button>
         </div>
       </div>
     )
