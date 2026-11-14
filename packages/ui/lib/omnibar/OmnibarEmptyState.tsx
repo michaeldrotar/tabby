@@ -15,6 +15,9 @@ type OmnibarEmptyStateProps = {
   query: string
   hasResults: boolean
   quickActions?: QuickAction[]
+  resultsId: string
+  selectedIndex: number
+  onSelectedIndexChange: (index: number) => void
   isMac?: boolean
 }
 
@@ -22,6 +25,9 @@ export const OmnibarEmptyState = ({
   query,
   hasResults,
   quickActions,
+  resultsId,
+  selectedIndex,
+  onSelectedIndexChange,
   isMac = false,
 }: OmnibarEmptyStateProps) => {
   if (hasResults) return null
@@ -43,23 +49,34 @@ export const OmnibarEmptyState = ({
           <h2 className={`mb-2 text-xs font-medium text-muted`}>
             Quick actions
           </h2>
-          <div className="flex flex-col gap-1">
-            {quickActions.map((action) => (
+          <div
+            id={resultsId}
+            role="listbox"
+            aria-label="Quick actions"
+            className="flex flex-col gap-1"
+          >
+            {quickActions.map((action, index) => (
               <button
                 key={action.id}
+                id={`${resultsId}-${index}`}
+                role="option"
+                aria-selected={index === selectedIndex}
                 type="button"
                 onClick={action.onClick}
+                onMouseMove={() => onSelectedIndexChange(index)}
                 className={cn(
                   `
                     flex items-center gap-3 rounded-lg px-3 py-2 text-left
                     text-foreground transition-colors
-                    hover:bg-highlighted/50
                     focus:outline-hidden
                     focus-visible:ring-2 focus-visible:ring-accent
                     focus-visible:ring-offset-2
                     focus-visible:ring-offset-background
                     focus-visible:outline-hidden
                   `,
+                  index === selectedIndex
+                    ? 'bg-accent-selected'
+                    : 'hover:bg-highlighted/50',
                 )}
               >
                 <span

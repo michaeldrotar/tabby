@@ -80,6 +80,41 @@ describe('Omnibar', () => {
     },
   )
 
+  it('navigates only visible quick actions in the initiating surface', () => {
+    render(
+      <>
+        <Omnibar
+          results={[]}
+          onDismiss={vi.fn()}
+          onOpenTabManager={vi.fn()}
+          onOpenOptions={vi.fn()}
+          autofocus={false}
+        />
+        <Omnibar
+          results={[]}
+          onDismiss={vi.fn()}
+          hideTabManagerAction
+          onOpenTabManager={vi.fn()}
+          onOpenOptions={vi.fn()}
+          autofocus={false}
+        />
+      </>,
+    )
+    const input = screen.getAllByRole('combobox')[1]!
+    act(() => input.focus())
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    const options = screen.getAllByRole('option', { name: 'Open options' })[1]!
+    expect(input).toHaveFocus()
+    expect(options).toHaveAttribute('aria-selected', 'true')
+    expect(input).toHaveAttribute('aria-activedescendant', options.id)
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(options).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
   it('keeps keyboard input with the initiating surface when shared omnibars mount', async () => {
     const Shared = () => {
       const [open, setOpen] = useState(false)
