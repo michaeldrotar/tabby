@@ -223,8 +223,7 @@ describe('Tab Manager controller', () => {
   it('clears ordinary row selection at creation controls and preserves explicit multiple selection', () => {
     const { backend, view, controller } = setup()
     const selected = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds
     controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
     controller.dispatch({ type: 'focus-creation', pane: 'tab' })
     controller.reconcile()
@@ -243,8 +242,7 @@ describe('Tab Manager controller', () => {
   it('preserves selection when the picker is canceled or the same window is chosen, and starts with the active tab on a real switch', async () => {
     const { backend, view, controller } = setup()
     const selected = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds
     controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
     controller.dispatch({ type: 'open-window-picker' })
     controller.dispatch({ type: 'navigate', key: 'Escape' })
@@ -283,14 +281,12 @@ describe('Tab Manager controller', () => {
       toggle: true,
     })
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([12])
     expect(view.getState().selection.selection.groupIds.size).toBe(0)
     controller.dispatch({ type: 'navigate', key: 'a', toggle: true })
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([11, 12])
     backend.restoreSnapshot({
       ...backend.getSnapshot(),
@@ -302,8 +298,7 @@ describe('Tab Manager controller', () => {
     })
     controller.reconcile()
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([11])
   })
 
@@ -577,7 +572,6 @@ describe('Tab Manager controller', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       )
     expect(
       project().actions?.some((action) => action.id === 'group-selected-tabs'),
@@ -666,11 +660,7 @@ describe('Tab Manager controller', () => {
       target: { type: 'tab', id: 11 },
     })
 
-    const model = projectTabManager(
-      backend.getSnapshot(),
-      view.getState(),
-      1700000000000,
-    )
+    const model = projectTabManager(backend.getSnapshot(), view.getState())
     expect(model.duplicateTabIds).toEqual([11, 21, 22])
     expect(
       model.actions?.find((action) => action.id === 'close-duplicate-tabs')
@@ -686,7 +676,6 @@ describe('Tab Manager controller', () => {
     const updatedModel = projectTabManager(
       backend.getSnapshot(),
       view.getState(),
-      1700000000000,
     )
     expect(
       updatedModel.actions?.some(
@@ -740,7 +729,7 @@ describe('Tab Manager controller', () => {
         11, 12, 14,
       ])
       expect(
-        projectTabManager(backend.getSnapshot(), view.getState(), 0)
+        projectTabManager(backend.getSnapshot(), view.getState())
           .selectedTabIds,
       ).toEqual([11, 12])
       controller.dispatch({
@@ -833,7 +822,7 @@ describe('Tab Manager controller', () => {
       shift: true,
     })
     expect(
-      projectTabManager(left.backend.getSnapshot(), left.view.getState(), 0)
+      projectTabManager(left.backend.getSnapshot(), left.view.getState())
         .selectedTabIds,
     ).toEqual([11, 12])
     await left.controller.dispatch({ type: 'close-selection' })
@@ -889,17 +878,10 @@ describe('Tab Manager controller', () => {
     ).toBe(true)
   })
 
-  it('keeps a valid view stable and uses the supplied clock for age labels', () => {
+  it('keeps a valid view stable', () => {
     const { snapshot, view } = setup()
     const state = reconcileTabManagerView(snapshot, view.getState())
     expect(reconcileTabManagerView(snapshot, state)).toBe(state)
-    const timed = {
-      ...snapshot,
-      tabs: snapshot.tabs.map((tab) => ({ ...tab, lastAccessed: 1000 })),
-    }
-    expect(
-      projectTabManager(timed, state, 121000).windows[0]?.tabs[0]?.ageLabel,
-    ).toBe('2m')
   })
 
   it.each([false, true])(
@@ -973,7 +955,6 @@ describe('Tab Manager controller', () => {
         projectTabManager(
           next,
           view.getState(),
-          0,
           {},
           controller.getPreviousSnapshot(),
         ).focusedItem,
@@ -1015,28 +996,6 @@ describe('Tab Manager controller', () => {
 })
 
 describe('complete Tab Manager actions', () => {
-  it('updates relative ages at their actual boundaries while reusing unchanged rows', () => {
-    const resources = setup()
-    const original = resources.backend.getSnapshot()
-    resources.backend.restoreSnapshot({
-      ...original,
-      tabs: original.tabs.map((tab) => ({ ...tab, lastAccessed: 10500 })),
-    })
-    const snapshot = resources.backend.getSnapshot(),
-      state = resources.view.getState()
-    const first = projectTabManager(snapshot, state, 69999)
-    expect(first.windows[0]?.tabs[0]?.ageLabel).toBe('59s')
-    expect(projectTabManager(snapshot, state, 70001).windows).toBe(
-      first.windows,
-    )
-    expect(
-      projectTabManager(snapshot, state, 70500).windows[0]?.tabs[0]?.ageLabel,
-    ).toBe('1m')
-    const reduced = projectTabManager(snapshot, state, 11000, {
-      reduceAgePrecision: true,
-    })
-    expect(reduced.windows[0]?.tabs[0]?.ageLabel).toBe('1m')
-  })
   it('restores and shares a rename draft before changing browser data', async () => {
     const resources = setup()
     const fixture = createFixtureBuilder()
@@ -1071,7 +1030,6 @@ describe('complete Tab Manager actions', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       ).renamingGroupTitle,
     ).toBe('Review draft')
     await resources.controller.dispatch({
@@ -1096,7 +1054,6 @@ describe('complete Tab Manager actions', () => {
     const first = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      1000,
     )
     expect(
       first.actions
@@ -1107,7 +1064,6 @@ describe('complete Tab Manager actions', () => {
     const scrolled = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      2000,
     )
     expect(scrolled.windows).toBe(first.windows)
     resources.controller.dispatch({
@@ -1177,7 +1133,6 @@ describe('complete Tab Manager actions', () => {
     const model = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      0,
     )
     expect(model.selectedTabIds).toEqual([11, 12, 113, 114])
     expect(model.selectedGroupIds).toEqual([5, 6])
@@ -1217,7 +1172,6 @@ describe('complete Tab Manager actions', () => {
     const model = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      0,
     )
     expect(
       model.actions
@@ -1293,7 +1247,6 @@ describe('complete Tab Manager actions', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       ).selectedTabIds
     expect(selected()).toEqual([11])
     resources.controller.dispatch({
@@ -1553,7 +1506,7 @@ describe('adjacent tab creation', () => {
         toggle,
       })
     const model = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
+      projectTabManager(backend.getSnapshot(), view.getState())
     await select(11)
     await controller.dispatch({ type: 'run-action', actionId: 'new-tab-below' })
     const created = backend

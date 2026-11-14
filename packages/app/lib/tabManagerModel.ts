@@ -17,7 +17,6 @@ import {
   remapSelectedTabIds,
 } from '@extension/core/selection/TabIdentity'
 import { getTabManagerActionShortcut } from '@extension/core/tabManagerShortcuts'
-import { formatTimeAgo } from '@extension/core/time'
 import {
   getWindowIconChoices,
   SUGGESTED_WINDOW_ICONS,
@@ -212,30 +211,21 @@ export const reconcileTabManagerView = (
 }
 
 // Snapshot-owned cache keeps browser rows stable while local scroll, focus, menus,
-// and selection change. Age labels follow the injected clock at their visible resolution.
+// and selection change.
 const projectedWindows = new WeakMap<
   BrowserSnapshot,
   {
-    clockKey: string
+    windowSource: 'active' | 'first'
     windows: TabManagerViewModel['windows']
     duplicateTabIds: number[]
   }
 >()
 export const projectTabManagerWindows = (
   snapshot: BrowserSnapshot,
-  now: number,
-  minutePrecision = false,
   windowSource: 'active' | 'first' = 'active',
 ) => {
-  const ageLabels = snapshot.tabs.map((tab) =>
-    formatTimeAgo(tab.lastAccessed, now, minutePrecision),
-  )
-  const clockKey = windowSource + ageLabels.join('|')
   const cached = projectedWindows.get(snapshot)
-  if (cached?.clockKey === clockKey) return cached
-  const ageLabelsById = new Map(
-    snapshot.tabs.map((tab, index) => [tab.id, ageLabels[index]]),
-  )
+  if (cached?.windowSource === windowSource) return cached
   const tabsByWindow = new Map<number, BrowserSnapshot['tabs'][number][]>()
   const groupsByWindow = new Map<number, BrowserSnapshot['groups'][number][]>()
   for (const tab of snapshot.tabs) {
@@ -275,7 +265,6 @@ export const projectTabManagerWindows = (
             ? ('on' as const)
             : ('off' as const),
         groupId: tab.groupId,
-        ageLabel: ageLabelsById.get(tab.id),
       })),
       groups: (groupsByWindow.get(window.id) ?? []).map((group) => ({
         ...group,
@@ -283,7 +272,7 @@ export const projectTabManagerWindows = (
     }
   })
   const value = {
-    clockKey,
+    windowSource,
     windows,
     duplicateTabIds: getDuplicateTabIds(snapshot.tabs),
   }
@@ -293,17 +282,11 @@ export const projectTabManagerWindows = (
 export const projectTabManager = (
   snapshot: BrowserSnapshot,
   state: TabManagerViewState,
-  now: number,
   options: ManagerActionOptions = {},
   previousSnapshot?: BrowserSnapshot,
 ): TabManagerViewModel => {
   const current = reconcileTabManagerView(snapshot, state, previousSnapshot)
-  const data = projectTabManagerWindows(
-    snapshot,
-    now,
-    options.reduceAgePrecision,
-    options.windowSource,
-  )
+  const data = projectTabManagerWindows(snapshot, options.windowSource)
   const catalog = getTabManagerActions(snapshot, current, options)
   const selectedGroupIds = [...current.selection.selection.groupIds]
   return {

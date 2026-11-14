@@ -30,7 +30,6 @@ export type ManagerActionOperation =
 
 export type ManagerActionOptions = {
   windowSource?: 'active' | 'first'
-  reduceAgePrecision?: boolean
 }
 export type ManagerActionCatalog = {
   actions: TabManagerAction[]

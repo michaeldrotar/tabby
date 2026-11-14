@@ -43,7 +43,6 @@ const model: TabManagerViewModel = {
           id: 10,
           title: 'Tabby',
           url: 'https://example.com',
-          ageLabel: '5m',
           groupId: 20,
         },
       ],
@@ -996,7 +995,7 @@ describe('TabManager presentation', () => {
         'data-focus',
         'true',
       )
-      expect(screen.getByText('• 5m')).toBeInTheDocument()
+      expect(screen.getByText('example.com')).toBeInTheDocument()
     },
   )
 
