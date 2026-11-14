@@ -3,6 +3,7 @@ import { Layers, Pin, PinOff, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
 import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
+import { TooltipHint } from './Tooltip'
 import {
   useShouldReduceMotion,
   useShouldSettleMotion,
@@ -481,40 +482,41 @@ export const BrowserTabItem = memo(
             {pinned &&
               !loading &&
               (onUnpin ? (
-                <button
-                  type="button"
-                  data-tab-pin
-                  aria-label="Unpin tab"
-                  title="Unpin tab"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onUnpin()
-                  }}
-                  className="
-                    group/pin mr-2 flex size-7 shrink-0 items-center
-                    justify-center rounded-sm text-muted
-                    hover:bg-highlighted hover:text-foreground
-                    focus-visible:bg-highlighted focus-visible:text-foreground
-                    focus-visible:outline-hidden
-                  "
-                >
-                  <Pin
+                <TooltipHint content="Unpin">
+                  <button
+                    type="button"
+                    data-tab-pin
+                    aria-label="Unpin tab"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onUnpin()
+                    }}
                     className="
-                      size-3.5
-                      group-hover/pin:hidden
-                      group-focus-visible/pin:hidden
+                      group/pin mr-2 flex size-7 shrink-0 items-center
+                      justify-center rounded-sm text-muted
+                      hover:bg-highlighted hover:text-foreground
+                      focus-visible:bg-highlighted focus-visible:text-foreground
+                      focus-visible:outline-hidden
                     "
-                    aria-hidden
-                  />
-                  <PinOff
-                    className="
-                      hidden size-3.5
-                      group-hover/pin:block
-                      group-focus-visible/pin:block
-                    "
-                    aria-hidden
-                  />
-                </button>
+                  >
+                    <Pin
+                      className="
+                        size-3.5
+                        group-hover/pin:hidden
+                        group-focus-visible/pin:hidden
+                      "
+                      aria-hidden
+                    />
+                    <PinOff
+                      className="
+                        hidden size-3.5
+                        group-hover/pin:block
+                        group-focus-visible/pin:block
+                      "
+                      aria-hidden
+                    />
+                  </button>
+                </TooltipHint>
               ) : (
                 <div
                   data-tab-pin
@@ -528,6 +530,7 @@ export const BrowserTabItem = memo(
             {onClose && (
               <RowCloseButton
                 label="Close tab"
+                title="Close"
                 active={active}
                 onClose={onClose}
               />

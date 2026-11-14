@@ -345,8 +345,14 @@ test.describe('pin indicators', () => {
       exact: true,
     })
     await inactivePin.hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Unpin', {
+      timeout: 750,
+    })
     await expect(inactivePin.locator('.lucide-pin-off')).toBeVisible()
     await expect(inactivePin.locator('.lucide-pin')).toBeHidden()
+    await expect(inactivePin).not.toHaveAttribute('title')
+    await inactivePin.press('Escape')
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
     await inactivePin.click()
     await expect(tab(2)).not.toHaveAttribute('data-pinned', 'true')
     await expect(tab(1)).toHaveAttribute('data-pinned', 'true')
@@ -363,6 +369,16 @@ test.describe('pin indicators', () => {
     await option.press('Tab')
     await pin.press('Enter')
     await expect(tab(1)).not.toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+    const close = tab(2).getByRole('button', { name: 'Close tab', exact: true })
+    await close.hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Close', {
+      timeout: 750,
+    })
+    await expect(close).not.toHaveAttribute('title')
+    await close.click()
+    await expect(tab(2)).toHaveCount(0)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
     await expect(tab(1)).toHaveAttribute('data-active', 'true')
   })
 })
