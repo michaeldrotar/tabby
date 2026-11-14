@@ -78,3 +78,23 @@ export const TooltipContent = ({
     </TooltipPrimitive.Portal>
   )
 }
+
+export const TooltipHint = ({
+  children,
+  content,
+}: {
+  children: React.ReactElement
+  content: string
+}) => (
+  <Tooltip delayDuration={100}>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent
+      side="top"
+      align="end"
+      sideOffset={6}
+      onEscapeKeyDown={(event) => event.stopPropagation()}
+    >
+      {content}
+    </TooltipContent>
+  </Tooltip>
+)

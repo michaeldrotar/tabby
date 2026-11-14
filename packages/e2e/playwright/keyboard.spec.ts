@@ -202,6 +202,9 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     switcher,
     page.getByRole('button', { name: 'Edit window' }),
     firstItem,
+    page
+      .locator('[data-tab-id="1"]')
+      .getByRole('button', { name: 'Unpin tab', exact: true }),
     newTab,
     search,
     settings,

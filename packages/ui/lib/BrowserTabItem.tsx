@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Layers, Pin, Volume2, VolumeOff } from 'lucide-react'
+import { Layers, Pin, PinOff, Volume2, VolumeOff } from 'lucide-react'
 import { forwardRef, memo, useRef } from 'react'
 import { RowCloseButton } from './components/RowCloseButton'
 import { RadialLoadingSpinner } from './RadialLoadingSpinner'
+import { TooltipHint } from './Tooltip'
 import {
   useShouldReduceMotion,
   useShouldSettleMotion,
@@ -65,6 +66,8 @@ export type BrowserTabItemProps = Omit<
   /** Whether this tab is a duplicate (same URL as another tab) */
   duplicate?: boolean
 
+  /** Called when the pin indicator is clicked. */
+  onUnpin?: () => void
   /** Called when the close button is clicked or Delete/Backspace is pressed. When provided, a close button is shown. */
   onClose?: () => void
 }
@@ -116,6 +119,7 @@ export const BrowserTabItem = memo(
         ageLabel,
         duplicate = false,
         onClose,
+        onUnpin,
         ...props
       },
       forwardedRef,
@@ -465,31 +469,73 @@ export const BrowserTabItem = memo(
 
                 {/* Duplicate indicator */}
                 {duplicate && (
-                  <div
-                    className="shrink-0 text-muted"
+                  <span
+                    data-tab-duplicate
+                    className="
+                      inline-flex shrink-0 cursor-default items-center gap-1
+                      rounded-sm border border-border px-1.5 py-0.5 text-[10px]
+                      font-medium text-muted
+                    "
                     aria-label="Duplicate tab"
-                    title="Duplicate tab"
                   >
-                    <Layers className="size-3.5" aria-hidden />
-                  </div>
-                )}
-
-                {/* Pinned indicator */}
-                {pinned && !loading && (
-                  <div
-                    data-tab-pin
-                    className="shrink-0 text-muted"
-                    aria-label="Pinned"
-                    title="Pinned tab"
-                  >
-                    <Pin className="size-3.5" aria-hidden />
-                  </div>
+                    <Layers className="size-3" aria-hidden />
+                    Duplicate
+                  </span>
                 )}
               </div>
             </div>
+            {pinned &&
+              !loading &&
+              (onUnpin ? (
+                <TooltipHint content="Unpin">
+                  <button
+                    type="button"
+                    data-tab-pin
+                    aria-label="Unpin tab"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onUnpin()
+                    }}
+                    className="
+                      group/pin mr-2 flex size-7 shrink-0 items-center
+                      justify-center rounded-sm text-muted
+                      hover:bg-highlighted hover:text-foreground
+                      focus-visible:bg-highlighted focus-visible:text-foreground
+                      focus-visible:outline-hidden
+                    "
+                  >
+                    <Pin
+                      className="
+                        size-3.5
+                        group-hover/pin:hidden
+                        group-focus-visible/pin:hidden
+                      "
+                      aria-hidden
+                    />
+                    <PinOff
+                      className="
+                        hidden size-3.5
+                        group-hover/pin:block
+                        group-focus-visible/pin:block
+                      "
+                      aria-hidden
+                    />
+                  </button>
+                </TooltipHint>
+              ) : (
+                <div
+                  data-tab-pin
+                  className="mr-2 shrink-0 text-muted"
+                  aria-label="Pinned"
+                  title="Pinned tab"
+                >
+                  <Pin className="size-3.5" aria-hidden />
+                </div>
+              ))}
             {onClose && (
               <RowCloseButton
                 label="Close tab"
+                title="Close"
                 active={active}
                 onClose={onClose}
               />
