@@ -1,5 +1,7 @@
 export const windowControlClass =
   'text-muted flex min-h-10 items-center justify-center gap-2 rounded-md px-3 text-sm hover:bg-[var(--manager-control-hover)] hover:text-foreground data-[hover=true]:bg-[var(--manager-control-hover)] data-[hover=true]:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus'
+export const windowChoiceSelectedClass =
+  'bg-accent-selected ring-1 ring-accent-border ring-inset'
 export const editorRowEntry = (row: Element) =>
   row.querySelector<HTMLElement>('[data-editor-done]') ??
   row.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]') ??
