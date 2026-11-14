@@ -440,3 +440,33 @@ test('organizes a tab with local action keys and keeps native focus through pinn
   await expect(page.locator('[data-tab-id]')).toHaveCount(7)
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
+
+test('restores focus in the replacement window when a window closes with its actions menu open', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const original = page.locator('[data-tab-id="1"] [data-tab-option]')
+  await original.focus()
+  await original.press('ContextMenu')
+  await expect(page.getByRole('menu')).toBeVisible()
+  await page.evaluate(() => chrome.windows.remove(1))
+  await expect(original).toHaveCount(0)
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(
+    page.locator('[data-tab-id="7"] [data-tab-option]'),
+  ).toBeFocused()
+})
+
+test('restores the neighboring tab after closing from its context menu', async ({
+  page,
+}) => {
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(3).focus()
+  await row(3).press('ContextMenu')
+  await page.keyboard.press('Backspace')
+  await expect(row(3)).toHaveCount(0)
+  await expect(row(4)).toBeFocused()
+})

@@ -41,6 +41,7 @@ import { useSurface, useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
+import { getTabManagerFocusSelector } from '../itemFocus'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -137,6 +138,15 @@ export const TabManagerActionBar = ({
   returnFocus: RefObject<HTMLElement | null>
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const focusSelector = getTabManagerFocusSelector(
+    model.focusedItem,
+    model.windowPicker,
+  )
+  // Menu teardown can call an earlier render's focus handler.
+  const latestFocusSelector = useRef(focusSelector)
+  useLayoutEffect(() => {
+    latestFocusSelector.current = focusSelector
+  }, [focusSelector])
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const actions =
@@ -224,11 +234,15 @@ export const TabManagerActionBar = ({
         !menuRef.current?.contains(active)
       )
         return
-      const target = returnFocus.current?.isConnected
-        ? returnFocus.current
-        : (
-            surface?.root ?? rootRef.current?.closest('[data-tab-manager]')
-          )?.querySelector<HTMLElement>('[data-action-bar-menu-trigger]')
+      const manager = rootRef.current?.closest('[data-tab-manager]')
+      const origin = returnFocus.current
+      const target =
+        origin?.isConnected && !origin.closest('[inert],[aria-hidden="true"]')
+          ? origin
+          : (manager?.querySelector<HTMLElement>(latestFocusSelector.current) ??
+            manager?.querySelector<HTMLElement>(
+              '[data-action-bar-menu-trigger]',
+            ))
       target?.focus({ preventScroll: true })
     }
   }

@@ -13,6 +13,7 @@ import {
   useShouldSettleMotion,
 } from '../useShouldReduceMotion'
 import { cn } from '../utils/cn'
+import { getTabManagerFocusSelector } from './itemFocus'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
 import { TabManagerShell } from './ui/TabManagerShell'
@@ -509,16 +510,10 @@ export const TabManager = ({
   useLayoutEffect(() => {
     if (!live) return
     const focusModelItem = () => {
-      const item = model.focusedItem
-      const selector = pickerVisible
-        ? '[data-window-choice][aria-current="true"], [data-window-choice]'
-        : !item
-          ? '[data-window-picker-trigger]'
-          : item.type === 'tab'
-            ? `[data-tab-id="${item.id}"] [data-tab-option]`
-            : item.type === 'group'
-              ? `[data-group-id="${item.id}"] [data-group-option]`
-              : `[data-nav-type="window"][data-nav-id="${item.id}"]`
+      const selector = getTabManagerFocusSelector(
+        model.focusedItem,
+        pickerVisible,
+      )
       const target = rootRef.current?.querySelector<HTMLElement>(selector)
       target?.focus({ preventScroll: true })
       if (pendingKeyboardFocus.current)

@@ -44,6 +44,24 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('dismisses selection menus and choosers when their window closes', async () => {
+    const { backend, view, controller } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({ type: 'open-action-menu' })
+    controller.dispatch({
+      type: 'open-action-panel',
+      actionId: 'move-selected-tabs',
+    })
+    await backend.execute({ type: 'close-window', windowId: 1 })
+    controller.reconcile()
+    expect(view.getState()).toMatchObject({
+      viewedWindowId: 2,
+      actionMenu: null,
+      actionPanel: null,
+      focusedItem: { type: 'tab', id: 13 },
+    })
+  })
+
   it('opens move and copy choosers for the focused selection and copies the chosen content', async () => {
     const resources = setup()
     const writeClipboardText = vi.fn(async () => {})

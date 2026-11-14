@@ -166,10 +166,11 @@ export const reconcileTabManagerView = (
       base.groupIds.size !== filter(base.groupIds, groupIds).size)
   const menuTarget = state.actionMenu?.target
   const invalidMenu =
-    menuTarget &&
-    (menuTarget.type === 'window'
-      ? menuTarget.id !== selectedWindow
-      : !(menuTarget.type === 'tab' ? tabIds : groupIds).has(menuTarget.id))
+    selectedWindow !== state.viewedWindowId ||
+    (menuTarget &&
+      (menuTarget.type === 'window'
+        ? menuTarget.id !== selectedWindow
+        : !(menuTarget.type === 'tab' ? tabIds : groupIds).has(menuTarget.id)))
   if (
     !selectionChanged &&
     selectedWindow === state.viewedWindowId &&
