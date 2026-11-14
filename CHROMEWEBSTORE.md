@@ -30,7 +30,7 @@ Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or
 
 Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows, then drop on a window to move tabs there. Long lists scroll as you drag near their edges. Moving tabs through dragging or the menu brings the destination forward and opens its Tab Manager with the moved tabs selected, ready to reorder.
 
-Middle-click a tab to close it, or create a new tab directly below an existing tab.
+Middle-click a tab to close it, or create a new tab directly below an existing tab. Copy URLs, titles, or both to your clipboard. Copy actions show how many items will be copied and confirm what reached your clipboard.
 
 Work with the keyboard
 
@@ -143,7 +143,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 ## Version history
 
-Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |

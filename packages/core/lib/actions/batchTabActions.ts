@@ -255,20 +255,26 @@ export const runBatchClipboardAction = async (
   return result
 }
 
-export const formatBatchTabCopyText = (
+export const formatBatchTabCopy = (
   tabs: readonly BatchTabRecord[],
   kind: 'urls' | 'titles' | 'titles-and-urls',
-): string => {
+): { text: string; count: number; titleCount: number; urlCount: number } => {
+  let titleCount = 0,
+    urlCount = 0
   const values = tabs.flatMap((tab) => {
-    const title = tab.title?.trim()
-    const url = tab.url?.trim()
-    if (kind === 'urls') return url ? [url] : []
-    if (kind === 'titles') return title ? [title] : []
+    const title = kind === 'urls' ? undefined : tab.title?.trim()
+    const url = kind === 'titles' ? undefined : tab.url?.trim()
     if (!title && !url) return []
+    if (title) titleCount++
+    if (url) urlCount++
     return [`${title ?? ''}\t${url ?? ''}`.trim()]
   })
-  return values.join('\n')
+  return { text: values.join('\n'), count: values.length, titleCount, urlCount }
 }
+
+export const formatBatchTabCopyText = (
+  ...args: Parameters<typeof formatBatchTabCopy>
+): string => formatBatchTabCopy(...args).text
 
 const runBatchIdsAction = async (
   ids: readonly number[],
