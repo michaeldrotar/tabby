@@ -55,7 +55,7 @@ export const TabManagerWorkspace = ({
       <nav
         aria-label="Tab manager views"
         className={`
-          border-border shrink-0 border-b bg-[var(--manager-chrome)] px-3 py-1
+          shrink-0 border-b border-border bg-(--manager-chrome) px-3 py-1
         `}
       >
         <label className="flex items-center gap-2 text-sm">
@@ -68,9 +68,9 @@ export const TabManagerWorkspace = ({
               if (live) onChange(event.target.value)
             }}
             className={`
-              text-foreground min-h-10 min-w-0 flex-1 rounded-md
-              bg-[var(--manager-chrome)] px-2 font-medium outline-none
-              focus-visible:ring-focus focus-visible:ring-2
+              min-h-10 min-w-0 flex-1 rounded-md bg-(--manager-chrome) px-2
+              font-medium text-foreground outline-hidden
+              focus-visible:ring-2 focus-visible:ring-focus
             `}
           >
             {panes.map((pane) => (

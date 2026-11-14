@@ -32,10 +32,7 @@ export const TabManagerShell = ({
       data-tab-manager-shell
       data-selection-mode={selectionMode}
       className={cn(
-        `
-          relative flex w-full flex-col overflow-hidden
-          bg-[var(--manager-canvas)]
-        `,
+        `relative flex w-full flex-col overflow-hidden bg-(--manager-canvas)`,
         surface ? 'h-full min-h-0' : 'h-screen',
         className,
       )}
@@ -47,7 +44,7 @@ export const TabManagerShell = ({
           data-manager-scroll
           className={`
             min-h-0 flex-1
-            [&>[data-radix-scroll-area-viewport]]:[overflow-anchor:none]
+            *:data-radix-scroll-area-viewport:[overflow-anchor:none]
           `}
           orientation="vertical"
         >
@@ -55,7 +52,7 @@ export const TabManagerShell = ({
             id={mainId}
             tabIndex={-1}
             aria-label={mainLabel}
-            className="h-full outline-none"
+            className="h-full outline-hidden"
           >
             <h1 className="sr-only">Tab manager</h1>
             {children}

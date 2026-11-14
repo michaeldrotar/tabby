@@ -11,10 +11,13 @@ export const PromoFrame = ({
   size?: PromoAssetSize
 }) => (
   <main
-    className={`
-      promo-canvas
-      promo-canvas--${size}
-    `}
+    className={
+      {
+        screenshot: 'promo-canvas promo-canvas--screenshot',
+        small: 'promo-canvas promo-canvas--small',
+        marquee: 'promo-canvas promo-canvas--marquee',
+      }[size]
+    }
     aria-label="Tabby promotional asset"
   >
     <div className="promo-frame">

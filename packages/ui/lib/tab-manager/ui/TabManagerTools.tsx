@@ -16,8 +16,8 @@ export const TabManagerTools = ({
     aria-label="Tab Manager tools"
     data-keyboard-section="tools"
     className={`
-      border-border relative flex h-12 shrink-0 items-center justify-between
-      gap-1 border-t bg-[var(--manager-chrome)] px-2
+      relative flex h-12 shrink-0 items-center justify-between gap-1 border-t
+      border-border bg-(--manager-chrome) px-2
     `}
   >
     <SummerToolbarArt />

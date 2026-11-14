@@ -31,17 +31,17 @@ export const ThemeModeChoices = ({
           />
           <span
             className={`
-              bg-input text-foreground inline-flex rounded-lg border
-              border-transparent px-3 py-2 text-base font-medium capitalize
+              inline-flex rounded-lg border border-transparent bg-input px-3
+              py-2 text-base font-medium text-foreground capitalize
               transition-colors
-              hover:bg-input/70
               peer-checked:border-focus peer-checked:bg-accent-selected
               peer-checked:text-foreground
-              peer-checked:hover:bg-accent-selected-hover
               peer-checked:group-data-[hover=true]/theme-mode:bg-accent-selected-hover
-              peer-focus-visible:ring-focus
+              peer-focus-visible:ring-2 peer-focus-visible:ring-focus
+              peer-focus-visible:ring-offset-2
               peer-focus-visible:ring-offset-background
-              peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2
+              hover:bg-input/70
+              peer-checked:hover:bg-accent-selected-hover
             `}
           >
             {value[0]!.toUpperCase() + value.slice(1)}

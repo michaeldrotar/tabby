@@ -66,7 +66,7 @@ export default defineConfig([
     },
     settings: {
       'better-tailwindcss': {
-        tailwindConfig: 'packages/tailwindcss-config/tailwind.config.ts',
+        entryPoint: 'packages/ui/tailwind.css',
       },
       react: {
         version: 'detect',
@@ -135,7 +135,7 @@ export default defineConfig([
       'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level'],
       'import-x/exports-last': 'off',
       'import-x/first': 'error',
-      'better-tailwindcss/no-unregistered-classes': 'off',
+      'better-tailwindcss/no-unknown-classes': 'off',
     },
     linterOptions: {
       reportUnusedDisableDirectives: 'error',

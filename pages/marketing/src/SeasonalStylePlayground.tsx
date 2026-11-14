@@ -320,7 +320,7 @@ export const SeasonalStylePlayground = () => {
   }, [keepPiecesInBounds])
 
   const runPhysics = useCallback(
-    (timestamp: number) => {
+    function stepPhysics(timestamp: number) {
       const container = containerRef.current
       if (!container) {
         animationFrame.current = null
@@ -376,7 +376,7 @@ export const SeasonalStylePlayground = () => {
       }
 
       if (stillMoving) {
-        animationFrame.current = requestAnimationFrame(runPhysics)
+        animationFrame.current = requestAnimationFrame(stepPhysics)
       } else {
         animationFrame.current = null
         lastPhysicsAt.current = null
@@ -670,10 +670,12 @@ export const SeasonalStylePlayground = () => {
               else pieceElements.current.delete(piece.id)
             }}
             type="button"
-            className={`
-              playground-piece
-              playground-piece--${piece.kind}
-            `}
+            className={
+              {
+                sticker: 'playground-piece playground-piece--sticker',
+                theme: 'playground-piece playground-piece--theme',
+              }[piece.kind]
+            }
             style={pieceStyle}
             aria-label={`Move or toss ${piece.label}`}
             aria-describedby="seasonal-playground-help"

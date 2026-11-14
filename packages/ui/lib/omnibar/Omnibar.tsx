@@ -92,13 +92,6 @@ export const Omnibar = ({
   const isCmdCtrlPressed = currentModifiers.command
   const isShiftPressed = currentModifiers.shift
 
-  const [localIndex, setLocalIndex] = useState(0)
-  const selectedIndex = Math.max(
-    0,
-    Math.min(controlledIndex ?? localIndex, filteredItems.length - 1),
-  )
-  const setSelectedIndex = onSelectedIndexChange ?? setLocalIndex
-
   const openTabManager = useCallback(async () => {
     if (!onOpenTabManager) return
 
@@ -117,7 +110,7 @@ export const Omnibar = ({
     if (!hideTabManagerAction && onOpenTabManager) {
       actions.push({
         id: 'open-tab-manager',
-        icon: <LayoutGridIcon className="h-4 w-4" />,
+        icon: <LayoutGridIcon className="size-4" />,
         label: 'Open tab manager',
         shortcut: formatShortcut(openTabManagerShortcut, isMac),
         onClick: openTabManager,
@@ -127,7 +120,7 @@ export const Omnibar = ({
     if (onOpenOptions)
       actions.push({
         id: 'open-options',
-        icon: <SettingsIcon className="h-4 w-4" />,
+        icon: <SettingsIcon className="size-4" />,
         label: 'Open options',
         onClick: async () => {
           try {
@@ -151,6 +144,14 @@ export const Omnibar = ({
     openTabManagerShortcut,
   ])
 
+  const itemCount = filteredItems.length || (!query ? quickActions.length : 0)
+  const [localIndex, setLocalIndex] = useState(0)
+  const selectedIndex = Math.max(
+    0,
+    Math.min(controlledIndex ?? localIndex, itemCount - 1),
+  )
+  const setSelectedIndex = onSelectedIndexChange ?? setLocalIndex
+
   const handleSelect = async (
     item: OmnibarSearchResult,
     modifier?: 'new-tab' | 'new-window',
@@ -170,10 +171,10 @@ export const Omnibar = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex((prev) => Math.min(prev + 1, filteredItems.length - 1))
+      setSelectedIndex(Math.min(selectedIndex + 1, Math.max(0, itemCount - 1)))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setSelectedIndex((prev) => Math.max(prev - 1, 0))
+      setSelectedIndex(Math.max(selectedIndex - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
       const item = filteredItems[selectedIndex]
@@ -182,6 +183,8 @@ export const Omnibar = ({
         if (e.metaKey || e.ctrlKey) modifier = 'new-tab'
         if (e.shiftKey) modifier = 'new-window'
         handleSelect(item, modifier, originalWindowId)
+      } else if (!query) {
+        quickActions[selectedIndex]?.onClick()
       }
     }
   }
@@ -213,7 +216,7 @@ export const Omnibar = ({
           onScrollChange?.(viewport.scrollTop)
       }}
       className={cn(
-        'bg-card text-card-foreground relative isolate flex h-full flex-col',
+        'relative isolate flex h-full flex-col bg-card text-card-foreground',
         className,
       )}
       role="search"
@@ -228,10 +231,8 @@ export const Omnibar = ({
       <h1 className="sr-only">Tabby search</h1>
       <OmnibarInput
         resultsId={resultsId}
-        hasResults={filteredItems.length > 0}
-        activeResultId={
-          filteredItems.length ? `${resultsId}-${selectedIndex}` : undefined
-        }
+        hasResults={itemCount > 0}
+        activeResultId={itemCount ? `${resultsId}-${selectedIndex}` : undefined}
         ref={inputRef}
         query={query}
         onChange={(e) => {
@@ -271,6 +272,9 @@ export const Omnibar = ({
           query={query}
           hasResults={filteredItems.length > 0}
           quickActions={quickActions}
+          resultsId={resultsId}
+          selectedIndex={selectedIndex}
+          onSelectedIndexChange={setSelectedIndex}
           isMac={isMac}
         />
       </ScrollArea>

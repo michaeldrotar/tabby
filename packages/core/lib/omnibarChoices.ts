@@ -29,6 +29,25 @@ export const getOmnibarTarget = (
   }
 }
 
+/** Keep the chosen destination and the tabs opened from it equally recent. */
+export const getOmnibarExecutionChoices = (
+  choice: OmnibarChoice,
+  openedTabs: readonly { id?: number; url?: string }[],
+): OmnibarChoice[] => {
+  if (choice.target === 'search:google') return []
+  const targets = new Set([choice.target])
+  for (const tab of openedTabs) {
+    if (
+      typeof tab.id === 'number' &&
+      Number.isSafeInteger(tab.id) &&
+      tab.id >= 0
+    )
+      targets.add(`tab:${tab.id}`)
+    if (tab.url) targets.add(`url:${tab.url}`)
+  }
+  return [...targets].map((target) => ({ ...choice, target }))
+}
+
 export const readOmnibarChoices = (
   value: unknown,
   now: number,
@@ -64,15 +83,30 @@ export const readOmnibarChoices = (
     .map((item) => ({ ...item, query: normalizeOmnibarQuery(item.query) }))
 }
 
+export const rememberOmnibarChoices = (
+  choices: readonly OmnibarChoice[],
+  selected: readonly OmnibarChoice[],
+  now: number,
+): OmnibarChoice[] =>
+  readOmnibarChoices([...selected].reverse().concat(choices), now)
+
 export const rememberOmnibarChoice = (
   choices: readonly OmnibarChoice[],
   choice: OmnibarChoice,
   now = choice.selectedAt,
-): OmnibarChoice[] =>
-  readOmnibarChoices(
-    [{ ...choice, query: normalizeOmnibarQuery(choice.query) }, ...choices],
-    now,
+): OmnibarChoice[] => rememberOmnibarChoices(choices, [choice], now)
+
+/** Recall selections when every current word prefixes a word used to find them. */
+export const matchesOmnibarChoiceQuery = (saved: string, query: string) => {
+  const terms = normalizeOmnibarQuery(query).split(' ').filter(Boolean)
+  const savedTerms = normalizeOmnibarQuery(saved).split(' ')
+  return (
+    terms.length > 0 &&
+    terms.every((term) =>
+      savedTerms.some((savedTerm) => savedTerm.startsWith(term)),
+    )
   )
+}
 
 export const getOmnibarChoiceBonus = (
   choices: readonly OmnibarChoice[],
@@ -80,15 +114,19 @@ export const getOmnibarChoiceBonus = (
   target: string,
   now: number,
 ) => {
-  const normalized = normalizeOmnibarQuery(query)
-  const choice = choices.find(
-    (item) =>
-      item.query === normalized &&
-      item.target === target &&
-      item.selectedAt <= now &&
-      now - item.selectedAt < OMNIBAR_CHOICE_LIFETIME_MS,
-  )
-  return choice?.target === target
-    ? 80 * 2 ** (-(now - choice.selectedAt) / HALF_LIFE_MS)
-    : 0
+  let bonus = 0
+  for (const choice of choices) {
+    if (
+      choice.target === target &&
+      matchesOmnibarChoiceQuery(choice.query, query) &&
+      choice.selectedAt <= now &&
+      now - choice.selectedAt < OMNIBAR_CHOICE_LIFETIME_MS
+    ) {
+      bonus = Math.max(
+        bonus,
+        80 * 2 ** (-(now - choice.selectedAt) / HALF_LIFE_MS),
+      )
+    }
+  }
+  return bonus
 }

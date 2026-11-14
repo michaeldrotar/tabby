@@ -6,7 +6,7 @@ import {
 import { createStore } from 'zustand/vanilla'
 import { createNotificationState } from './notifications'
 import type { NotificationState } from './notifications'
-import type { BrowserSnapshot, BrowserTabGroupColor } from '@extension/core'
+import type { BrowserSnapshot } from '@extension/core'
 import type { SelectionModelContext } from '@extension/core/selection/SelectionModel'
 import type { TabManagerViewModel } from '@extension/ui/tab-manager/TabManager'
 
@@ -14,13 +14,7 @@ export type TabManagerViewState = {
   pane: string
   viewedWindowId: number | null
   windowPicker: boolean
-  editingWindow: {
-    windowId: number
-    useCustom?: boolean
-    name: string
-    icon?: string
-    iconColor?: BrowserTabGroupColor
-  } | null
+  editingWindow: NonNullable<TabManagerViewModel['editingWindow']> | null
   hasUserInput: boolean
   selectionCleared: boolean
   selection: SelectionModelContext

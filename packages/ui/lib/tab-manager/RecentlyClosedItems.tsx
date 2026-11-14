@@ -15,10 +15,10 @@ const SessionSummary = ({
   formatClosedAt: (timestamp: number) => string
 }) => (
   <span className="min-w-0 flex-1">
-    <span className="text-foreground block truncate font-medium">
+    <span className="block truncate font-medium text-foreground">
       {session.tabs[0]?.title ?? 'Closed window'}
     </span>
-    <span className="text-muted mt-1 block text-xs">
+    <span className="mt-1 block text-xs text-muted">
       {session.kind === 'window'
         ? `Window · ${session.tabs.length} ${session.tabs.length === 1 ? 'tab' : 'tabs'}`
         : 'Tab'}{' '}
@@ -111,10 +111,10 @@ export const RecentlyClosedItems = ({
         }
       }}
     >
-      <h2 tabIndex={-1} className="px-3 text-sm font-medium outline-none">
+      <h2 tabIndex={-1} className="px-3 text-sm font-medium outline-hidden">
         Recently closed
       </h2>
-      <p className="text-muted px-3 text-xs">
+      <p className="px-3 text-xs text-muted">
         Chrome keeps up to 25 closed tabs and windows combined. This is not a
         permanent archive.
       </p>
@@ -133,11 +133,11 @@ export const RecentlyClosedItems = ({
         </div>
       )}
       {snapshot.status === 'loading' ? (
-        <p role="status" className="text-muted px-3 text-sm">
+        <p role="status" className="px-3 text-sm text-muted">
           Loading recently closed items…
         </p>
       ) : snapshot.status === 'ready' && snapshot.sessions.length === 0 ? (
-        <p role="status" className="text-muted px-3 text-sm">
+        <p role="status" className="px-3 text-sm text-muted">
           No recently closed items available.
         </p>
       ) : null}
@@ -147,7 +147,7 @@ export const RecentlyClosedItems = ({
             key={session.sessionId}
             data-closed-tab
             className={`
-              border-border flex min-w-0 items-center gap-2 rounded-md border
+              flex min-w-0 items-center gap-2 rounded-md border border-border
               p-3
             `}
           >
@@ -167,7 +167,7 @@ export const RecentlyClosedItems = ({
         ) : (
           <details
             key={session.sessionId}
-            className="border-border rounded-md border"
+            className="rounded-md border border-border"
           >
             <summary
               className={`
@@ -179,7 +179,7 @@ export const RecentlyClosedItems = ({
                 session={session}
                 formatClosedAt={formatClosedAt}
               />
-              <span aria-hidden="true" className="text-muted text-xs">
+              <span aria-hidden="true" className="text-xs text-muted">
                 Preview
               </span>
             </summary>
@@ -199,7 +199,7 @@ export const RecentlyClosedItems = ({
             <button
               className={`
                 ${windowControlClass}
-                bg-accent-selected text-foreground m-2 w-[calc(100%-1rem)]
+                m-2 w-[calc(100%-1rem)] bg-accent-selected text-foreground
                 disabled:opacity-50
               `}
               disabled={!!snapshot.restoringSessionId}

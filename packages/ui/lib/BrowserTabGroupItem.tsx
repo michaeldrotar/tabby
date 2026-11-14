@@ -197,15 +197,15 @@ export const BrowserTabGroupItem = memo(
         <div
           ref={ref}
           className={cn(
-            'group/tab-group relative flex flex-col rounded-lg py-1 pl-4 pr-1',
+            'group/tab-group relative flex flex-col rounded-lg py-1 pr-1 pl-4',
             'transition-[background-color,border-color,box-shadow] duration-200',
-            selected && 'ring-accent-border ring-2 ring-inset',
+            selected && 'ring-2 ring-accent-border ring-inset',
             `
-              has-[[data-group-header]>button:focus-visible]:after:ring-focus
-              has-[[data-group-header]>button:focus-visible]:after:ring-2
-              has-[[data-group-header]>button:focus-visible]:after:ring-inset
               after:pointer-events-none after:absolute after:inset-0
               after:rounded-[inherit]
+              has-[[data-group-header]>button:focus-visible]:after:ring-2
+              has-[[data-group-header]>button:focus-visible]:after:ring-focus
+              has-[[data-group-header]>button:focus-visible]:after:ring-inset
             `,
             className,
           )}
@@ -219,7 +219,7 @@ export const BrowserTabGroupItem = memo(
         >
           <div
             className={cn(
-              'absolute bottom-2 left-1 top-2 w-1 rounded-full',
+              'absolute inset-y-2 left-1 w-1 rounded-full',
               colorClasses.dot,
             )}
             aria-hidden="true"
@@ -252,9 +252,9 @@ export const BrowserTabGroupItem = memo(
                 onClick={(e) => e.stopPropagation()}
                 className={cn(
                   `
-                    border-border bg-background flex-1 rounded border px-1.5
-                    py-0.5 text-sm font-semibold outline-none
-                    focus:border-accent focus:ring-accent focus:ring-1
+                    flex-1 rounded-sm border border-border bg-background px-1.5
+                    py-0.5 text-sm font-semibold outline-hidden
+                    focus:border-accent focus:ring-1 focus:ring-accent
                   `,
                   colorClasses.text,
                 )}
@@ -271,9 +271,9 @@ export const BrowserTabGroupItem = memo(
                 aria-controls={groupId !== undefined ? contentId : undefined}
                 className={cn(
                   `
+                    min-w-0 flex-1 rounded-sm text-left text-sm font-semibold
                     hover:bg-highlighted/30
-                    min-w-0 flex-1 rounded text-left text-sm font-semibold
-                    focus-visible:outline-none
+                    focus-visible:outline-hidden
                   `,
                   colorClasses.text,
                 )}
@@ -291,10 +291,10 @@ export const BrowserTabGroupItem = memo(
               aria-controls={groupId !== undefined ? contentId : undefined}
               aria-label={`${collapsed ? 'Expand' : 'Collapse'} group ${title || 'Untitled group'}`}
               className={`
+                order-first flex size-5 shrink-0 items-center justify-center
+                rounded-sm transition-colors
                 hover:bg-background/80
-                order-first flex h-5 w-5 shrink-0 items-center justify-center
-                rounded transition-colors
-                focus-visible:outline-none
+                focus-visible:outline-hidden
               `}
             >
               <DragReveal active={dragReveal}>

@@ -1,4 +1,5 @@
 @import '@extension/ui/base.css';
+@config '../tailwind.config.ts';
 
 /**
  * Focus Ring Animations for Multi-Select Mode

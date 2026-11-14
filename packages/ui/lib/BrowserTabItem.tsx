@@ -219,11 +219,11 @@ export const BrowserTabItem = memo(
           >
             {favicon ?? (
               <div
-                className={`flex h-5 w-5 items-center justify-center rounded`}
+                className={`flex size-5 items-center justify-center rounded-sm`}
               >
                 {
                   // Generic fallback icon when no favicon
-                  <div className="bg-muted/40 h-4 w-4 rounded-sm" />
+                  <div className="size-4 rounded-xs bg-muted/40" />
                 }
               </div>
             )}
@@ -290,14 +290,14 @@ export const BrowserTabItem = memo(
             // Transition for smooth mode changes
             'transition-shadow duration-150',
             `
-              has-[[data-tab-option]:focus-visible]:after:ring-focus
-              has-[[data-tab-option]:focus-visible]:after:ring-2
-              has-[[data-tab-option]:focus-visible]:after:ring-inset
-              has-[button:focus-visible]:after:ring-focus
-              has-[button:focus-visible]:after:ring-2
-              has-[button:focus-visible]:after:ring-inset
               after:pointer-events-none after:absolute after:inset-0
               after:rounded-[inherit]
+              has-[[data-tab-option]:focus-visible]:after:ring-2
+              has-[[data-tab-option]:focus-visible]:after:ring-focus
+              has-[[data-tab-option]:focus-visible]:after:ring-inset
+              has-[button:focus-visible]:after:ring-2
+              has-[button:focus-visible]:after:ring-focus
+              has-[button:focus-visible]:after:ring-inset
             `,
             className,
           )}
@@ -328,22 +328,22 @@ export const BrowserTabItem = memo(
               !selected &&
                 !active &&
                 `
-                  hover:bg-highlighted/70
                   group-data-[hover=true]/tab-row:bg-highlighted/70
+                  hover:bg-highlighted/70
                 `,
               selected &&
                 `
                   bg-accent-selected text-foreground
-                  hover:bg-accent-selected-hover
                   group-data-[hover=true]/tab-row:bg-accent-selected-hover
+                  hover:bg-accent-selected-hover
                 `,
               active && 'border-accent-border',
               active &&
                 !selected &&
                 `
                   bg-accent-soft
-                  hover:bg-accent-hover
                   group-data-[hover=true]/tab-row:bg-accent-hover
+                  hover:bg-accent-hover
                 `,
               discarded && 'opacity-50 grayscale',
             )}
@@ -353,16 +353,15 @@ export const BrowserTabItem = memo(
                 aria-hidden="true"
                 data-tab-selection-indicator
                 className={`
-                  bg-focus pointer-events-none absolute inset-y-3 left-0 w-[3px]
-                  rounded-r
+                  pointer-events-none absolute inset-y-3 left-0 w-[3px]
+                  rounded-r bg-focus
                 `}
               />
             )}
             <div
               data-tab-favicon
               className={`
-                relative ml-2 flex size-9 flex-shrink-0 items-center
-                justify-center
+                relative ml-2 flex size-9 shrink-0 items-center justify-center
               `}
             >
               {faviconContent}
@@ -374,12 +373,12 @@ export const BrowserTabItem = memo(
               data-tab-option
               className={cn(
                 `
-                  flex min-h-[48px] min-w-0 flex-1 cursor-pointer select-none
-                  items-center gap-3 rounded-lg py-2 pl-2 pr-2 text-left
+                  flex min-h-[48px] min-w-0 flex-1 cursor-pointer items-center
+                  gap-3 rounded-lg p-2 text-left
                   transition-[background-color,filter,transform,box-shadow]
-                  duration-200 ease-out
-                  focus:outline-none
-                  focus-visible:outline-none
+                  duration-200 ease-out select-none
+                  focus:outline-hidden
+                  focus-visible:outline-hidden
                 `,
               )}
               onKeyDown={handleKeyDown}
@@ -392,7 +391,7 @@ export const BrowserTabItem = memo(
                 {/* Title */}
                 {title && (
                   <motion.div
-                    className="text-foreground truncate text-sm font-medium"
+                    className="truncate text-sm font-medium text-foreground"
                     animate={{
                       filter: blurred ? 'blur(4px)' : 'blur(0px)',
                     }}
@@ -433,7 +432,7 @@ export const BrowserTabItem = memo(
                   >
                     <span className="min-w-0 truncate">{domain}</span>
                     {ageLabel && (
-                      <span className="flex-shrink-0"> • {ageLabel}</span>
+                      <span className="shrink-0"> • {ageLabel}</span>
                     )}
                   </motion.div>
                 )}
@@ -442,39 +441,36 @@ export const BrowserTabItem = memo(
               {/* Status indicators */}
               <div
                 data-tab-status
-                className="flex flex-shrink-0 items-center gap-1.5"
+                className="flex shrink-0 items-center gap-1.5"
               >
                 {/* Audio indicator */}
                 {audio === 'muted' && (
                   <div
-                    className="text-muted flex-shrink-0"
+                    className="shrink-0 text-muted"
                     aria-label="Muted"
                     title="Muted"
                   >
-                    <VolumeOff className="h-3.5 w-3.5" aria-hidden />
+                    <VolumeOff className="size-3.5" aria-hidden />
                   </div>
                 )}
                 {audio === 'on' && (
                   <div
-                    className="text-accent flex-shrink-0"
+                    className="shrink-0 text-accent"
                     aria-label="Playing audio"
                     title="Playing audio"
                   >
-                    <Volume2
-                      className="h-3.5 w-3.5 animate-pulse"
-                      aria-hidden
-                    />
+                    <Volume2 className="size-3.5 animate-pulse" aria-hidden />
                   </div>
                 )}
 
                 {/* Duplicate indicator */}
                 {duplicate && (
                   <div
-                    className="text-muted flex-shrink-0"
+                    className="shrink-0 text-muted"
                     aria-label="Duplicate tab"
                     title="Duplicate tab"
                   >
-                    <Layers className="h-3.5 w-3.5" aria-hidden />
+                    <Layers className="size-3.5" aria-hidden />
                   </div>
                 )}
 
@@ -482,11 +478,11 @@ export const BrowserTabItem = memo(
                 {pinned && !loading && (
                   <div
                     data-tab-pin
-                    className="text-muted flex-shrink-0"
+                    className="shrink-0 text-muted"
                     aria-label="Pinned"
                     title="Pinned tab"
                   >
-                    <Pin className="h-3.5 w-3.5" aria-hidden />
+                    <Pin className="size-3.5" aria-hidden />
                   </div>
                 )}
               </div>

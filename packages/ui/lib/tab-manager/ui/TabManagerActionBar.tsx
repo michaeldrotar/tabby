@@ -80,9 +80,9 @@ const ActionIcon = ({ name }: { name?: string }) => {
   return <Icon size={17} aria-hidden="true" />
 }
 const itemClass =
-  'text-popover-foreground flex min-h-9 w-full cursor-default select-none items-center gap-3 rounded px-3 py-2 text-left text-sm outline-none data-[highlighted]:bg-highlighted/50 data-[state=open]:bg-highlighted/50 data-[disabled]:opacity-45'
+  'text-popover-foreground flex min-h-9 w-full cursor-default select-none items-center gap-3 rounded px-3 py-2 text-left text-sm outline-hidden data-[highlighted]:bg-highlighted/50 data-[state=open]:bg-highlighted/50 data-[disabled]:opacity-45'
 const menuClass =
-  'bg-popover border-border text-popover-foreground z-[80] min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border p-1 shadow-lg outline-none'
+  'bg-popover border-border text-popover-foreground z-[80] min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border p-1 shadow-lg outline-hidden'
 const OptionContent = ({
   option,
   windows,
@@ -91,7 +91,7 @@ const OptionContent = ({
   windows: boolean
 }) => (
   <>
-    <span className="text-muted shrink-0">
+    <span className="shrink-0 text-muted">
       {option.color ? (
         <span
           role="img"
@@ -114,7 +114,7 @@ const OptionContent = ({
     </span>
     <span className="min-w-0 flex-1 truncate text-left">{option.label}</span>
     {option.subtitle && (
-      <span className="text-muted text-xs">{option.subtitle}</span>
+      <span className="text-xs text-muted">{option.subtitle}</span>
     )}
   </>
 )
@@ -271,8 +271,8 @@ export const TabManagerActionBar = ({
     <div
       role="status"
       className={`
-        text-muted flex aspect-square w-full flex-col items-center
-        justify-center gap-4 p-6 text-center text-base
+        flex aspect-square w-full flex-col items-center justify-center gap-4 p-6
+        text-center text-base text-muted
       `}
     >
       <MousePointer2 size={32} className="text-accent" aria-hidden="true" />
@@ -292,7 +292,7 @@ export const TabManagerActionBar = ({
       {panel.options?.map((option) => (
         <Fragment key={option.id}>
           {option.dividerBefore && (
-            <div role="separator" className="bg-border mx-2 my-1 h-px" />
+            <div role="separator" className="mx-2 my-1 h-px bg-border" />
           )}
           {renderItem(
             option.id,
@@ -315,12 +315,12 @@ export const TabManagerActionBar = ({
       renderItem(
         action.id,
         <>
-          <span className="text-muted shrink-0">
+          <span className="shrink-0 text-muted">
             <ActionIcon name={action.icon} />
           </span>
           <span className="min-w-0 flex-1 text-left">{action.label}</span>
           {action.panel && (
-            <ChevronRight size={14} className="text-muted shrink-0" />
+            <ChevronRight size={14} className="shrink-0 text-muted" />
           )}
         </>,
         () =>
@@ -367,7 +367,7 @@ export const TabManagerActionBar = ({
     <div
       ref={rootRef}
       data-action-bar-root
-      className="bg-background relative z-50"
+      className="relative z-50 bg-background"
     >
       <div
         className="pointer-events-none relative"

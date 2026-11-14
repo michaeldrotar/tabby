@@ -13,18 +13,12 @@
     "@extension/core": "workspace:*",
     "@extension/demo": "workspace:*",
     "@extension/ui": "workspace:*",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "@vitejs/plugin-react-swc": "^4.2.2",
-    "vite": "^7.2.6",
+    "@vitejs/plugin-react-swc": "4.3.3",
+    "vite": "8.3.5",
     "@types/node": "^24.10.1"
-  },
-  "postcss": {
-    "plugins": {
-      "tailwindcss": {},
-      "autoprefixer": {}
-    }
   }
 }

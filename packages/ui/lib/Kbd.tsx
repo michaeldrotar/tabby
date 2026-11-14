@@ -8,13 +8,13 @@ export const Kbd = ({ className, ...props }: KbdProps) => {
       data-slot="kbd"
       className={cn(
         `
-          border-border bg-input text-muted pointer-events-none inline-flex h-5
-          w-fit min-w-5 select-none items-center justify-center gap-1
-          whitespace-nowrap rounded-sm border px-1 font-mono text-xs font-medium
-          leading-none
-          [[data-slot=tooltip-content]_&]:bg-background/20
-          [[data-slot=tooltip-content]_&]:text-background
-          dark:[[data-slot=tooltip-content]_&]:bg-background/10
+          pointer-events-none inline-flex h-5 w-fit min-w-5 items-center
+          justify-center gap-1 rounded-xs border border-border bg-input px-1
+          font-mono text-xs leading-none font-medium whitespace-nowrap
+          text-muted select-none
+          in-data-[slot=tooltip-content]:bg-background/20
+          in-data-[slot=tooltip-content]:text-background
+          dark:in-data-[slot=tooltip-content]:bg-background/10
           [&_svg:not([class*='size-'])]:size-3
         `,
         className,

@@ -107,7 +107,7 @@ export const NotificationStack = ({
                 exit={{ y: settle ? 0 : 53, opacity: 0 }}
                 transition={{ duration: settle ? 0 : 0.4, ease: 'easeOut' }}
                 className={`
-                  text-muted flex min-h-[53px] items-center border-t p-2 text-xs
+                  flex min-h-[53px] items-center border-t p-2 text-xs text-muted
                 `}
                 style={{
                   position: expanded ? 'relative' : 'absolute',
@@ -127,7 +127,10 @@ export const NotificationStack = ({
                 <span
                   role={entry.kind === 'error' ? 'alert' : 'status'}
                   className={cn(
-                    'min-w-0 flex-1 whitespace-pre-wrap break-words leading-4',
+                    `
+                      min-w-0 flex-1 leading-4 wrap-break-word
+                      whitespace-pre-wrap
+                    `,
                     !expanded && 'line-clamp-2',
                   )}
                 >
@@ -138,11 +141,11 @@ export const NotificationStack = ({
                   data-close-button
                   aria-label="Dismiss notification"
                   className={`
-                    hover:bg-highlighted/50 hover:text-foreground
-                    focus-visible:outline-accent focus-visible:outline
-                    focus-visible:outline-2 focus-visible:-outline-offset-2
-                    absolute right-2 top-2 flex size-9 items-center
+                    absolute top-2 right-2 flex size-9 items-center
                     justify-center rounded-md
+                    hover:bg-highlighted/50 hover:text-foreground
+                    focus-visible:outline-2 focus-visible:-outline-offset-2
+                    focus-visible:outline-accent
                   `}
                   onClick={(event) => {
                     focusedOwner.current = event.currentTarget

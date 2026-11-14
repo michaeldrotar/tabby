@@ -155,6 +155,17 @@
       setAccessLevel: async () => undefined,
     }
   }
+  const searchPages = (items = [], query = '') =>
+    clone(
+      items.filter((item) => {
+        const text = `${item.title ?? ''} ${item.url ?? ''}`.toLowerCase()
+        return query
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean)
+          .every((term) => text.includes(term))
+      }),
+    )
   const matches = (item, query = {}) =>
     Object.entries(query).every(([key, value]) => item[key] === value)
   const api = {
@@ -195,6 +206,7 @@
               key: `sample-${message.windowId}`,
               name: message.name.trim(),
               icon: message.icon,
+              iconChoices: message.iconChoices,
               iconColor: message.iconColor,
             },
           },
@@ -241,6 +253,7 @@
                   key: `sample-${window.id}`,
                   name: window.name ?? '',
                   icon: window.icon,
+                  iconChoices: window.iconChoices,
                   iconColor: window.iconColor,
                 },
               ]),
@@ -258,8 +271,13 @@
         browser.currentWindowId = windowId
       },
     },
-    bookmarks: { search: async () => [] },
-    history: { search: async () => [] },
+    bookmarks: {
+      search: async (query) => searchPages(browser.bookmarks, query),
+    },
+    history: {
+      search: async ({ text, maxResults }) =>
+        searchPages(browser.history, text).slice(0, maxResults),
+    },
     sessions: {
       onChanged: event(),
       getRecentlyClosed: async () => clone(closedSessions.slice(0, 25)),
@@ -618,6 +636,18 @@
       )
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill="hsl(${hue} 68% 45%)"/><text x="12" y="16" fill="white" font-family="Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">${label}</text></svg>`
       return `data:image/svg+xml,${encodeURIComponent(svg)}`
+    }
+
+    const BrowserImage = globalThis.Image
+    globalThis.Image = class extends BrowserImage {
+      set src(value) {
+        super.src = value.startsWith('chrome-extension://preview/_favicon/')
+          ? createFaviconDataUrl(value)
+          : value
+      }
+      get src() {
+        return super.src
+      }
     }
 
     new MutationObserver(() => {

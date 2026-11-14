@@ -1,5 +1,7 @@
+import { createServer } from 'node:http'
 import { expect, test } from './extension-fixtures'
 import type { Page } from '@playwright/test'
+import type { AddressInfo } from 'node:net'
 
 const palettePaint = (page: Page) =>
   page.locator('[data-surface]').evaluate((surface) => {
@@ -168,9 +170,9 @@ test('the built extension shares preferences and receives live tab changes', asy
   const search = await context.newPage()
   await search.goto(`chrome-extension://${extensionId}/omnibar/index.html`)
   await search.getByRole('combobox').fill('Smoke')
-  await expect(search.getByRole('option').nth(1)).toContainText(
-    'Smoke test tab',
-  )
+  await expect(
+    search.getByRole('option', { name: /^Smoke test tab tab/ }),
+  ).toBeVisible()
   await search.getByRole('option', { name: /^Smoke test tab tab/ }).click()
   await expect.poll(() => search.isClosed()).toBe(true)
   const recalled = await context.newPage()
@@ -184,6 +186,59 @@ test('the built extension shares preferences and receives live tab changes', asy
   await manager.keyboard.press('Delete')
   await expect(row).toHaveCount(0)
   await expect.poll(() => target.isClosed()).toBe(true)
+  const recallServer = createServer((request, response) => {
+    if (request.url === '/start') {
+      response.writeHead(302, { location: '/workspace' })
+      response.end()
+      return
+    }
+    response.writeHead(200, { 'Content-Type': 'text/html' })
+    response.end(
+      `<title>${request.url === '/calendar' ? 'Calendar' : 'Recall project Atlas'}</title>`,
+    )
+  })
+  await new Promise<void>((resolve) =>
+    recallServer.listen(0, '127.0.0.1', resolve),
+  )
+  const recallOrigin = `http://127.0.0.1:${(recallServer.address() as AddressInfo).port}`
+  try {
+    await page.evaluate(async (url) => {
+      await chrome.bookmarks.create({ title: 'Recall project Atlas', url })
+    }, `${recallOrigin}/start`)
+    const bookmarkSearch = await context.newPage()
+    await bookmarkSearch.goto(
+      `chrome-extension://${extensionId}/omnibar/index.html`,
+    )
+    await bookmarkSearch.getByRole('combobox').fill('Recall project Atlas')
+    const opening = context.waitForEvent('page')
+    await bookmarkSearch
+      .getByRole('option', { name: /^Recall project Atlas bookmark/ })
+      .click({ modifiers: ['ControlOrMeta'] })
+    const opened = await opening
+    await opened.waitForURL(`${recallOrigin}/workspace`)
+    await expect.poll(() => bookmarkSearch.isClosed()).toBe(true)
+    const sourceRecall = await context.newPage()
+    await sourceRecall.goto(
+      `chrome-extension://${extensionId}/omnibar/index.html`,
+    )
+    await sourceRecall.getByRole('combobox').fill('proj')
+    await expect(sourceRecall.getByRole('option').nth(1)).toContainText(
+      'Recall project Atlas',
+    )
+    await expect(sourceRecall.getByRole('option').nth(1)).toContainText('tab')
+    await opened.goto(`${recallOrigin}/calendar`)
+    await expect(sourceRecall.getByRole('option').nth(1)).toContainText(
+      'bookmark',
+    )
+    await sourceRecall.close()
+    await opened.close()
+  } finally {
+    await new Promise<void>((resolve) => {
+      recallServer.close(() => resolve())
+      recallServer.closeAllConnections()
+    })
+  }
+
   await page.reload()
   await expect(
     page.getByRole('combobox', { name: 'Window identification' }),

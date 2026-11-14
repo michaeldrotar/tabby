@@ -1053,16 +1053,22 @@ describe('complete Tab Manager actions', () => {
   it('applies identity changes in order, retains the editor on window focus, and switches between custom and tab defaults', async () => {
     const resources = setup()
     await resources.preferences.set({ tabManagerCompactIconMode: 'first' })
+    const random = vi.fn().mockReturnValue(0.5)
     const controller = createTabManagerController({
       ...resources,
-      environment: { ...resources.environment, random: () => 0.5 },
+      environment: { ...resources.environment, random },
     })
     await controller.dispatch({ type: 'edit-window' })
     expect(resources.view.getState().editingWindow).toMatchObject({
       name: 'Tabby',
-      icon: 'palette',
+      icon: 'music',
       iconColor: 'green',
       useCustom: true,
+    })
+    expect(resources.backend.getSnapshot().windows[0]).toMatchObject({
+      name: 'Tabby',
+      icon: 'music',
+      iconColor: 'green',
     })
     const first = controller.dispatch({
       type: 'change-window-draft',
@@ -1095,6 +1101,13 @@ describe('complete Tab Manager actions', () => {
       'first',
     )
     expect(resources.view.getState().editingWindow).toBeNull()
+    random.mockReturnValue(0)
+    await controller.dispatch({ type: 'edit-window' })
+    expect(resources.view.getState().editingWindow).toMatchObject({
+      name: 'Tabby',
+      icon: 'window',
+      iconColor: 'grey',
+    })
   })
 
   it('selects the active tab by default and after Escape, and permits an explicitly empty selection', async () => {

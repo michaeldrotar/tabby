@@ -12,7 +12,7 @@ The versioned files in `product/releases/` contain the detailed release notes fo
 
 - **`main`** is the integration branch for the latest accepted code, including work not yet published. Pull requests target `main`. Require both CI workflow checks before merging and keep the branch buildable.
 - **Issue branches** are short-lived and start from the branch they target. Feature pull requests target `main`.
-- **Patch branches** are short-lived and version-specific, such as `hotfix/v1.2.1`. Create one from the latest published tag (`v1.2.0` in this example), and target patch-fix pull requests to it. Tag the finished patch commit as `v1.2.1`, then forward-port the fixes to `main` in separate pull requests. Do not bring the patch version bump or patch notes into `main`.
+- **Patch branches** are short-lived and version-specific, such as `hotfix/v1.2.1`. Create one from the latest published tag (`v1.2.0` in this example), and target patch-fix pull requests to it. Tag the finished patch commit as `v1.2.1`, then forward-port the fixes to `main` in separate pull requests. Apply the [forward-port version rule](#forward-port-versions) and keep patch notes on the patch release.
 
 A tag labels a finished commit; pull requests merge into branches. For a patch release, merge fixes into its version-specific branch, tag that commit, then forward-port the fixes to `main`.
 
@@ -39,7 +39,22 @@ git switch -c hotfix/v1.2.1 v1.2.0
 pnpm prep patch
 ```
 
-Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds an entry under **What's New**, with a descriptive subheading and concise description, to that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, preserve `main`'s in-progress version and do not duplicate the entry in its release-notes file.
+Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds an entry under **What's New**, with a descriptive subheading and concise description, to that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, apply the [forward-port version rule](#forward-port-versions) and do not duplicate the entry in its release-notes file.
+
+### Forward-port versions
+
+Compare the current version in `main`'s root `package.json` with the patch release being forward-ported, using semantic version order:
+
+- If `main` is equal to or higher than the patch release, preserve its version. An equal version requires no additional bump.
+- If `main` is lower, advance its root `package.json` version to at least the patch release version as part of the forward-port, or use an already-approved higher next-release version. After the patch fixes are integrated, `main` must not remain below that patch release version.
+
+For example:
+
+- `main` at `1.8.0` plus patch `1.7.1` stays at `1.8.0`.
+- `main` at `1.7.0` plus patch `1.7.1` advances to at least `1.7.1`.
+- `main` at `1.7.1` plus patch `1.7.1` stays at `1.7.1`.
+
+The root `package.json` remains the source of truth for the manifest version. Keep release notes scoped to actual user-facing net changes; do not duplicate a patch fix in the next minor-release notes. Forward-porting code or version metadata does not authorize tagging, packaging, uploading, submitting, or publishing a release. Release actions require a user request.
 
 ## Feature Work and CI
 
@@ -84,7 +99,7 @@ Patch releases contain fixes for the latest published version and may include mo
 1. Create a branch named for the next patch version from the latest published tag. For example, if the latest tag is `v1.2.0`, create `hotfix/v1.2.1` from `v1.2.0`. Run `pnpm prep patch` on the new branch.
 2. For each fix, create an issue branch from `hotfix/vX.Y.Z` and open a pull request back to that branch. Apply the same CI and independent review process as a feature pull request. Add the fix to the patch notes file.
 3. When the patch is ready, finalize its notes, run the release checks, build and smoke-test the ZIP, then tag the reviewed patch commit as `vX.Y.Z` and create its GitHub release. Complete the [marketing-site update](#marketing-site) as part of the release.
-4. Forward-port each fix to `main` in a separate issue branch and reviewed pull request. Keep `main`'s active version and notes file; do not add the patch note to the upcoming minor notes. Use `Closes #N` on the forward-port pull request so the issue closes after the fix is retained on `main`.
+4. Forward-port each fix to `main` in a separate issue branch and reviewed pull request. Apply the [forward-port version rule](#forward-port-versions); do not add the patch note to the upcoming minor notes. Use `Closes #N` on the forward-port pull request so the issue closes after the fix is retained on `main`.
 5. Submit and publish through the Chrome Web Store only when the user asks. After the patch is published, retire `hotfix/vX.Y.Z`. A later patch gets its own branch from the new latest published tag.
 
 ## Writing Release Notes

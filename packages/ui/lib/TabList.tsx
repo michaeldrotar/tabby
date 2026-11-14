@@ -84,7 +84,7 @@ export const TabListGroup = ({
       )}
     >
       <div className="mb-1 flex items-center gap-2 px-2 py-1">
-        <div className={cn('h-3 w-3 rounded-full', colorClasses.dot)} />
+        <div className={cn('size-3 rounded-full', colorClasses.dot)} />
         <h4
           className={cn('text-xs font-semibold opacity-80', colorClasses.text)}
         >

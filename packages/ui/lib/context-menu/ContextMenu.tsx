@@ -30,22 +30,23 @@ export const ContextMenuContent = forwardRef<
         collisionPadding={16}
         className={cn(
           `
-            animate-in fade-in-0 zoom-in-95 border-border bg-popover
-            text-popover-foreground z-50
-            max-h-[min(var(--radix-context-menu-content-available-height),480px)]
-            min-w-[12rem] overflow-y-auto overflow-x-hidden rounded-lg border
-            p-1 shadow-lg shadow-black/10 outline-none
+            animate-in fade-in-0 zoom-in-95
             data-[state=closed]:animate-out data-[state=closed]:fade-out-0
             data-[state=closed]:zoom-out-95
             data-[side=bottom]:slide-in-from-top-2
             data-[side=left]:slide-in-from-right-2
             data-[side=right]:slide-in-from-left-2
             data-[side=top]:slide-in-from-bottom-2
-            [&::-webkit-scrollbar-thumb]:bg-muted/60
-            [&::-webkit-scrollbar-thumb]:rounded-full
+            z-50
+            max-h-[min(var(--radix-context-menu-content-available-height),480px)]
+            min-w-48 overflow-x-hidden overflow-y-auto rounded-lg border
+            border-border bg-popover p-1 text-popover-foreground shadow-lg
+            shadow-black/10 outline-hidden
             dark:shadow-black/20
-            [&::-webkit-scrollbar-track]:bg-transparent
             [&::-webkit-scrollbar]:w-2
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-muted/60
+            [&::-webkit-scrollbar-track]:bg-transparent
           `,
           className,
         )}
@@ -66,11 +67,11 @@ export const ContextMenuSubTrigger = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent-selected
+        flex cursor-default items-center gap-2 rounded-md px-2.5 py-2 text-sm
+        outline-hidden select-none
+        data-disabled:pointer-events-none data-disabled:opacity-50
+        data-highlighted:bg-accent-selected
         data-[state=open]:bg-accent-hover
-        flex cursor-default select-none items-center gap-2 rounded-md px-2.5
-        py-2 text-sm outline-none
-        data-[disabled]:pointer-events-none data-[disabled]:opacity-50
       `,
       inset && 'pl-8',
       className,
@@ -78,7 +79,7 @@ export const ContextMenuSubTrigger = forwardRef<
     {...props}
   >
     {children}
-    <ChevronRight className="ml-auto h-4 w-4 opacity-60" />
+    <ChevronRight className="ml-auto size-4 opacity-60" />
   </ContextMenuPrimitive.SubTrigger>
 ))
 ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName
@@ -92,17 +93,19 @@ export const ContextMenuSubContent = forwardRef<
     collisionPadding={16}
     className={cn(
       `
-        animate-in fade-in-0 slide-in-from-left-1 border-border bg-popover
-        text-popover-foreground z-50
-        max-h-[min(var(--radix-context-menu-content-available-height),320px)]
-        min-w-[10rem] overflow-y-auto overflow-x-hidden rounded-lg border p-1
-        shadow-lg shadow-black/10 outline-none
+        animate-in fade-in-0 slide-in-from-left-1
         data-[state=closed]:animate-out data-[state=closed]:fade-out-0
         data-[state=closed]:slide-out-to-left-1
-        [&::-webkit-scrollbar-thumb]:bg-muted/60
-        [&::-webkit-scrollbar-thumb]:rounded-full
+        z-50
+        max-h-[min(var(--radix-context-menu-content-available-height),320px)]
+        min-w-40 overflow-x-hidden overflow-y-auto rounded-lg border
+        border-border bg-popover p-1 text-popover-foreground shadow-lg
+        shadow-black/10 outline-hidden
         dark:shadow-black/20
-        [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        [&::-webkit-scrollbar-thumb]:bg-muted/60
+        [&::-webkit-scrollbar-track]:bg-transparent
       `,
       className,
     )}
@@ -122,18 +125,19 @@ export const ContextMenuItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent-selected
-        relative flex cursor-default select-none items-center gap-2 rounded-md
-        px-2.5 py-2 text-sm outline-none transition-colors
-        data-[disabled]:pointer-events-none data-[disabled]:opacity-50
+        relative flex cursor-default items-center gap-2 rounded-md px-2.5 py-2
+        text-sm outline-hidden transition-colors select-none
+        data-disabled:pointer-events-none data-disabled:opacity-50
+        data-highlighted:bg-accent-selected
         [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0
         [&_svg]:opacity-60
       `,
       variant === 'destructive' &&
         `
           text-red-600
-          data-[highlighted]:bg-red-500/10 data-[highlighted]:text-red-600
-          dark:text-red-400 dark:data-[highlighted]:text-red-400
+          data-highlighted:bg-red-500/10 data-highlighted:text-red-600
+          dark:text-red-400
+          dark:data-highlighted:text-red-400
         `,
       inset && 'pl-8',
       className,
@@ -151,19 +155,19 @@ export const ContextMenuCheckboxItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent-selected
-        relative flex cursor-default select-none items-center gap-2 rounded-md
-        py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
-        data-[disabled]:pointer-events-none data-[disabled]:opacity-50
+        relative flex cursor-default items-center gap-2 rounded-md py-2 pr-2.5
+        pl-8 text-sm outline-hidden transition-colors select-none
+        data-disabled:pointer-events-none data-disabled:opacity-50
+        data-highlighted:bg-accent-selected
       `,
       className,
     )}
     checked={checked}
     {...props}
   >
-    <span className="absolute left-2.5 flex h-4 w-4 items-center justify-center">
+    <span className="absolute left-2.5 flex size-4 items-center justify-center">
       <ContextMenuPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <Check className="size-4" />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -180,18 +184,18 @@ export const ContextMenuRadioItem = forwardRef<
     ref={ref}
     className={cn(
       `
-        data-[highlighted]:bg-accent-selected
-        relative flex cursor-default select-none items-center gap-2 rounded-md
-        py-2 pl-8 pr-2.5 text-sm outline-none transition-colors
-        data-[disabled]:pointer-events-none data-[disabled]:opacity-50
+        relative flex cursor-default items-center gap-2 rounded-md py-2 pr-2.5
+        pl-8 text-sm outline-hidden transition-colors select-none
+        data-disabled:pointer-events-none data-disabled:opacity-50
+        data-highlighted:bg-accent-selected
       `,
       className,
     )}
     {...props}
   >
-    <span className="absolute left-2.5 flex h-4 w-4 items-center justify-center">
+    <span className="absolute left-2.5 flex size-4 items-center justify-center">
       <ContextMenuPrimitive.ItemIndicator>
-        <Circle className="h-2 w-2 fill-current" />
+        <Circle className="size-2 fill-current" />
       </ContextMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -208,7 +212,7 @@ export const ContextMenuLabel = forwardRef<
   <ContextMenuPrimitive.Label
     ref={ref}
     className={cn(
-      'text-muted px-2.5 py-1.5 text-xs font-semibold',
+      'px-2.5 py-1.5 text-xs font-semibold text-muted',
       inset && 'pl-8',
       className,
     )}
@@ -223,7 +227,7 @@ export const ContextMenuSeparator = forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('bg-border -mx-1 my-1 h-px', className)}
+    className={cn('-mx-1 my-1 h-px bg-border', className)}
     {...props}
   />
 ))
@@ -236,7 +240,7 @@ export const ContextMenuShortcut = ({
   return (
     <span
       className={cn(
-        'text-muted ml-auto text-xs tracking-widest opacity-60',
+        'ml-auto text-xs tracking-widest text-muted opacity-60',
         className,
       )}
       {...props}

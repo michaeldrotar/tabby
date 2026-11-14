@@ -1,6 +1,7 @@
 import {
   getOmnibarChoiceBonus,
   getOmnibarTarget,
+  matchesOmnibarChoiceQuery,
   normalizeOmnibarQuery,
   readOmnibarChoices,
 } from './omnibarChoices.js'
@@ -19,12 +20,12 @@ export type OmnibarRankableResult = Pick<
   Partial<Pick<OmnibarResult, 'action'>>
 
 const BASE_WEIGHTS: Partial<Record<OmnibarResult['type'], number>> = {
-  command: 6,
-  window: 5,
-  'tab-group': 4,
-  tab: 3,
-  bookmark: 2,
-  'recently-closed': 1,
+  command: 90,
+  window: 80,
+  'tab-group': 70,
+  tab: 60,
+  bookmark: 40,
+  'recently-closed': 20,
   history: 0,
 }
 
@@ -97,7 +98,8 @@ export const calculateScore = (
   now: number,
   choices: readonly OmnibarChoice[] = [],
 ): number => {
-  const match = getOmnibarMatchScore(item, query)
+  // Text contributes at most 10 points, keeping type preference meaningful.
+  const match = getOmnibarMatchScore(item, query) / 6
   const bonus = item.action
     ? getOmnibarChoiceBonus(
         choices,
@@ -121,11 +123,11 @@ export const rankOmnibarResults = <T extends OmnibarRankableResult>(
   now: number,
   choices: readonly OmnibarChoice[] = [],
 ): T[] => {
-  const normalized = normalizeOmnibarQuery(query)
   const choiceOrder = new Map(
     readOmnibarChoices(choices, now)
-      .filter((choice) => choice.query === normalized)
-      .map((choice, index) => [choice.target, index]),
+      .filter((choice) => matchesOmnibarChoiceQuery(choice.query, query))
+      .map((choice, index) => [choice.target, index] as const)
+      .reverse(),
   )
   return items
     .map((item) => ({
@@ -155,5 +157,5 @@ export const compareOmnibarScoredItems = (
   b.score - a.score ||
   (a.choiceOrder ?? Number.MAX_SAFE_INTEGER) -
     (b.choiceOrder ?? Number.MAX_SAFE_INTEGER) ||
-  a.item.title.localeCompare(b.item.title) ||
-  String(a.item.id).localeCompare(String(b.item.id))
+  String(a.item.id).localeCompare(String(b.item.id)) ||
+  a.item.title.localeCompare(b.item.title)
