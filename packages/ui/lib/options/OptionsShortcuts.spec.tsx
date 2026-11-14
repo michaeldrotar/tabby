@@ -33,9 +33,9 @@ const shortcutRows: OptionsProps['shortcutRows'] = [
     shortcut: 'Alt+E',
   },
   {
-    id: 'focus-window-01',
-    name: 'Focus window 1',
-    description: 'Focuses the first window',
+    id: 'open-tab-manager',
+    name: 'Open tab manager',
+    description: 'Opens the side panel',
   },
 ]
 
