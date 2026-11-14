@@ -266,6 +266,7 @@ export const WindowPicker = ({
         type="button"
         aria-label="New window"
         data-new-window
+        data-keyboard-section="new-window"
         data-create-item="window"
         className={cn(
           windowControlClass,
@@ -316,10 +317,13 @@ export const WindowIdentityEditor = ({
         if ((event.target as HTMLElement).closest('[data-name-history-popup]'))
           return
         if (
-          (event.target as HTMLElement).closest(
-            '[data-editor-native],[data-icon-grid]',
-          ) &&
+          (event.target as HTMLElement).closest('[data-icon-grid]') &&
           !['Tab', 'Escape'].includes(event.key)
+        )
+          return
+        if (
+          (event.target as HTMLElement).matches('input[data-editor-native]') &&
+          !['Tab', 'Escape', 'ArrowUp', 'ArrowDown'].includes(event.key)
         )
           return
         if (
@@ -332,9 +336,7 @@ export const WindowIdentityEditor = ({
         if (
           event.key === 'Enter' &&
           !event.nativeEvent.isComposing &&
-          !(event.target as HTMLElement).closest(
-            '[data-editor-reset],[data-window-name-history-trigger],[role="tab"]',
-          ) &&
+          !(event.target as HTMLElement).closest('button') &&
           !event.altKey &&
           !event.ctrlKey &&
           !event.metaKey &&
@@ -470,11 +472,7 @@ export const WindowIdentityEditor = ({
         event.stopPropagation()
         destination.focus()
         destination.scrollIntoView({ block: 'nearest' })
-        if (
-          horizontal &&
-          ['icons', 'colors', 'types'].includes(row.dataset.editorRow ?? '')
-        )
-          destination.click()
+        if (horizontal && row.dataset.editorRow === 'types') destination.click()
       }}
     >
       <WindowNameInput

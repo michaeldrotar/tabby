@@ -79,13 +79,19 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
       (await page.locator('[data-window-choice="1"]').boundingBox())!.height,
     )
     await page.keyboard.press('Tab')
+    await expect(newWindow).toBeFocused()
+    await page.keyboard.press('Tab')
     await expect(
       page.getByRole('button', { name: 'Search everything' }),
     ).toBeFocused()
     await page.keyboard.press('Shift+Tab')
     await expect(newWindow).toBeFocused()
     await page.keyboard.press('Shift+Tab')
-    await expect(page.locator('[data-window-picker-trigger]')).toBeFocused()
+    await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(
+      page.getByRole('button', { name: 'Edit window' }),
+    ).toBeFocused()
     await page.keyboard.press('ArrowDown')
     await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
     await expect(page.getByLabel('Viewed window')).toHaveCount(0)

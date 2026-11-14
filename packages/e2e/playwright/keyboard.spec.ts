@@ -20,6 +20,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
   const editTabStops = [
     name,
+    page.getByRole('button', { name: 'Previous names', exact: true }),
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
     page.getByRole('tab', { name: 'Icon', exact: true }),
     page.getByRole('searchbox', { name: 'Search icons' }),
@@ -64,11 +65,31 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await expect(
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
   ).toBeFocused()
+  for (const selected of [
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+    page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
+  ]) {
+    await name.focus()
+    const selectedRing = await selected.evaluate(
+      (node) => getComputedStyle(node).boxShadow,
+    )
+    await selected.press('Tab')
+    await selected.focus()
+    expect(
+      await selected.evaluate((node) => getComputedStyle(node).boxShadow),
+    ).not.toBe(selectedRing)
+  }
+  await name.press('ArrowDown')
   const oldColor = await page.locator(':focus').getAttribute('aria-label')
   await page.keyboard.press('ArrowLeft')
   expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
     oldColor,
   )
+  await expect(
+    page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
+  ).toHaveAttribute('aria-label', oldColor!)
+  await page.keyboard.press('Enter')
+  await expect(page.locator(':focus')).toHaveAttribute('aria-pressed', 'true')
   await page.keyboard.press('ArrowDown')
   await expect(
     page.getByRole('tab', { name: 'Icon', exact: true }),
@@ -85,10 +106,10 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await page.keyboard.press('ArrowRight')
   await expect(
     page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
-  ).toBeFocused()
-  expect(await page.locator(':focus').getAttribute('aria-label')).not.toBe(
-    oldIcon,
-  )
+  ).toHaveAttribute('aria-label', oldIcon!)
+  await expect(page.locator(':focus')).toHaveAttribute('aria-pressed', 'false')
+  await page.keyboard.press('Enter')
+  await expect(page.locator(':focus')).toHaveAttribute('aria-pressed', 'true')
   await page.keyboard.press('Tab')
   await expect(
     page.getByRole('button', { name: 'Done', exact: true }),
@@ -178,6 +199,25 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   const search = page.getByRole('button', { name: 'Search everything' })
   const settings = page.getByRole('button', { name: 'Options', exact: true })
   const more = page.getByRole('button', { name: 'More actions' })
+  const tabStops = [
+    switcher,
+    page.getByRole('button', { name: 'Edit window' }),
+    firstItem,
+    newTab,
+    search,
+    settings,
+    more,
+  ]
+  await expect(firstItem).toBeVisible()
+  await switcher.focus()
+  for (const stop of tabStops.slice(1)) {
+    await page.keyboard.press('Tab')
+    await expect(stop).toBeFocused()
+  }
+  for (const stop of tabStops.slice(0, -1).reverse()) {
+    await page.keyboard.press('Shift+Tab')
+    await expect(stop).toBeFocused()
+  }
   await firstItem.focus()
   await page.keyboard.press('ArrowUp')
   await expect(switcher).toBeFocused()
