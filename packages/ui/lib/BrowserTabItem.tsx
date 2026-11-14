@@ -469,13 +469,18 @@ export const BrowserTabItem = memo(
 
                 {/* Duplicate indicator */}
                 {duplicate && (
-                  <div
-                    className="shrink-0 text-muted"
+                  <span
+                    data-tab-duplicate
+                    className="
+                      inline-flex shrink-0 cursor-default items-center gap-1
+                      rounded-sm border border-border px-1.5 py-0.5 text-[10px]
+                      font-medium text-muted
+                    "
                     aria-label="Duplicate tab"
-                    title="Duplicate tab"
                   >
-                    <Layers className="size-3.5" aria-hidden />
-                  </div>
+                    <Layers className="size-3" aria-hidden />
+                    Duplicate
+                  </span>
                 )}
               </div>
             </div>

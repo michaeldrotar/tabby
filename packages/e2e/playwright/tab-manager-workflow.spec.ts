@@ -329,6 +329,7 @@ test.describe('pin indicators', () => {
           ...tab,
           groupId: -1,
           pinned: tab.id === 1 || tab.id === 2,
+          url: tab.id === 3 ? browser.tabs[0].url : tab.url,
         })),
     },
   })
@@ -340,6 +341,14 @@ test.describe('pin indicators', () => {
     await page.goto('/tab-manager/index.html')
     const tab = (id: number) => page.locator(`[data-tab-id="${id}"]`)
     await tab(1).locator('[data-tab-option]').click()
+    const duplicate = tab(1).locator('[data-tab-duplicate]')
+    await expect(duplicate).toHaveText('Duplicate')
+    await expect(duplicate).toHaveCSS('cursor', 'default')
+    await expect(duplicate).not.toHaveAttribute('role', 'button')
+    await duplicate.hover()
+    await page.waitForTimeout(200)
+    await expect(duplicate).not.toHaveAttribute('title')
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
     const inactivePin = tab(2).getByRole('button', {
       name: 'Unpin tab',
       exact: true,
