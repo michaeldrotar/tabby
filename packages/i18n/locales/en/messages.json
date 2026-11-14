@@ -100,10 +100,10 @@
     "message": "Close Tabs Below"
   },
   "tabContextMenu_closeDuplicates": {
-    "message": "Close $1 duplicates"
+    "message": "Remove $1 duplicates"
   },
   "tabContextMenu_closeDuplicates_one": {
-    "message": "Close 1 duplicate"
+    "message": "Remove 1 duplicate"
   },
   "tabContextMenu_closeTab": {
     "message": "Close Tab"

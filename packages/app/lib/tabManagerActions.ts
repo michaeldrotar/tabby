@@ -425,7 +425,7 @@ const buildTabManagerActions = (
       command(
         'close-duplicate-tabs',
         tt('tabContextMenu_closeDuplicates', duplicateTabIds.length),
-        'Trash2',
+        'BrushCleaning',
         {
           type: 'close-relative-tabs',
           tabId: single.id,

@@ -255,7 +255,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   await expect(row(2)).toBeVisible()
   await row(2).click({ button: 'right' })
   const remove = page.getByRole('menuitem', {
-    name: 'Close 2 duplicates',
+    name: 'Remove 2 duplicates',
     exact: true,
   })
   await expect(remove).toBeVisible()
@@ -469,4 +469,78 @@ test('restores the neighboring tab after closing from its context menu', async (
   await page.keyboard.press('Backspace')
   await expect(row(3)).toHaveCount(0)
   await expect(row(4)).toBeFocused()
+})
+
+test.describe('pin indicators', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      groups: [],
+      tabs: browser.tabs
+        .filter((tab) => tab.windowId === 1)
+        .map((tab) => ({
+          ...tab,
+          groupId: -1,
+          pinned: tab.id === 1 || tab.id === 2,
+          url: tab.id === 3 ? browser.tabs[0].url : tab.url,
+        })),
+    },
+  })
+
+  test('unpins by pointer and keyboard without activating or selecting another tab', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const tab = (id: number) => page.locator(`[data-tab-id="${id}"]`)
+    await tab(1).locator('[data-tab-option]').click()
+    const duplicate = tab(1).locator('[data-tab-duplicate]')
+    await expect(duplicate).toHaveText('Duplicate')
+    await expect(duplicate).toHaveCSS('cursor', 'default')
+    await expect(duplicate).not.toHaveAttribute('role', 'button')
+    await duplicate.hover()
+    await page.waitForTimeout(200)
+    await expect(duplicate).not.toHaveAttribute('title')
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
+    const inactivePin = tab(2).getByRole('button', {
+      name: 'Unpin tab',
+      exact: true,
+    })
+    await inactivePin.hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Unpin', {
+      timeout: 750,
+    })
+    await expect(inactivePin.locator('.lucide-pin-off')).toBeVisible()
+    await expect(inactivePin.locator('.lucide-pin')).toBeHidden()
+    await expect(inactivePin).not.toHaveAttribute('title')
+    await inactivePin.press('Escape')
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
+    await inactivePin.click()
+    await expect(tab(2)).not.toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+    await expect(tab(1)).toHaveAttribute('data-selected', 'true')
+    await expect(tab(2)).toHaveAttribute('data-selected', 'false')
+    const pin = tab(1).getByRole('button', { name: 'Unpin tab', exact: true })
+    const option = tab(1).locator('[data-tab-option]')
+    await option.click()
+    await option.press('Tab')
+    await expect(pin).toBeFocused()
+    await pin.press('Shift+Tab')
+    await expect(option).toBeFocused()
+    await option.press('Tab')
+    await pin.press('Enter')
+    await expect(tab(1)).not.toHaveAttribute('data-pinned', 'true')
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+    const close = tab(2).getByRole('button', { name: 'Close tab', exact: true })
+    await close.hover()
+    await expect(page.getByRole('tooltip')).toHaveText('Close', {
+      timeout: 750,
+    })
+    await expect(close).not.toHaveAttribute('title')
+    await close.click()
+    await expect(tab(2)).toHaveCount(0)
+    await expect(page.getByRole('tooltip')).toHaveCount(0)
+    await expect(tab(1)).toHaveAttribute('data-active', 'true')
+  })
 })

@@ -3,6 +3,7 @@ import { animate } from 'framer-motion'
 import {
   ArrowDown,
   ArrowLeft,
+  BrushCleaning,
   ChevronDown,
   ChevronRight,
   ChevronUp,
@@ -53,6 +54,7 @@ import type { RefObject } from 'react'
 
 const icons = {
   ArrowDown,
+  BrushCleaning,
   ChevronDown,
   ChevronUp,
   Copy,
