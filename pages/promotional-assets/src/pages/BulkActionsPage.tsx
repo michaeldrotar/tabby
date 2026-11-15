@@ -54,8 +54,8 @@ const actions: TabManagerAction[] = [
   },
   {
     id: 'copy',
-    label: 'Copy 5 tabs',
-    icon: 'Copy',
+    label: 'Copy 5 titles or URLs',
+    icon: 'ClipboardCopy',
     kind: 'secondary',
     panel: 'copy',
   },

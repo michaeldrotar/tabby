@@ -934,7 +934,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
             await resources.host.writeClipboardText(operation.text)
             if (activeGeneration === generation)
               setNotice({
-                message: `${operation.label} complete.`,
+                message: operation.successMessage,
                 kind: 'info',
               })
           } catch (error) {

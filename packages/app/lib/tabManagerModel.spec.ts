@@ -220,6 +220,250 @@ describe('Tab Manager controller', () => {
     expect(view.getState().selection).toEqual(selection)
   })
 
+  it.each([
+    ['urls', 1, 'Copied 1 URL to clipboard'],
+    ['urls', 2, 'Copied 2 URLs to clipboard'],
+    ['titles', 1, 'Copied 1 title to clipboard'],
+    ['titles', 2, 'Copied 2 titles to clipboard'],
+    ['titles-and-urls', 1, 'Copied 1 title and URL to clipboard'],
+    ['titles-and-urls', 2, 'Copied 2 titles and URLs to clipboard'],
+  ] as const)(
+    'copies %s for %i tabs and confirms the clipboard contents',
+    async (kind, count, message) => {
+      const resources = setup()
+      const writeClipboardText = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { writeClipboardText },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 11 },
+      })
+      if (count === 2)
+        controller.dispatch({
+          type: 'select-item',
+          item: { type: 'tab', id: 12 },
+          toggle: true,
+        })
+      const model = projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      )
+      expect(
+        model.actions?.find((action) => action.id === 'copy-selected-tabs'),
+      ).toMatchObject({
+        label:
+          count === 1 ? 'Copy 1 title or URL' : `Copy ${count} titles or URLs`,
+        options: [
+          {
+            id: 'urls',
+            label: `Copy ${count} ${count === 1 ? 'URL' : 'URLs'}`,
+          },
+          {
+            id: 'titles-and-urls',
+            label: `Copy ${count} ${count === 1 ? 'title and URL' : 'titles and URLs'}`,
+          },
+          {
+            id: 'titles',
+            label: `Copy ${count} ${count === 1 ? 'title' : 'titles'}`,
+          },
+        ],
+        icon: 'ClipboardCopy',
+      })
+      expect(
+        model.actions?.find(
+          (action) => action.id === 'duplicate-selected-tabs',
+        ),
+      ).toMatchObject({
+        label: `Duplicate ${count} ${count === 1 ? 'tab' : 'tabs'}`,
+      })
+      const tabs = resources.snapshot.tabs
+        .filter((tab) => tab.windowId === 1)
+        .slice(0, count)
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'copy-selected-tabs',
+        optionId: kind,
+      })
+      expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(
+        tabs
+          .map((tab) =>
+            kind === 'urls'
+              ? tab.url
+              : kind === 'titles'
+                ? tab.title
+                : `${tab.title}\t${tab.url}`,
+          )
+          .join('\n'),
+      )
+      expect(resources.view.getState().notifications.items[0]?.message).toBe(
+        message,
+      )
+      expect(resources.backend.getSnapshot().tabs).toEqual(
+        resources.snapshot.tabs,
+      )
+    },
+  )
+
+  it('counts only links that are available to copy', async () => {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.snapshot,
+      tabs: resources.snapshot.tabs.map((tab) =>
+        tab.id === 12 ? { ...tab, url: '' } : tab,
+      ),
+    })
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    const model = projectTabManager(
+      resources.backend.getSnapshot(),
+      resources.view.getState(),
+    )
+    expect(
+      model.actions?.find((action) => action.id === 'copy-selected-tabs'),
+    ).toMatchObject({
+      label: 'Copy 2 titles or URLs',
+      options: [
+        { id: 'urls', label: 'Copy 1 URL' },
+        { id: 'titles-and-urls', label: 'Copy 2 titles and 1 URL' },
+        { id: 'titles', label: 'Copy 2 titles' },
+      ],
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(
+      resources.snapshot.tabs[0]!.url,
+    )
+    expect(resources.view.getState().notifications.items[0]?.message).toBe(
+      'Copied 1 URL to clipboard',
+    )
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'titles-and-urls',
+    })
+    expect(writeClipboardText).toHaveBeenLastCalledWith(
+      `Tabby\t${resources.snapshot.tabs[0]!.url}\nNotes`,
+    )
+    expect(resources.view.getState().notifications.items[0]?.message).toBe(
+      'Copied 2 titles and 1 URL to clipboard',
+    )
+  })
+
+  it.each([
+    ['url', 'Tabby', 'Copied 1 title to clipboard'],
+    ['title', 'https://example.com/tab/11', 'Copied 1 URL to clipboard'],
+  ] as const)(
+    'confirms the available text when a combined copy has no %s',
+    async (missing, text, message) => {
+      const resources = setup()
+      resources.backend.restoreSnapshot({
+        ...resources.snapshot,
+        tabs: resources.snapshot.tabs.map((tab) =>
+          tab.id === 11 ? { ...tab, [missing]: '' } : tab,
+        ),
+      })
+      const writeClipboardText = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { writeClipboardText },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 11 },
+      })
+      const model = projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      )
+      expect(
+        model.actions
+          ?.find((action) => action.id === 'copy-selected-tabs')
+          ?.options?.find((option) => option.id === 'titles-and-urls')?.label,
+      ).toBe(
+        missing === 'url'
+          ? 'Copy 1 title and 0 URLs'
+          : 'Copy 0 titles and 1 URL',
+      )
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'copy-selected-tabs',
+        optionId: 'titles-and-urls',
+      })
+      expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(text)
+      expect(resources.view.getState().notifications.items[0]?.message).toBe(
+        message,
+      )
+    },
+  )
+
+  it('disables an empty clipboard choice without overwriting the clipboard', async () => {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.snapshot,
+      tabs: resources.snapshot.tabs.map((tab) => ({ ...tab, url: '' })),
+    })
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    const model = projectTabManager(
+      resources.backend.getSnapshot(),
+      resources.view.getState(),
+    )
+    expect(
+      model.actions
+        ?.find((action) => action.id === 'copy-selected-tabs')
+        ?.options?.find((option) => option.id === 'urls'),
+    ).toMatchObject({
+      disabled: true,
+      disabledReason: 'No text is available to copy.',
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(writeClipboardText).not.toHaveBeenCalled()
+    expect(resources.view.getState().notifications.items).toEqual([])
+  })
+
+  it('reports a clipboard failure without confirming a copy', async () => {
+    const resources = setup()
+    const controller = createTabManagerController({
+      ...resources,
+      host: {
+        writeClipboardText: async () => {
+          throw new Error('Clipboard blocked.')
+        },
+      },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(resources.view.getState().notifications.items).toMatchObject([
+      { message: 'Clipboard blocked.', kind: 'error' },
+    ])
+  })
+
   it('clears ordinary row selection at creation controls and preserves explicit multiple selection', () => {
     const { backend, view, controller } = setup()
     const selected = () =>

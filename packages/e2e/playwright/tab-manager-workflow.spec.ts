@@ -379,7 +379,7 @@ test('organizes a tab with local action keys and keeps native focus through pinn
     ['Duplicate 1 tab', 'D'],
     ['Group 1 tab', 'G'],
     ['Move 1 tab to window', 'W'],
-    ['Copy 1 tab', 'C'],
+    ['Copy 1 title or URL', 'C'],
     ['New tab below', 'N'],
   ]) {
     await expect(
@@ -654,4 +654,55 @@ test.describe('context menu placement', () => {
       expect(narrow.x + narrow.width).toBeLessThanOrEqual(272)
     })
   }
+})
+
+test('copies selected URLs and confirms the clipboard count', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(1).click({ button: 'right' })
+  await page
+    .getByRole('menuitem', { name: 'Copy 1 title or URL', exact: true })
+    .click()
+  await expect(page.getByRole('menuitem')).toHaveText([
+    'Back',
+    'Copy 1 URL',
+    'Copy 1 title and URL',
+    'Copy 1 title',
+  ])
+  await page.getByRole('menuitem', { name: 'Copy 1 URL', exact: true }).click()
+  await expect(
+    page.getByText('Copied 1 URL to clipboard', { exact: true }),
+  ).toBeVisible()
+  const toggle = process.platform === 'darwin' ? 'Meta' : 'Control'
+  await row(2).click({ modifiers: [toggle] })
+  await row(3).click({ modifiers: [toggle] })
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await page
+    .getByRole('menuitem', { name: 'Copy 3 titles or URLs', exact: true })
+    .click()
+  await expect(page.getByRole('menuitem')).toHaveText([
+    'Back',
+    'Copy 3 URLs',
+    'Copy 3 titles and URLs',
+    'Copy 3 titles',
+  ])
+  await page.getByRole('menuitem', { name: 'Copy 3 URLs', exact: true }).click()
+  await expect(
+    page.getByText('Copied 3 URLs to clipboard', { exact: true }),
+  ).toBeVisible()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    browser.tabs
+      .filter((tab) => [1, 2, 3].includes(tab.id))
+      .map((tab) => tab.url)
+      .join('\n'),
+  )
+  await expect(
+    page.locator('[data-tab-option][aria-selected="true"]'),
+  ).toHaveCount(3)
 })
