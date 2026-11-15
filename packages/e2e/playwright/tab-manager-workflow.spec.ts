@@ -318,6 +318,162 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   )
 })
 
+test('organizes a tab with local action keys and keeps native focus through pinning', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/tab-manager/index.html')
+  const row = () => page.locator('[data-tab-id="5"] [data-tab-option]')
+  await row().focus()
+  await row().press('p')
+  await expect(page.locator('[data-tab-id="5"]')).toHaveAttribute(
+    'data-pinned',
+    'true',
+  )
+  await expect(row()).toBeFocused()
+  await row().press('p')
+  await expect(page.locator('[data-tab-id="5"]')).not.toHaveAttribute(
+    'data-pinned',
+  )
+  await expect(row()).toBeFocused()
+  await row().press('g')
+  await expect(page.getByRole('menuitem').first()).toBeFocused()
+  const chooser = page.getByRole('menu')
+  await expect
+    .poll(async () => {
+      const item = (await row().boundingBox())!
+      const menu = (await chooser.boundingBox())!
+      return Math.abs(menu.x - item.x)
+    })
+    .toBeLessThan(20)
+  await expect
+    .poll(async () => {
+      const item = (await row().boundingBox())!
+      const menu = (await chooser.boundingBox())!
+      return Math.max(
+        0,
+        menu.y - item.y - item.height,
+        item.y - menu.y - menu.height,
+      )
+    })
+    .toBeLessThan(16)
+  await page.keyboard.press('Escape')
+  await expect(row()).toBeFocused()
+  await row().press('g')
+  const newGroup = page.getByRole('menuitem', { name: /New group/i })
+  await newGroup.focus()
+  await newGroup.press('Enter')
+  await expect(row()).toHaveCount(1)
+  await expect(page.locator('[data-group-id] [data-tab-id="5"]')).toHaveCount(1)
+  await expect(row()).toBeFocused()
+  await row().press('u')
+  await expect(page.locator('[data-group-id] [data-tab-id="5"]')).toHaveCount(0)
+  await expect(row()).toHaveCount(1)
+  await row().press('d')
+  await expect(page.locator('[data-tab-id]')).toHaveCount(7)
+  await row().click({ button: 'right' })
+  for (const [name, key] of [
+    ['Pin 1 tab', 'P'],
+    ['Reload 1 tab', 'R'],
+    ['Duplicate 1 tab', 'D'],
+    ['Group 1 tab', 'G'],
+    ['Move 1 tab to window', 'W'],
+    ['Copy 1 title or URL', 'C'],
+    ['New tab below', 'N'],
+  ]) {
+    await expect(
+      page.getByRole('menuitem', { name, exact: true }).locator('kbd'),
+    ).toHaveText(key)
+  }
+  const close = page.getByRole('menuitem', { name: 'Close 1 tab', exact: true })
+  await expect(close).toHaveAttribute('aria-keyshortcuts', 'Delete Backspace')
+  await expect(close.locator('kbd svg')).toHaveCount(1)
+  await expect(close.locator('kbd')).toHaveText('')
+  const positions = await page
+    .locator('[role="menuitem"] kbd')
+    .evaluateAll((keys) => keys.map((key) => key.getBoundingClientRect().right))
+  expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await expect
+    .poll(async () => {
+      const bounds = (await page.getByRole('menu').boundingBox())!
+      return bounds.x >= 0 && bounds.x + bounds.width <= 320
+    })
+    .toBe(true)
+  await page.keyboard.press('p')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id="5"]')).toHaveAttribute(
+    'data-pinned',
+    'true',
+  )
+  await expect(row()).toBeFocused()
+  await row().click({ button: 'right' })
+  await page.keyboard.press('p')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id="5"]')).not.toHaveAttribute(
+    'data-pinned',
+  )
+  await row().click({ button: 'right' })
+  await page.keyboard.press('g')
+  await expect(page.getByRole('menu', { name: 'Group 1 tab' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(row()).toBeFocused()
+  await page.mouse.move(0, 0)
+  for (const [key, name] of [
+    ['w', /Move/],
+    ['c', /Copy/],
+  ] as const) {
+    await row().click({ button: 'right' })
+    await page.keyboard.press(key)
+    await expect(page.getByRole('menu', { name })).toBeVisible()
+    await expect(page.getByRole('menuitem').first()).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('menu')).toHaveCount(0)
+    await expect(row()).toBeFocused()
+  }
+  await row().press('z')
+  await expect(row()).toHaveAttribute('aria-label', /unloaded/)
+  await row().press('n')
+  await expect(page.locator('[data-tab-id]')).toHaveCount(8)
+  await row().click({ button: 'right' })
+  await page.keyboard.press('Backspace')
+  await expect(page.locator('[data-tab-id="5"]')).toHaveCount(0)
+  await expect(page.locator('[data-tab-id]')).toHaveCount(7)
+  await expect(page.getByRole('menu')).toHaveCount(0)
+})
+
+test('restores focus in the replacement window when a window closes with its actions menu open', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const original = page.locator('[data-tab-id="1"] [data-tab-option]')
+  await original.focus()
+  await original.press('ContextMenu')
+  await expect(page.getByRole('menu')).toBeVisible()
+  await page.evaluate(() => chrome.windows.remove(1))
+  await expect(original).toHaveCount(0)
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(
+    page.locator('[data-tab-id="7"] [data-tab-option]'),
+  ).toBeFocused()
+})
+
+test('restores the neighboring tab after closing from its context menu', async ({
+  page,
+}) => {
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(3).focus()
+  await row(3).press('ContextMenu')
+  await page.keyboard.press('Backspace')
+  await expect(row(3)).toHaveCount(0)
+  await expect(row(4)).toBeFocused()
+})
+
 test.describe('pin indicators', () => {
   test.use({
     browserData: {
@@ -390,4 +546,163 @@ test.describe('pin indicators', () => {
     await expect(page.getByRole('tooltip')).toHaveCount(0)
     await expect(tab(1)).toHaveAttribute('data-active', 'true')
   })
+})
+
+test.describe('context menu placement', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      windows: [
+        ...browser.windows,
+        ...Array.from({ length: 20 }, (_, index) => ({
+          ...browser.windows[1],
+          id: 100 + index,
+          focused: false,
+        })),
+      ],
+    },
+  })
+
+  test('repositions an open menu to another item before preserving its new direction', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const row = (id: number) =>
+      page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+    const menu = page.getByRole('menu')
+    await row(1).click({ button: 'right', position: { x: 4, y: 4 } })
+    await expect(menu).toBeVisible()
+    await row(6).click({ button: 'right', position: { x: 4, y: 4 } })
+    await expect(menu).toHaveAttribute('data-side', 'top')
+    const initial = (await menu.boundingBox())!
+    await page.keyboard.press('c')
+    await expect(
+      page.getByRole('menuitem', { name: 'Back', exact: true }),
+    ).toBeVisible()
+    await expect(menu).toHaveAttribute('data-side', 'top')
+    await expect
+      .poll(async () => {
+        const bounds = (await menu.boundingBox())!
+        return Math.abs(bounds.y + bounds.height - initial.y - initial.height)
+      })
+      .toBeLessThan(0.5)
+    await page.keyboard.press('ArrowLeft')
+    await expect.poll(() => menu.boundingBox()).toEqual(initial)
+  })
+
+  for (const { height, tabId, side, toolbar } of [
+    { height: 1000, tabId: 1, side: 'bottom', toolbar: false },
+    { height: 640, tabId: 6, side: 'top', toolbar: false },
+    { height: 640, tabId: 6, side: 'top', toolbar: true },
+  ]) {
+    test(`keeps ${toolbar ? 'toolbar' : side + '-opening'} menus steady through short and scrolling submenus`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 480, height })
+      await page.goto('/tab-manager/index.html')
+      const row = page.locator(`[data-tab-id="${tabId}"] [data-tab-option]`)
+      if (toolbar) {
+        await row.click()
+        await page
+          .getByRole('button', { name: 'More actions', exact: true })
+          .click()
+      } else {
+        await row.click({ button: 'right' })
+      }
+      const menu = page.getByRole('menu')
+      await expect(menu).toHaveAttribute('data-side', side)
+      const initial = (await menu.boundingBox())!
+      expect(initial.width).toBe(320)
+      for (const key of ['c', 'w']) {
+        await page.keyboard.press(key)
+        await expect(
+          page.getByRole('menuitem', { name: 'Back', exact: true }),
+        ).toBeVisible()
+        await expect(menu).toHaveAttribute('data-side', side)
+        const submenu = (await menu.boundingBox())!
+        expect(submenu.width).toBe(initial.width)
+        expect(submenu.height).toBeLessThanOrEqual(initial.height)
+        expect(submenu.x).toBe(initial.x)
+        await expect
+          .poll(async () => {
+            const bounds = (await menu.boundingBox())!
+            return Math.abs(
+              (side === 'top' ? bounds.y + bounds.height : bounds.y) -
+                (side === 'top' ? initial.y + initial.height : initial.y),
+            )
+          })
+          .toBeLessThan(0.5)
+        if (key === 'w') {
+          expect(
+            await menu.evaluate(
+              (element) => element.scrollHeight > element.clientHeight,
+            ),
+          ).toBe(true)
+        }
+        await page.keyboard.press('ArrowLeft')
+        await expect(
+          page.getByRole('menuitem', { name: 'Back', exact: true }),
+        ).toHaveCount(0)
+        await expect.poll(() => menu.boundingBox()).toEqual(initial)
+      }
+      await page.keyboard.press('Escape')
+      await page.setViewportSize({ width: 280, height: 640 })
+      await row.click({ button: 'right' })
+      const narrow = (await menu.boundingBox())!
+      expect(narrow.x).toBeGreaterThanOrEqual(8)
+      expect(narrow.x + narrow.width).toBeLessThanOrEqual(272)
+    })
+  }
+})
+
+test('copies selected URLs and confirms the clipboard count', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(1).click({ button: 'right' })
+  await page
+    .getByRole('menuitem', { name: 'Copy 1 title or URL', exact: true })
+    .click()
+  await expect(page.getByRole('menuitem')).toHaveText([
+    'Back',
+    'Copy 1 URL',
+    'Copy 1 title and URL',
+    'Copy 1 title',
+  ])
+  await page.getByRole('menuitem', { name: 'Copy 1 URL', exact: true }).click()
+  await expect(
+    page.getByText('Copied 1 URL to clipboard', { exact: true }),
+  ).toBeVisible()
+  const toggle = process.platform === 'darwin' ? 'Meta' : 'Control'
+  await row(2).click({ modifiers: [toggle] })
+  await row(3).click({ modifiers: [toggle] })
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await page
+    .getByRole('menuitem', { name: 'Copy 3 titles or URLs', exact: true })
+    .click()
+  await expect(page.getByRole('menuitem')).toHaveText([
+    'Back',
+    'Copy 3 URLs',
+    'Copy 3 titles and URLs',
+    'Copy 3 titles',
+  ])
+  await page.getByRole('menuitem', { name: 'Copy 3 URLs', exact: true }).click()
+  await expect(
+    page.getByText('Copied 3 URLs to clipboard', { exact: true }),
+  ).toBeVisible()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    browser.tabs
+      .filter((tab) => [1, 2, 3].includes(tab.id))
+      .map((tab) => tab.url)
+      .join('\n'),
+  )
+  await expect(
+    page.locator('[data-tab-option][aria-selected="true"]'),
+  ).toHaveCount(3)
 })

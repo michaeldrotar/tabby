@@ -120,6 +120,39 @@
   "batch_duplicateTabs": {
     "message": "Duplicate $1"
   },
+  "batch_copiedUrls": {
+    "message": "Copied $1 URLs to clipboard"
+  },
+  "batch_copiedUrls_one": {
+    "message": "Copied 1 URL to clipboard"
+  },
+  "batch_copiedTitles": {
+    "message": "Copied $1 titles to clipboard"
+  },
+  "batch_copiedTitles_one": {
+    "message": "Copied 1 title to clipboard"
+  },
+  "batch_copiedTitlesAndUrls": {
+    "message": "Copied $1 titles and URLs to clipboard"
+  },
+  "batch_copiedTitlesAndUrls_one": {
+    "message": "Copied 1 title and URL to clipboard"
+  },
+  "batch_copiedMixedTitlesAndUrls": {
+    "message": "Copied $1 and $2 to clipboard"
+  },
+  "batch_titleCount": {
+    "message": "$1 titles"
+  },
+  "batch_titleCount_one": {
+    "message": "1 title"
+  },
+  "batch_urlCount": {
+    "message": "$1 URLs"
+  },
+  "batch_urlCount_one": {
+    "message": "1 URL"
+  },
   "batch_reloadTabs": {
     "message": "Reload $1"
   },
@@ -160,16 +193,34 @@
     "message": "Ungroup $1"
   },
   "batch_copyTabs": {
-    "message": "Copy $1"
+    "message": "Copy $1 titles or URLs"
+  },
+  "batch_copyTabs_one": {
+    "message": "Copy 1 title or URL"
+  },
+  "batch_noCopyText": {
+    "message": "No text is available to copy."
   },
   "batch_copyUrls": {
-    "message": "Copy URLs"
+    "message": "Copy $1 URLs"
+  },
+  "batch_copyUrls_one": {
+    "message": "Copy 1 URL"
   },
   "batch_copyTitles": {
-    "message": "Copy titles"
+    "message": "Copy $1 titles"
+  },
+  "batch_copyTitles_one": {
+    "message": "Copy 1 title"
   },
   "batch_copyTitlesAndUrls": {
-    "message": "Copy titles and URLs"
+    "message": "Copy $1 titles and URLs"
+  },
+  "batch_copyMixedTitlesAndUrls": {
+    "message": "Copy $1 and $2"
+  },
+  "batch_copyTitlesAndUrls_one": {
+    "message": "Copy 1 title and URL"
   },
   "batch_tabActions": {
     "message": "Tab actions"

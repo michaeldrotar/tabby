@@ -44,6 +44,163 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('dismisses selection menus and choosers when their window closes', async () => {
+    const { backend, view, controller } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({ type: 'open-action-menu' })
+    controller.dispatch({
+      type: 'open-action-panel',
+      actionId: 'move-selected-tabs',
+    })
+    await backend.execute({ type: 'close-window', windowId: 1 })
+    controller.reconcile()
+    expect(view.getState()).toMatchObject({
+      viewedWindowId: 2,
+      actionMenu: null,
+      actionPanel: null,
+      focusedItem: { type: 'tab', id: 13 },
+    })
+  })
+
+  it('opens move and copy choosers for the focused selection and copies the chosen content', async () => {
+    const resources = setup()
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    for (const [key, actionId] of [
+      ['w', 'move-selected-tabs'],
+      ['c', 'copy-selected-tabs'],
+    ] as const) {
+      await controller.dispatch({ type: 'navigate', key })
+      expect(resources.view.getState().actionPanel).toEqual({ actionId })
+      if (key === 'c')
+        await controller.dispatch({
+          type: 'run-action',
+          actionId,
+          optionId: 'urls',
+        })
+      else await controller.dispatch({ type: 'navigate', key: 'Escape' })
+    }
+    expect(writeClipboardText).toHaveBeenCalledWith(
+      resources.snapshot.tabs.find((tab) => tab.id === 12)!.url,
+    )
+  })
+
+  it('discards eligible tabs and creates a tab below only a single selected tab', async () => {
+    const { controller, backend } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({ type: 'navigate', key: 'z' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.discarded,
+    ).toBeFalsy()
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    await controller.dispatch({ type: 'navigate', key: 'n' })
+    expect(backend.getSnapshot().tabs).toHaveLength(3)
+    await controller.dispatch({ type: 'navigate', key: 'z' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 12)?.discarded,
+    ).toBe(true)
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.discarded,
+    ).toBeFalsy()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'n' })
+    const tabs = backend
+      .getSnapshot()
+      .tabs.filter((tab) => tab.windowId === 1)
+      .sort((a, b) => a.index - b.index)
+    expect(tabs).toHaveLength(3)
+    expect(tabs.map((tab) => tab.id).slice(0, 2)).toEqual([11, 12])
+    expect(tabs[2]!.active).toBe(true)
+  })
+
+  it('reloads selected tabs without intercepting modified action keys', async () => {
+    const { controller, backend } = setup()
+    const execute = vi.spyOn(backend, 'execute')
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'r', toggle: true })
+    expect(execute).not.toHaveBeenCalled()
+    await controller.dispatch({ type: 'navigate', key: 'r' })
+    expect(execute).toHaveBeenCalledWith({
+      type: 'tab-action',
+      action: 'reload',
+      tabIds: [12],
+    })
+  })
+
+  it('toggles pin and audio for the selection and falls back to an unselected focused tab', async () => {
+    const { controller, backend, view } = setup()
+    backend.restoreSnapshot({
+      ...backend.getSnapshot(),
+      tabs: backend
+        .getSnapshot()
+        .tabs.map((tab) => ({ ...tab, audible: true })),
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 11 } })
+    const selectedTabs = () =>
+      backend.getSnapshot().tabs.filter((tab) => [11, 12].includes(tab.id))
+    for (const [key, property] of [
+      ['p', 'pinned'],
+      ['m', 'muted'],
+    ] as const) {
+      await controller.dispatch({ type: 'navigate', key })
+      expect(selectedTabs().map((tab) => tab[property])).toEqual([true, true])
+      await controller.dispatch({ type: 'navigate', key })
+      expect(selectedTabs().map((tab) => !!tab[property])).toEqual([
+        false,
+        false,
+      ])
+    }
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 12 } })
+    await controller.dispatch({ type: 'navigate', key: 'p' })
+    expect(selectedTabs().map((tab) => !!tab.pinned)).toEqual([true, false])
+    expect(view.getState().selection.selection.tabIds).toEqual(new Set([12]))
+  })
+
+  it('uses the existing group chooser and ungroup actions and respects unavailable actions', async () => {
+    const { controller, backend, view } = setup()
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({ type: 'navigate', key: 'g' })
+    expect(view.getState().actionPanel).toEqual({
+      actionId: 'group-selected-tabs',
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'group-selected-tabs',
+      optionId: 'new',
+    })
+    controller.reconcile()
+    const groupId = backend
+      .getSnapshot()
+      .tabs.find((tab) => tab.id === 11)!.groupId!
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'group', id: groupId },
+    })
+    await controller.dispatch({ type: 'navigate', key: 'p' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.pinned,
+    ).toBeFalsy()
+    await controller.dispatch({ type: 'navigate', key: 'u' })
+    expect(
+      backend.getSnapshot().tabs.find((tab) => tab.id === 11)?.groupId,
+    ).toBeUndefined()
+  })
+
   it('unpins only the requested tab and preserves selection and activation', async () => {
     const { backend, view, controller } = setup()
     await backend.execute({
@@ -63,11 +220,254 @@ describe('Tab Manager controller', () => {
     expect(view.getState().selection).toEqual(selection)
   })
 
+  it.each([
+    ['urls', 1, 'Copied 1 URL to clipboard'],
+    ['urls', 2, 'Copied 2 URLs to clipboard'],
+    ['titles', 1, 'Copied 1 title to clipboard'],
+    ['titles', 2, 'Copied 2 titles to clipboard'],
+    ['titles-and-urls', 1, 'Copied 1 title and URL to clipboard'],
+    ['titles-and-urls', 2, 'Copied 2 titles and URLs to clipboard'],
+  ] as const)(
+    'copies %s for %i tabs and confirms the clipboard contents',
+    async (kind, count, message) => {
+      const resources = setup()
+      const writeClipboardText = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { writeClipboardText },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 11 },
+      })
+      if (count === 2)
+        controller.dispatch({
+          type: 'select-item',
+          item: { type: 'tab', id: 12 },
+          toggle: true,
+        })
+      const model = projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      )
+      expect(
+        model.actions?.find((action) => action.id === 'copy-selected-tabs'),
+      ).toMatchObject({
+        label:
+          count === 1 ? 'Copy 1 title or URL' : `Copy ${count} titles or URLs`,
+        options: [
+          {
+            id: 'urls',
+            label: `Copy ${count} ${count === 1 ? 'URL' : 'URLs'}`,
+          },
+          {
+            id: 'titles-and-urls',
+            label: `Copy ${count} ${count === 1 ? 'title and URL' : 'titles and URLs'}`,
+          },
+          {
+            id: 'titles',
+            label: `Copy ${count} ${count === 1 ? 'title' : 'titles'}`,
+          },
+        ],
+        icon: 'ClipboardCopy',
+      })
+      expect(
+        model.actions?.find(
+          (action) => action.id === 'duplicate-selected-tabs',
+        ),
+      ).toMatchObject({
+        label: `Duplicate ${count} ${count === 1 ? 'tab' : 'tabs'}`,
+      })
+      const tabs = resources.snapshot.tabs
+        .filter((tab) => tab.windowId === 1)
+        .slice(0, count)
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'copy-selected-tabs',
+        optionId: kind,
+      })
+      expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(
+        tabs
+          .map((tab) =>
+            kind === 'urls'
+              ? tab.url
+              : kind === 'titles'
+                ? tab.title
+                : `${tab.title}\t${tab.url}`,
+          )
+          .join('\n'),
+      )
+      expect(resources.view.getState().notifications.items[0]?.message).toBe(
+        message,
+      )
+      expect(resources.backend.getSnapshot().tabs).toEqual(
+        resources.snapshot.tabs,
+      )
+    },
+  )
+
+  it('counts only links that are available to copy', async () => {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.snapshot,
+      tabs: resources.snapshot.tabs.map((tab) =>
+        tab.id === 12 ? { ...tab, url: '' } : tab,
+      ),
+    })
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: 12 },
+      toggle: true,
+    })
+    const model = projectTabManager(
+      resources.backend.getSnapshot(),
+      resources.view.getState(),
+    )
+    expect(
+      model.actions?.find((action) => action.id === 'copy-selected-tabs'),
+    ).toMatchObject({
+      label: 'Copy 2 titles or URLs',
+      options: [
+        { id: 'urls', label: 'Copy 1 URL' },
+        { id: 'titles-and-urls', label: 'Copy 2 titles and 1 URL' },
+        { id: 'titles', label: 'Copy 2 titles' },
+      ],
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(
+      resources.snapshot.tabs[0]!.url,
+    )
+    expect(resources.view.getState().notifications.items[0]?.message).toBe(
+      'Copied 1 URL to clipboard',
+    )
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'titles-and-urls',
+    })
+    expect(writeClipboardText).toHaveBeenLastCalledWith(
+      `Tabby\t${resources.snapshot.tabs[0]!.url}\nNotes`,
+    )
+    expect(resources.view.getState().notifications.items[0]?.message).toBe(
+      'Copied 2 titles and 1 URL to clipboard',
+    )
+  })
+
+  it.each([
+    ['url', 'Tabby', 'Copied 1 title to clipboard'],
+    ['title', 'https://example.com/tab/11', 'Copied 1 URL to clipboard'],
+  ] as const)(
+    'confirms the available text when a combined copy has no %s',
+    async (missing, text, message) => {
+      const resources = setup()
+      resources.backend.restoreSnapshot({
+        ...resources.snapshot,
+        tabs: resources.snapshot.tabs.map((tab) =>
+          tab.id === 11 ? { ...tab, [missing]: '' } : tab,
+        ),
+      })
+      const writeClipboardText = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { writeClipboardText },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 11 },
+      })
+      const model = projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      )
+      expect(
+        model.actions
+          ?.find((action) => action.id === 'copy-selected-tabs')
+          ?.options?.find((option) => option.id === 'titles-and-urls')?.label,
+      ).toBe(
+        missing === 'url'
+          ? 'Copy 1 title and 0 URLs'
+          : 'Copy 0 titles and 1 URL',
+      )
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'copy-selected-tabs',
+        optionId: 'titles-and-urls',
+      })
+      expect(writeClipboardText).toHaveBeenCalledExactlyOnceWith(text)
+      expect(resources.view.getState().notifications.items[0]?.message).toBe(
+        message,
+      )
+    },
+  )
+
+  it('disables an empty clipboard choice without overwriting the clipboard', async () => {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.snapshot,
+      tabs: resources.snapshot.tabs.map((tab) => ({ ...tab, url: '' })),
+    })
+    const writeClipboardText = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { writeClipboardText },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    const model = projectTabManager(
+      resources.backend.getSnapshot(),
+      resources.view.getState(),
+    )
+    expect(
+      model.actions
+        ?.find((action) => action.id === 'copy-selected-tabs')
+        ?.options?.find((option) => option.id === 'urls'),
+    ).toMatchObject({
+      disabled: true,
+      disabledReason: 'No text is available to copy.',
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(writeClipboardText).not.toHaveBeenCalled()
+    expect(resources.view.getState().notifications.items).toEqual([])
+  })
+
+  it('reports a clipboard failure without confirming a copy', async () => {
+    const resources = setup()
+    const controller = createTabManagerController({
+      ...resources,
+      host: {
+        writeClipboardText: async () => {
+          throw new Error('Clipboard blocked.')
+        },
+      },
+    })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'copy-selected-tabs',
+      optionId: 'urls',
+    })
+    expect(resources.view.getState().notifications.items).toMatchObject([
+      { message: 'Clipboard blocked.', kind: 'error' },
+    ])
+  })
+
   it('clears ordinary row selection at creation controls and preserves explicit multiple selection', () => {
     const { backend, view, controller } = setup()
     const selected = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds
     controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
     controller.dispatch({ type: 'focus-creation', pane: 'tab' })
     controller.reconcile()
@@ -86,8 +486,7 @@ describe('Tab Manager controller', () => {
   it('preserves selection when the picker is canceled or the same window is chosen, and starts with the active tab on a real switch', async () => {
     const { backend, view, controller } = setup()
     const selected = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds
     controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
     controller.dispatch({ type: 'open-window-picker' })
     controller.dispatch({ type: 'navigate', key: 'Escape' })
@@ -126,14 +525,12 @@ describe('Tab Manager controller', () => {
       toggle: true,
     })
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([12])
     expect(view.getState().selection.selection.groupIds.size).toBe(0)
     controller.dispatch({ type: 'navigate', key: 'a', toggle: true })
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([11, 12])
     backend.restoreSnapshot({
       ...backend.getSnapshot(),
@@ -145,8 +542,7 @@ describe('Tab Manager controller', () => {
     })
     controller.reconcile()
     expect(
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
-        .selectedTabIds,
+      projectTabManager(backend.getSnapshot(), view.getState()).selectedTabIds,
     ).toEqual([11])
   })
 
@@ -420,7 +816,6 @@ describe('Tab Manager controller', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       )
     expect(
       project().actions?.some((action) => action.id === 'group-selected-tabs'),
@@ -509,11 +904,7 @@ describe('Tab Manager controller', () => {
       target: { type: 'tab', id: 11 },
     })
 
-    const model = projectTabManager(
-      backend.getSnapshot(),
-      view.getState(),
-      1700000000000,
-    )
+    const model = projectTabManager(backend.getSnapshot(), view.getState())
     expect(model.duplicateTabIds).toEqual([11, 21, 22])
     expect(
       model.actions?.find((action) => action.id === 'close-duplicate-tabs')
@@ -529,7 +920,6 @@ describe('Tab Manager controller', () => {
     const updatedModel = projectTabManager(
       backend.getSnapshot(),
       view.getState(),
-      1700000000000,
     )
     expect(
       updatedModel.actions?.some(
@@ -583,7 +973,7 @@ describe('Tab Manager controller', () => {
         11, 12, 14,
       ])
       expect(
-        projectTabManager(backend.getSnapshot(), view.getState(), 0)
+        projectTabManager(backend.getSnapshot(), view.getState())
           .selectedTabIds,
       ).toEqual([11, 12])
       controller.dispatch({
@@ -676,7 +1066,7 @@ describe('Tab Manager controller', () => {
       shift: true,
     })
     expect(
-      projectTabManager(left.backend.getSnapshot(), left.view.getState(), 0)
+      projectTabManager(left.backend.getSnapshot(), left.view.getState())
         .selectedTabIds,
     ).toEqual([11, 12])
     await left.controller.dispatch({ type: 'close-selection' })
@@ -732,17 +1122,10 @@ describe('Tab Manager controller', () => {
     ).toBe(true)
   })
 
-  it('keeps a valid view stable and uses the supplied clock for age labels', () => {
+  it('keeps a valid view stable', () => {
     const { snapshot, view } = setup()
     const state = reconcileTabManagerView(snapshot, view.getState())
     expect(reconcileTabManagerView(snapshot, state)).toBe(state)
-    const timed = {
-      ...snapshot,
-      tabs: snapshot.tabs.map((tab) => ({ ...tab, lastAccessed: 1000 })),
-    }
-    expect(
-      projectTabManager(timed, state, 121000).windows[0]?.tabs[0]?.ageLabel,
-    ).toBe('2m')
   })
 
   it.each([false, true])(
@@ -816,7 +1199,6 @@ describe('Tab Manager controller', () => {
         projectTabManager(
           next,
           view.getState(),
-          0,
           {},
           controller.getPreviousSnapshot(),
         ).focusedItem,
@@ -858,28 +1240,6 @@ describe('Tab Manager controller', () => {
 })
 
 describe('complete Tab Manager actions', () => {
-  it('updates relative ages at their actual boundaries while reusing unchanged rows', () => {
-    const resources = setup()
-    const original = resources.backend.getSnapshot()
-    resources.backend.restoreSnapshot({
-      ...original,
-      tabs: original.tabs.map((tab) => ({ ...tab, lastAccessed: 10500 })),
-    })
-    const snapshot = resources.backend.getSnapshot(),
-      state = resources.view.getState()
-    const first = projectTabManager(snapshot, state, 69999)
-    expect(first.windows[0]?.tabs[0]?.ageLabel).toBe('59s')
-    expect(projectTabManager(snapshot, state, 70001).windows).toBe(
-      first.windows,
-    )
-    expect(
-      projectTabManager(snapshot, state, 70500).windows[0]?.tabs[0]?.ageLabel,
-    ).toBe('1m')
-    const reduced = projectTabManager(snapshot, state, 11000, {
-      reduceAgePrecision: true,
-    })
-    expect(reduced.windows[0]?.tabs[0]?.ageLabel).toBe('1m')
-  })
   it('restores and shares a rename draft before changing browser data', async () => {
     const resources = setup()
     const fixture = createFixtureBuilder()
@@ -914,7 +1274,6 @@ describe('complete Tab Manager actions', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       ).renamingGroupTitle,
     ).toBe('Review draft')
     await resources.controller.dispatch({
@@ -939,7 +1298,6 @@ describe('complete Tab Manager actions', () => {
     const first = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      1000,
     )
     expect(
       first.actions
@@ -950,7 +1308,6 @@ describe('complete Tab Manager actions', () => {
     const scrolled = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      2000,
     )
     expect(scrolled.windows).toBe(first.windows)
     resources.controller.dispatch({
@@ -1020,7 +1377,6 @@ describe('complete Tab Manager actions', () => {
     const model = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      0,
     )
     expect(model.selectedTabIds).toEqual([11, 12, 113, 114])
     expect(model.selectedGroupIds).toEqual([5, 6])
@@ -1060,7 +1416,6 @@ describe('complete Tab Manager actions', () => {
     const model = projectTabManager(
       resources.backend.getSnapshot(),
       resources.view.getState(),
-      0,
     )
     expect(
       model.actions
@@ -1136,7 +1491,6 @@ describe('complete Tab Manager actions', () => {
       projectTabManager(
         resources.backend.getSnapshot(),
         resources.view.getState(),
-        0,
       ).selectedTabIds
     expect(selected()).toEqual([11])
     resources.controller.dispatch({
@@ -1396,7 +1750,7 @@ describe('adjacent tab creation', () => {
         toggle,
       })
     const model = () =>
-      projectTabManager(backend.getSnapshot(), view.getState(), 0)
+      projectTabManager(backend.getSnapshot(), view.getState())
     await select(11)
     await controller.dispatch({ type: 'run-action', actionId: 'new-tab-below' })
     const created = backend

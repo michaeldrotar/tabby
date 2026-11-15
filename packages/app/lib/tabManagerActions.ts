@@ -1,5 +1,5 @@
 import {
-  formatBatchTabCopyText,
+  formatBatchTabCopy,
   getGroupActionBlockReason,
   getMoveBlockReason,
   getNewWindowMoveBlockReason,
@@ -9,6 +9,7 @@ import {
   getTabMoveUnits,
   resolveSelectedTabIds,
 } from '@extension/core'
+import { getTabManagerActionShortcutLabel } from '@extension/core/tabManagerShortcuts'
 import { getWindowIdentity } from '@extension/core/windowIdentity'
 import { t, tt } from '@extension/i18n/catalog'
 import type { TabManagerViewState } from './view'
@@ -24,12 +25,11 @@ import type {
 
 export type ManagerActionOperation =
   | { type: 'command'; command: BrowserCommand; label: string }
-  | { type: 'copy'; text: string; label: string }
+  | { type: 'copy'; text: string; successMessage: string }
   | { type: 'rename'; groupId: number }
 
 export type ManagerActionOptions = {
   windowSource?: 'active' | 'first'
-  reduceAgePrecision?: boolean
 }
 export type ManagerActionCatalog = {
   actions: TabManagerAction[]
@@ -388,25 +388,58 @@ const buildTabManagerActions = (
   if (ids.length)
     add({
       id: 'copy-selected-tabs',
-      label: `Copy ${count(ids.length)}`,
-      icon: 'Copy',
+      label: tt('batch_copyTabs', ids.length),
+      icon: 'ClipboardCopy',
       kind: 'secondary',
       panel: 'copy',
       options: (
         [
-          ['urls', 'Copy URLs', 'Link2'],
-          ['titles', 'Copy titles', 'FileText'],
-          ['titles-and-urls', 'Copy titles and URLs', 'Copy'],
+          ['urls', 'batch_copyUrls', 'Link2', 'batch_copiedUrls'],
+          [
+            'titles-and-urls',
+            'batch_copyTitlesAndUrls',
+            'ClipboardCopy',
+            'batch_copiedTitlesAndUrls',
+          ],
+          ['titles', 'batch_copyTitles', 'FileText', 'batch_copiedTitles'],
         ] as const
-      ).map(([kind, label, icon]) =>
-        option(
+      ).map(([kind, labelKey, icon, message]) => {
+        const payload = formatBatchTabCopy(tabs, kind)
+        const contentCount =
+          kind === 'titles-and-urls' ? payload.titleCount : payload.count
+        const mixedCounts =
+          kind === 'titles-and-urls' && payload.titleCount !== payload.urlCount
+            ? [
+                tt('batch_titleCount', payload.titleCount),
+                tt('batch_urlCount', payload.urlCount),
+              ]
+            : undefined
+        const successMessage = mixedCounts
+          ? payload.titleCount === 0
+            ? tt('batch_copiedUrls', payload.urlCount)
+            : payload.urlCount === 0
+              ? tt('batch_copiedTitles', payload.titleCount)
+              : t('batch_copiedMixedTitlesAndUrls', mixedCounts)
+          : tt(message, contentCount)
+        return option(
           'copy-selected-tabs',
           kind,
-          label,
-          { type: 'copy', text: formatBatchTabCopyText(tabs, kind), label },
-          { icon },
-        ),
-      ),
+          mixedCounts
+            ? t('batch_copyMixedTitlesAndUrls', mixedCounts)
+            : tt(labelKey, contentCount),
+          {
+            type: 'copy',
+            text: payload.text,
+            successMessage,
+          },
+          {
+            icon,
+            disabled: payload.count === 0,
+            disabledReason:
+              payload.count === 0 ? t('batch_noCopyText') : undefined,
+          },
+        )
+      }),
     })
   const single = ids.length === 1 && !groupIds.size ? tabs[0] : undefined
   const duplicateTabIds = single
@@ -483,16 +516,17 @@ const buildTabManagerActions = (
       'batch_removeFromGroup',
       count(grouped.length),
     ),
-    'copy-selected-tabs': t('batch_copyTabs', counted),
     'close-other-tabs': t('tabContextMenu_closeOtherTabs'),
     'close-tabs-below': t('tabContextMenu_closeTabsBelow'),
   }
-  for (const action of actions)
+  for (const action of actions) {
+    action.shortcut = getTabManagerActionShortcutLabel(action.id)
     if (labels[action.id])
       action.label =
         wholeGroup && action.id === 'move-selected-tabs'
           ? 'Move tab group to window'
           : labels[action.id]!
+  }
   return { actions, operations }
 }
 

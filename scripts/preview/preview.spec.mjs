@@ -254,6 +254,38 @@ describe('sample Chrome interactions', () => {
     })
   })
 
+  it.each([3, 5])(
+    'duplicates tab %s directly after its source and preserves its group',
+    async (id) => {
+      const chrome = loadMock()
+      const source = await chrome.tabs.get(id)
+      const before = await chrome.tabs.query({ windowId: source.windowId })
+      const duplicate = await chrome.tabs.duplicate(id)
+      expect(duplicate).toMatchObject({
+        windowId: source.windowId,
+        index: source.index + 1,
+        groupId: source.groupId,
+        title: source.title,
+        url: source.url,
+      })
+      const expected = before.map((tab) => tab.id)
+      expected.splice(source.index + 1, 0, duplicate.id)
+      const after = await chrome.tabs.query({ windowId: source.windowId })
+      expect(after.map((tab) => tab.id)).toEqual(expected)
+      expect(after.map((tab) => tab.index)).toEqual(
+        after.map((_, index) => index),
+      )
+      expect(
+        (
+          await chrome.tabs.query({
+            groupId: source.groupId,
+            windowId: source.windowId,
+          })
+        ).map((tab) => tab.id),
+      ).toContain(duplicate.id)
+    },
+  )
+
   it.each([
     { closing: 5, expected: 6 },
     { closing: 6, expected: 5 },

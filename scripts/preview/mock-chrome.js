@@ -538,7 +538,10 @@
           url: tab.url,
           active: false,
         })
-        return api.tabs.update(duplicate.id, { title: tab.title })
+        return api.tabs.update(duplicate.id, {
+          title: tab.title,
+          groupId: tab.groupId,
+        })
       },
       move: async (ids, { windowId, index }) => {
         const moved = []

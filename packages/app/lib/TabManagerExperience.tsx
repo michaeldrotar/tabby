@@ -1,8 +1,6 @@
 import { useSurface } from '@extension/ui/Surface'
 import { TabManager } from '@extension/ui/tab-manager/TabManager'
-import { useShouldReduceMotion } from '@extension/ui/useShouldReduceMotion'
 import {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -13,9 +11,7 @@ import { useTabManagerResources } from './TabbyProvider'
 import {
   createTabManagerController,
   projectTabManager,
-  projectTabManagerWindows,
 } from './tabManagerModel'
-import { useExperienceClock } from './useExperienceClock'
 import type { TabManagerController } from './tabManagerModel'
 
 export const TabManagerExperience = ({
@@ -27,7 +23,6 @@ export const TabManagerExperience = ({
 }) => {
   const resources = useTabManagerResources()
   const { backend, view, environment, preferences, host } = resources
-  const reduceAgePrecision = !!useShouldReduceMotion()
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
   const snapshot = useSyncExternalStore(
@@ -35,12 +30,6 @@ export const TabManagerExperience = ({
     backend.getSnapshot,
     backend.getSnapshot,
   )
-  const selectClock = useCallback(
-    (time: number) =>
-      projectTabManagerWindows(snapshot, time, reduceAgePrecision).clockKey,
-    [snapshot, reduceAgePrecision],
-  )
-  const now = useExperienceClock(environment, selectClock)
   const preferenceState = useSyncExternalStore(
     preferences.subscribe,
     preferences.getSnapshot,
@@ -70,9 +59,7 @@ export const TabManagerExperience = ({
   const model = projectTabManager(
     snapshot,
     state,
-    now,
     {
-      reduceAgePrecision,
       windowSource: preferenceState.tabManagerCompactIconMode,
     },
     controller.getPreviousSnapshot(),

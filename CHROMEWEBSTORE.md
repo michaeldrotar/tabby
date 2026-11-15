@@ -26,17 +26,17 @@ Choose active-tab or first-tab defaults in Options, or use the pencil to give a 
 
 Organize one window at a time
 
-Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
+Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Closing tabs from the menu keeps keyboard focus in the tab list. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
 Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows, then drop on a window to move tabs there. Long lists scroll as you drag near their edges. Moving tabs through dragging or the menu brings the destination forward and opens its Tab Manager with the moved tabs selected, ready to reorder.
 
-Middle-click a tab to close it, or create a new tab directly below an existing tab.
+Middle-click a tab to close it, or create a new tab directly below an existing tab. Copy URLs, titles, or both to your clipboard. Copy actions show how many items will be copied and confirm what reached your clipboard.
 
 Work with the keyboard
 
 Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Windows and Linux. Open the tab manager from search, or press Cmd+Shift+E on macOS or Alt+Shift+E on Windows and Linux. You can customize shortcuts in Chrome’s extension settings.
 
-Use Tab and Shift+Tab to move between window controls, tab and window lists, New tab, New window, and the bottom bar. Use arrow keys to browse tabs, groups, and the window picker. From an empty search, use the arrow keys to select Open tab manager and Open options while keeping search ready to type. Reorder tabs and groups with Alt+Up/Down. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. Find a guide to Tab manager keyboard shortcuts in Options.
+Use Tab and Shift+Tab to move between window controls, tab and window lists, New tab, New window, and the bottom bar. Use arrow keys to browse tabs, groups, and the window picker. From an empty search, use the arrow keys to select Open tab manager and Open options while keeping search ready to type. Reorder tabs and groups with Alt+Up/Down. Use P to pin or unpin, M to mute or unmute tabs with audio, D to duplicate, R to reload, G to choose a group, U to ungroup, W to move, C to copy, N to create a new tab below, and Z to discard eligible tabs. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. See shortcut keys beside actions in the menu and press a key to activate its action. Keyboard choosers open beside the focused item. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
 
@@ -143,7 +143,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 ## Version history
 
-Version 1.8.0 is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
