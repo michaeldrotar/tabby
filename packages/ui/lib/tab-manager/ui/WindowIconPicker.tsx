@@ -3,6 +3,7 @@ import {
   getWindowIconChoices,
   getWindowIconKind,
   getWindowIconValue,
+  SUGGESTED_WINDOW_EMOJIS,
   SUGGESTED_WINDOW_ICONS,
 } from '@extension/core/windowIconChoice'
 import { WINDOW_ICONS } from '@extension/core/windowIcons'
@@ -42,40 +43,7 @@ const types: { id: WindowIconKind; label: string }[] = [
   { id: 'upload', label: 'Upload' },
   { id: 'favicon', label: 'Favicons' },
 ]
-const suggestedEmojis = [
-  '😀',
-  '😎',
-  '🥳',
-  '🤓',
-  '🐱',
-  '🐶',
-  '🦊',
-  '🐼',
-  '🌿',
-  '🌻',
-  '🌈',
-  '☀️',
-  '🌙',
-  '⭐',
-  '🔥',
-  '⚡',
-  '❤️',
-  '💜',
-  '💡',
-  '🎨',
-  '🎵',
-  '🎮',
-  '🚀',
-  '✈️',
-  '🏠',
-  '📚',
-  '💻',
-  '🔬',
-  '☕',
-  '🍕',
-  '🎯',
-  '🎁',
-].map((emoji) => `emoji:${emoji}`)
+
 const label = (icon: string) =>
   icon.charAt(0).toUpperCase() + icon.slice(1).replaceAll('-', ' ')
 
@@ -183,7 +151,11 @@ export const WindowIconPicker = ({
   const [emojiLabels, setEmojiLabels] = useState<typeof WINDOW_EMOJI_LABELS>()
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [selectedFavicon, setSelectedFavicon] = useState('')
+  const [selectedFavicon, setSelectedFavicon] = useState<{
+    icon: string
+    url: string
+  } | null>(null)
+  const faviconThumbnails = useRef(new Map<string, Promise<string>>())
   const [columns, setColumns] = useState(8)
   const region = useRef<HTMLDivElement>(null)
   const search = useRef<HTMLInputElement>(null)
@@ -220,7 +192,7 @@ export const WindowIconPicker = ({
   const choose = (icon: string, focusSearch = false) => {
     request.current++
     setBusy(false)
-    if (icon === 'favicon:auto') setSelectedFavicon('')
+    if (icon === 'favicon:auto') setSelectedFavicon(null)
     if (overlay && focusSearch) search.current?.focus()
     setSearchOpen(false)
     setQuery('')
@@ -270,7 +242,8 @@ export const WindowIconPicker = ({
       const image = await windowIconImage(source)
       if (sequence !== request.current) return
       choose(`${type}:${image}`)
-      if (type === 'favicon') setSelectedFavicon(source as string)
+      if (type === 'favicon')
+        setSelectedFavicon({ icon: `favicon:${image}`, url: source as string })
     } catch {
       if (sequence === request.current)
         setError(
@@ -372,7 +345,9 @@ export const WindowIconPicker = ({
           currentWindow?.tabs.find((tab) => tab.active) ??
           currentWindow?.tabs[0]
         )?.faviconUrl)
-      : selectedFavicon
+      : selectedFavicon?.icon === draft.icon
+        ? selectedFavicon.url
+        : undefined
   const faviconWindows = [...model.windows].sort(
     (a, b) => Number(b.id === draft.windowId) - Number(a.id === draft.windowId),
   )
@@ -380,6 +355,7 @@ export const WindowIconPicker = ({
     string,
     { url: string; hostname: string; title: string }
   >()
+  const faviconSources = new Set<string>()
   for (const window of faviconWindows) {
     for (const tab of window.tabs) {
       if (!tab.faviconUrl || !tab.url) continue
@@ -389,6 +365,7 @@ export const WindowIconPicker = ({
       } catch {
         continue
       }
+      if (hostname) faviconSources.add(tab.faviconUrl)
       if (
         hostname &&
         (!byHostname.has(hostname) || tab.faviconUrl === selectedFaviconUrl)
@@ -401,6 +378,46 @@ export const WindowIconPicker = ({
     }
   }
   const favicons = [...byHostname.values()]
+  const faviconSourceKey = JSON.stringify([...faviconSources])
+  useEffect(() => {
+    if (kind !== 'favicon' || !draft.icon?.startsWith('favicon:data:')) return
+    const sources = JSON.parse(faviconSourceKey) as string[]
+    if (
+      selectedFavicon?.icon === draft.icon &&
+      sources.includes(selectedFavicon.url)
+    )
+      return
+    let cancelled = false
+    const selected = draft.icon
+    const match = async () => {
+      try {
+        const savedImage = await windowIconImage(getWindowIconValue(selected))
+        for (const source of sources) {
+          if (cancelled) return
+          let thumbnail = faviconThumbnails.current.get(source)
+          if (!thumbnail) {
+            thumbnail = windowIconImage(source)
+            faviconThumbnails.current.set(source, thumbnail)
+          }
+          try {
+            if ((await thumbnail) === savedImage) {
+              if (!cancelled)
+                setSelectedFavicon({ icon: selected, url: source })
+              return
+            }
+          } catch {
+            faviconThumbnails.current.delete(source)
+          }
+        }
+      } catch {
+        // Keep editing available when an image cannot be read.
+      }
+    }
+    void match()
+    return () => {
+      cancelled = true
+    }
+  }, [kind, draft.icon, faviconSourceKey, selectedFavicon])
   return (
     <div ref={region} className="stack-y-3">
       <fieldset data-editor-row="colors">
@@ -548,7 +565,7 @@ export const WindowIconPicker = ({
                 titles={emojiLabels}
                 choices={(kind === 'icon'
                   ? SUGGESTED_WINDOW_ICONS
-                  : suggestedEmojis
+                  : SUGGESTED_WINDOW_EMOJIS
                 ).slice(0, columns * 4)}
                 hidden={overlay}
                 columns={columns}

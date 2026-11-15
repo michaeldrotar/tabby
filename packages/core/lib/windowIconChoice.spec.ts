@@ -4,7 +4,9 @@ import {
   getWindowIconChoices,
   getWindowIconKind,
   getWindowIconValue,
+  initializeWindowIconChoices,
   isWindowIcon,
+  SUGGESTED_WINDOW_EMOJIS,
   SUGGESTED_WINDOW_ICONS,
 } from './windowIconChoice.js'
 
@@ -28,6 +30,25 @@ describe('window icon choices', () => {
     expect(isWindowIcon('favicon:auto')).toBe(true)
     expect(isWindowIcon('upload:empty')).toBe(true)
     expect(SUGGESTED_WINDOW_ICONS.every(isWindowIcon)).toBe(true)
+    expect(SUGGESTED_WINDOW_EMOJIS.every(isWindowIcon)).toBe(true)
+  })
+  it('initializes missing choices once and keeps them when the name changes', () => {
+    const first = initializeWindowIconChoices(
+      'book',
+      'Project notes',
+      { upload: `upload:${png}`, favicon: `favicon:${png}` },
+      () => 0,
+    )
+    expect(first).toEqual({
+      icon: 'book',
+      emoji: 'emoji:😀',
+      monogram: 'monogram:PN',
+      upload: `upload:${png}`,
+      favicon: `favicon:${png}`,
+    })
+    expect(
+      initializeWindowIconChoices('book', 'Different name', first, () => 0.99),
+    ).toEqual(first)
   })
   it('retains valid choices for each type and replaces only the active choice', () => {
     expect(

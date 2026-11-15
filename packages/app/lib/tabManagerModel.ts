@@ -19,10 +19,15 @@ import {
 import { getTabManagerActionShortcut } from '@extension/core/tabManagerShortcuts'
 import {
   getWindowIconChoices,
+  initializeWindowIconChoices,
   SUGGESTED_WINDOW_ICONS,
 } from '@extension/core/windowIconChoice'
-import { getWindowIdentity } from '@extension/core/windowIdentity'
+import {
+  getCustomWindowName,
+  getWindowIdentity,
+} from '@extension/core/windowIdentity'
 import { tt } from '@extension/i18n/catalog'
+import { windowIconImage } from '@extension/ui/tab-manager/ui/windowIconImage'
 import { createNotificationController } from './notifications'
 import { getTabManagerActions } from './tabManagerActions'
 import { createDefaultTabSelection } from './view'
@@ -245,7 +250,7 @@ export const projectTabManagerWindows = (
     return {
       id: window.id,
       ...getWindowIdentity(window, tabs, windowSource),
-      name: window.name,
+      name: getCustomWindowName(window),
       incognito: window.incognito,
       active: window.focused,
       tabs: tabs.map((tab) => ({
@@ -723,37 +728,85 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     }
   }
   const identityWrites = createAsyncQueue()
+  const pendingIdentities = new Map<
+    number,
+    NonNullable<TabManagerViewState['editingWindow']>
+  >()
+  const identityVersions = new Map<number, number>()
+  const initialFavicons = new Map<number, Promise<string | undefined>>()
+  const withInitialFavicon = (
+    draft: NonNullable<TabManagerViewState['editingWindow']>,
+    favicon?: string,
+  ) => {
+    if (
+      !favicon ||
+      favicon === 'favicon:auto' ||
+      draft.iconChoices?.favicon !== 'favicon:auto'
+    )
+      return draft
+    return {
+      ...draft,
+      icon: draft.icon === 'favicon:auto' ? favicon : draft.icon,
+      iconChoices: { ...draft.iconChoices, favicon },
+    }
+  }
   const persistWindow = (
     draft: NonNullable<TabManagerViewState['editingWindow']>,
     onSaved?: () => void,
-  ) =>
-    identityWrites.run(async () => {
+    onFailed?: () => void,
+  ) => {
+    const version = (identityVersions.get(draft.windowId) ?? 0) + 1
+    identityVersions.set(draft.windowId, version)
+    pendingIdentities.set(draft.windowId, draft)
+    return identityWrites.run(async () => {
+      const current = () => identityVersions.get(draft.windowId) === version
       try {
+        const favicon = await initialFavicons.get(draft.windowId)
+        const prepared = withInitialFavicon(draft, favicon)
+        const pending = pendingIdentities.get(draft.windowId)
+        if (pending)
+          pendingIdentities.set(
+            draft.windowId,
+            withInitialFavicon(pending, favicon),
+          )
+        const editing = view.getState().editingWindow
+        if (editing?.windowId === draft.windowId) {
+          const updated = withInitialFavicon(editing, favicon)
+          if (updated !== editing) view.setState({ editingWindow: updated })
+        }
         const result = await backend.execute({
           type: 'name-window',
-          windowId: draft.windowId,
-          name: draft.useCustom === false ? '' : draft.name,
-          icon: draft.useCustom === false ? undefined : draft.icon,
-          iconColor: draft.useCustom === false ? undefined : draft.iconColor,
-          iconChoices:
-            draft.useCustom === false ? undefined : draft.iconChoices,
+          windowId: prepared.windowId,
+          name: prepared.name,
+          icon: prepared.icon,
+          iconColor: prepared.iconColor,
+          iconChoices: prepared.iconChoices,
+          useCustom: prepared.useCustom !== false,
         })
         if (result.status === 'failed' || result.status === 'partial') {
+          if (current()) onFailed?.()
           setNotice({
             message: result.failures[0]?.message ?? 'Could not save window.',
             kind: 'error',
           })
           return
         }
-        onSaved?.()
+        if (current()) onSaved?.()
       } catch (error) {
+        if (current()) onFailed?.()
         setNotice({
           message:
             error instanceof Error ? error.message : 'Could not save window.',
           kind: 'error',
         })
+      } finally {
+        if (current()) {
+          pendingIdentities.delete(draft.windowId)
+          initialFavicons.delete(draft.windowId)
+        }
       }
     })
+  }
   const selectMovedTabs = (tabIds: readonly number[], reveal = true) => {
     const snapshot = backend.getSnapshot()
     const ids = tabIds.filter((id) =>
@@ -843,16 +896,17 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         (window) => window.id === state.viewedWindowId,
       )
       if (!window) return
+      const remembered = pendingIdentities.get(window.id) ?? window
       const random = resources.environment.random ?? Math.random
       const name =
-        window.name ||
+        remembered.name ??
         getWindowIdentity(
           { ...window, name: undefined, icon: undefined },
           snapshot.tabs,
           resources.preferences.getSnapshot().tabManagerCompactIconMode,
         ).title
       const icon =
-        window.icon ??
+        remembered.icon ??
         SUGGESTED_WINDOW_ICONS[
           Math.floor(random() * SUGGESTED_WINDOW_ICONS.length)
         ]!
@@ -861,12 +915,38 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         useCustom: true,
         name,
         icon,
-        iconChoices: getWindowIconChoices(icon, window.iconChoices),
+        iconChoices: initializeWindowIconChoices(
+          icon,
+          name,
+          remembered.iconChoices,
+          random,
+        ),
         iconColor:
-          window.iconColor ??
+          remembered.iconColor ??
           BROWSER_TAB_GROUP_COLORS[
             Math.floor(random() * BROWSER_TAB_GROUP_COLORS.length)
           ]!,
+      }
+      if (
+        draft.iconChoices.favicon === 'favicon:auto' &&
+        !initialFavicons.has(window.id)
+      ) {
+        const source = getWindowIdentity(
+          { ...window, name: undefined, icon: undefined },
+          snapshot.tabs,
+          resources.preferences.getSnapshot().tabManagerCompactIconMode,
+        ).iconUrl
+        if (source)
+          initialFavicons.set(
+            window.id,
+            (async () => {
+              try {
+                return `favicon:${await windowIconImage(source)}`
+              } catch {
+                return undefined
+              }
+            })(),
+          )
       }
       view.setState({
         windowPicker: false,
@@ -882,13 +962,34 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       view.setState({ editingWindow: draft })
       return persistWindow(draft)
     } else if (intent.type === 'reset-window') {
-      if (!state.editingWindow) return
-      const draft = { ...state.editingWindow, useCustom: false }
+      const previous = state.editingWindow
+      if (!previous) return
+      const draft = { ...previous, useCustom: false }
       view.setState({ editingWindow: draft })
-      return persistWindow(draft, () => {
-        if (view.getState().editingWindow === draft)
-          view.setState({ editingWindow: null })
-      })
+      return persistWindow(
+        draft,
+        () => {
+          const editing = view.getState().editingWindow
+          if (
+            editing?.windowId === draft.windowId &&
+            editing.useCustom === false
+          )
+            view.setState({ editingWindow: null })
+        },
+        () => {
+          const editing = view.getState().editingWindow
+          if (
+            editing?.windowId === draft.windowId &&
+            editing.useCustom === false
+          )
+            view.setState({
+              editingWindow: withInitialFavicon(
+                previous,
+                editing.iconChoices?.favicon,
+              ),
+            })
+        },
+      )
     } else if (
       intent.type === 'cancel-window-edit' ||
       intent.type === 'save-window'

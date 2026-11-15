@@ -40,6 +40,25 @@ const snapshot: BrowserSnapshot = {
 }
 
 describe('Omnibar result composition', () => {
+  it('hides remembered names from window search and group labels after reset', () => {
+    const browser = {
+      ...snapshot,
+      windows: [
+        { id: 10, name: 'Saved workspace', useCustom: false, focused: true },
+      ],
+    }
+    expect(
+      getOmnibarResults('Saved workspace', browser, 10, [], 0).some(
+        (result) => result.id === 'window:10',
+      ),
+    ).toBe(false)
+    expect(
+      getOmnibarResults('Research', browser, 10, [], 0).find(
+        (result) => result.id === 'tab-group:5',
+      )?.groupWindowLabel,
+    ).toBe('Current window')
+  })
+
   it('keeps short substring searches eligible across local result types', () => {
     const browser = {
       ...snapshot,

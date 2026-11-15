@@ -1,6 +1,6 @@
 # Privacy policy for Tabby
 
-Last updated: November 11, 2026
+Last updated: November 14, 2026
 
 ## Introduction
 
@@ -33,7 +33,7 @@ To provide its functionality, Tabby requires certain permissions.
 | `history`   | Allows searching and navigating your browsing history locally.                                    |
 | `sessions`  | Allows searching and restoring your recently closed tabs and windows.                             |
 
-Successful search actions clear the saved query; dismissing search preserves it. Clear a window’s name and choose its automatic icon to remove its saved identity. Uninstalling removes the extension’s saved data. Tabby does not access website content or send your activity to the publisher.
+Successful search actions clear the saved query; dismissing search preserves it. Resetting a window retains its saved custom name, color, and icon choices on the device. Uninstalling removes the extension’s saved data. Tabby does not access website content or send your activity to the publisher.
 
 ## Changes to this policy
 

@@ -191,6 +191,7 @@
             [message.windowId]: {
               key: `sample-${message.windowId}`,
               name: message.name.trim(),
+              useCustom: message.useCustom,
               icon: message.icon,
               iconChoices: message.iconChoices,
               iconColor: message.iconColor,
@@ -238,6 +239,7 @@
                 {
                   key: `sample-${window.id}`,
                   name: window.name ?? '',
+                  useCustom: window.useCustom,
                   icon: window.icon,
                   iconChoices: window.iconChoices,
                   iconColor: window.iconColor,

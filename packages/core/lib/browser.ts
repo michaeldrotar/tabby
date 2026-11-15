@@ -17,6 +17,7 @@ export interface BrowserWindow {
   id: number
   name?: string
   icon?: string
+  useCustom?: boolean
   iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   type?: string
@@ -89,6 +90,7 @@ export type BrowserCommand =
       windowId: number
       name: string
       icon?: string
+      useCustom?: boolean
       iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     }

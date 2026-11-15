@@ -136,6 +136,7 @@ export class MemoryBackend implements BrowserBackend {
               ? {
                   ...window,
                   name: command.name.trim().slice(0, 120),
+                  useCustom: command.useCustom,
                   icon: command.icon,
                   iconChoices: command.iconChoices,
                   iconColor: command.iconColor,

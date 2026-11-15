@@ -169,6 +169,7 @@ export const createChromeBackend = (
               return {
                 ...window,
                 name: identity?.name,
+                useCustom: identity?.useCustom,
                 icon: identity?.icon,
                 iconChoices: identity?.iconChoices,
                 iconColor: identity?.iconColor,

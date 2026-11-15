@@ -75,6 +75,7 @@ const setup = (
     icon?: string,
     iconColor?: 'green',
     iconChoices?: WindowIconChoices,
+    useCustom?: boolean,
   ) => {
     const response = new Promise<{ success?: boolean; error?: string }>(
       (resolve) =>
@@ -86,6 +87,7 @@ const setup = (
             icon,
             iconColor,
             iconChoices,
+            useCustom,
           },
           { id: 'tabby' },
           resolve,
@@ -113,6 +115,39 @@ const setup = (
 afterEach(() => vi.useRealTimers())
 
 describe('stored window identities', () => {
+  it('retains reset choices across browser restart and re-enables the same record', async () => {
+    const original = setup()
+    const choices = {
+      icon: 'book',
+      emoji: 'emoji:🐱',
+      monogram: 'monogram:RE',
+      upload: 'upload:data:image/png;base64,YQ==',
+      favicon: 'favicon:data:image/png;base64,Yg==',
+    }
+    await original.edit(1, 'Research', 'emoji:🐱', 'green', choices)
+    await original.edit(1, 'Research', 'emoji:🐱', 'green', choices, false)
+    const restarted = setup([sampleWindow(88)], original.local)
+    await restarted.tracker.settled()
+    const retained = {
+      name: 'Research',
+      icon: 'emoji:🐱',
+      iconColor: 'green',
+      iconChoices: choices,
+      useCustom: false,
+    }
+    expect(restarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      88: retained,
+    })
+    expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([
+      expect.objectContaining(retained),
+    ])
+    await restarted.edit(88, 'Research', 'emoji:🐱', 'green', choices, true)
+    expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([
+      expect.objectContaining({ ...retained, useCustom: true }),
+    ])
+  })
+
+
   it('stores names locally with URL hashes, follows live tab changes, and restores after restart with different IDs', async () => {
     const first = setup()
     expect(

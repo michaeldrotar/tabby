@@ -20,6 +20,7 @@ export type WindowIdentityAssignment = {
   key: string
   name: string
   icon?: string
+  useCustom?: boolean
   iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   provisional?: boolean
@@ -71,6 +72,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       windowId: number
       name: string
       icon?: string
+      useCustom?: boolean
       iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     },
@@ -166,6 +168,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       return {
         key,
         name: record.name,
+        useCustom: record.useCustom,
         icon: record.icon,
         iconChoices: record.iconChoices,
         iconColor: record.iconColor,
@@ -216,13 +219,14 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       const iconColor = BROWSER_TAB_GROUP_COLORS.find(
         (color) => color === edit.iconColor,
       )
-      if (!name && !icon && !iconColor) {
+      if (!name && !icon && !iconColor && edit.useCustom !== false) {
         assignments[edit.windowId] = { key: '', name: '', cleared: true }
         saved = saved.filter((record) => record.key !== existing?.key)
       } else
         assignments[edit.windowId] = {
           key: existing?.key || crypto.randomUUID(),
           name,
+          useCustom: edit.useCustom !== false,
           icon,
           iconChoices,
           iconColor,
@@ -253,6 +257,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       const record: SavedWindowIdentity = {
         key: assigned.key,
         name: assigned.name,
+        useCustom: assigned.useCustom,
         icon: assigned.icon,
         iconChoices: assigned.iconChoices,
         iconColor: assigned.iconColor,
@@ -284,6 +289,7 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       windowId: number
       name: string
       icon?: string
+      useCustom?: boolean
       iconChoices?: WindowIconChoices
       iconColor?: BrowserTabGroupColor
     },

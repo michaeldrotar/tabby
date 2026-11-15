@@ -148,11 +148,16 @@ test('chooses each window icon type and keeps image choices after reopening', as
   await expect(
     page.getByRole('button', { name: 'Follow tab favicon', exact: true }),
   ).toHaveCount(0)
-  await expect(localButtons.first()).toHaveAttribute('aria-pressed', 'true')
-  await expect(localButtons.first().locator('img')).toHaveAttribute(
+  await expect(header.locator('img')).toHaveAttribute(
     'src',
-    (await header.locator('img').getAttribute('src'))!,
+    /^data:image\/png;base64,/,
   )
+  await expect(localButtons.first()).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    page
+      .getByRole('toolbar', { name: 'Favicons', exact: true })
+      .getByRole('button', { pressed: true }),
+  ).toHaveCount(1)
   await localButtons.first().focus()
   await page.keyboard.press('ArrowRight')
   await expect(localButtons.nth(1)).toBeFocused()
@@ -168,6 +173,9 @@ test('chooses each window icon type and keeps image choices after reopening', as
     page.getByRole('tab', { name: 'Favicons', exact: true }),
   ).toHaveAttribute('aria-selected', 'true')
   await expect(header.locator('img')).toHaveAttribute('src', favicon!)
+  await expect(
+    page.getByRole('button', { name: 'Use github.com favicon', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('tab', { name: 'Upload', exact: true }).click()
   const uploadType = page.getByRole('tab', { name: 'Upload', exact: true })
   const chooseImage = page.getByRole('button', {
@@ -212,7 +220,10 @@ test('chooses each window icon type and keeps image choices after reopening', as
   )
   const image = await header.locator('img').getAttribute('src')
   expect(image).not.toBe(favicon)
-  await done.click()
+  await page.getByRole('button', { name: 'Reset', exact: true }).click()
+  await expect(header).toContainText('Project notes')
+  await expect(page.locator('[data-window-editor]')).toHaveCount(0)
+  await expect(page.locator('[data-notification-card]')).toHaveCount(0)
   await edit.click()
   await expect(
     page.getByRole('tab', { name: 'Upload', exact: true }),
@@ -244,7 +255,7 @@ test('chooses each window icon type and keeps image choices after reopening', as
   )
 })
 
-test('prefills a selected tab name and suggested icon after reset, with colors on one row', async ({
+test('restores the saved settings after reset, with colors on one row', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 480, height: 640 })
@@ -252,19 +263,64 @@ test('prefills a selected tab name and suggested icon after reset, with colors o
   const edit = page.getByRole('button', { name: 'Edit window', exact: true })
   const header = page.locator('[data-window-picker-trigger]')
   await edit.click()
+  await expect(
+    page.getByRole('tab', { name: 'Default', exact: true }),
+  ).toHaveCount(0)
+  const savedSettings = async () =>
+    page.evaluate(
+      async () =>
+        (await chrome.storage.session.get('tabby-window-identities'))[
+          'tabby-window-identities'
+        ][1],
+    )
+  await expect
+    .poll(async () => (await savedSettings()).iconChoices?.favicon)
+    .toMatch(/^favicon:data:image\/png;base64,/)
+  const initial = await savedSettings()
+  expect(initial.iconChoices.emoji).toMatch(/^emoji:/)
+  expect(initial.iconChoices.monogram).toBe('monogram:T')
   await page.getByRole('button', { name: 'Reset', exact: true }).click()
+  await expect(page.locator('[data-window-editor]')).toHaveCount(0)
   await expect(header).toContainText('Project notes')
+  await page.evaluate(() => chrome.tabs.update(2, { active: true }))
+  await expect(header).toContainText('Tabby · Pull requests')
+  expect(
+    await page.evaluate(
+      async () =>
+        (await chrome.storage.session.get('tabby-window-identities'))[
+          'tabby-window-identities'
+        ][1],
+    ),
+  ).toMatchObject({
+    name: 'Tabby',
+    icon: 'code',
+    iconColor: 'blue',
+    useCustom: false,
+  })
   await edit.click()
   const name = page.getByRole('textbox', { name: 'Name', exact: true })
-  await expect(name).toHaveValue('Project notes')
+  await expect(name).toHaveValue('Tabby')
   await expect(name).toBeFocused()
   expect(
     await name.evaluate((input: HTMLInputElement) => [
       input.selectionStart,
       input.selectionEnd,
     ]),
-  ).toEqual([0, 'Project notes'.length])
+  ).toEqual([0, 'Tabby'.length])
   await expect(name).not.toHaveAttribute('placeholder')
+  await expect
+    .poll(async () => (await savedSettings()).iconChoices)
+    .toEqual(initial.iconChoices)
+  await page.getByRole('tab', { name: 'Favicons', exact: true }).click()
+  await expect(header.locator('img')).toHaveAttribute(
+    'src',
+    initial.iconChoices.favicon.slice('favicon:'.length),
+  )
+  await page.getByRole('tab', { name: 'Emoji', exact: true }).click()
+  await expect(header).toContainText(initial.iconChoices.emoji.slice('emoji:'.length))
+  await page.getByRole('tab', { name: 'Monogram', exact: true }).click()
+  await expect(header).toContainText('T')
+  await page.getByRole('tab', { name: 'Icon', exact: true }).click()
   await expect(
     page.getByRole('tab', { name: 'Icon', exact: true }),
   ).toHaveAttribute('aria-selected', 'true')
@@ -282,7 +338,7 @@ test('prefills a selected tab name and suggested icon after reset, with colors o
     .getAttribute('aria-label')
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await edit.click()
-  await expect(name).toHaveValue('Project notes')
+  await expect(name).toHaveValue('Tabby')
   await expect(
     page.getByRole('button', { name: color!, exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')

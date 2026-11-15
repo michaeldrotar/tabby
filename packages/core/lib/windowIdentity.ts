@@ -7,6 +7,9 @@ import type { WindowIconChoices } from './windowIconChoice.js'
 
 export { WINDOW_ICONS } from './windowIcons.js'
 
+export const getCustomWindowName = (window: BrowserWindow) =>
+  window.useCustom === false ? undefined : window.name?.trim()
+
 export const getWindowIdentity = (
   window: BrowserWindow,
   tabs: BrowserSnapshot['tabs'],
@@ -18,18 +21,16 @@ export const getWindowIdentity = (
   const active =
     (source === 'active' ? members.find((tab) => tab.active) : undefined) ??
     members[0]
+  const icon = window.useCustom === false ? undefined : window.icon
   return {
     title:
-      window.name?.trim() ||
+      getCustomWindowName(window) ||
       active?.title ||
       (window.incognito ? 'Private window' : `Window ${window.id}`),
-    icon: window.icon,
-    iconColor: window.iconColor,
+    icon,
+    iconColor: window.useCustom === false ? undefined : window.iconColor,
     iconChoices: window.iconChoices,
-    iconUrl:
-      window.icon && window.icon !== 'favicon:auto'
-        ? undefined
-        : active?.faviconUrl,
+    iconUrl: icon && icon !== 'favicon:auto' ? undefined : active?.faviconUrl,
   }
 }
 
@@ -42,6 +43,7 @@ export type SavedWindowIdentity = {
   key: string
   name: string
   icon?: string
+  useCustom?: boolean
   iconChoices?: WindowIconChoices
   iconColor?: BrowserTabGroupColor
   hashes: string[]
