@@ -41,7 +41,7 @@ const types: { id: WindowIconKind; label: string }[] = [
   { id: 'emoji', label: 'Emoji' },
   { id: 'monogram', label: 'Monogram' },
   { id: 'upload', label: 'Upload' },
-  { id: 'favicon', label: 'Favicons' },
+  { id: 'favicon', label: 'Favicon' },
 ]
 
 const label = (icon: string) =>
@@ -465,7 +465,7 @@ export const WindowIconPicker = ({
         role="tablist"
         aria-label="Icon type"
         data-editor-row="types"
-        className="flex gap-2 overflow-x-auto"
+        className="flex gap-1 overflow-x-auto"
       >
         {types.map((type) => (
           <button
@@ -479,7 +479,7 @@ export const WindowIconPicker = ({
             className={cn(
               control,
               `
-                min-h-9 min-w-max flex-1 px-2 text-sm whitespace-nowrap
+                min-h-9 min-w-max flex-1 px-1 text-sm whitespace-nowrap
                 hover:bg-transparent
                 data-[hover=true]:bg-transparent
               `,

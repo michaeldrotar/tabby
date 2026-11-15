@@ -583,7 +583,7 @@ describe('TabManager presentation', () => {
     })
     fireEvent.change(monogram, { target: { value: '' } })
     expect(monogram).toHaveValue('')
-    fireEvent.click(screen.getByRole('tab', { name: 'Favicons' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Favicon' }))
     const favicons = within(
       screen.getByRole('toolbar', { name: 'Favicons' }),
     ).getAllByRole('button')
