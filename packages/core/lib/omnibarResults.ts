@@ -2,7 +2,7 @@ import { isNavigableUrl } from './navigation.js'
 import { getOmnibarTarget, normalizeOmnibarQuery } from './omnibarChoices.js'
 import { createOmnibarMatcher } from './omnibarMatching.js'
 import { rankOmnibarResults } from './omnibarRanking.js'
-import { getWindowIdentity } from './windowIdentity.js'
+import { getCustomWindowName, getWindowIdentity } from './windowIdentity.js'
 import type { BrowserSnapshot } from './browser.js'
 import type { OmnibarAction, OmnibarChoice, OmnibarResult } from './omnibar.js'
 
@@ -61,7 +61,7 @@ export const getOmnibarCommands = (
       ),
     ),
     ...windows.flatMap((window, index) => {
-      const name = window.name?.trim()
+      const name = getCustomWindowName(window)
       if (!name && !includeUnnamedWindows) return []
       const identity = getWindowIdentity(window, snapshot.tabs, windowSource)
       const tabCount = snapshot.tabs.filter(
@@ -94,8 +94,12 @@ export const getOmnibarBrowserResults = (
     if (tab.groupId !== undefined)
       groupCounts.set(tab.groupId, (groupCounts.get(tab.groupId) ?? 0) + 1)
   }
-  const windows = new Map(
-    snapshot.windows.map((window, index) => [window.id, { window, index }]),
+  const windowLabels = new Map(
+    snapshot.windows.map((window, index) => [
+      window.id,
+      getCustomWindowName(window) ||
+        (window.focused ? 'Current window' : `Window ${index + 1}`),
+    ]),
   )
   return {
     tabs: snapshot.tabs.map((tab) => ({
@@ -122,11 +126,7 @@ export const getOmnibarBrowserResults = (
       windowId: group.windowId,
       groupColor: group.color,
       groupTabCount: groupCounts.get(group.id) ?? 0,
-      groupWindowLabel:
-        snapshot.windows.find((window) => window.id === group.windowId)?.name ||
-        (windows.get(group.windowId)?.window.focused
-          ? 'Current window'
-          : `Window ${(windows.get(group.windowId)?.index ?? -1) + 1}`),
+      groupWindowLabel: windowLabels.get(group.windowId) ?? 'Window 0',
       groupCollapsed: group.collapsed,
       action: { kind: 'group', groupId: group.id },
     })),

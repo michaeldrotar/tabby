@@ -130,6 +130,47 @@ const mockBrowser = () => {
 }
 
 describe('Chrome browser backend', () => {
+  it('reads raw version 2 choices with the selected custom type and Reset state intact', async () => {
+    const { api } = mockBrowser()
+    const identity = {
+      version: 2,
+      key: 'saved',
+      name: 'Research',
+      icon: 'emoji',
+      useCustom: false,
+      iconColor: 'green',
+      iconChoices: {
+        icon: 'book',
+        emoji: '🔬',
+        monogram: 'RE',
+        upload: 'data:image/png;base64,YQ==',
+        favicon: 'data:image/png;base64,Yg==',
+      },
+    }
+    const storage = {
+      session: {
+        get: async () => ({ [WINDOW_IDENTITIES_KEY]: { 1: identity } }),
+      },
+      onChanged: event(),
+    } as unknown as typeof chrome.storage
+    const backend = createChromeBackend({ ...api, storage })
+    await backend.start()
+    expect(backend.getSnapshot().windows[0]).toMatchObject({
+      name: 'Research',
+      icon: 'emoji:🔬',
+      useCustom: false,
+      iconColor: 'green',
+      iconChoices: {
+        icon: 'book',
+        emoji: 'emoji:🔬',
+        monogram: 'monogram:RE',
+        upload: 'upload:data:image/png;base64,YQ==',
+        favicon: 'favicon:data:image/png;base64,Yg==',
+      },
+    })
+    backend.dispose()
+  })
+
   it('publishes tentative names to search and follows reassignment', async () => {
     const { api } = mockBrowser()
     const identity = {

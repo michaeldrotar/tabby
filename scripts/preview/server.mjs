@@ -10,26 +10,31 @@ const defaultFixture = resolve(previewDirectory, 'browser-data.json')
 const mockPath = '/__preview/mock-chrome.js'
 const workerPath = '/__preview/omnibar-worker.js'
 let workerBundle
-const getWorkerBundle = () =>
-  (workerBundle ??= (async () => {
-    const { build } = await import('vite')
-    const result = await build({
-      configFile: false,
-      logLevel: 'error',
-      build: {
-        write: false,
-        minify: false,
-        lib: {
-          entry: resolve(previewDirectory, 'omnibar-worker.ts'),
-          formats: ['es'],
-        },
+let mockBundle
+const buildPreviewBundle = async (entry, format) => {
+  const { build } = await import('vite')
+  const result = await build({
+    configFile: false,
+    logLevel: 'error',
+    build: {
+      write: false,
+      minify: false,
+      lib: {
+        entry: resolve(previewDirectory, entry),
+        formats: [format],
+        name: 'TabbyPreview',
       },
-    })
-    const bundles = Array.isArray(result) ? result : [result]
-    return bundles
-      .flatMap((bundle) => bundle.output)
-      .find((item) => item.type === 'chunk').code
-  })())
+    },
+  })
+  const bundles = Array.isArray(result) ? result : [result]
+  return bundles
+    .flatMap((bundle) => bundle.output)
+    .find((item) => item.type === 'chunk').code
+}
+const getWorkerBundle = () =>
+  (workerBundle ??= buildPreviewBundle('omnibar-worker.ts', 'es'))
+export const getPreviewMockBundle = () =>
+  (mockBundle ??= buildPreviewBundle('mock-chrome.js', 'iife'))
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -64,7 +69,7 @@ export const createPreviewServer = ({
             resolve(workspace, 'packages/i18n/locales/en/messages.json'),
             'utf8',
           ),
-          readFile(resolve(previewDirectory, 'mock-chrome.js'), 'utf8'),
+          getPreviewMockBundle(),
         ])
         const config = {
           browser: JSON.parse(browser),

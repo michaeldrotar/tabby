@@ -68,6 +68,41 @@ export const SUGGESTED_WINDOW_ICONS = [
   'star',
 ] as const
 
+export const SUGGESTED_WINDOW_EMOJIS = [
+  '😀',
+  '😎',
+  '🥳',
+  '🤓',
+  '🐱',
+  '🐶',
+  '🦊',
+  '🐼',
+  '🌿',
+  '🌻',
+  '🌈',
+  '☀️',
+  '🌙',
+  '⭐',
+  '🔥',
+  '⚡',
+  '❤️',
+  '💜',
+  '💡',
+  '🎨',
+  '🎵',
+  '🎮',
+  '🚀',
+  '✈️',
+  '🏠',
+  '📚',
+  '💻',
+  '🔬',
+  '☕',
+  '🍕',
+  '🎯',
+  '🎁',
+].map((emoji) => `emoji:${emoji}`)
+
 export type WindowIconChoices = Partial<Record<WindowIconKind, string>>
 
 export const getWindowIconChoices = (
@@ -104,4 +139,28 @@ export const defaultWindowIcon = (kind: WindowIconKind, title: string) => {
     .join('')
     .toUpperCase()
   return `monogram:${[...initials].slice(0, 3).join('') || 'W'}`
+}
+
+export const initializeWindowIconChoices = (
+  icon: string,
+  title: string,
+  choices?: WindowIconChoices,
+  random: () => number = Math.random,
+): WindowIconChoices => {
+  const saved = getWindowIconChoices(icon, choices)
+  return {
+    ...saved,
+    icon:
+      saved.icon ??
+      SUGGESTED_WINDOW_ICONS[
+        Math.floor(random() * SUGGESTED_WINDOW_ICONS.length)
+      ]!,
+    emoji:
+      saved.emoji ??
+      SUGGESTED_WINDOW_EMOJIS[
+        Math.floor(random() * SUGGESTED_WINDOW_EMOJIS.length)
+      ]!,
+    monogram: saved.monogram ?? defaultWindowIcon('monogram', title),
+    favicon: saved.favicon ?? defaultWindowIcon('favicon', title),
+  }
 }

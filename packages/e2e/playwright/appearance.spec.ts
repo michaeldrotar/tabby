@@ -168,13 +168,14 @@ for (const theme of ['dark', 'light'] as const) {
 
     await switcher.click()
     const currentWindow = page.locator('[data-window-choice="1"]')
+    const windowCount = currentWindow.getByText('4 tabs · Current window', {
+      exact: true,
+    })
     await expect(currentWindow).toBeVisible()
     const windowResting = await color(currentWindow)
     await currentWindow.hover()
     await expect.poll(() => color(currentWindow)).not.toEqual(windowResting)
-    expect(
-      await contrast(currentWindow.getByText('4 tabs', { exact: true })),
-    ).toBeGreaterThanOrEqual(4.5)
+    expect(await contrast(windowCount)).toBeGreaterThanOrEqual(4.5)
     await page.keyboard.press('Escape')
     await page.keyboard.press('ArrowDown')
     const option = row.locator('[data-tab-option]')
@@ -224,9 +225,7 @@ for (const theme of ['dark', 'light'] as const) {
         ).toBeGreaterThanOrEqual(4.5)
       await switcher.click()
       await currentWindow.hover()
-      expect(
-        await contrast(currentWindow.getByText('4 tabs', { exact: true })),
-      ).toBeGreaterThanOrEqual(4.5)
+      expect(await contrast(windowCount)).toBeGreaterThanOrEqual(4.5)
     }
   })
 }

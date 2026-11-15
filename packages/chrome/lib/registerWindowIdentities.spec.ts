@@ -75,6 +75,7 @@ const setup = (
     icon?: string,
     iconColor?: 'green',
     iconChoices?: WindowIconChoices,
+    useCustom?: boolean,
   ) => {
     const response = new Promise<{ success?: boolean; error?: string }>(
       (resolve) =>
@@ -86,6 +87,7 @@ const setup = (
             icon,
             iconColor,
             iconChoices,
+            useCustom,
           },
           { id: 'tabby' },
           resolve,
@@ -113,6 +115,144 @@ const setup = (
 afterEach(() => vi.useRealTimers())
 
 describe('stored window identities', () => {
+  it('migrates local and session settings once while preserving restore fingerprints and private boundaries', async () => {
+    const original = setup()
+    await original.edit(1, 'Work', 'book', 'green')
+    const { hashes } = (
+      original.local[WINDOW_LABELS_KEY] as {
+        hashes: string[]
+      }[]
+    )[0]!
+    const published = {
+      key: 'published',
+      name: 'Work',
+      icon: 'book',
+      iconColor: 'green',
+      hashes,
+      position: 0,
+      updatedAt: Date.now(),
+    }
+    const incomplete = {
+      key: 'incomplete',
+      hashes: ['unmatched'],
+      updatedAt: Date.now(),
+    }
+    const resources = setup(
+      [sampleWindow(88), sampleWindow(77, ['https://private.test'], true)],
+      { [WINDOW_LABELS_KEY]: [published, incomplete] },
+      {
+        [WINDOW_IDENTITIES_KEY]: {
+          77: {
+            key: 'private',
+            name: 'Private work',
+            icon: 'heart',
+            iconColor: 'green',
+          },
+        },
+      },
+    )
+    await resources.tracker.settled()
+    expect(resources.local[WINDOW_LABELS_KEY]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ...published,
+          version: 2,
+          icon: 'icon',
+          iconChoices: expect.objectContaining({ icon: 'book' }),
+        }),
+        expect.objectContaining({
+          ...incomplete,
+          version: 2,
+          name: expect.stringMatching(/^Window \d+$/),
+          icon: 'icon',
+          iconColor: expect.any(String),
+        }),
+      ]),
+    )
+    expect(resources.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      88: {
+        version: 2,
+        key: 'published',
+        name: 'Work',
+        icon: 'icon',
+        iconChoices: { icon: 'book' },
+      },
+      77: {
+        version: 2,
+        name: 'Private work',
+        icon: 'icon',
+        iconChoices: { icon: 'heart' },
+      },
+    })
+    expect(JSON.stringify(resources.local)).not.toContain('Private work')
+    const migrated = structuredClone(resources.local)
+    const restarted = setup(
+      [sampleWindow(88), sampleWindow(77, ['https://private.test'], true)],
+      resources.local,
+      resources.session,
+    )
+    await restarted.tracker.settled()
+    expect(restarted.local).toEqual(migrated)
+  })
+
+  it('leaves unsupported future records untouched', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const future = {
+        key: 'future',
+        version: 3,
+        name: 'Future',
+        hashes: ['a'],
+        updatedAt: Date.now(),
+      }
+      const resources = setup([], { [WINDOW_LABELS_KEY]: [future] })
+      await expect(resources.tracker.settled()).rejects.toThrow('not supported')
+      expect(resources.local[WINDOW_LABELS_KEY]).toEqual([future])
+      expect(resources.session[WINDOW_IDENTITIES_KEY]).toBeUndefined()
+    } finally {
+      error.mockRestore()
+    }
+  })
+
+  it('retains reset choices across browser restart and re-enables the same record', async () => {
+    const original = setup()
+    const choices = {
+      icon: 'book',
+      emoji: 'emoji:🐱',
+      monogram: 'monogram:RE',
+      upload: 'upload:data:image/png;base64,YQ==',
+      favicon: 'favicon:data:image/png;base64,Yg==',
+    }
+    await original.edit(1, 'Research', 'emoji:🐱', 'green', choices)
+    await original.edit(1, 'Research', 'emoji:🐱', 'green', choices, false)
+    const restarted = setup([sampleWindow(88)], original.local)
+    await restarted.tracker.settled()
+    const retained = {
+      name: 'Research',
+      version: 2,
+      icon: 'emoji',
+      iconColor: 'green',
+      iconChoices: {
+        icon: 'book',
+        emoji: '🐱',
+        monogram: 'RE',
+        upload: 'data:image/png;base64,YQ==',
+        favicon: 'data:image/png;base64,Yg==',
+      },
+      useCustom: false,
+    }
+    expect(restarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      88: retained,
+    })
+    expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([
+      expect.objectContaining(retained),
+    ])
+    await restarted.edit(88, 'Research', 'emoji:🐱', 'green', choices, true)
+    expect(restarted.local[WINDOW_LABELS_KEY]).toEqual([
+      expect.objectContaining({ ...retained, useCustom: true }),
+    ])
+  })
+
   it('stores names locally with URL hashes, follows live tab changes, and restores after restart with different IDs', async () => {
     const first = setup()
     expect(
@@ -126,12 +266,13 @@ describe('stored window identities', () => {
     expect(first.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
       1: {
         name: 'Project Atlas',
-        icon: 'monogram:AB',
+        version: 2,
+        icon: 'monogram',
         iconColor: 'green',
         iconChoices: {
           icon: 'book',
-          emoji: 'emoji:😎',
-          monogram: 'monogram:AB',
+          emoji: '😎',
+          monogram: 'AB',
         },
       },
     })
@@ -149,12 +290,13 @@ describe('stored window identities', () => {
     expect(restarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
       88: {
         name: 'Project Atlas',
-        icon: 'monogram:AB',
+        version: 2,
+        icon: 'monogram',
         iconColor: 'green',
         iconChoices: {
           icon: 'book',
-          emoji: 'emoji:😎',
-          monogram: 'monogram:AB',
+          emoji: '😎',
+          monogram: 'AB',
         },
       },
     })
@@ -312,7 +454,12 @@ describe('stored window identities', () => {
     restored.api.windows.onCreated.emit()
     await restored.confirm()
     expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
-      10: { name: 'My choice', icon: 'book' },
+      10: {
+        version: 2,
+        name: 'My choice',
+        icon: 'icon',
+        iconChoices: { icon: 'book' },
+      },
     })
     expect(JSON.stringify(restored.session)).not.toContain('"name":"Work"')
   })

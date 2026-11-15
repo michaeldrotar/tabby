@@ -9,6 +9,7 @@ import {
   planTabMove,
 } from '@extension/core/commands'
 import { planTabPlacement } from '@extension/core/tabPlacement'
+import { deserializeWindowIdentity } from '@extension/core/windowIdentityStorage'
 import { getChromeFaviconUrl } from './favicon.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
 import type { WindowIdentityAssignment } from './registerWindowIdentities.js'
@@ -165,10 +166,15 @@ export const createChromeBackend = (
             state: 'loaded',
             ...data,
             windows: data.windows.map((window) => {
-              const identity = assigned[window.id]
+              const stored = assigned[window.id]
+              const identity =
+                stored && !stored.cleared
+                  ? deserializeWindowIdentity(stored)
+                  : undefined
               return {
                 ...window,
                 name: identity?.name,
+                useCustom: identity?.useCustom,
                 icon: identity?.icon,
                 iconChoices: identity?.iconChoices,
                 iconColor: identity?.iconColor,

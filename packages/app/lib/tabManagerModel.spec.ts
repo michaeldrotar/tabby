@@ -3,6 +3,7 @@ import {
   createMemoryPreferences,
   MemoryBackend,
 } from '@extension/demo'
+import * as windowIconImages from '@extension/ui/tab-manager/ui/windowIconImage'
 import { describe, expect, it, vi } from 'vitest'
 import {
   createTabManagerController,
@@ -1424,6 +1425,120 @@ describe('complete Tab Manager actions', () => {
     ).not.toContain('new')
   })
 
+  it('opens immediately and saves the first favicon through pending Reset and later tab changes', async () => {
+    const image = Promise.withResolvers<string>()
+    const prepare = vi
+      .spyOn(windowIconImages, 'windowIconImage')
+      .mockImplementation(() => image.promise)
+    try {
+      const { backend, snapshot, view, controller } = setup()
+      backend.restoreSnapshot({
+        ...snapshot,
+        tabs: snapshot.tabs.map((tab) => ({
+          ...tab,
+          faviconUrl: tab.id === 11 ? '/original.png' : '/later.png',
+        })),
+      })
+      const editing = controller.dispatch({ type: 'edit-window' })
+      expect(view.getState().editingWindow).toMatchObject({
+        name: 'Tabby',
+        iconChoices: { monogram: 'monogram:T' },
+      })
+      const emoji = view.getState().editingWindow?.iconChoices?.emoji
+      expect(emoji).toMatch(/^emoji:/)
+      const resetting = controller.dispatch({ type: 'reset-window' })
+      await backend.execute({ type: 'activate-tab', tabId: 12 })
+      controller.dispatch({ type: 'cancel-window-edit' })
+      const reopening = controller.dispatch({ type: 'edit-window' })
+      expect(prepare).toHaveBeenCalledExactlyOnceWith('/original.png')
+      const png = 'data:image/png;base64,YQ=='
+      image.resolve(png)
+      await Promise.all([editing, resetting, reopening])
+      expect(backend.getSnapshot().windows[0]).toMatchObject({
+        useCustom: true,
+        iconChoices: {
+          emoji,
+          monogram: 'monogram:T',
+          favicon: `favicon:${png}`,
+        },
+      })
+      await controller.dispatch({ type: 'reset-window' })
+      await controller.dispatch({ type: 'edit-window' })
+      expect(view.getState().editingWindow?.iconChoices).toMatchObject({
+        emoji,
+        monogram: 'monogram:T',
+        favicon: `favicon:${png}`,
+      })
+      expect(prepare).toHaveBeenCalledTimes(1)
+    } finally {
+      prepare.mockRestore()
+    }
+  })
+
+  it('restores remembered settings when reopened while Reset is still saving', async () => {
+    const blocked = Promise.withResolvers<void>()
+    const started = Promise.withResolvers<void>()
+    const { backend, view, controller } = setup({
+      beforeExecute: async (command) => {
+        if (command.type === 'name-window' && command.useCustom === false) {
+          started.resolve()
+          await blocked.promise
+        }
+      },
+    })
+    await controller.dispatch({ type: 'edit-window' })
+    await controller.dispatch({
+      type: 'change-window-draft',
+      value: { name: 'Research', icon: 'book', iconColor: 'green' },
+    })
+    const reset = controller.dispatch({ type: 'reset-window' })
+    await started.promise
+    controller.dispatch({ type: 'cancel-window-edit' })
+    const reopening = controller.dispatch({ type: 'edit-window' })
+    expect(view.getState().editingWindow).toMatchObject({
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'green',
+      useCustom: true,
+    })
+    blocked.resolve()
+    await Promise.all([reset, reopening])
+    expect(backend.getSnapshot().windows[0]).toMatchObject({
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'green',
+      useCustom: true,
+    })
+    expect(view.getState().editingWindow).not.toBeNull()
+  })
+
+  it('keeps the saved custom settings and editor when Reset fails', async () => {
+    const { backend, view, controller } = setup({
+      beforeExecute: (command) => {
+        if (command.type === 'name-window' && command.useCustom === false)
+          throw new Error('Storage unavailable')
+      },
+    })
+    await controller.dispatch({ type: 'edit-window' })
+    await controller.dispatch({
+      type: 'change-window-draft',
+      value: { name: 'Research', icon: 'book', iconColor: 'green' },
+    })
+    await controller.dispatch({ type: 'reset-window' })
+    expect(view.getState().editingWindow).toMatchObject({
+      name: 'Research',
+      useCustom: true,
+    })
+    expect(backend.getSnapshot().windows[0]).toMatchObject({
+      name: 'Research',
+      useCustom: true,
+    })
+    expect(view.getState().notifications.items[0]).toMatchObject({
+      kind: 'error',
+      message: 'Storage unavailable',
+    })
+  })
+
   it('applies identity changes in order, retains the editor on window focus, and switches between custom and tab defaults', async () => {
     const resources = setup()
     await resources.preferences.set({ tabManagerCompactIconMode: 'first' })
@@ -1470,7 +1585,23 @@ describe('complete Tab Manager actions', () => {
       iconColor: 'red',
     })
     await controller.dispatch({ type: 'reset-window' })
-    expect(resources.backend.getSnapshot().windows[0]?.name).toBe('')
+    expect(resources.backend.getSnapshot().windows[0]).toMatchObject({
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'red',
+      useCustom: false,
+    })
+    expect(
+      projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      ).windows[0],
+    ).toMatchObject({
+      title: 'Tabby',
+      name: undefined,
+      icon: undefined,
+      iconColor: undefined,
+    })
     expect(resources.preferences.getSnapshot().tabManagerCompactIconMode).toBe(
       'first',
     )
@@ -1478,9 +1609,23 @@ describe('complete Tab Manager actions', () => {
     random.mockReturnValue(0)
     await controller.dispatch({ type: 'edit-window' })
     expect(resources.view.getState().editingWindow).toMatchObject({
-      name: 'Tabby',
-      icon: 'window',
-      iconColor: 'grey',
+      name: 'Research',
+      icon: 'book',
+      iconColor: 'red',
+      useCustom: true,
+    })
+    expect(random).toHaveBeenCalledTimes(3)
+    await controller.dispatch({
+      type: 'change-window-draft',
+      value: { name: '' },
+    })
+    await controller.dispatch({ type: 'reset-window' })
+    await controller.dispatch({ type: 'edit-window' })
+    expect(resources.view.getState().editingWindow).toMatchObject({
+      name: '',
+      icon: 'book',
+      iconColor: 'red',
+      useCustom: true,
     })
   })
 

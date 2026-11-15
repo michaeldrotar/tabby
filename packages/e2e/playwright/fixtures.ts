@@ -1,13 +1,8 @@
-import { readFileSync } from 'node:fs'
 import { test as base } from '@playwright/test'
 import browser from '../../../scripts/preview/browser-data.json' with { type: 'json' }
+import { getPreviewMockBundle } from '../../../scripts/preview/server.mjs'
 import messages from '../../i18n/locales/en/messages.json' with { type: 'json' }
 import type { PreferenceState } from '@extension/core'
-
-const mock = readFileSync(
-  new URL('../../../scripts/preview/mock-chrome.js', import.meta.url),
-  'utf8',
-)
 
 type BrowserFixture = Omit<typeof browser, 'preferences'> & {
   preferences: Partial<PreferenceState>
@@ -25,6 +20,7 @@ export const test = base.extend<{ browserData: BrowserFixture }>({
     { option: true },
   ],
   page: async ({ page, browserData }, use) => {
+    const mock = await getPreviewMockBundle()
     await page.route('**/__preview/mock-chrome.js', (route) =>
       route.fulfill({
         contentType: 'text/javascript',

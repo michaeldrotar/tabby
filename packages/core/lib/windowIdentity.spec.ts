@@ -10,6 +10,48 @@ const saved = (key: string, hashes: string[]): SavedWindowIdentity => ({
 })
 
 describe('Tabby window identity', () => {
+  it('shows defaults after reset while preserving every custom choice', () => {
+    const window = {
+      id: 1,
+      name: 'Research',
+      icon: 'emoji:🐱',
+      iconColor: 'green' as const,
+      useCustom: false,
+    }
+    const tabs = [
+      {
+        id: 1,
+        windowId: 1,
+        index: 0,
+        title: 'First',
+        faviconUrl: '/first.png',
+      },
+      {
+        id: 2,
+        windowId: 1,
+        index: 1,
+        title: 'Active',
+        active: true,
+        faviconUrl: '/active.png',
+      },
+    ]
+    expect(getWindowIdentity(window, tabs, 'first')).toMatchObject({
+      title: 'First',
+      icon: undefined,
+      iconColor: undefined,
+      iconUrl: '/first.png',
+    })
+    expect(
+      getWindowIdentity({ ...window, useCustom: true }, tabs),
+    ).toMatchObject({
+      title: 'Research',
+      icon: 'emoji:🐱',
+      iconColor: 'green',
+      iconUrl: undefined,
+    })
+    expect(window.name).toBe('Research')
+  })
+
   it('uses a saved name and icon consistently and identifies unnamed windows by their active tab', () => {
     const tabs = [
       {

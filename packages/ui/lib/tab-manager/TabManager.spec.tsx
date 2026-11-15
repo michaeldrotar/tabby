@@ -239,7 +239,7 @@ describe('TabManager presentation', () => {
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'open-window-picker' })
   })
 
-  it('uses the full pane for keyboard window navigation with no search or back button', () => {
+  it('provides a visible exit alongside keyboard window navigation', () => {
     const onIntent = vi.fn()
     render(
       <Surface>
@@ -262,9 +262,7 @@ describe('TabManager presentation', () => {
       </Surface>,
     )
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Back to tabs' }),
-    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Back to tabs' })).toBeVisible()
     const first = screen.getByRole('button', { name: /^Research/ })
     fireEvent.keyDown(first, { key: 'End' })
     expect(screen.getByRole('button', { name: 'New window' })).toHaveFocus()

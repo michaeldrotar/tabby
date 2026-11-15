@@ -13,11 +13,17 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   const name = page.getByRole('textbox', { name: 'Name', exact: true })
   await expect(name).toBeFocused()
   await page.keyboard.press('Shift+Tab')
-  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Close editor' })).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   await expect(switcher).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(
+    page.getByRole('button', { name: 'Back to tabs', exact: true }),
+  ).toBeFocused()
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  await expect(switcher).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: 'Close editor' })).toBeFocused()
   const editTabStops = [
     name,
     page.locator('[data-editor-row="colors"] [aria-pressed="true"]'),
@@ -57,7 +63,9 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     await name.evaluate((input: HTMLInputElement) => input.selectionStart),
   ).toBe(12)
   await name.press('ArrowUp')
-  await expect(page.getByRole('button', { name: 'Edit window' })).toBeFocused()
+  await expect(
+    page.getByRole('button', { name: 'Back to tabs', exact: true }),
+  ).toBeFocused()
   await page.keyboard.press('ArrowDown')
   await expect(name).toBeFocused()
   await name.press('ArrowDown')

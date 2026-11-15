@@ -1,3 +1,5 @@
+import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityStorage'
+
 ;(() => {
   const { browser, messages, platform } = globalThis.__TABBY_PREVIEW__
   const clone = (value) => structuredClone(value)
@@ -188,13 +190,14 @@
         await api.storage.session.set({
           [key]: {
             ...values[key],
-            [message.windowId]: {
+            [message.windowId]: serializeWindowIdentity({
               key: `sample-${message.windowId}`,
               name: message.name.trim(),
+              useCustom: message.useCustom,
               icon: message.icon,
               iconChoices: message.iconChoices,
               iconColor: message.iconColor,
-            },
+            }),
           },
         })
         return { success: true }
@@ -235,13 +238,14 @@
               .filter((window) => window.name || window.icon)
               .map((window) => [
                 window.id,
-                {
+                serializeWindowIdentity({
                   key: `sample-${window.id}`,
                   name: window.name ?? '',
+                  useCustom: window.useCustom,
                   icon: window.icon,
                   iconChoices: window.iconChoices,
                   iconColor: window.iconColor,
-                },
+                }),
               ]),
           ),
         },
