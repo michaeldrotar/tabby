@@ -8,6 +8,11 @@ import {
   countMatchingWindowHashes,
   matchWindowIdentities,
 } from '@extension/core/windowIdentity'
+import {
+  deserializeWindowIdentity,
+  migrateWindowIdentity,
+  serializeWindowIdentity,
+} from '@extension/core/windowIdentityStorage'
 import type { BrowserTabGroupColor } from '@extension/core/browser'
 import type { WindowIconChoices } from '@extension/core/windowIconChoice'
 import type { SavedWindowIdentity } from '@extension/core/windowIdentity'
@@ -84,17 +89,34 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       api.storage.session.get(WINDOW_IDENTITIES_KEY),
     ])
     const now = Date.now()
-    let saved: SavedWindowIdentity[] = Array.isArray(local[WINDOW_LABELS_KEY])
-      ? local[WINDOW_LABELS_KEY]
-      : []
+    let saved: SavedWindowIdentity[] = (
+      Array.isArray(local[WINDOW_LABELS_KEY]) ? local[WINDOW_LABELS_KEY] : []
+    )
+      .filter(
+        (value: SavedWindowIdentity | null) =>
+          value &&
+          typeof value.key === 'string' &&
+          Array.isArray(value.hashes) &&
+          typeof value.updatedAt === 'number',
+      )
+      .map((value: SavedWindowIdentity & { version?: number }) => {
+        const stored = migrateWindowIdentity(value)
+        return { ...stored, ...deserializeWindowIdentity(stored) }
+      })
     saved = saved.filter(
       (record) =>
         typeof record.key === 'string' &&
-        typeof record.name === 'string' &&
         Array.isArray(record.hashes) &&
         now - record.updatedAt < 90 * 86400000,
     )
-    const previous = (session[WINDOW_IDENTITIES_KEY] ?? {}) as Assignments
+    const previous: Assignments = Object.fromEntries(
+      Object.entries((session[WINDOW_IDENTITIES_KEY] ?? {}) as Assignments).map(
+        ([id, value]) => {
+          const stored = migrateWindowIdentity(value)
+          return [id, { ...stored, ...deserializeWindowIdentity(stored) }]
+        },
+      ),
+    )
     const assignments: Assignments = {}
     for (const window of windows) {
       if (
@@ -269,12 +291,25 @@ export const registerWindowIdentities = (api: IdentityApi) => {
       saved.push(record)
     }
     saved = saved.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 200)
-    if (
-      JSON.stringify(saved) !== JSON.stringify(local[WINDOW_LABELS_KEY] ?? [])
+    const storedRecords = saved.map((record) => serializeWindowIdentity(record))
+    const storedAssignments = Object.fromEntries(
+      Object.entries(assignments).map(([id, assigned]) => [
+        id,
+        serializeWindowIdentity(assigned),
+      ]),
     )
-      await api.storage.local.set({ [WINDOW_LABELS_KEY]: saved })
-    if (JSON.stringify(assignments) !== JSON.stringify(previous))
-      await api.storage.session.set({ [WINDOW_IDENTITIES_KEY]: assignments })
+    if (
+      JSON.stringify(storedRecords) !==
+      JSON.stringify(local[WINDOW_LABELS_KEY] ?? [])
+    )
+      await api.storage.local.set({ [WINDOW_LABELS_KEY]: storedRecords })
+    if (
+      JSON.stringify(storedAssignments) !==
+      JSON.stringify(session[WINDOW_IDENTITIES_KEY] ?? {})
+    )
+      await api.storage.session.set({
+        [WINDOW_IDENTITIES_KEY]: storedAssignments,
+      })
     const deadlines = Object.values(assignments)
       .filter((value) => value.provisional && value.confirmAfter! > now)
       .map((value) => value.confirmAfter!)

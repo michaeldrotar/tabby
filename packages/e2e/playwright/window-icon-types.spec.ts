@@ -275,10 +275,11 @@ test('restores the saved settings after reset, with colors on one row', async ({
     )
   await expect
     .poll(async () => (await savedSettings()).iconChoices?.favicon)
-    .toMatch(/^favicon:data:image\/png;base64,/)
+    .toMatch(/^data:image\/png;base64,/)
   const initial = await savedSettings()
-  expect(initial.iconChoices.emoji).toMatch(/^emoji:/)
-  expect(initial.iconChoices.monogram).toBe('monogram:T')
+  expect(initial.version).toBe(2)
+  expect(initial.iconChoices.emoji).toMatch(/\p{Extended_Pictographic}/u)
+  expect(initial.iconChoices.monogram).toBe('T')
   await page.getByRole('button', { name: 'Reset', exact: true }).click()
   await expect(page.locator('[data-window-editor]')).toHaveCount(0)
   await expect(header).toContainText('Project notes')
@@ -293,7 +294,9 @@ test('restores the saved settings after reset, with colors on one row', async ({
     ),
   ).toMatchObject({
     name: 'Tabby',
-    icon: 'code',
+    version: 2,
+    icon: 'icon',
+    iconChoices: { icon: 'code' },
     iconColor: 'blue',
     useCustom: false,
   })
@@ -314,10 +317,10 @@ test('restores the saved settings after reset, with colors on one row', async ({
   await page.getByRole('tab', { name: 'Favicons', exact: true }).click()
   await expect(header.locator('img')).toHaveAttribute(
     'src',
-    initial.iconChoices.favicon.slice('favicon:'.length),
+    initial.iconChoices.favicon,
   )
   await page.getByRole('tab', { name: 'Emoji', exact: true }).click()
-  await expect(header).toContainText(initial.iconChoices.emoji.slice('emoji:'.length))
+  await expect(header).toContainText(initial.iconChoices.emoji)
   await page.getByRole('tab', { name: 'Monogram', exact: true }).click()
   await expect(header).toContainText('T')
   await page.getByRole('tab', { name: 'Icon', exact: true }).click()

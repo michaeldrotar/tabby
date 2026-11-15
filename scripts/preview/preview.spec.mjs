@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { runInNewContext } from 'node:vm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createPreviewServer } from './server.mjs'
+import { createPreviewServer, getPreviewMockBundle } from './server.mjs'
 
 const previewDirectory = import.meta.dirname
 const workspace = resolve(previewDirectory, '../..')
@@ -15,10 +15,7 @@ const messages = JSON.parse(
     'utf8',
   ),
 )
-const mockSource = await readFile(
-  resolve(previewDirectory, 'mock-chrome.js'),
-  'utf8',
-)
+const mockSource = await getPreviewMockBundle()
 const loadMock = (source = mockSource, fixture = browser, environment = {}) => {
   const context = {
     ...environment,
