@@ -69,7 +69,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
     await expect(page.getByRole('textbox')).toHaveCount(0)
     await expect(
       page.getByRole('button', { name: 'Back to tabs' }),
-    ).toHaveCount(0)
+    ).toBeInViewport()
     await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
     const newWindow = page.getByRole('button', {
       name: 'New window',
@@ -139,7 +139,9 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
     ).toBeFocused()
     await page.keyboard.press('Home')
     await page.keyboard.press('ArrowUp')
-    await expect(page.locator('[data-window-picker-trigger]')).toBeFocused()
+    await expect(
+      page.getByRole('button', { name: 'Back to tabs', exact: true }),
+    ).toBeFocused()
     await page.keyboard.press('ArrowDown')
     await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
     await page.keyboard.press('End')
@@ -232,4 +234,88 @@ test('focuses the chosen window tab after the picker animation', async ({
   await expect(
     page.locator('[data-tab-id="9"] [data-tab-option]'),
   ).toBeFocused()
+})
+
+test('keeps exits visible in a short panel and returns to the same tabs', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.setViewportSize({ width: 320, height: 320 })
+  await page.goto('/tab-manager/index.html')
+  const scroll = page.locator(
+    '[data-manager-scroll] [data-radix-scroll-area-viewport]',
+  )
+  await scroll.evaluate((element) => {
+    element.scrollTop = 150
+  })
+  await expect
+    .poll(() => scroll.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0)
+  const initialScroll = await scroll.evaluate((element) => element.scrollTop)
+  const windowCount = await page.evaluate(
+    async () => (await chrome.windows.getAll()).length,
+  )
+  const editBounds = await page
+    .getByRole('button', { name: 'Edit window', exact: true })
+    .boundingBox()
+  const headerBounds = await page.locator('header').boundingBox()
+  const icon = page.locator('[data-window-picker-trigger] > span').first()
+  const iconBounds = await icon.boundingBox()
+  await page.getByRole('button', { name: 'Edit window', exact: true }).click()
+  await expect
+    .poll(() =>
+      page
+        .getByRole('button', { name: 'Close editor', exact: true })
+        .boundingBox(),
+    )
+    .toEqual(editBounds)
+  await expect
+    .poll(() => page.locator('header').boundingBox())
+    .toEqual(headerBounds)
+  await expect(icon).toBeInViewport()
+  await expect
+    .poll(async () => (await icon.boundingBox())!.x)
+    .toBe(iconBounds!.x + 44)
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('My work')
+  await scroll.evaluate((element) => {
+    element.scrollTop = element.scrollHeight
+  })
+  const back = page.getByRole('button', { name: 'Back to tabs', exact: true })
+  await expect(back).toBeInViewport()
+  const editor = page.getByRole('button', { name: 'Close editor', exact: true })
+  await expect(editor).toBeInViewport()
+  expect((await editor.boundingBox())!.y).toBe((await back.boundingBox())!.y)
+  await page.screenshot({ path: '../../test-results/short-window-editor.png' })
+  await back.click()
+  await expect(page.locator('[data-window-editor]')).toHaveCount(0)
+  await expect
+    .poll(async () => (await icon.boundingBox())!.x)
+    .toBe(iconBounds!.x)
+  await expect
+    .poll(() => scroll.evaluate((element) => element.scrollTop))
+    .toBe(initialScroll)
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'My work',
+  )
+  await page.locator('[data-window-picker-trigger]').click()
+  await expect(back).toBeVisible()
+  await expect(page.getByText(/Current window/)).toBeVisible()
+  await scroll.evaluate((element) => {
+    element.scrollTop = element.scrollHeight
+  })
+  await expect(back).toBeInViewport()
+  await back.click()
+  await expect(page.locator('[data-window-picker]')).toHaveCount(0)
+  await expect
+    .poll(() => scroll.evaluate((element) => element.scrollTop))
+    .toBe(initialScroll)
+  expect(
+    await page.evaluate(async () => (await chrome.windows.getAll()).length),
+  ).toBe(windowCount)
+  await page.getByRole('button', { name: 'Edit window', exact: true }).click()
+  await editor.click()
+  await expect(page.locator('[data-window-editor]')).toHaveCount(0)
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'My work',
+  )
 })

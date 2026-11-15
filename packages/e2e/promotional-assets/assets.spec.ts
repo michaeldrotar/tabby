@@ -64,6 +64,11 @@ test('promotional layouts show current windows, search, and batch actions', asyn
         page.getByRole('textbox', { name: 'Name', exact: true }),
       ).toHaveValue('Design studio')
       await expect(page.locator('[data-window-choice]')).toHaveCount(4)
+      await expect(
+        page
+          .getByRole('button', { name: 'House icon', exact: true })
+          .locator('svg'),
+      ).toHaveClass(/lucide-house/)
     }
     if (asset.id === 'bulk-actions') {
       const highlighted = page.locator('[data-action-id="discard"]')

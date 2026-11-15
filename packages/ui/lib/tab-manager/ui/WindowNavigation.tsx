@@ -1,10 +1,11 @@
-import { useIsPresent } from 'framer-motion'
-import { ChevronDown, Pencil, Plus } from 'lucide-react'
+import { motion, useIsPresent } from 'framer-motion'
+import { ArrowLeft, ChevronDown, Pencil, Plus } from 'lucide-react'
 import { useLayoutEffect, useRef } from 'react'
 import { DragReveal } from '../../components/DragReveal'
 import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
 import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
+import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
 import {
   editorRowEntry,
@@ -29,81 +30,114 @@ export const WindowHeader = ({
   onIntent: (intent: TabManagerIntent) => void
   revealing?: boolean
 }) => {
+  const reduced = useShouldReduceMotion()
+  const returning = Boolean(model.editingWindow || model.windowPicker)
   const window = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
   return (
     <header
       className={`
-        flex shrink-0 items-center gap-1 border-b border-border
-        bg-(--manager-chrome) p-2
+        flex shrink-0 flex-col border-b border-border bg-(--manager-chrome) p-2
       `}
       data-keyboard-section="header"
     >
-      <button
-        data-window-picker-trigger
-        aria-label={`Switch window: ${window?.title ?? 'Windows'}`}
-        aria-expanded={model.windowPicker}
-        className={cn(
-          windowControlClass,
-          `min-w-0 flex-1 justify-start py-2 text-left`,
-        )}
-        onClick={() =>
-          onIntent({
-            type: model.windowPicker
-              ? 'dismiss-window-picker'
-              : 'open-window-picker',
-          })
-        }
-      >
-        <span
-          className={cn(
-            'flex size-10 shrink-0 items-center justify-center rounded-lg',
-            getGroupColorClasses(window?.iconColor ?? 'blue').bg,
-          )}
+      <div className="flex items-center">
+        <motion.div
+          initial={false}
+          animate={{ width: returning ? 44 : 0, opacity: returning ? 1 : 0 }}
+          transition={{ duration: reduced ? 0 : 0.18, ease: 'easeOut' }}
+          className="shrink-0 overflow-hidden"
         >
-          <WindowIcon
-            icon={window?.icon}
-            iconUrl={window?.iconUrl}
-            color={window?.iconColor}
-            size={24}
-          />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span
-            className="block truncate font-medium text-foreground"
-            title={window?.title}
-          >
-            {window?.title ?? 'Windows'}
-          </span>
-          <span className="mt-0.5 block truncate text-xs text-foreground">
-            {window
-              ? `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.incognito ? ' · Private' : ''}`
-              : 'Choose a window'}
-          </span>
-        </span>
-        <DragReveal active={revealing}>
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
+          {returning && (
+            <button
+              data-back-to-tabs
+              aria-label="Back to tabs"
+              title="Back to tabs"
+              className={cn(windowControlClass, 'size-10 px-0')}
+              onClick={() =>
+                onIntent({
+                  type: model.editingWindow
+                    ? 'cancel-window-edit'
+                    : 'dismiss-window-picker',
+                })
+              }
+            >
+              <ArrowLeft size={18} aria-hidden="true" />
+            </button>
+          )}
+        </motion.div>
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <button
+            data-window-picker-trigger
+            aria-label={`Switch window: ${window?.title ?? 'Windows'}`}
+            aria-expanded={model.windowPicker}
             className={cn(
-              'shrink-0 transition-transform',
-              model.windowPicker && 'rotate-180',
+              windowControlClass,
+              `min-w-0 flex-1 justify-start py-2 text-left`,
             )}
-          />
-        </DragReveal>
-      </button>
-      <button
-        data-window-edit-trigger
-        aria-label="Edit window"
-        title="Edit window"
-        aria-expanded={Boolean(model.editingWindow)}
-        disabled={!window}
-        className={cn(windowControlClass, 'size-10 shrink-0 px-0')}
-        onClick={() => onIntent({ type: 'edit-window' })}
-      >
-        <Pencil size={18} />
-      </button>
+            onClick={() =>
+              onIntent({
+                type: model.windowPicker
+                  ? 'dismiss-window-picker'
+                  : 'open-window-picker',
+              })
+            }
+          >
+            <span
+              className={cn(
+                'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                getGroupColorClasses(window?.iconColor ?? 'blue').bg,
+              )}
+            >
+              <WindowIcon
+                icon={window?.icon}
+                iconUrl={window?.iconUrl}
+                color={window?.iconColor}
+                size={24}
+              />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span
+                className="block truncate font-medium text-foreground"
+                title={window?.title}
+              >
+                {window?.title ?? 'Windows'}
+              </span>
+              <span className="mt-0.5 block truncate text-xs text-foreground">
+                {window
+                  ? `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.incognito ? ' · Private' : ''}`
+                  : 'Choose a window'}
+              </span>
+            </span>
+            <DragReveal active={revealing}>
+              <ChevronDown
+                size={16}
+                aria-hidden="true"
+                className={cn(
+                  'shrink-0 transition-transform',
+                  model.windowPicker && 'rotate-180',
+                )}
+              />
+            </DragReveal>
+          </button>
+          <button
+            data-window-edit-trigger
+            aria-label={model.editingWindow ? 'Close editor' : 'Edit window'}
+            title={model.editingWindow ? 'Close editor' : 'Edit window'}
+            aria-expanded={Boolean(model.editingWindow)}
+            disabled={!window}
+            className={cn(windowControlClass, 'size-10 shrink-0 px-0')}
+            onClick={() =>
+              onIntent({
+                type: 'edit-window',
+              })
+            }
+          >
+            <Pencil size={18} />
+          </button>
+        </div>
+      </div>
     </header>
   )
 }
@@ -160,9 +194,7 @@ export const WindowPicker = ({
         const manager = root.current?.closest('[data-tab-manager]')
         const crossing =
           event.key === 'ArrowUp' && index === 0
-            ? manager?.querySelector<HTMLButtonElement>(
-                '[data-window-picker-trigger]',
-              )
+            ? manager?.querySelector<HTMLButtonElement>('[data-back-to-tabs]')
             : event.key === 'ArrowDown' && index === entries.length - 1
               ? manager?.querySelector<HTMLButtonElement>(
                   '[data-keyboard-section="tools"] button',
@@ -248,6 +280,9 @@ export const WindowPicker = ({
                   {window.tabs.length}{' '}
                   {window.tabs.length === 1 ? 'tab' : 'tabs'}
                   {window.incognito ? ' · Private' : ''}
+                  {window.id === model.viewedWindowId
+                    ? ' · Current window'
+                    : ''}
                 </span>
               </span>
             </button>
@@ -444,7 +479,7 @@ export const WindowIdentityEditor = ({
                 .closest('[data-tab-manager]')
                 ?.querySelector<HTMLElement>(
                   event.key === 'ArrowUp'
-                    ? '[data-window-edit-trigger]'
+                    ? '[data-back-to-tabs]'
                     : '[data-keyboard-section="tools"] button',
                 )
         }
