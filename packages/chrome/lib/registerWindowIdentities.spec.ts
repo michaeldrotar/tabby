@@ -464,6 +464,133 @@ describe('stored window identities', () => {
     expect(JSON.stringify(restored.session)).not.toContain('"name":"Work"')
   })
 
+  it('keeps a uniquely recognized partial restore while browsing and restarting', async () => {
+    const urls = ['a', 'b', 'c', 'd', 'e'].map(
+      (path) => `https://work.test/${path}`,
+    )
+    const original = setup([sampleWindow(1, urls)])
+    await original.edit(1, 'Work', 'book', 'green')
+    const restored = setup([sampleWindow(10, urls.slice(0, 4))], original.local)
+    await restored.tracker.settled()
+    expect(restored.local).toEqual(original.local)
+    await restored.confirm()
+    expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      10: { name: 'Work', provisional: false },
+    })
+    const browsed = [
+      'https://new.test/a',
+      'https://new.test/b',
+      ...urls.slice(2, 4),
+    ]
+    restored.setWindows([sampleWindow(10, browsed)])
+    restored.api.tabs.onUpdated.emit()
+    await restored.tracker.settled()
+    const workerRestarted = setup(
+      [sampleWindow(10, browsed)],
+      restored.local,
+      restored.session,
+    )
+    await workerRestarted.tracker.settled()
+    const browserRestarted = setup(
+      [sampleWindow(20, browsed)],
+      workerRestarted.local,
+    )
+    await browserRestarted.tracker.settled()
+    expect(browserRestarted.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      20: {
+        name: 'Work',
+        icon: 'icon',
+        iconColor: 'green',
+        iconChoices: { icon: 'book' },
+      },
+    })
+  })
+
+  it.each(['restore', 'edit'] as const)(
+    'keeps partial guesses reversible until a competing live window resolves by %s',
+    async (resolution) => {
+      const urls = ['a', 'b', 'c', 'd', 'e'].map(
+        (path) => `https://work.test/${path}`,
+      )
+      const original = setup([sampleWindow(1, urls)])
+      await original.edit(1, 'Work')
+      const restored = setup(
+        [
+          sampleWindow(10, urls.slice(0, 4)),
+          sampleWindow(20, urls.slice(0, 4)),
+        ],
+        original.local,
+      )
+      await restored.tracker.settled()
+      await restored.confirm()
+      expect(restored.local).toEqual(original.local)
+      expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+        10: { name: 'Work', provisional: true },
+      })
+      if (resolution === 'edit') {
+        await restored.edit(20, 'Custom')
+        expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+          10: { name: 'Work', provisional: false },
+          20: { name: 'Custom' },
+        })
+        restored.setWindows([
+          sampleWindow(10, [
+            'https://new.test/a',
+            'https://new.test/b',
+            ...urls.slice(2, 4),
+          ]),
+          sampleWindow(20, urls.slice(0, 4)),
+        ])
+        restored.api.tabs.onUpdated.emit()
+        await restored.tracker.settled()
+        expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+          10: { name: 'Work' },
+        })
+        return
+      }
+      restored.setWindows([
+        sampleWindow(10, urls.slice(0, 4)),
+        sampleWindow(20, urls),
+      ])
+      restored.api.tabs.onCreated.emit()
+      await restored.tracker.settled()
+      expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+        20: { name: 'Work' },
+      })
+      expect(restored.session[WINDOW_IDENTITIES_KEY]).not.toHaveProperty('10')
+    },
+  )
+
+  it('settles a partial restore when a competing identity confirms', async () => {
+    const work = ['a', 'b', 'c', 'd', 'e'].map(
+      (path) => `https://work.test/${path}`,
+    )
+    const research = [...work.slice(0, 4), 'https://work.test/f']
+    const original = setup([sampleWindow(1, work), sampleWindow(2, research)])
+    await original.edit(1, 'Work')
+    await original.edit(2, 'Research')
+    const restored = setup(
+      [sampleWindow(10, work.slice(0, 4)), sampleWindow(20, research)],
+      original.local,
+    )
+    await restored.tracker.settled()
+    await restored.confirm()
+    expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      10: { name: 'Work', provisional: false },
+      20: { name: 'Research', provisional: false },
+    })
+    restored.setWindows([
+      sampleWindow(10, [...work.slice(0, 3), 'https://new.test']),
+      sampleWindow(20, research),
+    ])
+    restored.api.tabs.onUpdated.emit()
+    await restored.tracker.settled()
+    expect(restored.session[WINDOW_IDENTITIES_KEY]).toMatchObject({
+      10: { name: 'Work' },
+      20: { name: 'Research' },
+    })
+  })
+
   it('keeps incomplete guesses reversible past the quiet period and respects reset', async () => {
     const work = ['a', 'b', 'c', 'd', 'e'].map(
       (path) => `https://work.test/${path}`,

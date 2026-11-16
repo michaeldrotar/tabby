@@ -17,10 +17,11 @@ export default createTailwindConfig(uiTailwindConfig, {
 })
 ```
 
-Import the base stylesheet:
+Compile the stylesheet with the Tailwind Vite plugin and load the configuration explicitly. The `@config` path is relative to the stylesheet:
 
 ```css
 @import '@extension/ui/base.css';
+@config '../tailwind.config.ts';
 ```
 
 Give each product a sized container. Themes and portals remain inside its Surface, allowing multiple themes on one page:

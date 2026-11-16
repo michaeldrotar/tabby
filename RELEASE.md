@@ -28,7 +28,7 @@ Start a feature-release cycle on `main` by preparing its version and notes file:
 pnpm prep minor        # or: pnpm prep major, pnpm prep 2.0.0
 ```
 
-Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each pull request with a user-facing browser-extension change adds its entry directly to that active file under **What's New**, with a short descriptive subheading and a concise user-focused description. For changes with no user-facing impact on the extension, state in the pull request that no extension release note is needed.
+Commit this preparation through a pull request to `main`. The command updates `package.json` and creates a versioned file such as `product/releases/v1.4.0-new-release.md`. Each pull request with a user-facing browser-extension change updates that active file. Features and improvements go under **What's New** with descriptive subheadings and concise user-focused descriptions. Fixes go under **Fixes** as short, concise bullet points without subheadings. For changes with no user-facing impact on the extension, state in the pull request that no extension release note is needed.
 
 Use one versioned release-notes file for each planned release. If parallel pull requests touch nearby lines, resolve conflicts by retaining each distinct line once. Do not use per-pull-request note fragments.
 
@@ -39,7 +39,7 @@ git switch -c hotfix/v1.2.1 v1.2.0
 pnpm prep patch
 ```
 
-Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds an entry under **What's New**, with a descriptive subheading and concise description, to that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, apply the [forward-port version rule](#forward-port-versions) and do not duplicate the entry in its release-notes file.
+Replace the example versions with the latest published tag and the next patch version. Each patch-fix pull request adds a short, concise bullet point under **Fixes** in that patch version's file, such as `product/releases/v1.2.1-patch-release.md`. Keep the note on the patch release, not in the active minor-release notes. When forwarding the fix to `main`, apply the [forward-port version rule](#forward-port-versions) and do not duplicate the entry in its release-notes file.
 
 ### Forward-port versions
 
@@ -106,7 +106,7 @@ Patch releases contain fixes for the latest published version and may include mo
 
 - Versioned release notes in `product/releases/` cover only user-facing changes to the Tabby browser extension. Changes limited to the marketing site, Demo Studio, tooling, or repository documentation do not belong in these notes.
 - Write for extension users. Describe the benefit or problem solved, not implementation details.
-- Use one **What's New** section with a short descriptive subheading and concise description for each user-facing change.
+- Group features and improvements under **What's New**, with descriptive subheadings and concise descriptions. List fixes as short, concise bullet points under **Fixes**, without subheadings.
 - Do not report problems that were introduced and fixed before users received the release.
 - Keep patch notes limited to fixes for the released version being patched.
 - Use the submission date, not the date Chrome finishes its review.

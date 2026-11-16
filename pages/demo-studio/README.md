@@ -1,6 +1,6 @@
 # Tabby Demo Studio
 
-Run `pnpm demo-studio` from the workspace root and open [Demo Studio](http://localhost:5180/). Vite starts on port 5180 and chooses the next free port when needed; use the URL it prints. Tab Manager, Omnibar, and Options use the same experiences as the extension, with deterministic memory resources and local assets. They require no browser permissions.
+Run `pnpm demo-studio` from the workspace root and open [Demo Studio](http://localhost:5180/). Agents in worktrees must use `pnpm demo-studio --port 5200 --no-strictPort`, leaving port 5180 free for the main app. Vite starts at 5200 and advances to the next available port if needed; use the URL it prints. The [agent workflow](../../AGENTS.md) uses the same starting port for every Vite app in a worktree. Tab Manager, Omnibar, and Options use the same experiences as the extension, with deterministic memory resources and local assets. They require no browser permissions.
 
 Demo Studio starts with one instance. Choose Explore, Guided, Still, or Anatomy from the sidebar, then choose Tab Manager, Omnibar, or Options from the stage. Enable a second instance to compare sharing; browser data and preferences each have independent sharing toggles, while view state can be shared only with browser data. Tab Manager and Options have wide and narrow viewport controls; its wide view is capped at 800 pixels. Omnibar keeps its usual 640-pixel maximum width, and Options uses the full stage in wide mode. Appearance selects a theme and mode for the active instance. Options includes the full theme picker and palette preview. Changing sharing or sample data resets the scene. Samples include a single window, a standard browser, many windows, 400 tabs, normal/incognito windows, loading, an error, and an empty browser. Ignore data commands from the sample workspace controls.
 
@@ -67,7 +67,7 @@ Pass existing handles through `resources` and `views` to share selected pieces. 
 
 See [UI styling and leaf-component usage](../../packages/ui/README.md) and [the complete scene](src/scenario.ts) for host callbacks and independent sharing. `serializeDemoState` / `deserializeDemoState` preserve selection Sets in JSON; the guided demo's checkpoint has an explicit scene version. `[data-surface-ready="true"]` indicates that the container and portal destination have mounted and its width has been measured. For image capture, also wait for required assets and data to load.
 
-Extension hosts use `ChromeTabbyProvider` from `@extension/providers/chrome` with the same experiences. Run `pnpm preview` to inspect the Tab Manager with sample data at the Chrome boundary; open the printed URL. Search and Settings are inactive in that preview.
+Extension hosts use `ChromeTabbyProvider` from `@extension/providers/chrome` with the same experiences. Run `pnpm preview` to inspect the Tab Manager with sample data at the Chrome boundary; open the printed URL. Search opens the search page with the current-window scope. Settings is inactive in that preview.
 
 ## Verification
 

@@ -140,9 +140,13 @@ export const registerWindowIdentities = (api: IdentityApi) => {
     const boundKeys = new Set(
       Object.values(assignments).map((value) => value.key),
     )
+    const unassignedWindows = fingerprints.filter(
+      (window) => !assignments[window.id],
+    )
+    const unboundRecords = saved.filter((record) => !boundKeys.has(record.key))
     const restored = matchWindowIdentities(
-      fingerprints.filter((window) => !assignments[window.id]),
-      saved.filter((record) => !boundKeys.has(record.key)),
+      unassignedWindows,
+      unboundRecords,
       new Map(
         Object.entries(previous).map(([id, value]) => [Number(id), value.key]),
       ),
@@ -179,9 +183,23 @@ export const registerWindowIdentities = (api: IdentityApi) => {
               countMatchingWindowHashes(hashes, other.hashes) === hashes.length,
           ))
       const confirmAfter = confirmationDeadline(prior, key, hashes, now)
+      const strongPartial =
+        !exactKeys.has(key) &&
+        countMatchingWindowHashes(hashes, record.hashes) >=
+          Math.max(hashes.length, record.hashes.length) * 0.8 &&
+        !unboundRecords.some(
+          (other) =>
+            other.key !== key &&
+            matchWindowIdentities([current], [other]).has(id),
+        ) &&
+        !unassignedWindows.some(
+          (other) =>
+            other.id !== id &&
+            matchWindowIdentities([other], [record]).has(other.id),
+        )
       const provisional =
         now < confirmAfter ||
-        !matchedFull ||
+        !(matchedFull || strongPartial) ||
         window.tabs?.some(
           (tab) =>
             !(tab.pendingUrl || tab.url) ||
@@ -318,6 +336,18 @@ export const registerWindowIdentities = (api: IdentityApi) => {
         when: Math.min(...deadlines),
       })
     else await api.alarms.clear(WINDOW_RESTORE_ALARM)
+    // Reconsider settled guesses after competing windows become authoritative.
+    if (
+      Object.entries(assignments).some(
+        ([id, value]) =>
+          !value.provisional &&
+          (previous[id]?.provisional || previous[id]?.key !== value.key),
+      ) &&
+      Object.values(assignments).some(
+        (value) => value.provisional && value.confirmAfter! <= now,
+      )
+    )
+      await reconcile()
   }
   const update = (
     edit?: {
