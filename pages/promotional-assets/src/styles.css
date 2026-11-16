@@ -540,7 +540,7 @@ body[data-promo-view='gallery'] #root {
   transform-origin: top left;
 }
 
-.small-promo-omnibar [data-omnibar-query] + div {
+.small-promo-omnibar [data-omnibar-shortcuts] {
   display: none;
 }
 

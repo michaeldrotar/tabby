@@ -566,8 +566,8 @@ export const TabManagerActionBar = ({
         <SummerToolbarArt />
         <div className="flex items-center gap-1">
           <button
-            aria-label="Search everything"
-            title="Search everything"
+            aria-label="Search"
+            title="Search"
             className={cn(windowControlClass, 'size-10 px-0')}
             onClick={() => onIntent({ type: 'open-search' })}
           >

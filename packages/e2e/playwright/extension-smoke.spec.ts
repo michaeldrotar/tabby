@@ -145,6 +145,8 @@ test('the built extension shares preferences and receives live tab changes', asy
     popup.getByRole('option').filter({ hasText: /options\/index\.html/ }),
   ).toBeVisible()
   await popup.getByRole('combobox').fill('unfinished search')
+  await popup.getByRole('combobox').press('Tab')
+  await popup.getByRole('combobox').press('b')
   try {
     await popup.keyboard.down('Escape')
   } catch (error) {
@@ -166,6 +168,28 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(refreshedPopup.getByRole('combobox')).toHaveValue(
     'unfinished search',
   )
+  await expect(
+    refreshedPopup.getByRole('button', { name: 'Search scope: Bookmarks' }),
+  ).toBeVisible()
+  await refreshedPopup.reload()
+  await expect(refreshedPopup.getByRole('combobox')).toHaveValue(
+    'unfinished search',
+  )
+  await expect(
+    refreshedPopup.getByRole('button', { name: 'Search scope: Bookmarks' }),
+  ).toBeVisible()
+  // A scope selected without a term does not carry into a fresh search.
+  await refreshedPopup.getByRole('combobox').fill('')
+  await refreshedPopup.getByRole('combobox').press('Tab')
+  await refreshedPopup.getByRole('combobox').press('h')
+  await refreshedPopup.reload()
+  await expect(refreshedPopup.getByRole('combobox')).toHaveValue('')
+  await expect(
+    refreshedPopup.getByRole('button', {
+      name: 'Search scope: All',
+      exact: true,
+    }),
+  ).toBeVisible()
   await refreshedPopup.close()
 
   const target = await context.newPage()

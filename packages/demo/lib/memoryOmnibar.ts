@@ -10,12 +10,14 @@ import type {
   OmnibarMetadata,
   OmnibarResource,
   OmnibarResult,
+  OmnibarScope,
 } from '@extension/core'
 
 export type MemoryOmnibarOptions = {
   getFaviconUrl?: (url: string) => string | undefined
   results?: readonly OmnibarResult[]
   initialQuery?: string
+  initialScope?: OmnibarScope
   originalWindowId?: number
   isMac?: boolean
   openTabManagerShortcut?: string
@@ -34,6 +36,7 @@ export const createMemoryOmnibarResource = (
 } => {
   let metadata: OmnibarMetadata = {
     loaded: true,
+    initialScope: options.initialScope ?? 'all',
     initialQuery: options.initialQuery ?? '',
     originalWindowId: options.originalWindowId,
     isMac: options.isMac ?? false,
@@ -41,6 +44,7 @@ export const createMemoryOmnibarResource = (
   }
   const listeners = new Set<() => void>()
   let savedQuery = metadata.initialQuery
+  let savedScope = metadata.initialScope ?? 'all'
   let queryVersion = 0
   let disposed = false
   let generation = 0
@@ -52,6 +56,7 @@ export const createMemoryOmnibarResource = (
   const clearQuery = async () => {
     current()
     savedQuery = ''
+    savedScope = 'all'
     queryVersion++
   }
   const assertOutcome = async (
@@ -78,8 +83,15 @@ export const createMemoryOmnibarResource = (
     start: async () => {
       disposed = false
       generation++
-      if (metadata.initialQuery !== savedQuery) {
-        metadata = { ...metadata, initialQuery: savedQuery }
+      if (
+        metadata.initialQuery !== savedQuery ||
+        metadata.initialScope !== savedScope
+      ) {
+        metadata = {
+          ...metadata,
+          initialQuery: savedQuery,
+          initialScope: savedQuery.trim() ? savedScope : 'all',
+        }
         listeners.forEach((listener) => listener())
       }
     },
@@ -95,9 +107,10 @@ export const createMemoryOmnibarResource = (
         matches(result.title, result.url),
       )
     },
-    saveQuery: async (next) => {
+    saveQuery: async (next, scope = 'all') => {
       current()
       savedQuery = next
+      savedScope = scope
       queryVersion++
     },
     clearQuery,
@@ -107,7 +120,12 @@ export const createMemoryOmnibarResource = (
       savedQuery = query
       queryVersion++
       generation++
-      metadata = { ...metadata, initialQuery: query, choices }
+      metadata = {
+        ...metadata,
+        initialQuery: query,
+        initialScope: 'all',
+        choices,
+      }
       listeners.forEach((listener) => listener())
     },
     execute: async (action, modifier, choice) => {

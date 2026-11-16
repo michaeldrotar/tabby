@@ -24,6 +24,9 @@ const setup = () => {
       onFocusChanged,
     },
     sidePanel: { open: vi.fn(async () => {}) },
+    storage: {
+      session: { set: vi.fn(async () => {}), remove: vi.fn(async () => {}) },
+    },
     action: { openPopup: vi.fn(async () => {}) },
     runtime: {
       id: 'tabby-test',

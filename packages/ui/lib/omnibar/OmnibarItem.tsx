@@ -8,6 +8,7 @@ import { cn } from '../utils/cn'
 import { getOmnibarActionLabel } from './getOmnibarActionLabel'
 import { getOmnibarTypeColor } from './getOmnibarTypeColor'
 import { getOmnibarTypeLabel } from './getOmnibarTypeLabel'
+import { scrollOmnibarItemIntoView } from './scrollOmnibarItemIntoView'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 const HighlightMatch = ({
@@ -71,25 +72,13 @@ export const OmnibarItem = ({
     item.type === 'tab-group' ? getGroupColorClasses(item.groupColor) : null
 
   useEffect(() => {
-    if (isSelected && interactive) {
-      const item = itemRef.current
-      const viewport = item?.closest<HTMLElement>(
-        '[data-radix-scroll-area-viewport]',
-      )
-      if (!item || !viewport) return
-      const bounds = item.getBoundingClientRect()
-      const visible = viewport.getBoundingClientRect()
-      const scale = visible.height / viewport.clientHeight || 1
-      if (bounds.top < visible.top)
-        viewport.scrollTop += (bounds.top - visible.top) / scale
-      else if (bounds.bottom > visible.bottom)
-        viewport.scrollTop += (bounds.bottom - visible.bottom) / scale
-    }
+    if (isSelected && interactive) scrollOmnibarItemIntoView(itemRef.current)
   }, [isSelected, interactive])
 
   return (
     <li role="presentation">
       <button
+        tabIndex={-1}
         id={resultId}
         role="option"
         aria-selected={isSelected}

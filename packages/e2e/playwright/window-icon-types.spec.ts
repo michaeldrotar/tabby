@@ -133,7 +133,7 @@ test('chooses each window icon type and keeps image choices after reopening', as
   await expect(
     page.getByRole('textbox', { name: 'Monogram character 2' }),
   ).toHaveValue('X')
-  await page.getByRole('tab', { name: 'Favicons', exact: true }).click()
+  await page.getByRole('tab', { name: 'Favicon', exact: true }).click()
   const localButtons = page
     .getByRole('toolbar', { name: 'Favicons', exact: true })
     .getByRole('button')
@@ -170,7 +170,7 @@ test('chooses each window icon type and keeps image choices after reopening', as
   await done.click()
   await edit.click()
   await expect(
-    page.getByRole('tab', { name: 'Favicons', exact: true }),
+    page.getByRole('tab', { name: 'Favicon', exact: true }),
   ).toHaveAttribute('aria-selected', 'true')
   await expect(header.locator('img')).toHaveAttribute('src', favicon!)
   await expect(
@@ -229,30 +229,51 @@ test('chooses each window icon type and keeps image choices after reopening', as
     page.getByRole('tab', { name: 'Upload', exact: true }),
   ).toHaveAttribute('aria-selected', 'true')
   await expect(header.locator('img')).toHaveAttribute('src', image!)
-  await page.getByRole('tab', { name: 'Favicons', exact: true }).click()
+  await page.getByRole('tab', { name: 'Favicon', exact: true }).click()
   await expect(header.locator('img')).toHaveAttribute('src', favicon!)
   await page.getByRole('tab', { name: 'Emoji', exact: true }).click()
   await expect(header).toContainText('🦔')
   await page.getByRole('tab', { name: 'Upload', exact: true }).click()
   await expect(header.locator('img')).toHaveAttribute('src', image!)
-  await page.setViewportSize({ width: 240, height: 640 })
-  expect(
-    await page
-      .getByRole('tab')
-      .evaluateAll((tabs) =>
-        tabs
-          .slice(1)
-          .every(
-            (tab, index) =>
-              tab.getBoundingClientRect().left >=
-              tabs[index]!.getBoundingClientRect().right - 1,
-          ),
-      ),
-  ).toBe(true)
-
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    240,
-  )
+  const types = page.getByRole('tablist', { name: 'Icon type' })
+  for (const width of [320, 240]) {
+    await page.setViewportSize({ width, height: 640 })
+    for (const type of ['Icon', 'Emoji', 'Monogram', 'Upload', 'Favicon']) {
+      await types.getByRole('tab', { name: type, exact: true }).click()
+      if (width === 320)
+        expect(
+          await types.evaluate((list) => {
+            const bounds = list.getBoundingClientRect()
+            return (
+              list.scrollWidth === list.clientWidth &&
+              [...list.children].every((tab) => {
+                const rect = tab.getBoundingClientRect()
+                return rect.left >= bounds.left && rect.right <= bounds.right
+              })
+            )
+          }),
+        ).toBe(true)
+    }
+    expect(
+      await types
+        .getByRole('tab')
+        .evaluateAll(
+          (tabs) =>
+            new Set(tabs.map((tab) => tab.getBoundingClientRect().top)).size,
+        ),
+    ).toBe(1)
+    await page.keyboard.press('ArrowRight')
+    await expect(
+      types.getByRole('tab', { name: 'Icon', exact: true }),
+    ).toBeFocused()
+    await page.keyboard.press('ArrowLeft')
+    await expect(
+      types.getByRole('tab', { name: 'Favicon', exact: true }),
+    ).toBeFocused()
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(width)
+  }
 })
 
 test('restores the saved settings after reset, with colors on one row', async ({
@@ -314,7 +335,7 @@ test('restores the saved settings after reset, with colors on one row', async ({
   await expect
     .poll(async () => (await savedSettings()).iconChoices)
     .toEqual(initial.iconChoices)
-  await page.getByRole('tab', { name: 'Favicons', exact: true }).click()
+  await page.getByRole('tab', { name: 'Favicon', exact: true }).click()
   await expect(header.locator('img')).toHaveAttribute(
     'src',
     initial.iconChoices.favicon,
@@ -501,7 +522,7 @@ test.describe('with many favicon choices', () => {
           }),
       ).toBeLessThan(0.5)
       const iconGeometry = await geometry('Suggested icons')
-      for (const type of ['Emoji', 'Monogram', 'Upload', 'Favicons']) {
+      for (const type of ['Emoji', 'Monogram', 'Upload', 'Favicon']) {
         await page.getByRole('tab', { name: type, exact: true }).click()
         await expect.poll(() => actions.boundingBox()).toEqual(bounds)
         if (type === 'Emoji') {
@@ -521,7 +542,7 @@ test.describe('with many favicon choices', () => {
               .boundingBox(),
           ).toEqual(await panel.boundingBox())
         }
-        if (type === 'Favicons') {
+        if (type === 'Favicon') {
           const viewport = page
             .getByRole('toolbar', { name: 'Favicons' })
             .locator('..')
@@ -560,7 +581,7 @@ test.describe('when open pages have no favicons', () => {
   }) => {
     await page.goto('/tab-manager/index.html')
     await page.getByRole('button', { name: 'Edit window', exact: true }).click()
-    const favicons = page.getByRole('tab', { name: 'Favicons', exact: true })
+    const favicons = page.getByRole('tab', { name: 'Favicon', exact: true })
     await favicons.click()
     await expect(
       page.getByText('Open a website to choose its favicon.'),

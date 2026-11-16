@@ -16,6 +16,7 @@ import { Omnibar } from './Omnibar'
 import type { OmnibarSearchResult } from './OmnibarSearchResult'
 
 expect.extend(matchers)
+afterEach(cleanup)
 
 describe('Omnibar', () => {
   beforeAll(() => {
@@ -52,14 +53,10 @@ describe('Omnibar', () => {
     },
   ]
 
-  afterEach(() => {
-    cleanup()
-  })
-
   const mockOnDismiss = vi.fn()
   const renderOmnibar = render
 
-  it.each(['click', 'Escape'])(
+  it.each(['click', 'Escape', 'Escape from scope'])(
     'dismisses search with %s without clearing the query',
     (method) => {
       const onDismiss = vi.fn()
@@ -74,7 +71,13 @@ describe('Omnibar', () => {
       )
       const close = screen.getByRole('button', { name: 'Close search' })
       if (method === 'click') fireEvent.click(close)
-      else fireEvent.keyDown(close, { key: 'Escape' })
+      else
+        fireEvent.keyDown(
+          method === 'Escape from scope'
+            ? screen.getByRole('button', { name: 'Search scope: All' })
+            : close,
+          { key: 'Escape' },
+        )
       expect(onDismiss).toHaveBeenCalledTimes(1)
       expect(onQueryChange).not.toHaveBeenCalled()
     },
@@ -231,4 +234,94 @@ describe('Omnibar', () => {
     expect(options[1]!).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('status')).toHaveTextContent('3 results')
   })
+})
+
+it('selects a scope from the picker and returns to typing without changing the query', async () => {
+  render(<Omnibar results={[]} query="project" onDismiss={vi.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Search scope: All' }))
+  const picker = screen.getByRole('listbox', { name: 'Search scope' })
+  expect(within(picker).getAllByRole('option')).toHaveLength(9)
+  fireEvent.click(within(picker).getByRole('option', { name: /Bookmarks/ }))
+  const input = screen.getByRole('combobox')
+  await waitFor(() => expect(input).toHaveFocus())
+  expect(input).toHaveValue('project')
+  expect(input).toHaveAttribute('placeholder', 'Search bookmarks…')
+  expect(
+    screen.getByRole('button', { name: 'Search scope: Bookmarks' }),
+  ).toBeVisible()
+})
+
+it('announces scope changes while the query keeps typing focus', () => {
+  render(<Omnibar results={[]} query="missing" onDismiss={vi.fn()} />)
+  const input = screen.getByRole('combobox')
+  for (const [key, label] of [
+    ['w', 'Windows'],
+    ['D', 'Current window'],
+    ['g', 'Tab groups'],
+  ]) {
+    fireEvent.keyDown(input, { key: 'Tab' })
+    fireEvent.keyDown(input, { key })
+    expect(input).toHaveFocus()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `Search scope: ${label}. 0 results`,
+    )
+    expect(input).toHaveAccessibleDescription(
+      new RegExp(`Search scope: ${label}`),
+    )
+  }
+})
+
+it('leaves native modifier shortcuts untouched while the scope chooser is open', () => {
+  render(<Omnibar results={[]} query="project" onDismiss={vi.fn()} />)
+  const input = screen.getByRole('combobox')
+  fireEvent.keyDown(input, { key: 'Tab' })
+  for (const key of ['a', 'c', 'x', 'v', 'z', 'k', 'ArrowUp']) {
+    expect(fireEvent.keyDown(input, { key, metaKey: true })).toBe(true)
+    expect(screen.getByRole('listbox', { name: 'Search scope' })).toBeVisible()
+  }
+  expect(fireEvent.keyDown(input, { key: 'ArrowDown', shiftKey: true })).toBe(
+    true,
+  )
+  expect(input).toHaveValue('project')
+})
+
+it('shows neither tips nor hidden quick actions in a specific empty scope', () => {
+  const manager = vi.fn()
+  const changeScope = vi.fn()
+  const dismiss = vi.fn()
+  render(
+    <Omnibar
+      results={[]}
+      scope="bookmarks"
+      selectedIndex={7}
+      onScopeChange={changeScope}
+      onOpenTabManager={manager}
+      onDismiss={dismiss}
+    />,
+  )
+  expect(screen.queryByRole('heading', { name: 'Quick actions' })).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Tips' })).toBeNull()
+  expect(screen.getByText('No bookmarks to show.')).toBeVisible()
+  const suggestion = screen.getByRole('option', { name: /Search everything/ })
+  const input = screen.getByRole('combobox')
+  expect(suggestion).toHaveAttribute('aria-selected', 'true')
+  expect(input).toHaveAttribute('aria-activedescendant', suggestion.id)
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(changeScope).toHaveBeenCalledWith('all')
+  expect(input).toHaveFocus()
+  expect(manager).not.toHaveBeenCalled()
+  expect(dismiss).not.toHaveBeenCalled()
+})
+
+it('puts the scope and close shortcuts last in All tips', () => {
+  render(
+    <Omnibar results={[]} onOpenTabManager={vi.fn()} onDismiss={vi.fn()} />,
+  )
+  const tips = screen.getByRole('heading', { name: 'Tips' }).parentElement!
+  const rows = within(tips).getAllByRole('listitem')
+  expect(rows.at(-2)).toHaveTextContent('Tab to change search scope')
+  expect(rows.at(-1)).toHaveTextContent('Esc to close search')
+  expect(
+    screen.getByRole('button', { name: 'Close search' }),
+  ).toHaveTextContent('')
 })

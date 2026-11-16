@@ -1,0 +1,393 @@
+{
+  "currentWindowId": 1,
+  "windows": [
+    {
+      "id": 1,
+      "focused": true,
+      "name": "Work"
+    },
+    {
+      "id": 2,
+      "focused": false,
+      "name": "Reading"
+    }
+  ],
+  "groups": [
+    {
+      "id": 11,
+      "windowId": 1,
+      "title": "Project planning",
+      "color": "blue",
+      "collapsed": false
+    },
+    {
+      "id": 12,
+      "windowId": 1,
+      "title": "Team workspace",
+      "color": "green",
+      "collapsed": false
+    },
+    {
+      "id": 13,
+      "windowId": 2,
+      "title": "Reference pages",
+      "color": "purple",
+      "collapsed": false
+    }
+  ],
+  "tabs": [
+    {
+      "id": 1,
+      "windowId": 1,
+      "title": "Project notes",
+      "url": "https://notes.example.test",
+      "active": true,
+      "pinned": false,
+      "groupId": 11
+    },
+    {
+      "id": 2,
+      "windowId": 1,
+      "title": "Project roadmap",
+      "url": "https://roadmap.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 11
+    },
+    {
+      "id": 3,
+      "windowId": 2,
+      "title": "Project research",
+      "url": "https://research.example.test",
+      "active": true,
+      "pinned": false,
+      "groupId": -1
+    },
+    {
+      "id": 4,
+      "windowId": 1,
+      "title": "Design system",
+      "url": "https://tab-4.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 12
+    },
+    {
+      "id": 5,
+      "windowId": 1,
+      "title": "Inbox",
+      "url": "https://tab-5.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 12
+    },
+    {
+      "id": 6,
+      "windowId": 1,
+      "title": "Calendar",
+      "url": "https://tab-6.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 12
+    },
+    {
+      "id": 7,
+      "windowId": 1,
+      "title": "Pull requests",
+      "url": "https://tab-7.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": -1
+    },
+    {
+      "id": 8,
+      "windowId": 1,
+      "title": "API docs",
+      "url": "https://tab-8.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": -1
+    },
+    {
+      "id": 9,
+      "windowId": 1,
+      "title": "Release checklist",
+      "url": "https://tab-9.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": -1
+    },
+    {
+      "id": 10,
+      "windowId": 2,
+      "title": "Reading queue",
+      "url": "https://tab-10.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 13
+    },
+    {
+      "id": 11,
+      "windowId": 2,
+      "title": "Browser performance",
+      "url": "https://tab-11.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 13
+    },
+    {
+      "id": 12,
+      "windowId": 2,
+      "title": "Web APIs",
+      "url": "https://tab-12.example.test",
+      "active": false,
+      "pinned": false,
+      "groupId": 13
+    }
+  ],
+  "bookmarks": [
+    {
+      "id": "project-bookmark",
+      "title": "Project handbook",
+      "url": "https://handbook.example.test",
+      "dateAdded": 1794778659539,
+      "dateLastUsed": 1794784133991
+    },
+    {
+      "id": "reading-bookmark",
+      "title": "Reading list",
+      "url": "https://reading.example.test",
+      "dateAdded": 1794695859539,
+      "dateLastUsed": 1794784373991
+    },
+    {
+      "id": "bookmark-0",
+      "title": "React documentation",
+      "url": "https://reference-0.example.test",
+      "dateAdded": 1794611633991,
+      "dateLastUsed": 1794777233991
+    },
+    {
+      "id": "bookmark-1",
+      "title": "TypeScript handbook",
+      "url": "https://reference-1.example.test",
+      "dateAdded": 1794525233991,
+      "dateLastUsed": 1794773633991
+    },
+    {
+      "id": "bookmark-2",
+      "title": "Chrome extension APIs",
+      "url": "https://reference-2.example.test",
+      "dateAdded": 1794438833991,
+      "dateLastUsed": 1794770033991
+    },
+    {
+      "id": "bookmark-3",
+      "title": "Design guidelines",
+      "url": "https://reference-3.example.test",
+      "dateAdded": 1794352433991,
+      "dateLastUsed": 1794766433991
+    },
+    {
+      "id": "bookmark-4",
+      "title": "Issue tracker",
+      "url": "https://reference-4.example.test",
+      "dateAdded": 1794266033991,
+      "dateLastUsed": 1794762833991
+    },
+    {
+      "id": "bookmark-5",
+      "title": "Engineering notes",
+      "url": "https://reference-5.example.test",
+      "dateAdded": 1794179633991,
+      "dateLastUsed": 1794759233991
+    },
+    {
+      "id": "bookmark-6",
+      "title": "Team calendar",
+      "url": "https://reference-6.example.test",
+      "dateAdded": 1794093233991,
+      "dateLastUsed": 1794755633991
+    },
+    {
+      "id": "bookmark-7",
+      "title": "Web standards",
+      "url": "https://reference-7.example.test",
+      "dateAdded": 1794006833991,
+      "dateLastUsed": 1794752033991
+    },
+    {
+      "id": "bookmark-8",
+      "title": "Release checklist",
+      "url": "https://reference-8.example.test",
+      "dateAdded": 1793920433991,
+      "dateLastUsed": 1794748433991
+    },
+    {
+      "id": "bookmark-9",
+      "title": "Testing guide",
+      "url": "https://reference-9.example.test",
+      "dateAdded": 1793834033991,
+      "dateLastUsed": 1794744833991
+    }
+  ],
+  "history": [
+    {
+      "id": "project-history",
+      "title": "Project archive",
+      "url": "https://archive.example.test",
+      "lastVisitTime": 1794780459539
+    },
+    {
+      "id": "reference-history",
+      "title": "Browser reference",
+      "url": "https://reference.example.test",
+      "lastVisitTime": 1794775059539
+    },
+    {
+      "id": "history-0",
+      "title": "React documentation",
+      "url": "https://history-0.example.test",
+      "lastVisitTime": 1794773633991
+    },
+    {
+      "id": "history-1",
+      "title": "TypeScript handbook",
+      "url": "https://history-1.example.test",
+      "lastVisitTime": 1794770033991
+    },
+    {
+      "id": "history-2",
+      "title": "Chrome extension APIs",
+      "url": "https://history-2.example.test",
+      "lastVisitTime": 1794766433991
+    },
+    {
+      "id": "history-3",
+      "title": "Design guidelines",
+      "url": "https://history-3.example.test",
+      "lastVisitTime": 1794762833991
+    },
+    {
+      "id": "history-4",
+      "title": "Issue tracker",
+      "url": "https://history-4.example.test",
+      "lastVisitTime": 1794759233991
+    },
+    {
+      "id": "history-5",
+      "title": "Engineering notes",
+      "url": "https://history-5.example.test",
+      "lastVisitTime": 1794755633991
+    },
+    {
+      "id": "history-6",
+      "title": "Team calendar",
+      "url": "https://history-6.example.test",
+      "lastVisitTime": 1794752033991
+    },
+    {
+      "id": "history-7",
+      "title": "Web standards",
+      "url": "https://history-7.example.test",
+      "lastVisitTime": 1794748433991
+    },
+    {
+      "id": "history-8",
+      "title": "Release checklist",
+      "url": "https://history-8.example.test",
+      "lastVisitTime": 1794744833991
+    },
+    {
+      "id": "history-9",
+      "title": "Testing guide",
+      "url": "https://history-9.example.test",
+      "lastVisitTime": 1794741233991
+    }
+  ],
+  "preferences": {
+    "theme": "dark"
+  },
+  "sessions": [
+    {
+      "lastModified": 1794780459,
+      "tab": {
+        "sessionId": "project-meeting",
+        "title": "Project meeting",
+        "url": "https://meeting.example.test"
+      }
+    },
+    {
+      "lastModified": 1794778659,
+      "tab": {
+        "sessionId": "reading-notes",
+        "title": "Reading notes",
+        "url": "https://reading-notes.example.test"
+      }
+    },
+    {
+      "lastModified": 1794773633,
+      "tab": {
+        "sessionId": "closed-0",
+        "title": "React documentation",
+        "url": "https://closed-0.example.test"
+      }
+    },
+    {
+      "lastModified": 1794770033,
+      "tab": {
+        "sessionId": "closed-1",
+        "title": "TypeScript handbook",
+        "url": "https://closed-1.example.test"
+      }
+    },
+    {
+      "lastModified": 1794766433,
+      "tab": {
+        "sessionId": "closed-2",
+        "title": "Chrome extension APIs",
+        "url": "https://closed-2.example.test"
+      }
+    },
+    {
+      "lastModified": 1794762833,
+      "tab": {
+        "sessionId": "closed-3",
+        "title": "Design guidelines",
+        "url": "https://closed-3.example.test"
+      }
+    },
+    {
+      "lastModified": 1794759233,
+      "tab": {
+        "sessionId": "closed-4",
+        "title": "Issue tracker",
+        "url": "https://closed-4.example.test"
+      }
+    },
+    {
+      "lastModified": 1794755633,
+      "tab": {
+        "sessionId": "closed-5",
+        "title": "Engineering notes",
+        "url": "https://closed-5.example.test"
+      }
+    },
+    {
+      "lastModified": 1794752033,
+      "tab": {
+        "sessionId": "closed-6",
+        "title": "Team calendar",
+        "url": "https://closed-6.example.test"
+      }
+    },
+    {
+      "lastModified": 1794748433,
+      "tab": {
+        "sessionId": "closed-7",
+        "title": "Web standards",
+        "url": "https://closed-7.example.test"
+      }
+    }
+  ]
+}

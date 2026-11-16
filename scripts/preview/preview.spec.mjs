@@ -162,7 +162,7 @@ describe('full application preview', () => {
 })
 
 describe('sample Chrome interactions', () => {
-  it('keeps preview favicons stable by page URL and changes them with the URL', () => {
+  it('keeps the neutral preview favicon steady for partial and complete addresses', () => {
     const pageUrl = 'https://github.com/michaeldrotar/tabby'
     const image = {
       src: `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=48`,
@@ -192,25 +192,64 @@ describe('sample Chrome interactions', () => {
     )
     image.src = `${chrome.runtime.getURL('_favicon/')}?pageUrl=${encodeURIComponent(pageUrl)}&size=48`
     onMutation()
-    const githubFavicon = image.src
-    image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent('https://docs.google.com/document/project')}&size=48`
-    onMutation()
-    const docsFavicon = image.src
-
-    expect(docsFavicon).not.toBe(githubFavicon)
-    image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=48`
-    onMutation()
-    expect(image.src).toBe(githubFavicon)
+    const neutralFavicon = image.src
+    expect(neutralFavicon).toMatch(/^data:image\/png;base64,/)
+    for (const url of [
+      'https://',
+      'https://w',
+      'https://www.',
+      'https://www.g',
+      'https://www.google.com',
+    ]) {
+      image.src = `chrome-extension://preview/_favicon/?pageUrl=${encodeURIComponent(url)}&size=48`
+      onMutation()
+      expect(image.src).toBe(neutralFavicon)
+    }
   })
 
-  it('keeps Search and Settings inactive in the preview', async () => {
-    const pages = []
-    const chrome = loadMock(mockSource, browser, {
-      open: (path) => pages.push(path),
+  it('restores a sample recently closed tab and removes it from the closed list', async () => {
+    const chrome = loadMock(mockSource, {
+      ...browser,
+      sessions: [
+        {
+          lastModified: 100,
+          tab: {
+            sessionId: 'closed',
+            title: 'Project meeting',
+            url: 'https://meeting.example.test',
+          },
+        },
+      ],
     })
-    await chrome.action.openPopup()
-    await chrome.runtime.openOptionsPage()
-    expect(pages).toEqual([])
+    const { tab } = await chrome.sessions.restore('closed')
+    expect(await chrome.tabs.get(tab.id)).toMatchObject({
+      title: 'Project meeting',
+      url: 'https://meeting.example.test',
+      active: true,
+    })
+    expect(await chrome.sessions.getRecentlyClosed()).toEqual([])
+  })
+
+  it('opens the real search with its one-time window context', async () => {
+    const pages = []
+    const stored = new Map()
+    const environment = {
+      location: { assign: (path) => pages.push(path) },
+      sessionStorage: {
+        getItem: (key) => stored.get(key),
+        setItem: (key, value) => stored.set(key, value),
+        removeItem: (key) => stored.delete(key),
+      },
+    }
+    const chrome = loadMock(mockSource, browser, environment)
+    await chrome.storage.session.set({ 'tabby-search-launch-1': 123 })
+    await chrome.action.openPopup({ windowId: 1 })
+    expect(pages).toEqual(['/omnibar/index.html?originalWindowId=1'])
+    const popup = loadMock(mockSource, browser, environment)
+    expect(await popup.storage.session.get('tabby-search-launch-1')).toEqual({
+      'tabby-search-launch-1': 123,
+    })
+    expect(stored.size).toBe(0)
   })
 
   it('emits tab changes, restores discarded tabs on activation, and maintains window order', async () => {

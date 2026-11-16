@@ -222,12 +222,7 @@ describe('TabManager presentation', () => {
     expect(
       screen.getByRole('button', { name: 'Switch window: Research' }),
     ).toHaveTextContent('Research1 tab · 1 group')
-    for (const name of [
-      'Edit window',
-      'Search everything',
-      'Options',
-      'More actions',
-    ])
+    for (const name of ['Edit window', 'Search', 'Options', 'More actions'])
       expect(screen.getByRole('button', { name })).toBeEnabled()
     expect(
       screen.queryByRole('button', { name: 'Window actions' }),
@@ -591,7 +586,7 @@ describe('TabManager presentation', () => {
     })
     fireEvent.change(monogram, { target: { value: '' } })
     expect(monogram).toHaveValue('')
-    fireEvent.click(screen.getByRole('tab', { name: 'Favicons' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Favicon' }))
     const favicons = within(
       screen.getByRole('toolbar', { name: 'Favicons' }),
     ).getAllByRole('button')
