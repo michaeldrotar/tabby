@@ -14,12 +14,19 @@ import {
 } from './windowControls'
 import { WindowIcon } from './WindowIcon'
 import { WindowIconPicker } from './WindowIconPicker'
-import type { TabManagerIntent, TabManagerViewModel } from '../TabManager'
+import type {
+  TabManagerIntent,
+  TabManagerViewModel,
+  TabManagerWindowView,
+} from '../TabManager'
 
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
 export { windowControlClass } from './windowControls'
 export { WindowIcon } from './WindowIcon'
+
+const windowContents = (window: TabManagerWindowView) =>
+  `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.groups.length ? ` · ${window.groups.length} ${window.groups.length === 1 ? 'group' : 'groups'}` : ''}${window.incognito ? ' · Private' : ''}`
 
 export const WindowHeader = ({
   model,
@@ -105,9 +112,7 @@ export const WindowHeader = ({
                 {window?.title ?? 'Windows'}
               </span>
               <span className="mt-0.5 block truncate text-xs text-foreground">
-                {window
-                  ? `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.incognito ? ' · Private' : ''}`
-                  : 'Choose a window'}
+                {window ? windowContents(window) : 'Choose a window'}
               </span>
             </span>
             <DragReveal active={revealing}>
@@ -277,12 +282,7 @@ export const WindowPicker = ({
                       `,
                   )}
                 >
-                  {window.tabs.length}{' '}
-                  {window.tabs.length === 1 ? 'tab' : 'tabs'}
-                  {window.incognito ? ' · Private' : ''}
-                  {window.id === model.viewedWindowId
-                    ? ' · Current window'
-                    : ''}
+                  {windowContents(window)}
                 </span>
               </span>
             </button>

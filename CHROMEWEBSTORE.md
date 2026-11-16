@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -143,7 +143,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 ## Version history
 
-Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. The window picker shows group counts alongside tab counts. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |

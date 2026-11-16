@@ -221,7 +221,7 @@ describe('TabManager presentation', () => {
     )
     expect(
       screen.getByRole('button', { name: 'Switch window: Research' }),
-    ).toBeInTheDocument()
+    ).toHaveTextContent('Research1 tab · 1 group')
     for (const name of [
       'Edit window',
       'Search everything',
@@ -251,7 +251,8 @@ describe('TabManager presentation', () => {
               {
                 id: 2,
                 title: 'Personal',
-                tabs: [{ id: 11, title: 'Notes' }],
+                incognito: true,
+                tabs: [{ id: 11, title: 'Notes', active: true }],
                 groups: [],
               },
             ],
@@ -264,6 +265,13 @@ describe('TabManager presentation', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Back to tabs' })).toBeVisible()
     const first = screen.getByRole('button', { name: /^Research/ })
+    expect(first).toHaveTextContent('Research1 tab · 1 group')
+    expect(first).not.toHaveTextContent('Current window')
+    expect(first).toHaveAttribute('aria-current', 'true')
+    const other = screen.getByRole('button', { name: /^Personal/ })
+    expect(other).toHaveTextContent('Personal1 tab · Private')
+    expect(other).not.toHaveTextContent('0 groups')
+    expect(other).not.toHaveAttribute('aria-current')
     fireEvent.keyDown(first, { key: 'End' })
     expect(screen.getByRole('button', { name: 'New window' })).toHaveFocus()
     fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' })
