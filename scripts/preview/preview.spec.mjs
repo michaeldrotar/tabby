@@ -487,6 +487,32 @@ describe('sample Chrome interactions', () => {
     expect(await chrome.windows.getAll()).toHaveLength(browser.windows.length)
   })
 
+  it('groups a pinned tab across windows beside existing members and closes its empty source', async () => {
+    const chrome = loadMock(mockSource, {
+      currentWindowId: 1,
+      windows: [{ id: 1, focused: true }, { id: 2 }],
+      groups: [{ id: 10, windowId: 1, title: 'Work', color: 'blue' }],
+      tabs: [
+        { id: 1, windowId: 1, groupId: 10, active: true },
+        { id: 2, windowId: 1 },
+        { id: 3, windowId: 2, pinned: true, active: true },
+      ],
+    })
+    await chrome.tabs.group({ tabIds: 3, groupId: 10 })
+    expect(await chrome.tabs.get(3)).toMatchObject({
+      windowId: 1,
+      groupId: 10,
+      pinned: false,
+    })
+    expect(
+      (await chrome.tabs.query({ windowId: 1 })).map((tab) => tab.id),
+    ).toEqual([1, 3, 2])
+    expect((await chrome.windows.getAll()).map((window) => window.id)).toEqual([
+      1,
+    ])
+    expect((await chrome.tabGroups.get(10)).windowId).toBe(1)
+  })
+
   it('ungroups tabs moved across windows and removes groups after their last tab moves', async () => {
     const chrome = loadMock()
     const changes = []

@@ -437,7 +437,9 @@ export class MemoryBackend implements BrowserBackend {
         const tabs = ids.flatMap((id) =>
           snapshot.tabs.filter((tab) => tab.id === id),
         )
-        const windowId = tabs[0]!.windowId
+        const windowId =
+          snapshot.groups.find((group) => group.id === command.groupId)
+            ?.windowId ?? tabs[0]!.windowId
         let groupId = command.groupId
         if (groupId === undefined) {
           groupId = this.nextGroupId++

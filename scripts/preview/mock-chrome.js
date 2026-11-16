@@ -610,8 +610,19 @@ import defaultFavicon from './default-favicon.png'
           groupId = group.id
           api.tabGroups.onCreated.emit(clone(group))
         }
-        find(groups, groupId)
-        for (const id of ids) await api.tabs.update(id, { groupId })
+        const group = find(groups, groupId)
+        for (const id of ids) {
+          if (find(tabs, id).windowId !== group.windowId) {
+            if (find(tabs, id).pinned)
+              await api.tabs.update(id, { pinned: false })
+            const members = tabs.filter((tab) => tab.groupId === groupId)
+            const index = members.length
+              ? Math.max(...members.map((tab) => tab.index)) + 1
+              : -1
+            await api.tabs.move(id, { windowId: group.windowId, index })
+          }
+          await api.tabs.update(id, { groupId })
+        }
         return groupId
       },
       ungroup: async (ids) => {

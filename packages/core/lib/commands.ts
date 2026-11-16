@@ -192,12 +192,7 @@ export const getCommandBlockReason = (
         (group) => group.id === command.groupId,
       )
       if (!group) return 'The destination group is no longer available.'
-      if (
-        snapshot.tabs.some(
-          (tab) => ids.includes(tab.id) && tab.windowId !== group.windowId,
-        )
-      )
-        return 'Tabs must be in the same window as the destination group.'
+      return getMoveBlockReason(ids, snapshot, group.windowId)
     }
   }
   return undefined
