@@ -408,7 +408,9 @@ test('cancels a window move, then drops, follows, and reorders in the destinatio
   await begin(page, row(page, 5))
   await openWindows(page)
   await over(page, page.locator('[data-window-choice="2"]'))
+  await page.keyboard.down('Shift')
   await page.mouse.up()
+  await page.keyboard.up('Shift')
   await expect(page.locator('[data-window-picker-trigger]')).toContainText(
     'Reading room',
   )
@@ -431,7 +433,9 @@ test('cancels a window move, then drops, follows, and reorders in the destinatio
   await begin(page, row(page, 5))
   await openWindows(page)
   await over(page, page.locator('[data-window-choice="1"]'))
+  await page.keyboard.down('Shift')
   await page.mouse.up()
+  await page.keyboard.up('Shift')
   await expect(row(page, 5)).toHaveAttribute('aria-selected', 'true')
   expect((await page.evaluate(() => chrome.tabs.get(5))).windowId).toBe(1)
   await expect(row(page, 5)).toBeInViewport()
@@ -486,13 +490,16 @@ test('scrolls tab and window lists at their edges and creates a new window on dr
     path: '../../test-results/drag-new-window-target.png',
   })
   await page.mouse.up()
-  await expect(row(page, 5)).toHaveAttribute('aria-selected', 'true')
+  await expect(row(page, 5)).toHaveCount(0)
   const moved = await page.evaluate(() => chrome.tabs.get(5))
   expect(moved.windowId).toBeGreaterThan(12)
   expect(
     await page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
-  ).toBe(moved.windowId)
+  ).toBe(1)
   const current = page.locator(`[data-window-choice="${moved.windowId}"]`)
+  await page.locator('[data-window-picker-trigger]').click()
+  await current.click()
+  await expect(row(page, 5)).toBeVisible()
   await page.locator('[data-window-picker-trigger]').click()
   await expect(current).toBeFocused()
   await expect(current).toBeInViewport()

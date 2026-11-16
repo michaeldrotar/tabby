@@ -1392,7 +1392,7 @@ describe('complete Tab Manager actions', () => {
       optionId: '2',
     })
     expect(resources.backend.getSnapshot().groups).toEqual([
-      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: false },
+      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: true },
       { id: 6, windowId: 2, title: 'Build', color: 'blue' },
     ])
     expect(
@@ -1713,6 +1713,67 @@ describe('Tab Manager identity replacement', () => {
 })
 
 describe('moving follows the destination', () => {
+  it.each([
+    { group: false, follow: false },
+    { group: false, follow: true },
+    { group: true, follow: false },
+    { group: true, follow: true },
+  ])(
+    'moves between windows with group=$group and follow=$follow',
+    async ({ group, follow }) => {
+      const resources = setup()
+      if (group)
+        resources.backend.restoreSnapshot({
+          ...resources.backend.getSnapshot(),
+          groups: [{ id: 5, windowId: 1, title: 'Notes', color: 'blue' }],
+          tabs: resources.backend
+            .getSnapshot()
+            .tabs.map((tab) => (tab.id === 12 ? { ...tab, groupId: 5 } : tab)),
+        })
+      const openWindowTabManager = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { getCurrentWindowId: () => 1, openWindowTabManager },
+      })
+      await controller.dispatch({
+        type: 'select-item',
+        item: group ? { type: 'group', id: 5 } : { type: 'tab', id: 12 },
+      })
+      await controller.dispatch(
+        group
+          ? {
+              type: 'run-action',
+              actionId: 'move-selected-tabs',
+              optionId: 'new',
+              follow,
+            }
+          : { type: 'place-tabs', tabIds: [12], windowId: 2, follow },
+      )
+      const snapshot = resources.backend.getSnapshot()
+      const moved = snapshot.tabs.find((tab) => tab.id === 12)!
+      expect(moved.windowId).not.toBe(1)
+      expect(resources.view.getState().viewedWindowId).toBe(1)
+      expect(snapshot.windows.find((window) => window.focused)?.id).toBe(
+        follow ? moved.windowId : 1,
+      )
+      if (follow)
+        expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(
+          moved.windowId,
+          [12],
+        )
+      else {
+        expect(openWindowTabManager).not.toHaveBeenCalled()
+        expect(resources.view.getState().selection.selection.tabIds).toEqual(
+          new Set([11]),
+        )
+      }
+      if (group)
+        expect(snapshot.groups.find((group) => group.id === 5)?.windowId).toBe(
+          moved.windowId,
+        )
+    },
+  )
+
   it('opens the destination with the moved selection while the source sidebar keeps its own window', async () => {
     for (const optionId of ['2', 'new']) {
       const resources = setup()
@@ -1736,6 +1797,7 @@ describe('moving follows the destination', () => {
         type: 'run-action',
         actionId: 'move-selected-tabs',
         optionId,
+        follow: true,
       })
       const tab = resources.backend
         .getSnapshot()
@@ -1838,6 +1900,7 @@ it('reveals all collapsed groups moved through the menu', async () => {
     type: 'run-action',
     actionId: 'move-selected-tabs',
     optionId: '2',
+    follow: true,
   })
   expect(resources.backend.getSnapshot().groups).toEqual([
     { id: 5, windowId: 2, color: 'blue', collapsed: false },
@@ -1866,8 +1929,13 @@ it('activates and focuses the first selected tab in source order for drag and me
     })
     await resources.controller.dispatch(
       method === 'drop'
-        ? { type: 'place-tabs', tabIds: [12, 11], windowId: 2 }
-        : { type: 'run-action', actionId: 'move-selected-tabs', optionId: '2' },
+        ? { type: 'place-tabs', tabIds: [12, 11], windowId: 2, follow: true }
+        : {
+            type: 'run-action',
+            actionId: 'move-selected-tabs',
+            optionId: '2',
+            follow: true,
+          },
     )
     expect(
       resources.backend

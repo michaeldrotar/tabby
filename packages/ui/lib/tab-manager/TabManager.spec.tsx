@@ -856,7 +856,10 @@ describe('TabManager presentation', () => {
                 icon: 'MonitorUp',
                 kind: 'primary',
                 panel: 'windows',
-                options: [{ id: '2', label: 'Second window' }],
+                options: [
+                  { id: '2', label: 'Second window' },
+                  { id: 'new', label: 'New window' },
+                ],
               },
             ],
           }}
@@ -873,6 +876,29 @@ describe('TabManager presentation', () => {
       type: 'run-action',
       actionId: 'move',
       optionId: '2',
+    })
+    const newWindow = screen.getByRole('menuitem', { name: 'New window' })
+    fireEvent.click(newWindow, { shiftKey: true })
+    expect(onIntent).toHaveBeenCalledWith({
+      type: 'run-action',
+      actionId: 'move',
+      optionId: 'new',
+      follow: true,
+    })
+    onIntent.mockClear()
+    fireEvent.keyDown(newWindow, { key: 'Enter', shiftKey: true })
+    expect(onIntent).toHaveBeenCalledWith({
+      type: 'run-action',
+      actionId: 'move',
+      optionId: 'new',
+      follow: true,
+    })
+    onIntent.mockClear()
+    fireEvent.click(newWindow)
+    expect(onIntent).toHaveBeenCalledWith({
+      type: 'run-action',
+      actionId: 'move',
+      optionId: 'new',
     })
     rerender(
       <Surface>

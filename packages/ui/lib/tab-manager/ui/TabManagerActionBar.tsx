@@ -222,6 +222,7 @@ export const TabManagerActionBar = ({
   useLayoutEffect(() => {
     latestFocusSelector.current = focusSelector
   }, [focusSelector])
+  const followOnSelect = useRef(false)
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const actions =
@@ -293,8 +294,13 @@ export const TabManagerActionBar = ({
     }),
     [surface?.root, position],
   )
-  const run = (action: TabManagerAction, optionId?: string) =>
-    onIntent({ type: 'run-action', actionId: action.id, optionId })
+  const run = (action: TabManagerAction, optionId?: string, follow = false) =>
+    onIntent({
+      type: 'run-action',
+      actionId: action.id,
+      optionId,
+      ...(follow ? { follow: true } : {}),
+    })
   const activateAction = (action: TabManagerAction) =>
     action.panel
       ? onIntent({ type: 'open-action-panel', actionId: action.id })
@@ -324,7 +330,7 @@ export const TabManagerActionBar = ({
   const renderItem = (
     id: string,
     content: React.ReactNode,
-    activate: () => void,
+    activate: (follow?: boolean) => void,
     settings: {
       disabled?: boolean
       reason?: string
@@ -347,11 +353,19 @@ export const TabManagerActionBar = ({
         onPointerUp={(event) => {
           if (event.button !== 0) event.preventDefault()
         }}
+        onClick={(event) => {
+          if (event.detail > 0 || event.shiftKey)
+            followOnSelect.current = event.shiftKey
+        }}
         onSelect={(event) => {
           if (settings.panel) event.preventDefault()
-          activate()
+          const follow = followOnSelect.current
+          followOnSelect.current = false
+          activate(follow)
         }}
         onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ')
+            followOnSelect.current = event.shiftKey
           if (settings.panel && event.key === 'ArrowRight') {
             event.preventDefault()
             activate()
@@ -361,7 +375,12 @@ export const TabManagerActionBar = ({
         {content}
       </Menu.Item>
     ) : (
-      <button key={id} role="menuitem" {...props} onClick={activate}>
+      <button
+        key={id}
+        role="menuitem"
+        {...props}
+        onClick={(event) => activate(event.shiftKey)}
+      >
         {content}
       </button>
     )
@@ -388,6 +407,11 @@ export const TabManagerActionBar = ({
         () => onIntent({ type: 'dismiss-action-panel' }),
         { panel: true },
       )}
+      {panel.panel === 'windows' && (
+        <p className="px-3 py-2 text-xs text-muted">
+          Hold Shift to move and switch.
+        </p>
+      )}
       {panel.options?.map((option) => (
         <Fragment key={option.id}>
           {option.dividerBefore && (
@@ -399,7 +423,7 @@ export const TabManagerActionBar = ({
               option={option}
               windows={panel.panel === 'windows'}
             />,
-            () => run(panel, option.id),
+            (follow) => run(panel, option.id, follow),
             {
               disabled: option.disabled,
               reason: option.disabledReason,

@@ -136,6 +136,7 @@ export type TabManagerIntent =
       destination?: TabPlacement
       windowId?: number
       scrollTop?: number
+      follow?: boolean
     }
   | { type: 'receive-moved-tabs'; windowId: number; tabIds: readonly number[] }
   | { type: 'view-window'; windowId: number }
@@ -172,7 +173,12 @@ export type TabManagerIntent =
   | { type: 'focus-creation'; pane: 'window' | 'tab' }
   | { type: 'create-window' }
   | { type: 'create-tab'; windowId: number; groupId?: number }
-  | { type: 'run-action'; actionId: string; optionId?: string }
+  | {
+      type: 'run-action'
+      actionId: string
+      optionId?: string
+      follow?: boolean
+    }
   | { type: 'open-action-panel'; actionId: string }
   | { type: 'dismiss-action-panel' }
   | { type: 'start-group-rename'; groupId: number }

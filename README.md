@@ -31,19 +31,19 @@ Manage all your windows and tabs in a clear view. Use the default Tab Manager sh
 - **Window controls:** Create and close windows in the window picker, which opens scrolled to the current window.
 - **Everyday controls:** Search and Settings stay at the bottom left, with More actions at the bottom right. Right-clicking a tab or group opens its actions beside the cursor; click an action to show its options there. New tab stays with the tabs, and New window sits at the end of the window picker.
 
-| Gesture                          | Result                                                                                              |
-| -------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Click a tab or press Enter on it | Select and activate that tab                                                                        |
-| Cmd/Ctrl-click a tab             | Toggle selection without activating; toggling the last selected tab leaves no selection             |
-| Shift-click a tab                | Select a range without activating                                                                   |
-| Click a group name               | Select the group and its tabs                                                                       |
-| Choose a window                  | Bring it forward and open its Tab Manager                                                           |
-| Move selected tabs or groups     | Keep managing the source window while it exists; complete groups retain their identity              |
-| Right-click a tab or group       | Preserve selection if it includes the item; otherwise select it, then open More actions             |
-| Up/Down, Home/End                | Move focus; ordinary navigation selects the item, while multi-select navigation preserves selection |
-| Space                            | Toggle selection and enter multi-select mode                                                        |
-| Cmd/Ctrl+A                       | Select all tabs and groups in the current window                                                    |
-| Escape                           | Close the current menu or editor, or restore the active-tab selection                               |
+| Gesture                          | Result                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Click a tab or press Enter on it | Select and activate that tab                                                                           |
+| Cmd/Ctrl-click a tab             | Toggle selection without activating; toggling the last selected tab leaves no selection                |
+| Shift-click a tab                | Select a range without activating                                                                      |
+| Click a group name               | Select the group and its tabs                                                                          |
+| Choose a window                  | Bring it forward and open its Tab Manager                                                              |
+| Move selected tabs or groups     | Stay in the source window; hold Shift to follow the destination; complete groups retain their identity |
+| Right-click a tab or group       | Preserve selection if it includes the item; otherwise select it, then open More actions                |
+| Up/Down, Home/End                | Move focus; ordinary navigation selects the item, while multi-select navigation preserves selection    |
+| Space                            | Toggle selection and enter multi-select mode                                                           |
+| Cmd/Ctrl+A                       | Select all tabs and groups in the current window                                                       |
+| Escape                           | Close the current menu or editor, or restore the active-tab selection                                  |
 
 Up and Down connect the window header, tab list, and bottom tools. Left and Right move between header controls or bottom tools. Keyboard context menus open beside the focused item. Closing a menu with Escape restores its opening focus. Tab and Shift+Tab move between sections. Enter toggles a focused group or chooses a window in the picker. Alt/Option+Up/Down reorders a tab or group. F2 edits a group's name.
 

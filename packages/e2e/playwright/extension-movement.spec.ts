@@ -116,7 +116,9 @@ test('drops a selection on another Chrome window and follows its first tab after
   await page.waitForTimeout(6000)
   await expect(page.locator('[data-window-picker]')).toBeVisible()
   await expect(page.locator('[data-tab-pane]')).toHaveCount(0)
+  await page.keyboard.down('Shift')
   await page.mouse.up()
+  await page.keyboard.up('Shift')
   await expect
     .poll(() =>
       page.evaluate(
@@ -226,7 +228,9 @@ test('opens the manager after a long drag creates a new Chrome window', async ({
     steps: 6,
   })
   await page.waitForTimeout(6000)
+  await page.keyboard.down('Shift')
   await page.mouse.up()
+  await page.keyboard.up('Shift')
   await expect
     .poll(() =>
       page.evaluate(async (id) => (await chrome.tabs.get(id)).windowId, id),
@@ -266,53 +270,78 @@ test('opens the manager after a long drag creates a new Chrome window', async ({
     .toBe(true)
 })
 
-test('menu moves a selection to the destination and focuses its first tab', async ({
-  page,
-  extensionId,
-}) => {
-  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
-  const data = await page.evaluate(async () => {
-    const current = await chrome.windows.getCurrent()
-    const first = await chrome.tabs.create({
-      windowId: current.id,
-      url: 'https://example.com/first',
-      active: false,
-    })
-    const second = await chrome.tabs.create({
-      windowId: current.id,
-      url: 'https://example.com/second',
-      active: false,
-    })
-    const target = await chrome.windows.create({
-      url: 'https://example.com/destination',
-      focused: false,
-    })
-    for (let i = 0; i < 18; i++)
-      await chrome.tabs.create({
-        windowId: target.id,
-        url: `https://example.com/reference-${i}`,
+for (const follow of [false, true])
+  test(`menu moves a selection with follow=${follow}`, async ({
+    page,
+    extensionId,
+  }) => {
+    await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+    const data = await page.evaluate(async () => {
+      const current = await chrome.windows.getCurrent()
+      const first = await chrome.tabs.create({
+        windowId: current.id,
+        url: 'https://example.com/first',
         active: false,
       })
-    return {
-      first: first.id!,
-      second: second.id!,
-      target: target.id!,
-      manager: (await chrome.tabs.getCurrent())!.id!,
+      const second = await chrome.tabs.create({
+        windowId: current.id,
+        url: 'https://example.com/second',
+        active: false,
+      })
+      const target = await chrome.windows.create({
+        url: 'https://example.com/destination',
+        focused: false,
+      })
+      for (let i = 0; i < 18; i++)
+        await chrome.tabs.create({
+          windowId: target.id,
+          url: `https://example.com/reference-${i}`,
+          active: false,
+        })
+      return {
+        first: first.id!,
+        second: second.id!,
+        target: target.id!,
+        targetActive: target.tabs![0]!.id!,
+        source: current.id!,
+        manager: (await chrome.tabs.getCurrent())!.id!,
+      }
+    })
+    for (const id of [data.second, data.first, data.manager])
+      await page
+        .locator(`[data-tab-id="${id}"] [data-tab-option]`)
+        .click({ modifiers: ['ControlOrMeta'] })
+    await page
+      .locator(`[data-tab-id="${data.first}"] [data-tab-option]`)
+      .click({ button: 'right' })
+    await page
+      .getByRole('menuitem', { name: 'Move 2 tabs to window', exact: true })
+      .click()
+    await page
+      .getByRole('menu', { name: 'Move 2 tabs to window' })
+      .locator(`[data-action-id="${data.target}"]`)
+      .click({ modifiers: follow ? ['Shift'] : [] })
+    if (follow)
+      await expectDestination(page, data.target, [data.first, data.second])
+    else {
+      await expect(page.locator(`[data-tab-id="${data.first}"]`)).toHaveCount(0)
+      expect(
+        await page.evaluate(
+          async () => (await chrome.windows.getLastFocused()).id,
+        ),
+      ).toBe(data.source)
+      expect(
+        await page.evaluate(
+          async (windowId) =>
+            (await chrome.tabs.query({ windowId, active: true }))[0]?.id,
+          data.target,
+        ),
+      ).toBe(data.targetActive)
+      expect(
+        await page.evaluate(
+          async (tabId) => (await chrome.tabs.get(tabId)).windowId,
+          data.second,
+        ),
+      ).toBe(data.target)
     }
   })
-  for (const id of [data.second, data.first, data.manager])
-    await page
-      .locator(`[data-tab-id="${id}"] [data-tab-option]`)
-      .click({ modifiers: ['ControlOrMeta'] })
-  await page
-    .locator(`[data-tab-id="${data.first}"] [data-tab-option]`)
-    .click({ button: 'right' })
-  await page
-    .getByRole('menuitem', { name: 'Move 2 tabs to window', exact: true })
-    .click()
-  await page
-    .getByRole('menu', { name: 'Move 2 tabs to window' })
-    .locator(`[data-action-id="${data.target}"]`)
-    .click()
-  await expectDestination(page, data.target, [data.first, data.second])
-})

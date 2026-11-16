@@ -461,6 +461,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
   const execute = async (
     command: Parameters<typeof backend.execute>[0],
     label: string,
+    followMove = false,
   ) => {
     const operation = ++generation
     const initiatingState = view.getState()
@@ -571,6 +572,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     const destinationWindow = movedTabs[0]?.windowId
     const followsMove =
       isMove &&
+      followMove &&
       outcome.status === 'success' &&
       initiatingInput === inputRevision &&
       destinationWindow !== undefined &&
@@ -880,6 +882,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
               windowId: intent.windowId,
             },
         'Move tabs',
+        intent.follow,
       )
     } else if (intent.type === 'open-window-picker') {
       view.setState({
@@ -1013,7 +1016,7 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       )
       if (!operation) return
       if (operation.type === 'command')
-        return execute(operation.command, operation.label)
+        return execute(operation.command, operation.label, intent.follow)
       if (operation.type === 'rename') {
         view.setState({
           actionMenu: null,
