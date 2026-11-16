@@ -251,11 +251,10 @@ test('moves between windows in the background and follows Shift-click or Shift+E
   await destination.focus()
   await page.keyboard.press('Shift+Enter')
   await expect(row(2)).toHaveAttribute('aria-selected', 'true')
-  const groupWindow = await page.evaluate(
-    async () => (await chrome.tabGroups.get(10)).windowId,
-  )
-  expect(groupWindow).not.toBe(1)
-  expect(await focusedWindow()).toBe(groupWindow)
+  const groupWindow = () =>
+    page.evaluate(async () => (await chrome.tabGroups.get(10)).windowId)
+  await expect.poll(groupWindow).not.toBe(1)
+  await expect.poll(focusedWindow).toBe(await groupWindow())
   expect(
     await page.evaluate(async () =>
       (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
