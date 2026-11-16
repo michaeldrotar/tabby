@@ -346,10 +346,10 @@ export const BrowserTabItem = memo(
               discarded && 'opacity-50 grayscale',
             )}
           >
-            {selected && (
+            {active && (
               <span
                 aria-hidden="true"
-                data-tab-selection-indicator
+                data-tab-active-indicator
                 className={`
                   pointer-events-none absolute inset-y-3 left-0 w-[3px]
                   rounded-r bg-focus

@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -28,7 +28,7 @@ Choose active-tab or first-tab defaults in Options, or use the pencil to give a 
 
 Organize one window at a time
 
-Click a tab to select and activate it. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Closing tabs from the menu keeps keyboard focus in the tab list. Add tabs to an existing group in another window from the group menu, with local groups first and window names beside other destinations. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
+Click a tab to select and activate it. Only the active tab shows a bar on its left edge. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Closing tabs from the menu keeps keyboard focus in the tab list. Add tabs to an existing group in another window from the group menu, with local groups first and window names beside other destinations. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
 Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows, then drop on a window to move tabs there. Long lists scroll as you drag near their edges. Choose in Options whether picking windows and moving tabs or groups keeps you in your current window or follows the destination. Hold Shift when choosing a destination or dropping onto it to temporarily reverse that preference. An arrow previews whether focus will follow or stay. Each panel keeps showing its chosen window while tabs move. Moves that empty a source window always follow the destination.
 
@@ -74,6 +74,8 @@ For help or feedback, visit https://github.com/michaeldrotar/tabby/issues.
 Screenshots show the current product with realistic sample tabs, readable labels, and no development controls.
 
 The theme screenshot shows full Tab Manager previews in Porcelain, Graphite, and Arcade, including light and dark mode.
+
+The bulk actions screenshot shows selection backgrounds with no active-tab bars on inactive tabs.
 
 Run `TABBY_CAPTURE_PROMOS=1 pnpm -F @extension/e2e exec playwright test --config promotional-assets.config.ts` to regenerate the screenshots and promotional tiles from their checked layouts.
 
@@ -145,7 +147,7 @@ Appearance preferences, an unfinished search query and its scope, recent search 
 
 ## Version history
 
-Version 1.8.0 lets you add tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It is in development, with a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 lets you add tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It is in development, with a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs, and a left-edge bar reserved for the active tab. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
