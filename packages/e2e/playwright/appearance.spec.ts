@@ -9,7 +9,11 @@ const color = (
   element: Locator,
   property: 'backgroundColor' | 'color' = 'backgroundColor',
 ) =>
-  element.evaluate((node, property) => {
+  element.evaluate(async (node, property) => {
+    getComputedStyle(node).getPropertyValue('background-color')
+    await Promise.all(
+      node.getAnimations().map((animation) => animation.finished),
+    )
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')!
     context.fillStyle = getComputedStyle(node)[property]
@@ -255,6 +259,102 @@ test.describe('curated theme text', () => {
     await row.hover()
     expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
   })
+})
+
+test.describe('grouped tab colors', () => {
+  test.use({
+    browserData: {
+      ...browserData,
+      tabs: browserData.tabs.map((tab) =>
+        tab.id === 3 ? { ...tab, title: '(3) Release checklist' } : tab,
+      ),
+      preferences: {
+        theme: 'system',
+        themePreset: null,
+        themeLightAccent: 'orange',
+        themeDarkAccent: 'orange',
+      },
+    },
+  })
+
+  for (const theme of ['light', 'dark'] as const) {
+    test(`follows group colors through selection, recoloring, and ungrouping in ${theme} mode`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 480, height: 640 })
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+      await page.goto('/tab-manager/index.html')
+      const row = (id: number) => page.locator(`[data-tab-id="${id}"]`)
+      const fill = (id: number) => row(id).locator(':scope > div').first()
+      const option = (id: number) => row(id).locator('[data-tab-option]')
+      const themeSelection = await color(fill(1))
+      await option(2).click()
+      await page.mouse.move(0, 0)
+      const blueSelection = await color(fill(2))
+      expect(blueSelection[2]!).toBeGreaterThan(blueSelection[0]!)
+      expect(blueSelection).not.toEqual(themeSelection)
+      const indicator = await color(
+        row(2).locator('[data-tab-selection-indicator]'),
+      )
+      expect(indicator[2]!).toBeGreaterThan(indicator[0]!)
+
+      await option(3).click({ modifiers: ['ControlOrMeta'] })
+      await option(2).click({ modifiers: ['ControlOrMeta'] })
+      await page.mouse.move(0, 0)
+      await expect(row(2)).toHaveAttribute('data-active', 'true')
+      await expect(row(2)).toHaveAttribute('data-selected', 'false')
+      await expect(row(3)).toHaveAttribute('data-selected', 'true')
+      expect(await color(fill(3))).toEqual(blueSelection)
+      expect(await color(fill(2))).not.toEqual(blueSelection)
+      const count = option(3).getByText('(3)', { exact: true })
+      expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+      await row(3).hover()
+      await color(fill(3))
+      expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+      await row(4).hover()
+      const blueHover = await color(fill(4))
+      expect(blueHover[2]!).toBeGreaterThan(blueHover[0]!)
+
+      await page.evaluate(() => chrome.tabGroups.update(10, { color: 'red' }))
+      await expect(page.locator('[data-group-id="10"]')).toHaveAttribute(
+        'data-theme-accent',
+        'red',
+      )
+      for (const id of [2, 3, 4]) {
+        const red = await color(fill(id))
+        expect(red[0]!).toBeGreaterThan(red[2]!)
+        expect(red[3]!).toBeGreaterThan(0)
+        for (const text of await option(id)
+          .locator('[data-tab-details] > div')
+          .all())
+          expect(await contrast(text)).toBeGreaterThanOrEqual(4.5)
+      }
+      expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+      await row(3).hover()
+      await color(fill(3))
+      expect(await contrast(count)).toBeGreaterThanOrEqual(4.5)
+      await page.screenshot({
+        path: `../../test-results/group-tab-colors-${theme}-480.png`,
+      })
+      await page.setViewportSize({ width: 320, height: 640 })
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true)
+
+      await page.evaluate(() => chrome.tabs.ungroup(3))
+      await page.mouse.move(0, 0)
+      await expect.poll(() => color(fill(3))).toEqual(themeSelection)
+      await page.evaluate(() => chrome.tabGroups.update(10, { color: 'grey' }))
+      await expect(page.locator('[data-group-id="10"]')).toHaveAttribute(
+        'data-theme-accent',
+        'grey',
+      )
+      const grey = (await color(fill(2))).slice(0, 3)
+      expect(Math.max(...grey) - Math.min(...grey)).toBeLessThanOrEqual(1)
+    })
+  }
 })
 
 test('animates seasonal controls and honors reduced motion', async ({

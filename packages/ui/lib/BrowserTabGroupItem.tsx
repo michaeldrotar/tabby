@@ -212,6 +212,7 @@ export const BrowserTabGroupItem = memo(
           data-nav-type="group"
           data-group-item={groupId}
           data-group-id={groupId}
+          data-theme-accent={resolvedColor ?? 'grey'}
           data-selected={selected}
           data-active={active || undefined}
           data-collapsed={collapsed || undefined}
