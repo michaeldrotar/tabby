@@ -33,8 +33,17 @@ export const ChromeTabbyProvider = ({
     })
     const preferences = createChromePreferences(api)
     const views = createTabbyViews()
+    const tabManager = createTabManagerController({
+      backend,
+      view: views.tabManager,
+      preferences,
+      environment: { now: Date.now, systemTheme: 'light' },
+    })
     const host = createChromeTabManagerHost(api, {
       writeClipboardText: (text) => navigator.clipboard.writeText(text),
+      onWindowFocusChanged: (windowId) => {
+        tabManager.dispatch({ type: 'view-window', windowId })
+      },
       onWindowActivated: (windowId, tabIds) => {
         if (!tabIds) return true
         if (
@@ -52,12 +61,7 @@ export const ChromeTabbyProvider = ({
           backend.getSnapshot(),
           windowId,
         )
-        createTabManagerController({
-          backend,
-          view: views.tabManager,
-          preferences,
-          environment: { now: Date.now, systemTheme: 'light' },
-        }).dispatch({ type: 'receive-moved-tabs', windowId, tabIds })
+        tabManager.dispatch({ type: 'receive-moved-tabs', windowId, tabIds })
         return true
       },
     })
