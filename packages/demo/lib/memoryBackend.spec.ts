@@ -269,3 +269,20 @@ describe('memory backend action parity', () => {
     ).toEqual([1, tabId])
   })
 })
+
+it('moves a final source tab into an existing group in another window', async () => {
+  const backend = new MemoryBackend(scene())
+  expect(
+    await backend.execute({ type: 'group-tabs', tabIds: [4], groupId: 1 }),
+  ).toMatchObject({ status: 'success' })
+  const result = backend.getSnapshot()
+  expect(result.tabs.find((tab) => tab.id === 4)).toMatchObject({
+    windowId: 1,
+    groupId: 1,
+    pinned: false,
+  })
+  expect(
+    result.tabs.filter((tab) => tab.groupId === 1).map((tab) => tab.id),
+  ).toEqual([1, 2, 4])
+  expect(result.windows.map((window) => window.id)).toEqual([1])
+})

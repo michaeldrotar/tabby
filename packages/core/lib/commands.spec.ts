@@ -168,3 +168,35 @@ describe('adjacent tab creation planning', () => {
     ).toContain('no longer available')
   })
 })
+
+it('allows grouping into another normal window and rejects incompatible destinations', () => {
+  const command = { type: 'group-tabs' as const, tabIds: [6], groupId: 30 }
+  const target = {
+    ...snapshot,
+    windows: [...snapshot.windows, { id: 2, type: 'normal' as const }],
+    groups: [
+      ...snapshot.groups,
+      { id: 30, windowId: 2, color: 'blue' as const },
+    ],
+  }
+  expect(getCommandBlockReason(command, target)).toBeUndefined()
+  expect(
+    getCommandBlockReason(command, {
+      ...target,
+      windows: target.windows.map((window) =>
+        window.id === 2 ? { ...window, incognito: true } : window,
+      ),
+    }),
+  ).toContain('incognito')
+  expect(
+    getCommandBlockReason(command, {
+      ...target,
+      windows: target.windows.map((window) =>
+        window.id === 2 ? { ...window, type: 'popup' as const } : window,
+      ),
+    }),
+  ).toContain('normal window')
+  expect(getCommandBlockReason(command, snapshot)).toContain(
+    'no longer available',
+  )
+})

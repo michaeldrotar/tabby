@@ -1,5 +1,6 @@
 import {
   formatBatchTabCopy,
+  getCommandBlockReason,
   getGroupActionBlockReason,
   getMoveBlockReason,
   getNewWindowMoveBlockReason,
@@ -218,30 +219,27 @@ const buildTabManagerActions = (
       options: [
         ...snapshot.groups
           .filter((group) => !groupIds.has(group.id))
-          .map((group, index) =>
-            option(
+          .map((group, index) => {
+            const command: BrowserCommand = {
+              type: 'group-tabs',
+              tabIds: ids,
+              groupId: group.id,
+            }
+            const reason = getCommandBlockReason(command, snapshot)
+            return option(
               'group-selected-tabs',
               String(group.id),
               group.title || t('tabContextMenu_untitledGroup'),
-              {
-                type: 'command',
-                command: { type: 'group-tabs', tabIds: ids, groupId: group.id },
-                label: 'Group tabs',
-              },
+              { type: 'command', command, label: 'Group tabs' },
               {
                 color: group.color,
                 subtitle: String(ids.length),
                 dividerBefore: index === 0,
-                disabled:
-                  Boolean(groupReason) || group.windowId !== tabs[0]?.windowId,
-                disabledReason:
-                  groupReason ??
-                  (group.windowId !== tabs[0]?.windowId
-                    ? 'Selected tabs must be in the target group’s window.'
-                    : undefined),
+                disabled: Boolean(reason),
+                disabledReason: reason,
               },
-            ),
-          ),
+            )
+          }),
         option(
           'group-selected-tabs',
           'new',

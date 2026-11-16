@@ -345,3 +345,78 @@ for (const follow of [false, true])
       ).toBe(data.target)
     }
   })
+
+test('groups selected tabs into an existing group in another Chrome window', async ({
+  page,
+  extensionId,
+}) => {
+  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  const data = await page.evaluate(async () => {
+    const current = await chrome.windows.getCurrent()
+    const first = await chrome.tabs.create({
+      windowId: current.id,
+      url: 'about:blank',
+      active: false,
+    })
+    const second = await chrome.tabs.create({
+      windowId: current.id,
+      url: 'about:blank',
+      active: false,
+      pinned: true,
+    })
+    const target = await chrome.windows.create({
+      url: 'about:blank',
+      focused: false,
+    })
+    const groupId = await chrome.tabs.group({
+      tabIds: target.tabs![0]!.id!,
+      createProperties: { windowId: target.id },
+    })
+    await chrome.tabGroups.update(groupId, { title: 'Destination' })
+    return {
+      source: current.id!,
+      first: first.id!,
+      second: second.id!,
+      target: target.id!,
+      groupId,
+      existing: target.tabs![0]!.id!,
+    }
+  })
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  await row(data.first).click()
+  await row(data.second).click({ modifiers: ['ControlOrMeta'] })
+  await row(data.first).click({ button: 'right' })
+  await page
+    .getByRole('menuitem', { name: 'Group 2 tabs', exact: true })
+    .click()
+  const destination = page
+    .getByRole('menu', { name: 'Group 2 tabs' })
+    .locator(`[data-action-id="${data.groupId}"]`)
+  await expect(destination).toBeEnabled()
+  await destination.click()
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async (groupId) =>
+          (await chrome.tabs.query({ groupId })).map((tab) => ({
+            id: tab.id,
+            windowId: tab.windowId,
+            pinned: tab.pinned,
+          })),
+        data.groupId,
+      ),
+    )
+    .toEqual(
+      [data.existing, data.second, data.first].map((id) => ({
+        id,
+        windowId: data.target,
+        pinned: false,
+      })),
+    )
+  await expect(row(data.first)).toHaveCount(0)
+  await expect(row(data.second)).toHaveCount(0)
+  expect(
+    await page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
+  ).toBe(data.source)
+})
