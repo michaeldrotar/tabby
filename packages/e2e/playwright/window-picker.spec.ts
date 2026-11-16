@@ -79,10 +79,16 @@ test('manages another window in place and switches only with an explicit action'
   await expect(remoteActions).toBeVisible()
   expect(await focusedWindow()).toBe(1)
   expect((await page.locator('header').boundingBox())!.height).toBeLessThan(85)
-  await page.evaluate(async () => {
-    await chrome.windows.update(2, { focused: true })
-    await chrome.windows.update(1, { focused: true })
-  })
+  await page.evaluate(async () => chrome.windows.update(2, { focused: true }))
+  await expect(picker).toContainText('Tabby')
+  await expect(remoteActions).toHaveCount(0)
+  await expect(
+    page.locator('[data-tab-id="1"] [data-tab-option]'),
+  ).toHaveAttribute('aria-selected', 'true')
+  await page.evaluate(async () => chrome.windows.update(1, { focused: true }))
+  await expect(picker).toContainText('Tabby')
+  await picker.click()
+  await page.locator('[data-window-choice="2"]').click()
   await expect(picker).toContainText('Reading room')
   await expect(remoteActions).toBeVisible()
   await page.evaluate(async () => {
@@ -148,8 +154,8 @@ test('manages another window in place and switches only with an explicit action'
     .getByRole('button', { name: 'Switch to this window', exact: true })
     .click()
   await expect.poll(focusedWindow).toBe(2)
-  await expect(picker).toContainText('Reading room')
-  await expect(remoteActions).toBeVisible()
+  await expect(picker).toContainText('Tabby')
+  await expect(remoteActions).toHaveCount(0)
   expect(
     await page.evaluate(async () => (await chrome.windows.getCurrent()).id),
   ).toBe(1)
