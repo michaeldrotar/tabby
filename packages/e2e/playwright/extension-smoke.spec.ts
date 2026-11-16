@@ -103,6 +103,43 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(manager.locator('[data-window-picker-trigger]')).toContainText(
     'Smoke workspace',
   )
+  const debugging = await context.newCDPSession(page)
+  await page.evaluate(async () => {
+    await chrome.action.openPopup()
+  })
+  const { targetInfos } = await debugging.send('Target.getTargets')
+  const popupTarget = targetInfos.find(
+    ({ url }) => url === `chrome-extension://${extensionId}/omnibar/index.html`,
+  )!
+  const { sessionId } = await debugging.send('Target.attachToTarget', {
+    targetId: popupTarget.targetId,
+    flatten: false,
+  })
+  // Toolbar popups are not exposed as Playwright pages.
+  const layout = new Promise<{ width: number; height: number }>((resolve) => {
+    debugging.on('Target.receivedMessageFromTarget', (event) => {
+      const message = JSON.parse(event.message)
+      if (event.sessionId === sessionId && message.id === 1)
+        resolve(message.result.result.value)
+    })
+  })
+  await debugging.send('Target.sendMessageToTarget', {
+    sessionId,
+    message: JSON.stringify({
+      id: 1,
+      method: 'Runtime.evaluate',
+      params: {
+        expression: '({ width: innerWidth, height: innerHeight })',
+        returnByValue: true,
+      },
+    }),
+  })
+  const popupSize = await layout
+  expect(popupSize.width).toBe(640)
+  expect(popupSize.height).toBeGreaterThan(400)
+  expect(popupSize.height).toBeLessThanOrEqual(500)
+  await debugging.send('Target.closeTarget', { targetId: popupTarget.targetId })
+  await debugging.detach()
   const popup = await context.newPage()
   await popup.goto(`chrome-extension://${extensionId}/omnibar/index.html`)
   for (const surface of [manager, popup])

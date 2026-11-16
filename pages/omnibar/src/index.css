@@ -6,6 +6,10 @@ body,
 #root {
   margin: 0;
   width: 640px;
-  height: min(500px, 100vh);
+  height: 500px;
   overflow: hidden;
+}
+
+#root {
+  max-height: 100vh;
 }
