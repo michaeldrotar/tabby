@@ -1,6 +1,6 @@
 # Privacy policy for Tabby
 
-Last updated: November 14, 2026
+Last updated: November 15, 2026
 
 ## Introduction
 
@@ -24,6 +24,7 @@ To provide its functionality, Tabby requires certain permissions.
 
 | Permission  | Reason                                                                                            |
 | :---------- | :------------------------------------------------------------------------------------------------ |
+| `alarms`    | Schedules local checks for seasonal icons and restored window names.                              |
 | `favicon`   | Required to display icons for your tabs, bookmarks, and history items in the search results.      |
 | `storage`   | Used to save preferences, search choices, window labels, and restore fingerprints on your device. |
 | `tabs`      | Core functionality for listing, switching, and managing your open tabs.                           |

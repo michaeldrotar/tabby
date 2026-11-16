@@ -15,6 +15,7 @@ More than just search, it's your browser's command line. Click the Tabby toolbar
 - **Web Search**: Type a query to search Google directly.
 - **Direct Navigation**: Paste or type a URL to open it.
 - **Browser Actions**: Execute commands like opening Chrome settings or opening the Tabby Tab Manager.
+- **Search scopes**: Focus on the current window, all tabs, windows, groups, bookmarks, history, recently closed pages, or commands. Press Tab to choose a scope without losing your query. Specific scopes show items before you type; dismissing search preserves its text and scope.
 
 Most commands support `Cmd/Ctrl` to open in a new tab and `Shift` to open in a new window.
 
@@ -25,27 +26,31 @@ shortcuts shown above are the defaults.
 
 Manage all your windows and tabs in a clear view. Use the default Tab Manager shortcut—`Cmd+Shift+E` on macOS or `Alt+Shift+E` on Windows/Linux—or choose **Open tab manager** inside the search popup to open the side panel.
 
-- **Window switcher:** Choose a window to bring it forward and open its Tab Manager. Each window keeps its own selection and editor state.
-- **Window names and icons:** Choose active-tab or first-tab defaults in Settings. Use the header pencil to edit a window's custom name, icon, and color; edits save immediately. Reset returns that window to the global default. Search a custom window name in the omnibar and choose its Window result to focus it while keeping its active tab.
+- **Window picker:** Choose whether picking a window or moving tabs and groups keeps your browser focus in place or switches windows in Settings. Hold Shift to reverse that preference. Each window keeps its own selection and editor state. While viewing another window, use the header controls to show your current window or switch to the viewed window.
+- **Window names and icons:** Choose active-tab or first-tab defaults in Settings. Use the header pencil to edit a window's custom name, icon, and color; choose an icon, emoji, monogram, uploaded image, or favicon. Edits save immediately. Reset shows the global default while retaining your custom choices; reopen the editor to restore them. Search a custom window name in the omnibar and choose its Window result to focus it while keeping its active tab.
 - **Tab and group selection:** Clicking a tab selects and activates it. Cmd/Ctrl-click toggles selection; Shift-click selects a range without activating. The active tab is selected on load and after Escape. Cmd/Ctrl+A selects all tabs and groups, including collapsed groups.
 - **Window controls:** Create and close windows in the window picker, which opens scrolled to the current window.
 - **Everyday controls:** Search and Settings stay at the bottom left, with More actions at the bottom right. Right-clicking a tab or group opens its actions beside the cursor; click an action to show its options there. New tab stays with the tabs, and New window sits at the end of the window picker.
+- **Group across windows:** Add tabs to an existing group in any window from the group chooser, with local groups first and window names beside other destinations.
+- **Search this window:** Search from the Tab Manager starts with the current window's tabs. Change scope to broaden the search.
 
-| Gesture                          | Result                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Click a tab or press Enter on it | Select and activate that tab                                                                           |
-| Cmd/Ctrl-click a tab             | Toggle selection without activating; toggling the last selected tab leaves no selection                |
-| Shift-click a tab                | Select a range without activating                                                                      |
-| Click a group name               | Select the group and its tabs                                                                          |
-| Choose a window                  | Bring it forward and open its Tab Manager                                                              |
-| Move selected tabs or groups     | Stay in the source window; hold Shift to follow the destination; complete groups retain their identity |
-| Right-click a tab or group       | Preserve selection if it includes the item; otherwise select it, then open More actions                |
-| Up/Down, Home/End                | Move focus; ordinary navigation selects the item, while multi-select navigation preserves selection    |
-| Space                            | Toggle selection and enter multi-select mode                                                           |
-| Cmd/Ctrl+A                       | Select all tabs and groups in the current window                                                       |
-| Escape                           | Close the current menu or editor, or restore the active-tab selection                                  |
+| Gesture                          | Result                                                                                                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Click a tab or press Enter on it | Select and activate that tab                                                                                                                    |
+| Cmd/Ctrl-click a tab             | Toggle selection without activating; toggling the last selected tab leaves no selection                                                         |
+| Shift-click a tab                | Select a range without activating                                                                                                               |
+| Click a group name               | Select the group and its tabs                                                                                                                   |
+| Choose a window                  | View its tabs or switch windows according to your window-focus preference; Shift reverses it                                                    |
+| Move selected tabs or groups     | Select the destination and moved tabs; browser focus follows your preference, reversed by Shift; moves that close a source window always follow |
+| Right-click a tab or group       | Preserve selection if it includes the item; otherwise select it, then open More actions                                                         |
+| Up/Down, Home/End                | Move focus; ordinary navigation selects the item, while multi-select navigation preserves selection                                             |
+| Space                            | Toggle selection and enter multi-select mode                                                                                                    |
+| Cmd/Ctrl+A                       | Select all tabs and groups in the current window                                                                                                |
+| Escape                           | Close the current menu or editor, or restore the active-tab selection                                                                           |
 
 Up and Down connect the window header, tab list, and bottom tools. Left and Right move between header controls or bottom tools. Keyboard context menus open beside the focused item. Closing a menu with Escape restores its opening focus. Tab and Shift+Tab move between sections. Enter toggles a focused group or chooses a window in the picker. Alt/Option+Up/Down reorders a tab or group. F2 edits a group's name.
+
+Use P to pin or unpin, M to mute or unmute audible tabs, D to duplicate, R to reload, G to group, U to ungroup, W to move, C to copy titles or URLs, N to create a tab below, and Z to discard eligible tabs. These keys also work in the actions menu. Options lists the shortcuts and explains how to change Chrome's global shortcuts and side panel position.
 
 Tabby names are separate from Chrome's native window names: the [Chrome windows API](https://developer.chrome.com/docs/extensions/reference/api/windows) exposes no supported native-name field or rename method. Names, icon shapes, and icon colors stay on this device. The service worker tracks a live window through its browser session and keeps hashes of its web/file URLs to match a restored window. Restore matching requires a unique, strong match; ambiguous windows stay unnamed. Window position alone never assigns a name. Duplicate cleanup closes exact URL matches across all windows and keeps the chosen tab.
 
@@ -104,8 +109,8 @@ pnpm preview
 Open the URL printed by the command. It builds the current branch and runs the
 full Tab Manager with simulated Chrome APIs and sample data. Selection, sidebar
 transitions, themes, and notifications use the application code. Browser actions
-update the sample data and emit events to the real stores. Search and Settings
-buttons are inactive in this preview.
+update the sample data and emit events to the real stores. Search opens the
+search page with the current-window scope. The Settings button is inactive.
 
 The server chooses an available local port. To choose a port or a different
 fixture, use:
@@ -116,7 +121,7 @@ pnpm preview --port 5175 --fixture scripts/preview/browser-data.json
 
 Edit [`browser-data.json`](./scripts/preview/browser-data.json) to set up windows,
 tabs, groups, and preferences. Refresh to reset the sample data. Rebuild and
-restart after application source changes. The preview data stays in memory;
+restart after application source changes. The preview data stays in memory.
 A small headless extension smoke test covers packaged extension integration.
 
 ## Demo Studio

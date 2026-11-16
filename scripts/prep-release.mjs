@@ -148,11 +148,11 @@ function main() {
       **Version:** ${newVersion}
       **Release Date:** TBD
 
-      ## What's New
+      ## ${isPatchRelease ? 'Fixes' : "What's New"}
 
-      ### Change title
+      ### ${isPatchRelease ? 'Fix title' : 'Feature or improvement title'}
 
-      Describe the user benefit or fix in a concise sentence.
+      Describe the user benefit in a concise sentence.
     `)
 
     writeFileSync(filepath, template + '\n')
