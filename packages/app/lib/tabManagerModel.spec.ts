@@ -5,6 +5,7 @@ import {
 } from '@extension/demo'
 import * as windowIconImages from '@extension/ui/tab-manager/ui/windowIconImage'
 import { describe, expect, it, vi } from 'vitest'
+import { initializeTabManagerView } from './initializeTabManagerView'
 import {
   createTabManagerController,
   projectTabManager,
@@ -45,6 +46,42 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('initializes the owning window after an early focus event and preserves later window choices', () => {
+    const { backend, snapshot, preferences, environment } = setup()
+    backend.restoreSnapshot({
+      state: 'loading',
+      revision: 0,
+      windows: [],
+      tabs: [],
+      groups: [],
+    })
+    const view = createTabManagerView()
+    const controller = createTabManagerController({
+      backend,
+      view,
+      preferences,
+      environment,
+    })
+    controller.dispatch({ type: 'view-window', windowId: 2 })
+    backend.restoreSnapshot(snapshot)
+    controller.reconcile()
+    initializeTabManagerView(view, backend.getSnapshot(), 2)
+    expect(
+      projectTabManager(backend.getSnapshot(), view.getState()),
+    ).toMatchObject({
+      viewedWindowId: 2,
+      selectedTabIds: [13],
+    })
+    controller.dispatch({ type: 'view-window', windowId: 1 })
+    initializeTabManagerView(view, backend.getSnapshot(), 2)
+    expect(
+      projectTabManager(backend.getSnapshot(), view.getState()),
+    ).toMatchObject({
+      viewedWindowId: 1,
+      selectedTabIds: [11],
+    })
+  })
+
   it('expands, collapses, and recolors selected groups with advertised shortcuts', async () => {
     const { controller, backend, view } = setup()
     for (const tabId of [11, 12])

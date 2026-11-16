@@ -877,6 +877,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       inputRevision++
     reconcile()
     const snapshot = backend.getSnapshot()
+    if (
+      intent.type === 'view-window' &&
+      !snapshot.windows.some((window) => window.id === intent.windowId)
+    )
+      return
     if (intent.type !== 'receive-moved-tabs' && !view.getState().hasUserInput)
       view.setState({ hasUserInput: true })
     const state = view.getState()
@@ -1151,8 +1156,6 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         },
       })
     } else if (intent.type === 'view-window') {
-      if (!snapshot.windows.some((window) => window.id === intent.windowId))
-        return
       view.setState({ windowPicker: false })
       if (state.viewedWindowId === intent.windowId) return
       view.setState({
