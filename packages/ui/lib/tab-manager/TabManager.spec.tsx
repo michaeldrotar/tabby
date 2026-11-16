@@ -458,6 +458,54 @@ describe('TabManager presentation', () => {
     ])
   })
 
+  it.each([
+    { currentWindowId: 2, active: true },
+    { currentWindowId: undefined, active: false },
+  ])(
+    'selects clicks in another window with host window $currentWindowId',
+    ({ currentWindowId, active }) => {
+      const onIntent = vi.fn()
+      render(
+        <Surface>
+          <TabManager
+            model={{
+              ...model,
+              currentWindowId,
+              windows: [
+                { ...model.windows[0]!, active },
+                {
+                  id: 2,
+                  title: 'Personal',
+                  active: !active,
+                  tabs: [],
+                  groups: [],
+                },
+              ],
+            }}
+            onIntent={onIntent}
+          />
+        </Surface>,
+      )
+      const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
+      fireEvent.click(tab)
+      expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+        {
+          type: 'select-item',
+          item: { type: 'tab', id: 10 },
+          shift: false,
+          toggle: false,
+        },
+      ])
+      fireEvent.keyDown(tab, { key: 'Enter' })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'navigate',
+        key: 'Enter',
+        shift: false,
+        toggle: false,
+      })
+    },
+  )
+
   it('shows selection next to the persistent action menu without a clear button', () => {
     const onIntent = vi.fn()
     const { container } = render(
