@@ -12,6 +12,7 @@ import type {
   OmnibarAction,
   OmnibarModifier,
   OmnibarResult,
+  OmnibarScope,
 } from '@extension/core'
 import type { OmnibarSearchResult } from '@extension/ui/omnibar/Omnibar'
 
@@ -20,10 +21,13 @@ const resultIdentity = (result: Pick<OmnibarResult, 'type' | 'id'>) =>
 
 export type OmnibarViewState = {
   query: string
+  scope: OmnibarScope
+  initialized: boolean
   selectedIndex: number
   selectedTarget: string | null
   modifiers: { command: boolean; shift: boolean }
   externalResults: OmnibarResult[]
+  resultsScope: OmnibarScope
   resultsQuery: string
   scrollTop: number
   edited: boolean
@@ -32,10 +36,13 @@ export type OmnibarViewState = {
 export const createOmnibarView = (initial: Partial<OmnibarViewState> = {}) =>
   createStore<OmnibarViewState>(() => ({
     query: '',
+    scope: 'all',
+    initialized: false,
     selectedIndex: 0,
     selectedTarget: null,
     modifiers: { command: false, shift: false },
     externalResults: [],
+    resultsScope: 'all',
     resultsQuery: '',
     scrollTop: 0,
     edited: false,
@@ -76,9 +83,11 @@ export const OmnibarExperience = ({
     browser.getSnapshot,
   )
   const state = useStore(view)
+  const searchQuery = state.query
+  const scope = state.scope
   const ranking = useMemo(
-    () => ({ query: state.query, now: environment.now() }),
-    [state.query, environment],
+    () => ({ query: searchQuery, now: environment.now() }),
+    [searchQuery, environment],
   )
   const now = ranking.now
   const surface = useSurface()
@@ -88,36 +97,63 @@ export const OmnibarExperience = ({
       live &&
       metadata.loaded &&
       !view.getState().edited &&
-      !view.getState().query
-    )
-      view.setState({ query: metadata.initialQuery })
-  }, [metadata, view, live])
+      !view.getState().initialized
+    ) {
+      view.setState({
+        query: metadata.initialQuery,
+        scope: metadata.initialScope ?? 'all',
+        initialized: true,
+      })
+      if (metadata.initialQuery.trim())
+        void resource
+          .saveQuery(metadata.initialQuery, metadata.initialScope ?? 'all')
+          .catch((error) => {
+            view.setState({
+              error: error instanceof Error ? error.message : String(error),
+            })
+          })
+    }
+  }, [metadata, view, live, resource])
   useEffect(() => {
-    if (!live || !state.query) return
+    if (
+      !live ||
+      (!searchQuery.trim() && scope === 'all') ||
+      !['all', 'bookmarks', 'history', 'recently-closed'].includes(scope)
+    )
+      return
     let cancelled = false
-    const query = state.query
+    const query = searchQuery
     const search = async () => {
       try {
-        const externalResults = await resource.search(query)
-        if (!cancelled) view.setState({ externalResults, resultsQuery: query })
+        const externalResults = await resource.search(searchQuery, scope)
+        if (!cancelled)
+          view.setState({
+            externalResults,
+            resultsQuery: query,
+            resultsScope: scope,
+          })
       } catch {
         if (!cancelled)
-          view.setState({ externalResults: [], resultsQuery: query })
+          view.setState({
+            externalResults: [],
+            resultsQuery: query,
+            resultsScope: scope,
+          })
       }
     }
-    const timer = setTimeout(() => void search(), 200)
+    const timer = setTimeout(() => void search(), searchQuery.trim() ? 200 : 0)
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [state.query, resource, view, live])
+  }, [searchQuery, scope, resource, view, live])
   const execute = useCallback(
     async (
       action: OmnibarAction,
       modifier?: OmnibarModifier,
       result?: OmnibarResult,
     ) => {
-      const query = view.getState().query
+      const { query, scope } = view.getState()
       await resource.execute(
         action,
         modifier,
@@ -129,9 +165,10 @@ export const OmnibarExperience = ({
             }
           : undefined,
       )
-      if (view.getState().query === query)
+      if (view.getState().query === query && view.getState().scope === scope)
         view.setState({
           query: '',
+          scope: 'all',
           edited: true,
           selectedIndex: 0,
           selectedTarget: null,
@@ -154,13 +191,16 @@ export const OmnibarExperience = ({
       execute: (modifier) => execute(result.action, modifier, result),
     })
     return getOmnibarResults(
-      state.query,
+      searchQuery,
       snapshot,
       metadata.originalWindowId,
-      state.resultsQuery === state.query ? state.externalResults : [],
+      state.resultsQuery === searchQuery && state.resultsScope === scope
+        ? state.externalResults
+        : [],
       now,
       preferenceState.tabManagerCompactIconMode,
       metadata.choices,
+      scope,
     ).map(present)
   }, [
     resource,
@@ -170,8 +210,10 @@ export const OmnibarExperience = ({
     metadata.originalWindowId,
     metadata.choices,
     now,
-    state.query,
+    scope,
+    searchQuery,
     state.resultsQuery,
+    state.resultsScope,
     state.externalResults,
   ])
   const retainedIndex =
@@ -188,6 +230,18 @@ export const OmnibarExperience = ({
       error: error instanceof Error ? error.message : String(error),
     })
   }
+  const changeCriteria = (query: string, scope: OmnibarScope) => {
+    view.setState({
+      query,
+      scope,
+      scrollTop: 0,
+      selectedIndex: 0,
+      selectedTarget: null,
+      edited: true,
+      error: null,
+    })
+    void resource.saveQuery(query, scope).catch(error)
+  }
   return (
     <>
       <Omnibar
@@ -198,17 +252,10 @@ export const OmnibarExperience = ({
         isMac={metadata.isMac}
         originalWindowId={metadata.originalWindowId}
         openTabManagerShortcut={metadata.openTabManagerShortcut}
+        scope={scope}
+        onScopeChange={(scope) => changeCriteria(view.getState().query, scope)}
         query={state.query}
-        onQueryChange={(query) => {
-          view.setState({
-            query,
-            selectedIndex: 0,
-            selectedTarget: null,
-            edited: true,
-            error: null,
-          })
-          void resource.saveQuery(query).catch(error)
-        }}
+        onQueryChange={(query) => changeCriteria(query, view.getState().scope)}
         selectedIndex={selectedIndex}
         onSelectedIndexChange={(next) => {
           const index = typeof next === 'function' ? next(selectedIndex) : next
@@ -226,7 +273,7 @@ export const OmnibarExperience = ({
         onError={error}
         scrollTop={state.scrollTop}
         onScrollChange={(scrollTop) => view.setState({ scrollTop })}
-        autofocus={metadata.loaded}
+        autofocus={metadata.loaded && (state.initialized || state.edited)}
       />
       {state.error && (
         <div role="alert" className="bg-card px-4 py-2 text-sm text-foreground">

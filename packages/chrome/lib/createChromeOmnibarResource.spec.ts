@@ -31,6 +31,13 @@ const setup = (originalWindowId?: number) => {
       ]),
     },
     bookmarks: {
+      getTree: vi.fn().mockResolvedValue([
+        {
+          id: 'recent-bookmark',
+          title: 'Recent bookmark',
+          url: 'https://recent.test',
+        },
+      ]),
       search: vi.fn().mockResolvedValue([
         { id: 'folder', title: 'Folder' },
         { id: 'b', title: 'Tabby Bookmark', url: 'https://tabby.test' },
@@ -52,6 +59,10 @@ const setup = (originalWindowId?: number) => {
       restore: vi.fn().mockResolvedValue({}),
     },
     storage: {
+      session: {
+        get: vi.fn().mockResolvedValue({}),
+        remove: vi.fn().mockResolvedValue(undefined),
+      },
       local: {
         get: vi.fn().mockResolvedValue({ lastQuery: 'saved' }),
         set: vi.fn().mockResolvedValue(undefined),
@@ -95,7 +106,7 @@ describe('Chrome Omnibar resource', () => {
     expect(api.bookmarks.search).toHaveBeenCalledWith('e')
     expect(api.history.search).toHaveBeenCalledWith({
       text: 'e',
-      maxResults: 20,
+      maxResults: 50,
       startTime: 0,
     })
   })
@@ -126,6 +137,7 @@ describe('Chrome Omnibar resource', () => {
     expect(resource.getSnapshot()).toEqual({
       loaded: true,
       initialQuery: 'saved',
+      initialScope: 'all',
       originalWindowId: 3,
       isMac: true,
       choices: [],
@@ -151,10 +163,13 @@ describe('Chrome Omnibar resource', () => {
       resource.clearQuery(),
     ])
     expect(api.storage.local.set.mock.calls).toEqual([
-      [{ lastQuery: 'one' }],
-      [{ lastQuery: 'two' }],
+      [{ lastQuery: 'one', lastScope: 'all' }],
+      [{ lastQuery: 'two', lastScope: 'all' }],
     ])
-    expect(api.storage.local.remove).toHaveBeenCalledWith('lastQuery')
+    expect(api.storage.local.remove).toHaveBeenCalledWith([
+      'lastQuery',
+      'lastScope',
+    ])
     const opening = resource.execute({ kind: 'tab-manager' })
     expect(api.sidePanel.open).toHaveBeenCalledWith({ windowId: 3 })
     await opening
@@ -292,4 +307,127 @@ describe('Chrome Omnibar resource', () => {
     expect(api.tabs.update).not.toHaveBeenCalled()
     expect(api.windows.update).not.toHaveBeenCalled()
   })
+})
+
+it('uses the window launch scope and searches only the chosen external source', async () => {
+  const { api, resource } = setup(3)
+  api.storage.local.get.mockResolvedValue({
+    lastQuery: 'saved',
+    lastScope: 'bookmarks',
+  } as never)
+  api.storage.session.get.mockResolvedValue({
+    'tabby-search-launch-3': Date.now(),
+  })
+  await resource.start()
+  expect(resource.getSnapshot().initialScope).toBe('current-window')
+  expect(api.storage.session.remove).toHaveBeenCalledWith(
+    'tabby-search-launch-3',
+  )
+  expect(
+    (await resource.search('Tabby', 'bookmarks')).map((item) => item.type),
+  ).toEqual(['bookmark'])
+  expect(api.history.search).not.toHaveBeenCalled()
+  expect(api.sessions.getRecentlyClosed).not.toHaveBeenCalled()
+})
+
+it.each([
+  ['saved', 'bookmarks', 'bookmarks'],
+  ['Work', 'windows', 'windows'],
+  ['', 'bookmarks', 'all'],
+  ['   ', 'history', 'all'],
+  ['saved', 'invalid', 'all'],
+  ['saved', undefined, 'all'],
+])(
+  'restores scope only with saved text (%s, %s)',
+  async (lastQuery, lastScope, expected) => {
+    const { api, resource } = setup()
+    api.storage.local.get.mockResolvedValue({ lastQuery, lastScope } as never)
+    await resource.start()
+    expect(resource.getSnapshot()).toMatchObject({
+      initialQuery: lastQuery,
+      initialScope: expected,
+    })
+  },
+)
+
+it('saves criteria together, restores both after failed navigation, and clears both on success', async () => {
+  const { api, resource } = setup()
+  api.storage.local.get.mockResolvedValue({
+    lastQuery: 'saved',
+    lastScope: 'bookmarks',
+  } as never)
+  await resource.start()
+  await resource.saveQuery('project', 'history')
+  expect(api.storage.local.set).toHaveBeenLastCalledWith({
+    lastQuery: 'project',
+    lastScope: 'history',
+  })
+  api.windows.update.mockRejectedValueOnce(new Error('Window closed'))
+  await expect(
+    resource.execute({ kind: 'window', windowId: 3 }),
+  ).rejects.toThrow('Window closed')
+  expect(api.storage.local.set).toHaveBeenLastCalledWith({
+    lastQuery: 'project',
+    lastScope: 'history',
+  })
+  await resource.execute({ kind: 'window', windowId: 3 })
+  expect(api.storage.local.remove).toHaveBeenLastCalledWith([
+    'lastQuery',
+    'lastScope',
+  ])
+})
+
+it('browses recent external pages without a term and keeps All empty', async () => {
+  const { api, resource } = setup()
+  await resource.start()
+  expect(await resource.search('', 'all')).toEqual([])
+  expect(api.history.search).not.toHaveBeenCalled()
+  expect(
+    (await resource.search('', 'bookmarks')).map((item) => item.id),
+  ).toEqual(['recent-bookmark'])
+  expect(api.bookmarks.getTree).toHaveBeenCalledOnce()
+  expect(api.bookmarks.search).not.toHaveBeenCalled()
+  await resource.search('', 'history')
+  expect(api.history.search).toHaveBeenCalledWith({
+    text: '',
+    maxResults: 50,
+    startTime: 0,
+  })
+  expect(
+    (await resource.search('', 'recently-closed')).every(
+      (item) => item.type === 'recently-closed',
+    ),
+  ).toBe(true)
+})
+
+it('includes older bookmarks opened recently, falls back to save date, and caps the default list', async () => {
+  const { api, resource } = setup()
+  api.bookmarks.getTree.mockResolvedValue([
+    {
+      id: 'folder',
+      title: 'Folder',
+      children: [
+        {
+          id: 'older-used',
+          title: 'Older bookmark',
+          url: 'https://used.test',
+          dateAdded: 1,
+          dateLastUsed: 10000,
+        },
+        ...Array.from({ length: 60 }, (_, i) => ({
+          id: `saved-${i}`,
+          title: `Saved ${i}`,
+          url: `https://saved-${i}.test`,
+          dateAdded: i + 1,
+        })),
+      ],
+    },
+  ] as never)
+  await resource.start()
+  const results = await resource.search('', 'bookmarks')
+  expect(results).toHaveLength(50)
+  expect(results.slice(0, 2).map((item) => item.id)).toEqual([
+    'older-used',
+    'saved-59',
+  ])
 })

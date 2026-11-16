@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getOmnibarResults } from './omnibarResults.js'
 import type { BrowserSnapshot } from './browser.js'
-import type { OmnibarResult } from './omnibar.js'
+import type { OmnibarResult, OmnibarScope } from './omnibar.js'
 
 const snapshot: BrowserSnapshot = {
   state: 'loaded',
@@ -283,4 +283,142 @@ describe('Omnibar result composition', () => {
         .map((result) => result.action),
     ).toEqual([{ kind: 'window', windowId: 12 }])
   })
+})
+
+it.each([
+  ['current-window', [1]],
+  ['tabs', [1, 2]],
+  ['bookmarks', ['bookmark']],
+  ['history', ['history']],
+  ['recently-closed', ['recently-closed']],
+] as [OmnibarScope, (string | number)[]][])(
+  'limits %s to the selected source before deduplicating URLs',
+  (scope, ids) => {
+    const browser = {
+      ...snapshot,
+      tabs: snapshot.tabs.map((tab) => ({ ...tab, title: 'Shared page' })),
+    }
+    const external = (['bookmark', 'history', 'recently-closed'] as const).map(
+      (type) => ({
+        id: type,
+        type,
+        title: 'Shared page',
+        url: browser.tabs[0]!.url,
+        action: { kind: 'url' as const, url: browser.tabs[0]!.url! },
+      }),
+    )
+    expect(
+      getOmnibarResults('Shared', browser, 10, external, 0, 'active', [], scope)
+        .map((result) => result.id)
+        .sort(),
+    ).toEqual(ids.sort())
+    expect(
+      getOmnibarResults(
+        'missing',
+        browser,
+        10,
+        external,
+        0,
+        'active',
+        [],
+        'current-window',
+      ),
+    ).toEqual([])
+    expect(
+      getOmnibarResults(
+        'Shared',
+        browser,
+        undefined,
+        external,
+        0,
+        'active',
+        [],
+        'current-window',
+      ),
+    ).toEqual([])
+  },
+)
+
+it('browses windows, groups, and commands independently and narrows them with text', () => {
+  const search = (scope: OmnibarScope, query = '') =>
+    getOmnibarResults(query, snapshot, 10, [], 0, 'active', [], scope)
+  expect(search('windows').map((item) => item.id)).toEqual([
+    'window:10',
+    'window:20',
+  ])
+  expect(search('windows', 'window 2').map((item) => item.id)).toEqual([
+    'window:20',
+  ])
+  expect(search('tab-groups').map((item) => item.id)).toEqual(['tab-group:5'])
+  expect(search('tab-groups', 'missing')).toEqual([])
+  expect(search('commands').every((item) => item.type === 'command')).toBe(true)
+  expect(search('commands', 'downloads').map((item) => item.id)).toEqual([
+    'cmd-downloads',
+  ])
+})
+
+it('shows open tabs and preserves the supplied recent-page order before typing', () => {
+  expect(
+    getOmnibarResults(
+      '',
+      snapshot,
+      10,
+      [],
+      0,
+      'active',
+      [],
+      'current-window',
+    ).map((item) => item.id),
+  ).toEqual([1])
+  expect(
+    getOmnibarResults('', snapshot, 10, [], 0, 'active', [], 'tabs').map(
+      (item) => item.id,
+    ),
+  ).toEqual([1, 2])
+  const bookmarks: OmnibarResult[] = ['z-newest', 'a-older'].map((id) => ({
+    id,
+    type: 'bookmark',
+    title: id,
+    action: { kind: 'url', url: `https://${id}.test` },
+  }))
+  expect(
+    getOmnibarResults(
+      '',
+      snapshot,
+      10,
+      bookmarks,
+      0,
+      'active',
+      [],
+      'bookmarks',
+    ).map((item) => item.id),
+  ).toEqual(['z-newest', 'a-older'])
+})
+
+it('puts recent tab activity first in default tabs, windows, and groups', () => {
+  const browser: BrowserSnapshot = {
+    ...snapshot,
+    tabs: snapshot.tabs.map((tab) => ({
+      ...tab,
+      lastAccessed: tab.id === 2 ? 200 : 100,
+      groupId: tab.id === 2 ? 6 : 5,
+    })),
+    groups: [
+      ...snapshot.groups,
+      {
+        id: 6,
+        windowId: 20,
+        title: 'Recent group',
+        color: 'red',
+        collapsed: false,
+      },
+    ],
+  }
+  const search = (scope: OmnibarScope) =>
+    getOmnibarResults('', browser, 10, [], 300, 'active', [], scope).map(
+      (item) => item.id,
+    )
+  expect(search('tabs')).toEqual([2, 1])
+  expect(search('windows')).toEqual(['window:20', 'window:10'])
+  expect(search('tab-groups')).toEqual(['tab-group:6', 'tab-group:5'])
 })

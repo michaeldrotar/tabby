@@ -510,3 +510,91 @@ describe('Omnibar experience', () => {
     expect(dismiss).not.toHaveBeenCalled()
   })
 })
+
+it('restores scope, changes it without changing text, and keeps new scope results separate', async () => {
+  const resources = setup()
+  const omnibar = createMemoryOmnibarResource(resources.backend, {
+    originalWindowId: 1,
+    initialQuery: 'project',
+    initialScope: 'current-window',
+  })
+  const save = vi.spyOn(omnibar, 'saveQuery')
+  const view = createOmnibarView()
+  render(
+    <TabbyProvider
+      {...resources}
+      omnibar={omnibar}
+      views={{ ...resources.views, omnibar: view }}
+    >
+      <OmnibarExperience onDismiss={() => {}} />
+    </TabbyProvider>,
+  )
+  const input = screen.getByRole('combobox')
+  await waitFor(() => expect(input).toHaveFocus())
+  expect(input).toHaveValue('project')
+  expect(
+    screen.getByRole('button', { name: 'Search scope: Current window' }),
+  ).toBeVisible()
+  expect(screen.getAllByRole('option')).toHaveLength(1)
+  fireEvent.keyDown(input, { key: 'Tab' })
+  fireEvent.keyDown(input, { key: 'b' })
+  expect(input).toHaveValue('project')
+  expect(input).toHaveFocus()
+  expect(
+    screen.getByRole('button', { name: 'Search scope: Bookmarks' }),
+  ).toBeVisible()
+  expect(save).toHaveBeenLastCalledWith('project', 'bookmarks')
+  expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull()
+  fireEvent.keyDown(input, { key: 'Tab' })
+  fireEvent.keyDown(input, { key: 'a' })
+  expect(screen.getByRole('option', { name: /Search Google/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+})
+
+it('ignores results from a previous scope when the same query is still pending', async () => {
+  vi.useFakeTimers()
+  const resources = setup()
+  let finish!: (results: OmnibarResult[]) => void
+  const resource = {
+    ...resources.omnibar,
+    search: vi.fn(
+      () =>
+        new Promise<OmnibarResult[]>((resolve) => {
+          finish = resolve
+        }),
+    ),
+  }
+  const view = createOmnibarView({
+    query: 'project',
+    scope: 'bookmarks',
+    edited: true,
+  })
+  render(
+    <TabbyProvider
+      {...resources}
+      omnibar={resource}
+      views={{ ...resources.views, omnibar: view }}
+    >
+      <OmnibarExperience onDismiss={() => {}} />
+    </TabbyProvider>,
+  )
+  await act(() => vi.advanceTimersByTimeAsync(200))
+  fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Tab' })
+  fireEvent.keyDown(screen.getByRole('combobox'), { key: 'h' })
+  await act(async () =>
+    finish([
+      {
+        id: 'stale',
+        type: 'bookmark',
+        title: 'Project bookmark',
+        action: { kind: 'url', url: 'https://project.test' },
+      },
+    ]),
+  )
+  expect(screen.queryByRole('listbox', { name: 'Search results' })).toBeNull()
+  expect(view.getState().scope).toBe('history')
+  await act(() => vi.advanceTimersByTimeAsync(200))
+  expect(resource.search).toHaveBeenLastCalledWith('project', 'history')
+})

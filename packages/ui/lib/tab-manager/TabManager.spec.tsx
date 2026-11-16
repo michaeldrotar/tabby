@@ -222,12 +222,7 @@ describe('TabManager presentation', () => {
     expect(
       screen.getByRole('button', { name: 'Switch window: Research' }),
     ).toBeInTheDocument()
-    for (const name of [
-      'Edit window',
-      'Search everything',
-      'Options',
-      'More actions',
-    ])
+    for (const name of ['Edit window', 'Search', 'Options', 'More actions'])
       expect(screen.getByRole('button', { name })).toBeEnabled()
     expect(
       screen.queryByRole('button', { name: 'Window actions' }),

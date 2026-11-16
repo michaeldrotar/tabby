@@ -7,6 +7,31 @@ export class OmnibarCancelledError extends Error {
   }
 }
 
+export type OmnibarScope =
+  | 'current-window'
+  | 'tabs'
+  | 'bookmarks'
+  | 'history'
+  | 'recently-closed'
+  | 'windows'
+  | 'tab-groups'
+  | 'commands'
+  | 'all'
+
+export const isOmnibarScope = (value: unknown): value is OmnibarScope =>
+  typeof value === 'string' &&
+  [
+    'all',
+    'current-window',
+    'tabs',
+    'bookmarks',
+    'history',
+    'recently-closed',
+    'windows',
+    'tab-groups',
+    'commands',
+  ].includes(value)
+
 export type OmnibarModifier = 'new-tab' | 'new-window'
 export type OmnibarAction =
   | { kind: 'url'; url: string }
@@ -61,6 +86,7 @@ export type OmnibarChoice = {
 export type OmnibarMetadata = {
   loaded: boolean
   initialQuery: string
+  initialScope?: OmnibarScope
   originalWindowId?: number
   isMac: boolean
   openTabManagerShortcut?: string
@@ -74,13 +100,13 @@ export type OmnibarResource = {
   start: () => Promise<void>
   dispose: () => void
   getFaviconUrl?: (url: string) => string | undefined
-  search: (query: string) => Promise<OmnibarResult[]>
+  search: (query: string, scope?: OmnibarScope) => Promise<OmnibarResult[]>
   /** Successful activation clears the saved query; dismissal preserves it. */
   execute: (
     action: OmnibarAction,
     modifier?: OmnibarModifier,
     choice?: OmnibarChoice,
   ) => Promise<void>
-  saveQuery: (query: string) => Promise<void>
+  saveQuery: (query: string, scope?: OmnibarScope) => Promise<void>
   clearQuery: () => Promise<void>
 }

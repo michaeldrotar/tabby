@@ -4,7 +4,12 @@ import { createOmnibarMatcher } from './omnibarMatching.js'
 import { rankOmnibarResults } from './omnibarRanking.js'
 import { getCustomWindowName, getWindowIdentity } from './windowIdentity.js'
 import type { BrowserSnapshot } from './browser.js'
-import type { OmnibarAction, OmnibarChoice, OmnibarResult } from './omnibar.js'
+import type {
+  OmnibarAction,
+  OmnibarChoice,
+  OmnibarResult,
+  OmnibarScope,
+} from './omnibar.js'
 
 const command = (
   id: string,
@@ -163,6 +168,37 @@ export const getOmnibarUrlResults = (query: string): OmnibarResult[] => {
   ]
 }
 
+const sortDefaultResults = (
+  results: readonly OmnibarResult[],
+  snapshot: BrowserSnapshot,
+) => {
+  const windowActivity = new Map<number, number>()
+  const groupActivity = new Map<number, number>()
+  const timestamp = (value?: number) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0
+  for (const tab of snapshot.tabs) {
+    const time = timestamp(tab.lastAccessed)
+    windowActivity.set(
+      tab.windowId,
+      Math.max(windowActivity.get(tab.windowId) ?? 0, time),
+    )
+    if (tab.groupId !== undefined && tab.groupId >= 0)
+      groupActivity.set(
+        tab.groupId,
+        Math.max(groupActivity.get(tab.groupId) ?? 0, time),
+      )
+  }
+  const activity = (item: OmnibarResult): number => {
+    if (item.action.kind === 'tab') return timestamp(item.lastVisitTime)
+    if (item.action.kind === 'window')
+      return windowActivity.get(item.action.windowId) ?? 0
+    if (item.action.kind === 'group')
+      return groupActivity.get(item.action.groupId) ?? 0
+    return 0
+  }
+  return [...results].sort((a, b) => activity(b) - activity(a))
+}
+
 /** Compose the exact display order independently of resources and presentation. */
 export const getOmnibarResults = (
   query: string,
@@ -172,10 +208,11 @@ export const getOmnibarResults = (
   now: number,
   windowSource: 'active' | 'first' = 'active',
   choices: readonly OmnibarChoice[] = [],
+  scope: OmnibarScope = 'all',
 ): OmnibarResult[] => {
   query = query.trim()
   const normalized = normalizeOmnibarQuery(query)
-  if (!normalized) return []
+  if (!normalized && scope === 'all') return []
   const windowCommandQuery = /^window(?:\s+\d+)?$/.test(normalized)
   const { tabs, groups } = getOmnibarBrowserResults(snapshot)
   const matches = createOmnibarMatcher(query)
@@ -184,7 +221,7 @@ export const getOmnibarResults = (
       snapshot,
       originalWindowId,
       windowSource,
-      windowCommandQuery,
+      windowCommandQuery || scope === 'windows',
     ),
     ...tabs,
     ...groups,
@@ -192,15 +229,44 @@ export const getOmnibarResults = (
     matches(item.searchTitle ?? item.title, item.url, item.searchAliases),
   )
   candidates.push(...externalResults)
+  const scopedCandidates = candidates.filter((item) => {
+    switch (scope) {
+      case 'current-window':
+        return (
+          item.type === 'tab' &&
+          originalWindowId !== undefined &&
+          item.windowId === originalWindowId
+        )
+      case 'tabs':
+        return item.type === 'tab'
+      case 'bookmarks':
+        return item.type === 'bookmark'
+      case 'history':
+        return item.type === 'history'
+      case 'recently-closed':
+        return item.type === 'recently-closed'
+      case 'windows':
+        return item.type === 'window'
+      case 'tab-groups':
+        return item.type === 'tab-group'
+      case 'commands':
+        return item.type === 'command'
+      default:
+        return true
+    }
+  })
   const targets = new Set<string>()
-  const ranked = rankOmnibarResults(candidates, query, now, choices).filter(
-    (item) => {
-      const target = getOmnibarTarget(item)
-      if (targets.has(target)) return false
-      targets.add(target)
-      return true
-    },
-  )
+  const ranked = (
+    normalized
+      ? rankOmnibarResults(scopedCandidates, query, now, choices)
+      : sortDefaultResults(scopedCandidates, snapshot)
+  ).filter((item) => {
+    const target = getOmnibarTarget(item)
+    if (targets.has(target)) return false
+    targets.add(target)
+    return true
+  })
+  if (scope !== 'all') return ranked
   const windowCommands = windowCommandQuery
     ? ranked
         .filter((item) => item.type === 'window')

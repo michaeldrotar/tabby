@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -17,6 +17,8 @@ Publishing reference for Tabby's store listing, images, permissions explanations
 Find the page you need and organize your open browser windows with Tabby.
 
 Find a page
+
+Choose a search scope for the current window, tabs, windows, tab groups, commands, bookmarks, history, or recently closed pages. Search from the Tab Manager starts with the current window; a fresh search otherwise starts with All. Each specific scope shows open items or recent pages before you type, with recent tab activity and page use bringing relevant items forward. Press Tab to choose a scope without losing your search text. If a scope has no matches, broaden your search without retyping. Reopening an unfinished search restores its text and scope together.
 
 Search open tabs, custom window names, tab groups, bookmarks, browsing history, and recently closed pages in one place. Search “window” or “window” followed by a number to jump to an open window. Search favors commands, open windows, groups, and tabs before opening new pages. Recent choices help bring matching results and the tabs opened or restored from them toward the top, including when you shorten or reorder search words. Open a result, restore a closed page, or send a search to Google. Use Cmd/Ctrl with a result to open a new tab, or Shift to open a new window. If a destination cannot be opened, Tabby explains the problem and keeps your query so you can try again.
 
@@ -111,7 +113,7 @@ Tabby handles browsing data locally. The publisher does not collect it or receiv
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
-Appearance preferences, an unfinished search query, recent search choices, Tabby window names and icons, their relative order, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time. A choice also remembers tabs opened or restored from it and their page destinations; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor retains that window’s saved custom identity on the device. Uninstalling removes the extension’s saved data.
+Appearance preferences, an unfinished search query and its scope, recent search choices, Tabby window names and icons, their relative order, and SHA-256 window URL fingerprints stay in local browser storage. Search-choice records contain a query, destination, and selection time. A choice also remembers tabs opened or restored from it and their page destinations; unused choices expire after 90 days and each store retains at most 200 query-and-destination pairs. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. Raw URLs are not persisted as fingerprints. Closed-window fingerprints expire after 90 days, and at most 200 identities are retained. Private-window identities use session storage only. Tabby does not sync them to a server. Successful search actions clear the saved query; dismissing search preserves it. Reset in the window editor retains that window’s saved custom identity on the device. Uninstalling removes the extension’s saved data.
 
 ### Data use certification
 
@@ -143,7 +145,7 @@ Appearance preferences, an unfinished search query, recent search choices, Tabby
 
 ## Version history
 
-Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 keeps context menus steady while moving between actions and submenus. It is in development, with a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
