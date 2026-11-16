@@ -115,7 +115,7 @@ export const useTabDrag = (
       element.querySelector<HTMLElement>(
         '[data-manager-scroll] [data-radix-scroll-area-viewport]',
       )
-    const finish = (commit: boolean) => {
+    const finish = (commit: boolean, follow = false) => {
       const current = session.current
       if (!current) return
       session.current = null
@@ -165,6 +165,7 @@ export const useTabDrag = (
                 tabIds: current.view!.tabIds,
                 destination,
                 windowId: current.drop!.windowId,
+                ...(follow ? { follow: true } : {}),
                 ...(local ? { scrollTop: viewport()?.scrollTop ?? 0 } : {}),
               })
             } finally {
@@ -544,7 +545,7 @@ export const useTabDrag = (
         session.current.y = event.clientY
         cancelAnimationFrame(frame)
         tick(performance.now())
-        finish(true)
+        finish(true, event.shiftKey)
       }
     }
     const cancel = () => {
@@ -584,7 +585,7 @@ export const useTabDrag = (
       nativeOver(event)
       cancelAnimationFrame(frame)
       tick(performance.now())
-      finish(true)
+      finish(true, event.shiftKey)
     }
     const nativeEnd = () => finish(false)
     const key = (event: globalThis.KeyboardEvent) => {

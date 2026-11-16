@@ -49,6 +49,10 @@ const tabManagerShortcutGroups = (isMac: boolean) =>
           keys: key.toUpperCase(),
           label,
         })),
+        {
+          keys: 'Shift+click / Shift+Enter',
+          label: 'Move tabs and switch to the destination window',
+        },
       ],
     },
   ] satisfies { title: string; shortcuts: TabManagerShortcut[] }[]

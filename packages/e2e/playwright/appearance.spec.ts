@@ -168,7 +168,7 @@ for (const theme of ['dark', 'light'] as const) {
 
     await switcher.click()
     const currentWindow = page.locator('[data-window-choice="1"]')
-    const windowCount = currentWindow.getByText('4 tabs · Current window', {
+    const windowCount = currentWindow.getByText('4 tabs', {
       exact: true,
     })
     await expect(currentWindow).toBeVisible()

@@ -65,7 +65,25 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
     const bounds = await page.locator('main').boundingBox()
     expect(bounds?.x).toBe(0)
     expect(bounds?.width).toBe(width)
+    const header = await page
+      .locator('[data-keyboard-section="header"]')
+      .boundingBox()
+    expect(header!.height).toBeLessThanOrEqual(74)
     await page.locator('[data-window-picker-trigger]').click()
+    const current = page.locator('[data-window-choice="1"]')
+    await expect(current).not.toContainText('Current window')
+    await expect(current).toContainText('6 tabs · 1 group')
+    await expect(current).not.toContainText('Project notes')
+    expect((await current.boundingBox())!.height).toBe(64)
+    await expect(page.locator('[data-window-choice="2"]')).toContainText(
+      '3 tabs',
+    )
+    await expect(page.locator('[data-window-choice="2"]')).not.toContainText(
+      '0 groups',
+    )
+    await page.screenshot({
+      path: `../../test-results/window-picker-${width}.png`,
+    })
     await expect(page.getByRole('textbox')).toHaveCount(0)
     await expect(
       page.getByRole('button', { name: 'Back to tabs' }),
@@ -299,7 +317,10 @@ test('keeps exits visible in a short panel and returns to the same tabs', async 
   )
   await page.locator('[data-window-picker-trigger]').click()
   await expect(back).toBeVisible()
-  await expect(page.getByText(/Current window/)).toBeVisible()
+  await expect(page.locator('[data-window-choice="1"]')).toHaveAttribute(
+    'aria-current',
+    'true',
+  )
   await scroll.evaluate((element) => {
     element.scrollTop = element.scrollHeight
   })

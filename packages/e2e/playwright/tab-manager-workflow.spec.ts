@@ -191,7 +191,9 @@ test('switches Chrome windows, keeps selection local, and transitions right-clic
   await page.keyboard.press('ArrowLeft')
   await expect(group).toBeFocused()
   await move.click()
-  await destinations.getByRole('menuitem', { name: /Reading room/ }).click()
+  await destinations
+    .getByRole('menuitem', { name: /Reading room/ })
+    .click({ modifiers: ['Shift'] })
   await expect(switcher).toContainText('Reading room')
   await expect(row(2)).toHaveAttribute('aria-selected', 'true')
   await expect(row(4)).toHaveAttribute('aria-selected', 'true')
@@ -206,6 +208,59 @@ test('switches Chrome windows, keeps selection local, and transitions right-clic
     .getByRole('button', { name: 'Close window: Reading room', exact: true })
     .click()
   await expect(switcher).toContainText('Tabby')
+})
+
+test('moves between windows in the background and follows Shift-click or Shift+Enter', async ({
+  page,
+}) => {
+  await page.goto('/tab-manager/index.html')
+  const row = (id: number) =>
+    page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+  const focusedWindow = () =>
+    page.evaluate(async () => (await chrome.windows.getLastFocused()).id)
+  const moveMenu = async (
+    source: ReturnType<typeof row>,
+    label: string,
+    destination = /^New window/,
+  ) => {
+    await source.click({ button: 'right' })
+    await page.getByRole('menuitem', { name: label, exact: true }).click()
+    return page.getByRole('menuitem', { name: destination })
+  }
+  await (
+    await moveMenu(row(5), 'Move 1 tab to window', /^Reading room/)
+  ).click()
+  await expect(row(5)).toHaveCount(0)
+  await expect(row(6)).toBeVisible()
+  expect(await focusedWindow()).toBe(1)
+
+  await (
+    await moveMenu(row(6), 'Move 1 tab to window', /^Reading room/)
+  ).click({ modifiers: ['Shift'] })
+  await expect(row(6)).toHaveAttribute('aria-selected', 'true')
+  const tabWindow = await page.evaluate(
+    async () => (await chrome.tabs.get(6)).windowId,
+  )
+  expect(tabWindow).not.toBe(1)
+  expect(await focusedWindow()).toBe(tabWindow)
+
+  await page.locator('[data-window-picker-trigger]').click()
+  await page.locator('[data-window-choice="1"]').click()
+  const group = page.locator('[data-group-id="10"] [data-group-option]')
+  const destination = await moveMenu(group, 'Move tab group to window')
+  await destination.focus()
+  await page.keyboard.press('Shift+Enter')
+  await expect(row(2)).toHaveAttribute('aria-selected', 'true')
+  const groupWindow = await page.evaluate(
+    async () => (await chrome.tabGroups.get(10)).windowId,
+  )
+  expect(groupWindow).not.toBe(1)
+  expect(await focusedWindow()).toBe(groupWindow)
+  expect(
+    await page.evaluate(async () =>
+      (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
+    ),
+  ).toEqual([2, 3, 4])
 })
 
 test('moves a whole group through a submenu and closes duplicates in other windows', async ({
@@ -287,8 +342,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   await page.keyboard.press('ArrowRight')
   await expect(destinations).toBeVisible()
   await destinations.getByRole('menuitem', { name: /New window/i }).click()
-  await expect(row(2)).toBeVisible()
-  await expect(row(2)).toHaveAttribute('aria-selected', 'true')
+  await expect(row(2)).toHaveCount(0)
   const moved = await page.evaluate(async () => ({
     group: await chrome.tabGroups.get(10),
     tabs: (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
@@ -297,7 +351,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   expect(moved).toMatchObject({
     group: { title: 'Tabby', color: 'blue', windowId: 13 },
     tabs: [2, 3, 4],
-    focused: 13,
+    focused: 1,
   })
   await page.locator('[data-window-picker-trigger]').click()
   await page.locator('[data-window-choice="13"]').click()
