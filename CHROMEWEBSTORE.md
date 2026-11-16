@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -41,6 +41,8 @@ Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Wind
 Use Tab and Shift+Tab to move between window controls, tab and window lists, New tab, New window, and the bottom bar. Use arrow keys to browse tabs, groups, and the window picker. From an empty search, use the arrow keys to select Open tab manager and Open options while keeping search ready to type. Reorder tabs and groups with Alt+Up/Down. Use P to pin or unpin, M to mute or unmute tabs with audio, D to duplicate, R to reload, G to choose a group, U to ungroup, W to move, C to copy, N to create a new tab below, and Z to discard eligible tabs. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. See shortcut keys beside actions in the menu and press a key to activate its action. Keyboard choosers open beside the focused item. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
+
+Grouped tabs use their group’s color for highlights and selection in light and dark mode.
 
 Choose from fifteen coordinated colorful and tonal themes, each with a light and dark version. Try contrasting hues or a quieter single-color palette. Choose seasonal Tabby icons for holidays throughout the year. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
@@ -145,7 +147,7 @@ Appearance preferences, an unfinished search query and its scope, recent search 
 
 ## Version history
 
-Version 1.8.0 lets you add tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It is in development, with a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move. See its [draft release notes](product/releases/v1.8.0-new-release.md).
+Version 1.8.0 lets you add tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It is in development, with a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. It also includes clearer labels and counts for copying titles and URLs. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move. Grouped tab highlights and selections follow the group’s color in light and dark mode. See its [draft release notes](product/releases/v1.8.0-new-release.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status   |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
