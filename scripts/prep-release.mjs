@@ -142,20 +142,27 @@ function main() {
     const filename = `v${newVersion}-${slug}.md`
     const filepath = resolve(releasesDir, filename)
 
-    const template = dedent(`
+    const header = dedent(`
       # Release ${newVersion}
 
       **Version:** ${newVersion}
       **Release Date:** TBD
-
-      ## ${isPatchRelease ? 'Fixes' : "What's New"}
-
-      ### ${isPatchRelease ? 'Fix title' : 'Feature or improvement title'}
-
-      Describe the user benefit in a concise sentence.
     `)
+    const changes = isPatchRelease
+      ? dedent(`
+          ## Fixes
 
-    writeFileSync(filepath, template + '\n')
+          - Describe the corrected behavior in a concise sentence.
+        `)
+      : dedent(`
+          ## What's New
+
+          ### Feature or improvement title
+
+          Describe the user benefit in a concise sentence.
+        `)
+
+    writeFileSync(filepath, `${header}\n\n${changes}\n`)
     console.log(
       `✓ Created release notes template: product/releases/${filename}`,
     )
