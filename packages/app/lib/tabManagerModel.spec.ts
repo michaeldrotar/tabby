@@ -1831,6 +1831,60 @@ describe('complete Tab Manager actions', () => {
     expect(selected()).toEqual([11])
   })
 
+  it('activates a remote tab with Enter and opens its manager, while local activation keeps its manager', async () => {
+    const resources = setup()
+    const openWindowTabManager = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { getCurrentWindowId: () => 2, openWindowTabManager },
+    })
+    controller.dispatch({ type: 'view-window', windowId: 1 })
+    controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 12 } })
+    expect(
+      resources.backend.getSnapshot().tabs.find((tab) => tab.id === 12)?.active,
+    ).toBe(false)
+    expect(openWindowTabManager).not.toHaveBeenCalled()
+    await controller.dispatch({ type: 'navigate', key: 'Enter' })
+    expect(
+      resources.backend.getSnapshot().tabs.find((tab) => tab.id === 12)?.active,
+    ).toBe(true)
+    expect(
+      resources.backend.getSnapshot().windows.find((window) => window.focused)
+        ?.id,
+    ).toBe(1)
+    expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(1)
+    openWindowTabManager.mockClear()
+    controller.dispatch({ type: 'view-window', windowId: 2 })
+    controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 13 } })
+    await controller.dispatch({ type: 'navigate', key: 'Enter' })
+    expect(
+      resources.backend.getSnapshot().tabs.find((tab) => tab.id === 13)?.active,
+    ).toBe(true)
+    expect(
+      resources.backend.getSnapshot().windows.find((window) => window.focused)
+        ?.id,
+    ).toBe(2)
+    expect(openWindowTabManager).not.toHaveBeenCalled()
+  })
+
+  it('keeps the destination manager closed when tab activation fails', async () => {
+    const resources = setup({
+      beforeExecute: () => {
+        throw new Error('Could not activate this tab.')
+      },
+    })
+    const openWindowTabManager = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { getCurrentWindowId: () => 2, openWindowTabManager },
+    })
+    await controller.dispatch({ type: 'activate-tab', tabId: 12 })
+    expect(openWindowTabManager).not.toHaveBeenCalled()
+    expect(resources.view.getState().notifications.items.at(-1)?.message).toBe(
+      'Could not activate this tab.',
+    )
+  })
+
   it('focuses a picked window and opens its manager without replacing the originating window view', async () => {
     const resources = setup()
     const open = vi.fn(async () => {})

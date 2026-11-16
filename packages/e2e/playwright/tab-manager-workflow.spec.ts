@@ -3,6 +3,61 @@ import { expect, test } from './fixtures'
 
 test.use({ browserData: browser })
 
+test.describe('activating a tab in another window', () => {
+  test.use({ browserData: { ...browser, followOpenedWindow: true } })
+
+  test('selects remote clicks and follows Enter to the tab and its manager', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const row = (id: number) =>
+      page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+    await page.locator('[data-window-picker-trigger]').click()
+    await page.locator('[data-window-choice="2"]').click()
+    await row(8).click()
+    await expect(row(8)).toHaveAttribute('aria-selected', 'true')
+    await expect(row(8)).toBeFocused()
+    await expect(row(7)).toHaveAttribute('aria-current', 'page')
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(1)
+    expect(
+      await page.evaluate(async () => (await chrome.windows.getCurrent()).id),
+    ).toBe(1)
+
+    await row(9).click({ modifiers: ['ControlOrMeta'] })
+    await expect(
+      page.locator('[data-tab-option][aria-selected="true"]'),
+    ).toHaveCount(2)
+    await expect(row(7)).toHaveAttribute('aria-current', 'page')
+    await row(8).focus()
+    await page.keyboard.press('Enter')
+    await expect(row(8)).toHaveAttribute('aria-current', 'page')
+    await expect(row(8)).toHaveAttribute('aria-selected', 'true')
+    await expect(
+      page.locator('[data-tab-option][aria-selected="true"]'),
+    ).toHaveCount(1)
+    await expect
+      .poll(() =>
+        page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
+      )
+      .toBe(2)
+    await expect
+      .poll(() =>
+        page.evaluate(async () => (await chrome.windows.getCurrent()).id),
+      )
+      .toBe(2)
+    await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+      'Reading room',
+    )
+    await row(9).click()
+    await expect(row(9)).toHaveAttribute('aria-current', 'page')
+  })
+})
+
 test('keeps focus beside closed inactive tabs and follows newly active tabs', async ({
   page,
 }) => {

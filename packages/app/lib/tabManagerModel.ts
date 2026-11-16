@@ -620,14 +620,26 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       }
       if (operation !== generation || initiatingInput !== inputRevision) return
     }
+    const activatedTabWindowId =
+      command.type === 'activate-tab' &&
+      outcome.succeededIds.includes(command.tabId)
+        ? initiatingSnapshot.tabs.find((tab) => tab.id === command.tabId)
+            ?.windowId
+        : undefined
+    const currentWindowId =
+      resources.host?.getCurrentWindowId?.() ??
+      initiatingSnapshot.windows.find((window) => window.focused)?.id
     const openWindowId = followsMove
       ? destinationWindow
-      : command.type === 'activate-window' &&
-          outcome.succeededIds.includes(command.windowId)
-        ? command.windowId
-        : command.type === 'create-window' && applied
-          ? created
-          : undefined
+      : activatedTabWindowId !== undefined &&
+          activatedTabWindowId !== currentWindowId
+        ? activatedTabWindowId
+        : command.type === 'activate-window' &&
+            outcome.succeededIds.includes(command.windowId)
+          ? command.windowId
+          : command.type === 'create-window' && applied
+            ? created
+            : undefined
     if (
       isMove &&
       outcome.status === 'success' &&
