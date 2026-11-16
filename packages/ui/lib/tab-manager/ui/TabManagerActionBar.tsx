@@ -147,6 +147,11 @@ const OptionContent = ({
     {option.subtitle && (
       <span className="text-xs text-muted">{option.subtitle}</span>
     )}
+    {option.shortcut && (
+      <Kbd className="w-7" aria-hidden="true" data-shortcut={option.shortcut}>
+        {option.shortcut}
+      </Kbd>
+    )}
   </>
 )
 
@@ -510,6 +515,7 @@ export const TabManagerActionBar = ({
               disabled: option.disabled,
               reason: option.disabledReason,
               destructive: option.destructive,
+              shortcut: option.shortcut,
             },
           )}
         </Fragment>
@@ -573,7 +579,6 @@ export const TabManagerActionBar = ({
       return
     }
     if (
-      panel ||
       !interactive ||
       event.altKey ||
       event.ctrlKey ||
@@ -583,17 +588,18 @@ export const TabManagerActionBar = ({
       event.nativeEvent.isComposing
     )
       return
-    const action = ordered.find(
-      (action) =>
-        !action.disabled &&
-        action.shortcut
-          ?.split(' / ')
-          .some((key) => key.toLowerCase() === event.key.toLowerCase()),
-    )
-    if (!action) return
+    const matchesShortcut = (item: { disabled?: boolean; shortcut?: string }) =>
+      !item.disabled &&
+      item.shortcut
+        ?.split(' / ')
+        .some((key) => key.toLowerCase() === event.key.toLowerCase())
+    const action = panel ? undefined : ordered.find(matchesShortcut)
+    const option = panel?.options?.find(matchesShortcut)
+    if (!action && !option) return
     event.preventDefault()
     event.stopPropagation()
-    activateAction(action)
+    if (panel && option) run(panel, option.id)
+    else if (action) activateAction(action)
   }
   const popupClass = menuClass
   const staticPopup = open && (

@@ -41,6 +41,24 @@ export const TAB_MANAGER_ACTION_SHORTCUTS = [
     label: 'Remove tabs from groups',
     actionIds: ['ungroup-selected-groups', 'remove-selected-tabs-from-group'],
   },
+  {
+    key: 'e',
+    label: 'Expand or collapse groups',
+    actionIds: ['toggle-selected-groups'],
+  },
+  {
+    key: 'l',
+    opensPanel: true,
+    label: 'Choose a color for groups',
+    actionIds: ['change-selected-group-color'],
+  },
+  {
+    key: 'x',
+    label: 'Remove duplicate tabs',
+    actionIds: ['close-duplicate-tabs'],
+  },
+  { key: 'o', label: 'Close other tabs', actionIds: ['close-other-tabs'] },
+  { key: 'b', label: 'Close tabs below', actionIds: ['close-tabs-below'] },
 ] as const
 
 export const getTabManagerActionShortcut = (

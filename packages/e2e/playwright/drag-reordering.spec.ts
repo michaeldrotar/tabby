@@ -384,7 +384,7 @@ test('summarizes mixed drags and keeps pinned boundaries visible and valid', asy
   expect((await order(page, 1)).slice(0, 7)).toEqual([1, 7, 2, 3, 4, 5, 6])
 })
 
-test('cancels a window move, then drops, follows, and reorders in the destination', async ({
+test('returns to its own window after drops that change window focus', async ({
   page,
 }) => {
   await row(page, 5).focus()
@@ -412,11 +412,15 @@ test('cancels a window move, then drops, follows, and reorders in the destinatio
   await page.mouse.up()
   await page.keyboard.up('Shift')
   await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'Tabby',
+  )
+  await expect(row(page, 5)).toHaveCount(0)
+  await page.locator('[data-window-picker-trigger]').click()
+  await page.locator('[data-window-choice="2"]').click()
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
     'Reading room',
   )
   await expect(row(page, 5)).toHaveAttribute('aria-selected', 'true')
-  await expect(row(page, 5)).toBeInViewport()
-  await expect(row(page, 5)).toBeFocused()
   expect((await order(page, 2)).at(-1)).toBe(5)
 
   await begin(page, row(page, 5))
@@ -436,10 +440,11 @@ test('cancels a window move, then drops, follows, and reorders in the destinatio
   await page.keyboard.down('Shift')
   await page.mouse.up()
   await page.keyboard.up('Shift')
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'Tabby',
+  )
   await expect(row(page, 5)).toHaveAttribute('aria-selected', 'true')
   expect((await page.evaluate(() => chrome.tabs.get(5))).windowId).toBe(1)
-  await expect(row(page, 5)).toBeInViewport()
-  await expect(row(page, 5)).toBeFocused()
   await begin(page, row(page, 5))
   await openWindows(page)
   await over(page, page.locator('[data-window-picker-trigger]'))

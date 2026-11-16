@@ -85,6 +85,7 @@ export type TabManagerActionOption = {
   disabledReason?: string
   destructive?: boolean
   dividerBefore?: boolean
+  shortcut?: string
 }
 export type TabManagerAction = {
   id: string
@@ -304,6 +305,8 @@ export const TabManager = ({
   const viewedWindow = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
+  const currentWindowId =
+    model.currentWindowId ?? model.windows.find((window) => window.active)?.id
   const selectedTabIds = new Set(model.selectedTabIds)
   const pickerVisible = drag.view
     ? drag.view.mode === 'windows'
@@ -425,11 +428,17 @@ export const TabManager = ({
   )
   const onTabClick = useCallback(
     (tab: BrowserTabListTab, event: MouseEvent<HTMLDivElement>) => {
-      if (event.shiftKey || event.metaKey || event.ctrlKey)
+      if (
+        event.shiftKey ||
+        event.metaKey ||
+        event.ctrlKey ||
+        (currentWindowId !== undefined &&
+          currentWindowId !== model.viewedWindowId)
+      )
         select({ type: 'tab', id: Number(tab.id) }, event)
       else send({ type: 'activate-tab', tabId: Number(tab.id) })
     },
-    [select, send],
+    [currentWindowId, model.viewedWindowId, select, send],
   )
   const onTabActivate = useCallback(
     (tab: BrowserTabListTab) =>

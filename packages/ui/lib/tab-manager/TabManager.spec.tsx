@@ -56,6 +56,70 @@ const model: TabManagerViewModel = {
 }
 
 describe('TabManager presentation', () => {
+  it('shows and activates color shortcuts only in the color chooser', () => {
+    const onIntent = vi.fn()
+    render(
+      <Surface>
+        <TabManager
+          model={{
+            ...model,
+            actionPanel: { actionId: 'change-selected-group-color' },
+            actions: [
+              {
+                id: 'change-selected-group-color',
+                label: 'Change color',
+                icon: 'Palette',
+                kind: 'secondary',
+                panel: 'colors',
+                shortcut: 'L',
+                options: [
+                  { id: 'blue', label: 'Blue', color: 'blue', shortcut: '2' },
+                  {
+                    id: 'green',
+                    label: 'Green',
+                    color: 'green',
+                    shortcut: '5',
+                  },
+                  {
+                    id: 'orange',
+                    label: 'Orange',
+                    color: 'orange',
+                    shortcut: '9',
+                    disabled: true,
+                  },
+                ],
+              },
+            ],
+          }}
+          onIntent={onIntent}
+        />
+      </Surface>,
+    )
+    const menu = screen.getByRole('menu', { name: 'Change color' })
+    const green = within(menu).getByRole('menuitem', { name: /Green$/ })
+    expect(green).toHaveAttribute('aria-keyshortcuts', '5')
+    expect(within(green).getByText('5', { selector: 'kbd' })).toBeVisible()
+    for (const props of [
+      { key: '9' },
+      { key: '0' },
+      { key: 'l' },
+      { key: '5', ctrlKey: true },
+      { key: '5', shiftKey: true },
+      { key: '5', repeat: true },
+      { key: '5', isComposing: true },
+    ])
+      fireEvent.keyDown(menu, props)
+    expect(onIntent).not.toHaveBeenCalled()
+    fireEvent.keyDown(within(menu).getByRole('menuitem', { name: /Blue$/ }), {
+      key: '5',
+    })
+    expect(onIntent).toHaveBeenLastCalledWith({
+      type: 'run-action',
+      actionId: 'change-selected-group-color',
+      optionId: 'green',
+    })
+  })
+
   it('activates advertised menu shortcuts without depending on the highlighted item', () => {
     const onIntent = vi.fn()
     const actions: TabManagerViewModel['actions'] = [
@@ -156,7 +220,23 @@ describe('TabManager presentation', () => {
       </Surface>,
     )
     const row = screen.getByRole('option', { name: 'Tab: Tabby' })
-    for (const key of ['p', 'm', 'd', 'r', 'g', 'u', 'w', 'c', 'n', 'z']) {
+    for (const key of [
+      'p',
+      'm',
+      'd',
+      'r',
+      'g',
+      'u',
+      'w',
+      'c',
+      'n',
+      'z',
+      'e',
+      'l',
+      'x',
+      'o',
+      'b',
+    ]) {
       fireEvent.keyDown(row, { key })
       expect(onIntent).toHaveBeenLastCalledWith({ type: 'navigate', key })
     }
@@ -377,6 +457,54 @@ describe('TabManager presentation', () => {
       },
     ])
   })
+
+  it.each([
+    { currentWindowId: 2, active: true },
+    { currentWindowId: undefined, active: false },
+  ])(
+    'selects clicks in another window with host window $currentWindowId',
+    ({ currentWindowId, active }) => {
+      const onIntent = vi.fn()
+      render(
+        <Surface>
+          <TabManager
+            model={{
+              ...model,
+              currentWindowId,
+              windows: [
+                { ...model.windows[0]!, active },
+                {
+                  id: 2,
+                  title: 'Personal',
+                  active: !active,
+                  tabs: [],
+                  groups: [],
+                },
+              ],
+            }}
+            onIntent={onIntent}
+          />
+        </Surface>,
+      )
+      const tab = screen.getByRole('option', { name: 'Tab: Tabby' })
+      fireEvent.click(tab)
+      expect(onIntent.mock.calls.map(([intent]) => intent)).toEqual([
+        {
+          type: 'select-item',
+          item: { type: 'tab', id: 10 },
+          shift: false,
+          toggle: false,
+        },
+      ])
+      fireEvent.keyDown(tab, { key: 'Enter' })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'navigate',
+        key: 'Enter',
+        shift: false,
+        toggle: false,
+      })
+    },
+  )
 
   it('shows selection next to the persistent action menu without a clear button', () => {
     const onIntent = vi.fn()

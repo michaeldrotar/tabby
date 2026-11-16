@@ -14,6 +14,7 @@ export const createChromeTabManagerHost = (
   api: ChromeTabManagerHostApi,
   options: {
     writeClipboardText: (text: string) => Promise<void>
+    onWindowFocusChanged?: (currentWindowId: number) => void
     onWindowActivated: (
       windowId: number,
       tabIds?: readonly number[],
@@ -24,6 +25,10 @@ export const createChromeTabManagerHost = (
   let running = false,
     generation = 0
   const subscribers: (() => void)[] = []
+  const onFocused = (windowId: number) => {
+    if (running && windowId >= 0 && currentWindowId !== undefined)
+      options.onWindowFocusChanged?.(currentWindowId)
+  }
   const onMessage = (
     message: unknown,
     sender: chrome.runtime.MessageSender,
@@ -141,7 +146,11 @@ export const createChromeTabManagerHost = (
       running = true
       const operation = ++generation
       api.runtime.onMessage.addListener(onMessage)
-      subscribers.push(() => api.runtime.onMessage.removeListener(onMessage))
+      api.windows.onFocusChanged.addListener(onFocused)
+      subscribers.push(
+        () => api.runtime.onMessage.removeListener(onMessage),
+        () => api.windows.onFocusChanged.removeListener(onFocused),
+      )
       const current = await api.windows.getCurrent({})
       if (running && operation === generation) currentWindowId = current.id
       return running && operation === generation ? currentWindowId : undefined

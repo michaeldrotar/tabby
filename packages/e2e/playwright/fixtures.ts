@@ -26,7 +26,7 @@ export const test = base.extend<{ browserData: BrowserFixture }>({
       route.fulfill({
         contentType: 'text/javascript',
         body: `globalThis.__TABBY_PREVIEW__ = ${JSON.stringify({
-          browser: { followOpenedWindow: true, ...browserData },
+          browser: browserData,
           messages,
           platform: process.platform === 'darwin' ? 'mac' : 'linux',
         })};\n${mock}`,

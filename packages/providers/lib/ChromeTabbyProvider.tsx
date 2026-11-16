@@ -33,32 +33,35 @@ export const ChromeTabbyProvider = ({
     })
     const preferences = createChromePreferences(api)
     const views = createTabbyViews()
+    const tabManager = createTabManagerController({
+      backend,
+      view: views.tabManager,
+      preferences,
+      environment: { now: Date.now, systemTheme: 'light' },
+    })
     const host = createChromeTabManagerHost(api, {
       writeClipboardText: (text) => navigator.clipboard.writeText(text),
+      onWindowFocusChanged: (windowId) => {
+        tabManager.dispatch({ type: 'view-window', windowId })
+      },
       onWindowActivated: (windowId, tabIds) => {
+        if (!tabIds) return true
         if (
-          tabIds &&
-          (backend.getSnapshot().state !== 'loaded' ||
-            tabIds.some(
-              (id) =>
-                !backend
-                  .getSnapshot()
-                  .tabs.some(
-                    (tab) => tab.id === id && tab.windowId === windowId,
-                  ),
-            ))
+          backend.getSnapshot().state !== 'loaded' ||
+          tabIds.some(
+            (id) =>
+              !backend
+                .getSnapshot()
+                .tabs.some((tab) => tab.id === id && tab.windowId === windowId),
+          )
         )
           return false
-        createTabManagerController({
-          backend,
-          view: views.tabManager,
-          preferences,
-          environment: { now: Date.now, systemTheme: 'light' },
-        }).dispatch(
-          tabIds
-            ? { type: 'receive-moved-tabs', windowId, tabIds }
-            : { type: 'view-window', windowId },
+        initializeTabManagerView(
+          views.tabManager,
+          backend.getSnapshot(),
+          windowId,
         )
+        tabManager.dispatch({ type: 'receive-moved-tabs', windowId, tabIds })
         return true
       },
     })
