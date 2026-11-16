@@ -511,6 +511,84 @@ test('organizes a tab with local action keys and keeps native focus through pinn
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
 
+test('organizes groups with action keys and numbered color choices', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/tab-manager/index.html')
+  const group = page.locator('[data-group-id="10"] [data-group-option]')
+  await group.focus()
+  await group.press('e')
+  await expect(group).toHaveAttribute('aria-expanded', 'false')
+  await expect(group).toBeFocused()
+  await group.press('ContextMenu')
+  for (const [name, key] of [
+    [/^Expand group$/i, 'E'],
+    [/^Rename group$/i, 'F2'],
+    [/^Change color$/i, 'L'],
+    [/^Ungroup 3 tabs$/, 'U'],
+    [/^Move tab group to window$/, 'W'],
+  ] as const) {
+    await expect(
+      page.getByRole('menuitem', { name, exact: true }).locator('kbd'),
+    ).toHaveText(key)
+  }
+  await page.keyboard.press('e')
+  await expect(group).toHaveAttribute('aria-expanded', 'true')
+  await expect(group).toBeFocused()
+  await group.press('l')
+  const colors = page.getByRole('menu', { name: /^Change color$/i })
+  await expect(
+    colors.getByRole('menuitem', { name: /Green$/ }),
+  ).toHaveAttribute('aria-keyshortcuts', '5')
+  await expect(colors.locator('kbd')).toHaveText([
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  ])
+  await page.keyboard.press('Control+5')
+  await expect(colors).toBeVisible()
+  await page.keyboard.press('5')
+  await expect(colors).toHaveCount(0)
+  await expect(group).toBeFocused()
+  await expect
+    .poll(() =>
+      page.evaluate(async () => (await chrome.tabGroups.get(10)).color),
+    )
+    .toBe('green')
+  await group.press('ContextMenu')
+  await page.keyboard.press('l')
+  await page.setViewportSize({ width: 320, height: 640 })
+  await expect(colors).toBeVisible()
+  await expect
+    .poll(async () => {
+      const bounds = (await colors.boundingBox())!
+      return bounds.x >= 0 && bounds.x + bounds.width <= 320
+    })
+    .toBe(true)
+  await page.keyboard.press('9')
+  await expect
+    .poll(() =>
+      page.evaluate(async () => (await chrome.tabGroups.get(10)).color),
+    )
+    .toBe('orange')
+  await expect(group).toBeFocused()
+  await group.press('F2')
+  const name = page.getByRole('textbox', { name: 'Group name' })
+  await name.fill('Release notes')
+  await name.press('Enter')
+  await expect(group).toHaveAccessibleName(/Release notes/)
+  await group.press('u')
+  await expect(group).toHaveCount(0)
+  await expect(page.locator('[data-tab-id]')).toHaveCount(6)
+})
+
 test('restores focus in the replacement window when a window closes with its actions menu open', async ({
   page,
 }) => {

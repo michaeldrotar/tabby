@@ -45,6 +45,132 @@ const setup = (
 }
 
 describe('Tab Manager controller', () => {
+  it('expands, collapses, and recolors selected groups with advertised shortcuts', async () => {
+    const { controller, backend, view } = setup()
+    for (const tabId of [11, 12])
+      await backend.execute({ type: 'group-tabs', tabIds: [tabId] })
+    const groups = backend.getSnapshot().groups
+    groups.forEach((group, index) =>
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'group', id: group.id },
+        toggle: index > 0,
+      }),
+    )
+    const model = () =>
+      projectTabManager(backend.getSnapshot(), view.getState())
+    expect(model().actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'toggle-selected-groups',
+          shortcut: 'E',
+        }),
+        expect.objectContaining({
+          id: 'change-selected-group-color',
+          shortcut: 'L',
+        }),
+      ]),
+    )
+    for (const collapsed of [true, false]) {
+      await controller.dispatch({ type: 'navigate', key: 'e' })
+      expect(
+        backend.getSnapshot().groups.map((group) => !!group.collapsed),
+      ).toEqual([collapsed, collapsed])
+    }
+    await controller.dispatch({ type: 'navigate', key: 'l' })
+    expect(view.getState().actionPanel).toEqual({
+      actionId: 'change-selected-group-color',
+    })
+    const colors = model().actions?.find(
+      (action) => action.id === 'change-selected-group-color',
+    )?.options
+    expect(colors?.map(({ id, shortcut }) => [id, shortcut])).toEqual([
+      ['grey', '1'],
+      ['blue', '2'],
+      ['red', '3'],
+      ['yellow', '4'],
+      ['green', '5'],
+      ['pink', '6'],
+      ['purple', '7'],
+      ['cyan', '8'],
+      ['orange', '9'],
+    ])
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'change-selected-group-color',
+      optionId: 'green',
+    })
+    expect(backend.getSnapshot().groups.map((group) => group.color)).toEqual([
+      'green',
+      'green',
+    ])
+  })
+
+  it.each([
+    ['x', 'close-duplicate-tabs', [10, 12, 14]],
+    ['o', 'close-other-tabs', [10, 12, 13]],
+    ['b', 'close-tabs-below', [10, 11, 12, 13]],
+  ] as const)(
+    'uses %s to close the matching tabs',
+    async (key, actionId, remaining) => {
+      const { controller, backend, view } = setup()
+      const snapshot = backend.getSnapshot()
+      const source = snapshot.tabs.find((tab) => tab.id === 11)!
+      const remote = snapshot.tabs.find((tab) => tab.id === 13)!
+      backend.restoreSnapshot({
+        ...snapshot,
+        tabs: [
+          {
+            ...source,
+            id: 10,
+            index: 0,
+            active: false,
+            pinned: true,
+            url: 'https://pinned.test',
+          },
+          { ...source, index: 1, url: 'https://duplicate.test' },
+          {
+            ...source,
+            id: 12,
+            index: 2,
+            active: false,
+            url: 'https://duplicate.test',
+          },
+          {
+            ...source,
+            id: 14,
+            index: 3,
+            active: false,
+            url: 'https://below.test',
+          },
+          { ...remote, url: 'https://duplicate.test' },
+        ],
+      })
+      controller.dispatch({ type: 'focus-item', item: { type: 'tab', id: 12 } })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 12 },
+      })
+      expect(
+        projectTabManager(backend.getSnapshot(), view.getState()).actions,
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: actionId,
+            shortcut: key.toUpperCase(),
+          }),
+        ]),
+      )
+      await controller.dispatch({ type: 'navigate', key })
+      expect(
+        backend
+          .getSnapshot()
+          .tabs.map((tab) => tab.id)
+          .sort((a, b) => a - b),
+      ).toEqual(remaining)
+    },
+  )
+
   it('dismisses selection menus and choosers when their window closes', async () => {
     const { backend, view, controller } = setup()
     controller.dispatch({ type: 'select-item', item: { type: 'tab', id: 11 } })

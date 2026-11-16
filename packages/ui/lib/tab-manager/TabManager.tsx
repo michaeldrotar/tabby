@@ -85,6 +85,7 @@ export type TabManagerActionOption = {
   disabledReason?: string
   destructive?: boolean
   dividerBefore?: boolean
+  shortcut?: string
 }
 export type TabManagerAction = {
   id: string

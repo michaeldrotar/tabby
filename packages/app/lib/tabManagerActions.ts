@@ -364,7 +364,7 @@ const buildTabManagerActions = (
       icon: 'Palette',
       kind: 'secondary',
       panel: 'colors',
-      options: colors.map((color) =>
+      options: colors.map((color, index) =>
         option(
           'change-selected-group-color',
           color,
@@ -378,7 +378,7 @@ const buildTabManagerActions = (
             },
             label: 'Change group color',
           },
-          { color },
+          { color, shortcut: String(index + 1) },
         ),
       ),
     })

@@ -49,6 +49,7 @@ const tabManagerShortcutGroups = (isMac: boolean, followsWindows: boolean) =>
           keys: key.toUpperCase(),
           label,
         })),
+        { keys: '1–9', label: 'Choose a color in the group color menu' },
         {
           keys: 'Shift',
           label: followsWindows
