@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { createJiti } from 'jiti'
-import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, writeFile, rm } from 'node:fs/promises'
 import tailwindcss from '@tailwindcss/vite'
 import { build } from 'vite'
 import { describe, expect, it } from 'vitest'
@@ -18,6 +18,7 @@ const { withPageConfig } = await jiti.import(
 
 describe('configuration composition', () => {
   it('compiles shared presets, sources, theme functions and overrides', async () => {
+    await mkdir(resolve('.turbo'), { recursive: true })
     const directory = await mkdtemp(resolve('.turbo/tailwind-test-'))
     try {
       await writeFile(
