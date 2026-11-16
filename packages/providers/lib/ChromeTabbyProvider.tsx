@@ -36,29 +36,28 @@ export const ChromeTabbyProvider = ({
     const host = createChromeTabManagerHost(api, {
       writeClipboardText: (text) => navigator.clipboard.writeText(text),
       onWindowActivated: (windowId, tabIds) => {
+        if (!tabIds) return true
         if (
-          tabIds &&
-          (backend.getSnapshot().state !== 'loaded' ||
-            tabIds.some(
-              (id) =>
-                !backend
-                  .getSnapshot()
-                  .tabs.some(
-                    (tab) => tab.id === id && tab.windowId === windowId,
-                  ),
-            ))
+          backend.getSnapshot().state !== 'loaded' ||
+          tabIds.some(
+            (id) =>
+              !backend
+                .getSnapshot()
+                .tabs.some((tab) => tab.id === id && tab.windowId === windowId),
+          )
         )
           return false
+        initializeTabManagerView(
+          views.tabManager,
+          backend.getSnapshot(),
+          windowId,
+        )
         createTabManagerController({
           backend,
           view: views.tabManager,
           preferences,
           environment: { now: Date.now, systemTheme: 'light' },
-        }).dispatch(
-          tabIds
-            ? { type: 'receive-moved-tabs', windowId, tabIds }
-            : { type: 'view-window', windowId },
-        )
+        }).dispatch({ type: 'receive-moved-tabs', windowId, tabIds })
         return true
       },
     })

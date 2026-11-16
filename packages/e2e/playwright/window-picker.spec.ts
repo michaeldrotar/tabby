@@ -85,6 +85,32 @@ test('manages another window in place and switches only with an explicit action'
   })
   await expect(picker).toContainText('Reading room')
   await expect(remoteActions).toBeVisible()
+  await page.evaluate(async () => {
+    await chrome.runtime.sendMessage({
+      type: 'TAB_MANAGER_WINDOW_ACTIVATED',
+      windowId: 1,
+    })
+    await chrome.storage.session.set({ 'tabby-moved-tabs-1': [1] })
+    await chrome.runtime.sendMessage({
+      type: 'TAB_MANAGER_WINDOW_ACTIVATED',
+      windowId: 1,
+      tabIds: [1],
+    })
+  })
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async () =>
+          (await chrome.storage.session.get('tabby-moved-tabs-1'))[
+            'tabby-moved-tabs-1'
+          ],
+      ),
+    )
+    .toBeUndefined()
+  await expect(picker).toContainText('Reading room')
+  await expect(
+    page.locator('[data-tab-id="7"] [data-tab-option]'),
+  ).toHaveAttribute('aria-selected', 'true')
   await page.screenshot({
     path: '../../test-results/manage-other-window-480.png',
   })
