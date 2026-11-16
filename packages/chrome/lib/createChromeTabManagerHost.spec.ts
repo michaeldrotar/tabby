@@ -14,12 +14,11 @@ const event = () => {
     size: () => callbacks.size,
   }
 }
-const setup = () => {
-  const onMessage = event(),
-    onFocusChanged = event()
+const setup = (currentWindowId = 5, onFocusChanged = event()) => {
+  const onMessage = event()
   const api = {
     windows: {
-      getCurrent: vi.fn(async () => ({ id: 5 })),
+      getCurrent: vi.fn(async () => ({ id: currentWindowId })),
       update: vi.fn(async () => ({ id: 9, focused: true })),
       onFocusChanged,
     },
@@ -36,12 +35,25 @@ const setup = () => {
     },
   }
   const activate = vi.fn(),
+    focusChanged = vi.fn(),
     clipboard = vi.fn(async () => {})
   const host = createChromeTabManagerHost(
     api as unknown as ChromeTabManagerHostApi,
-    { writeClipboardText: clipboard, onWindowActivated: activate },
+    {
+      writeClipboardText: clipboard,
+      onWindowActivated: activate,
+      onWindowFocusChanged: focusChanged,
+    },
   )
-  return { api, host, activate, clipboard, onMessage, onFocusChanged }
+  return {
+    api,
+    host,
+    activate,
+    focusChanged,
+    clipboard,
+    onMessage,
+    onFocusChanged,
+  }
 }
 
 describe('Chrome Tab Manager host', () => {
@@ -51,6 +63,7 @@ describe('Chrome Tab Manager host', () => {
     expect(await host.start()).toBe(5)
     await host.start()
     expect(onMessage.size()).toBe(1)
+    expect(onFocusChanged.size()).toBe(1)
     await host.capabilities.openSearch!()
     await host.capabilities.openOptions!()
     await host.capabilities.writeClipboardText!('Tabby')
@@ -104,6 +117,30 @@ describe('Chrome Tab Manager host', () => {
     await host.start()
     expect(onMessage.size()).toBe(1)
     host.dispose()
+  })
+
+  it('returns every running manager to its own window when browser window focus changes', async () => {
+    const first = setup()
+    const second = setup(9, first.onFocusChanged)
+    await Promise.all([first.host.start(), second.host.start()])
+
+    first.onFocusChanged.emit(-1)
+    expect(first.focusChanged).not.toHaveBeenCalled()
+    expect(second.focusChanged).not.toHaveBeenCalled()
+
+    first.onFocusChanged.emit(9)
+    first.onFocusChanged.emit(5)
+    expect(first.focusChanged.mock.calls).toEqual([[5], [5]])
+    expect(second.focusChanged.mock.calls).toEqual([[9], [9]])
+    expect(first.host.capabilities.getCurrentWindowId!()).toBe(5)
+    expect(second.host.capabilities.getCurrentWindowId!()).toBe(9)
+
+    first.host.dispose()
+    first.onFocusChanged.emit(9)
+    expect(first.focusChanged).toHaveBeenCalledTimes(2)
+    expect(second.focusChanged).toHaveBeenCalledTimes(3)
+    second.host.dispose()
+    expect(first.onFocusChanged.size()).toBe(0)
   })
 
   it('does not restore a disposed current-window lookup after restarting', async () => {
