@@ -6,6 +6,6 @@ body,
 #root {
   margin: 0;
   width: 640px;
-  height: 500px;
+  height: min(500px, 100vh);
   overflow: hidden;
 }

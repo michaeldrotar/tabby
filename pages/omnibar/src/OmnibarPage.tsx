@@ -10,7 +10,12 @@ export const OmnibarPage = () => {
   // Close window on blur
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === 'w'
+      ) {
         e.preventDefault()
         e.stopPropagation()
         onDismiss()
@@ -25,9 +30,8 @@ export const OmnibarPage = () => {
     }
   }, [])
 
-  const value = new URLSearchParams(window.location.search).get(
-    'originalWindowId',
-  )
+  const parameters = new URLSearchParams(window.location.search)
+  const value = parameters.get('originalWindowId')
   const originalWindowId =
     value && Number.isFinite(Number(value)) ? Number(value) : undefined
 

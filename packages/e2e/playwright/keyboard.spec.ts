@@ -32,7 +32,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     page.locator('[data-editor-row="icons"] [aria-pressed="true"]'),
     page.getByRole('button', { name: 'Done', exact: true }),
     page.getByRole('button', { name: 'Reset', exact: true }),
-    page.getByRole('button', { name: 'Search everything' }),
+    page.getByRole('button', { name: 'Search' }),
   ]
   for (const stop of editTabStops) {
     await page.keyboard.press('Tab')
@@ -43,9 +43,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     page.getByRole('button', { name: 'Options', exact: true }),
   ).toBeFocused()
   await page.keyboard.press('Shift+Tab')
-  await expect(
-    page.getByRole('button', { name: 'Search everything' }),
-  ).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Search' })).toBeFocused()
   for (const stop of editTabStops.slice(0, -1).reverse()) {
     await page.keyboard.press('Shift+Tab')
     await expect(stop).toBeFocused()
@@ -127,9 +125,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   ).toBeFocused()
   await page.keyboard.press('ArrowRight')
   await page.keyboard.press('ArrowDown')
-  await expect(
-    page.getByRole('button', { name: 'Search everything' }),
-  ).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Search' })).toBeFocused()
   await page.keyboard.press('ArrowUp')
   await expect(
     page.getByRole('button', { name: 'Done', exact: true }),
@@ -203,7 +199,7 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
     .locator('[data-group-option], [data-tab-option]')
     .first()
   const newTab = page.getByRole('button', { name: 'New tab', exact: true })
-  const search = page.getByRole('button', { name: 'Search everything' })
+  const search = page.getByRole('button', { name: 'Search' })
   const settings = page.getByRole('button', { name: 'Options', exact: true })
   const more = page.getByRole('button', { name: 'More actions' })
   const tabStops = [
@@ -305,7 +301,5 @@ test('edits window identity and uses native focus, keyboard selection, menus, an
   await switcher.click()
   await expect(page.locator('[data-window-choice="1"]')).toBeFocused()
   await page.keyboard.press('Escape')
-  await expect(
-    page.getByRole('button', { name: 'Search everything' }),
-  ).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Search' })).toBeEnabled()
 })

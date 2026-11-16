@@ -45,7 +45,7 @@ Agents running servers or browser tests in worktrees must choose other available
 - For Tab Manager visual work, open the printed `/tab-manager/index.html` URL in the harness's collaborative browser. Use its native preview tools when available, starting with `preview_status` and then `preview_open` if needed. Check a sidebar-sized viewport such as 480 × 640 and the narrow layout when relevant. Share the working URL and a screenshot or recording of the actual UI.
 - Sample windows, tabs, groups, and preferences live in [`scripts/preview/browser-data.json`](./scripts/preview/browser-data.json). Pass `--fixture path/to/browser-data.json` to use task-specific sample data. Refreshing resets the preview to the fixture; rebuild and restart after application source changes.
 - Keep simulations at the Chrome API boundary in [`scripts/preview/mock-chrome.js`](./scripts/preview/mock-chrome.js). Extend the shared fixture or mock when a task needs another interaction, and add focused coverage in [`scripts/preview/preview.spec.mjs`](./scripts/preview/preview.spec.mjs). Keep the application components, stores, styling, and animations real.
-- Search and Settings buttons are inactive in the preview. Use the preview for manual UI checks and visual review. Use the headless extension smoke test for packaged extension integration.
+- Search opens the real search page with the current-window default in the preview. The Settings button is inactive. Use the preview for manual UI checks and visual review. Use the headless extension smoke test for packaged extension integration.
 
 ## E2E Testing
 

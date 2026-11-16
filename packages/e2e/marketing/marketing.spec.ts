@@ -215,7 +215,7 @@ test('the Chrome demo keeps product controls usable without tour controls', asyn
       .locator('.hero [data-demo]')
       .getByRole('switch', { name: 'Dark mode', exact: true }),
   ).toBeChecked()
-  await manager.getByRole('button', { name: 'Search everything' }).click()
+  await manager.getByRole('button', { name: 'Search', exact: true }).click()
   const search = demo.locator('[data-omnibar]')
   await search.getByRole('combobox').fill('Design studio')
   await expect(
@@ -451,7 +451,10 @@ test('homepage separates the live demo and switches to a video without losing de
   await expect(
     demo.getByRole('button', { name: 'Play tour', exact: true }),
   ).toHaveCount(0)
-  await demo.getByRole('button', { name: 'Search', exact: true }).click()
+  await demo
+    .getByRole('group', { name: 'Demo experience' })
+    .getByRole('button', { name: 'Search', exact: true })
+    .click()
   await demo.getByRole('combobox').fill('Copenhagen')
   const switchToVideo = showcase.getByRole('button', {
     name: 'Or watch my video',
@@ -719,7 +722,10 @@ test('sample tabs support batch work, local search, appearance, and reset', asyn
   await expect(
     page.locator('#manage [role="option"][aria-label="Tab: Team inbox"]'),
   ).toBeVisible()
-  await demo.getByRole('button', { name: 'Search', exact: true }).click()
+  await demo
+    .getByRole('group', { name: 'Demo experience' })
+    .getByRole('button', { name: 'Search', exact: true })
+    .click()
   const input = demo.getByRole('combobox')
   await input.fill('design')
   await expect(

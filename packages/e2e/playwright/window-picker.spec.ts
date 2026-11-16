@@ -82,7 +82,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
     await expect(newWindow).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(
-      page.getByRole('button', { name: 'Search everything' }),
+      page.getByRole('button', { name: 'Search', exact: true }),
     ).toBeFocused()
     await page.keyboard.press('Shift+Tab')
     await expect(newWindow).toBeFocused()
@@ -125,13 +125,13 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
     ).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(
-      page.getByRole('button', { name: 'Search everything' }),
+      page.getByRole('button', { name: 'Search', exact: true }),
     ).toBeFocused()
     await page.keyboard.press('Shift+Tab')
     await expect(newWindow).toBeFocused()
     await page.keyboard.press('ArrowDown')
     await expect(
-      page.getByRole('button', { name: 'Search everything' }),
+      page.getByRole('button', { name: 'Search', exact: true }),
     ).toBeFocused()
     await page.keyboard.press('ArrowUp')
     await expect(
@@ -179,7 +179,7 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true)
-    for (const name of ['Search everything', 'Options', 'More actions'])
+    for (const name of ['Search', 'Options', 'More actions'])
       await expect(
         page.getByRole('button', { name, exact: true }),
       ).toBeInViewport()
@@ -190,12 +190,12 @@ test('keeps one full-width pane and usable window navigation at sidebar and wide
         .evaluateAll((buttons) =>
           buttons.map((button) => button.getAttribute('aria-label')),
         ),
-    ).toEqual(['Search everything', 'Options', 'More actions'])
+    ).toEqual(['Search', 'Options', 'More actions'])
     await page.screenshot({
       path: `../../test-results/appearance-tools-${width}.png`,
     })
     const search = await tools
-      .getByRole('button', { name: 'Search everything' })
+      .getByRole('button', { name: 'Search', exact: true })
       .boundingBox()
     const settings = await tools
       .getByRole('button', { name: 'Options' })

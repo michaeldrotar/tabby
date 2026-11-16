@@ -1,9 +1,10 @@
 import { createAsyncQueue } from '@extension/core/asyncQueue'
-import { OmnibarCancelledError } from '@extension/core/omnibar'
+import { isOmnibarScope, OmnibarCancelledError } from '@extension/core/omnibar'
 import { readOmnibarChoices } from '@extension/core/omnibarChoices'
 import { createOmnibarMatcher } from '@extension/core/omnibarMatching'
 import { createChromeOmnibarNavigator } from './createChromeOmnibarNavigator.js'
 import { getChromeFaviconUrl } from './favicon.js'
+import { takeSearchScope } from './omnibarLaunch.js'
 import type {
   OmnibarAction,
   OmnibarChoice,
@@ -11,6 +12,7 @@ import type {
   OmnibarModifier,
   OmnibarResource,
   OmnibarResult,
+  OmnibarScope,
 } from '@extension/core'
 
 export type ChromeOmnibarApi = Pick<
@@ -26,6 +28,24 @@ export type ChromeOmnibarApi = Pick<
   | 'commands'
   | 'sidePanel'
 >
+
+const browseLimit = 50
+const getDefaultBookmarks = async (api: ChromeOmnibarApi) => {
+  const nodes = [...(await api.bookmarks.getTree())]
+  const bookmarks: chrome.bookmarks.BookmarkTreeNode[] = []
+  for (let index = 0; index < nodes.length; index++) {
+    const node = nodes[index]!
+    if (node.url) bookmarks.push(node)
+    for (const child of node.children ?? []) nodes.push(child)
+  }
+  return bookmarks
+    .sort(
+      (a, b) =>
+        (b.dateLastUsed ?? b.dateAdded ?? 0) -
+        (a.dateLastUsed ?? a.dateAdded ?? 0),
+    )
+    .slice(0, browseLimit)
+}
 
 /** One host-owned search and navigation resource; all browser access is injected. */
 export const createChromeOmnibarResource = (
@@ -44,6 +64,7 @@ export const createChromeOmnibarResource = (
   let disposed = false
   const writes = createAsyncQueue()
   let savedQuery: string | undefined
+  let savedScope: OmnibarScope = 'all'
   let queryVersion = 0
   const current = (operation = generation) => {
     if (disposed)
@@ -88,14 +109,16 @@ export const createChromeOmnibarResource = (
     current(operation)
     await refreshChoices()
   }
-  const queueQuery = (query?: string) => {
+  const queueQuery = (query?: string, scope: OmnibarScope = 'all') => {
     const operation = generation
     savedQuery = query
+    savedScope = scope
     queryVersion++
     return writes.run(async () => {
       current(operation)
-      if (query === undefined) await api.storage.local.remove('lastQuery')
-      else await api.storage.local.set({ lastQuery: query })
+      if (query === undefined)
+        await api.storage.local.remove(['lastQuery', 'lastScope'])
+      else await api.storage.local.set({ lastQuery: query, lastScope: scope })
     })
   }
   const refreshChoices = async (operation = generation) => {
@@ -113,6 +136,7 @@ export const createChromeOmnibarResource = (
     current()
     const operation = generation
     const previousQuery = savedQuery
+    const previousScope = savedScope
     const clear = clearQuery()
     const clearVersion = queryVersion
     try {
@@ -132,7 +156,7 @@ export const createChromeOmnibarResource = (
         generation === operation &&
         queryVersion === clearVersion
       )
-        await queueQuery(previousQuery).catch(() => undefined)
+        await queueQuery(previousQuery, previousScope).catch(() => undefined)
       throw error
     }
   }
@@ -149,7 +173,7 @@ export const createChromeOmnibarResource = (
       const token = ++generation
       started = (async () => {
         const [query, platform, commands, window] = await Promise.allSettled([
-          api.storage.local.get('lastQuery'),
+          api.storage.local.get(['lastQuery', 'lastScope']),
           api.runtime.getPlatformInfo(),
           api.commands.getAll(),
           requestedWindowId === undefined
@@ -157,15 +181,23 @@ export const createChromeOmnibarResource = (
             : Promise.resolve({ id: requestedWindowId }),
         ])
         if (token !== generation || disposed) return
-        if (queryVersion === 0)
+        if (queryVersion === 0) {
           savedQuery =
             query.status === 'fulfilled' &&
             typeof query.value.lastQuery === 'string'
               ? query.value.lastQuery
               : undefined
+          const scope: unknown =
+            query.status === 'fulfilled' ? query.value.lastScope : undefined
+          savedScope =
+            savedQuery?.trim() && isOmnibarScope(scope) ? scope : 'all'
+        }
         const originalWindowId =
           window.status === 'fulfilled' ? window.value.id : requestedWindowId
-        const choices = await loadChoices(originalWindowId)
+        const [choices, initialScope] = await Promise.all([
+          loadChoices(originalWindowId),
+          takeSearchScope(api.storage.session, originalWindowId),
+        ])
         if (token !== generation || disposed) return
         metadata = {
           loaded: true,
@@ -173,6 +205,7 @@ export const createChromeOmnibarResource = (
           isMac: platform.status === 'fulfilled' && platform.value.os === 'mac',
           originalWindowId,
           choices,
+          initialScope: initialScope ?? savedScope,
           openTabManagerShortcut:
             commands.status === 'fulfilled'
               ? commands.value.find(
@@ -190,13 +223,27 @@ export const createChromeOmnibarResource = (
       started = undefined
       listeners.clear()
     },
-    search: async (query) => {
+    search: async (query, scope = 'all') => {
       current()
       const token = generation
+      query = query.trim()
+      if (!query && scope === 'all') return []
       const [history, bookmarks, sessions] = await Promise.allSettled([
-        api.history.search({ text: query, maxResults: 20, startTime: 0 }),
-        api.bookmarks.search(query),
-        api.sessions.getRecentlyClosed(),
+        scope === 'all' || scope === 'history'
+          ? api.history.search({
+              text: query,
+              maxResults: browseLimit,
+              startTime: 0,
+            })
+          : Promise.resolve([]),
+        scope === 'all' || scope === 'bookmarks'
+          ? query
+            ? api.bookmarks.search(query)
+            : getDefaultBookmarks(api)
+          : Promise.resolve([]),
+        scope === 'all' || scope === 'recently-closed'
+          ? api.sessions.getRecentlyClosed()
+          : Promise.resolve([]),
       ])
       if (token !== generation || disposed) return []
       const closed: OmnibarResult[] = []
@@ -264,7 +311,7 @@ export const createChromeOmnibarResource = (
       ]
     },
     execute,
-    saveQuery: (query) => queueQuery(query),
+    saveQuery: (query, scope) => queueQuery(query, scope),
     clearQuery,
   }
 }

@@ -1,3 +1,4 @@
+import { openWindowSearch } from './omnibarLaunch.js'
 import type { HostCapabilities } from '@extension/core/browser'
 
 export type ChromeTabManagerHostApi = Pick<
@@ -110,11 +111,7 @@ export const createChromeTabManagerHost = (
     },
     openSearch: async () => {
       requireRunning()
-      await api.action.openPopup(
-        currentWindowId === undefined
-          ? undefined
-          : { windowId: currentWindowId },
-      )
+      await openWindowSearch(api, currentWindowId)
     },
     openOptions: async () => {
       requireRunning()

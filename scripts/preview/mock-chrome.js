@@ -1,7 +1,12 @@
 import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityStorage'
+import defaultFavicon from './default-favicon.png'
 
 ;(() => {
   const { browser, messages, platform } = globalThis.__TABBY_PREVIEW__
+  const searchLaunch = JSON.parse(
+    globalThis.sessionStorage?.getItem('tabby-preview-search-launch') ?? '{}',
+  )
+  globalThis.sessionStorage?.removeItem('tabby-preview-search-launch')
   const clone = (value) => structuredClone(value)
   const event = () => {
     const listeners = new Set()
@@ -21,6 +26,7 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
     ...clone(window),
   }))
   const groups = clone(browser.groups ?? [])
+  const sessions = clone(browser.sessions ?? [])
   const tabs = browser.tabs.map((tab, index) => ({
     index: browser.tabs
       .slice(0, index)
@@ -233,6 +239,7 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
       ),
       session: storageArea(
         {
+          ...searchLaunch,
           'tabby-window-identities': Object.fromEntries(
             windows
               .filter((window) => window.name || window.icon)
@@ -254,7 +261,17 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
       onChanged: storageChanged,
     },
     commands: { getAll: async () => [] },
-    action: { openPopup: async () => undefined },
+    action: {
+      openPopup: async ({ windowId } = {}) => {
+        sessionStorage.setItem(
+          'tabby-preview-search-launch',
+          JSON.stringify(await api.storage.session.get(null)),
+        )
+        globalThis.location.assign(
+          `/omnibar/index.html?originalWindowId=${windowId ?? browser.currentWindowId}`,
+        )
+      },
+    },
     sidePanel: {
       open: async ({ windowId }) => {
         find(windows, windowId)
@@ -262,13 +279,42 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
       },
     },
     bookmarks: {
+      getTree: async () => [
+        { id: 'root', title: '', children: clone(browser.bookmarks ?? []) },
+      ],
       search: async (query) => searchPages(browser.bookmarks, query),
     },
     history: {
       search: async ({ text, maxResults }) =>
-        searchPages(browser.history, text).slice(0, maxResults),
+        searchPages(browser.history, text)
+          .sort((a, b) => (b.lastVisitTime ?? 0) - (a.lastVisitTime ?? 0))
+          .slice(0, maxResults),
     },
-    sessions: { getRecentlyClosed: async () => [] },
+    sessions: {
+      getRecentlyClosed: async () => clone(sessions),
+      restore: async (sessionId) => {
+        const index = sessions.findIndex(
+          (session) =>
+            (session.tab?.sessionId ?? session.window?.sessionId) === sessionId,
+        )
+        if (index < 0)
+          throw new Error('This saved session is no longer available.')
+        const session = sessions[index]
+        const restored = session.tab
+          ? { tab: await api.tabs.create({ url: session.tab.url }) }
+          : {
+              window: await api.windows.create({
+                url: session.window.tabs.map((tab) => tab.url),
+              }),
+            }
+        if (restored.tab)
+          restored.tab = await api.tabs.update(restored.tab.id, {
+            title: session.tab.title,
+          })
+        sessions.splice(index, 1)
+        return { lastModified: session.lastModified, ...restored }
+      },
+    },
     windows: {
       ...events([
         'onBoundsChanged',
@@ -577,27 +623,11 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
   globalThis.chrome = api
 
   if (typeof document !== 'undefined') {
-    const createFaviconDataUrl = (extensionUrl) => {
-      const pageUrl = new URL(extensionUrl).searchParams.get('pageUrl') ?? ''
-      let hostname = ''
-      try {
-        hostname = new URL(pageUrl).hostname.replace(/^www\./, '')
-      } catch {}
-
-      const label = hostname[0]?.toUpperCase() ?? '?'
-      const hue = Array.from(hostname).reduce(
-        (hash, character) => (hash * 31 + character.charCodeAt(0)) % 360,
-        0,
-      )
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill="hsl(${hue} 68% 45%)"/><text x="12" y="16" fill="white" font-family="Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">${label}</text></svg>`
-      return `data:image/svg+xml,${encodeURIComponent(svg)}`
-    }
-
     const BrowserImage = globalThis.Image
     globalThis.Image = class extends BrowserImage {
       set src(value) {
         super.src = value.startsWith('chrome-extension://preview/_favicon/')
-          ? createFaviconDataUrl(value)
+          ? defaultFavicon
           : value
       }
       get src() {
@@ -608,7 +638,7 @@ import { serializeWindowIdentity } from '../../packages/core/lib/windowIdentityS
     new MutationObserver(() => {
       document
         .querySelectorAll('img[src^="chrome-extension://preview/_favicon/"]')
-        .forEach((img) => (img.src = createFaviconDataUrl(img.src)))
+        .forEach((img) => (img.src = defaultFavicon))
     }).observe(document.documentElement, {
       childList: true,
       subtree: true,
