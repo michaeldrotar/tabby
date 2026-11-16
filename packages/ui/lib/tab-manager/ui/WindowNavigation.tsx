@@ -1,6 +1,13 @@
 import { motion, useIsPresent } from 'framer-motion'
-import { ArrowLeft, ChevronDown, Pencil, Plus } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'react'
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  ChevronDown,
+  LocateFixed,
+  Pencil,
+  Plus,
+} from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { DragReveal } from '../../components/DragReveal'
 import { RowCloseButton } from '../../components/RowCloseButton'
 import { useSurfaceInputOwner } from '../../Surface'
@@ -12,6 +19,10 @@ import {
   windowControlClass,
   windowEditorInputClass,
 } from './windowControls'
+import {
+  followsMoveWithShift,
+  WindowFocusIndicator,
+} from './WindowFocusIndicator'
 import { WindowIcon } from './WindowIcon'
 import { WindowIconPicker } from './WindowIconPicker'
 import type {
@@ -19,6 +30,7 @@ import type {
   TabManagerViewModel,
   TabManagerWindowView,
 } from '../TabManager'
+import type { ReactNode } from 'react'
 
 const windowDropClass = 'bg-highlighted/30 text-foreground'
 const windowChoiceClass = 'min-h-16 w-full justify-start gap-3 py-3 text-left'
@@ -27,6 +39,30 @@ export { WindowIcon } from './WindowIcon'
 
 const windowContents = (window: TabManagerWindowView) =>
   `${window.tabs.length} ${window.tabs.length === 1 ? 'tab' : 'tabs'}${window.groups.length ? ` · ${window.groups.length} ${window.groups.length === 1 ? 'group' : 'groups'}` : ''}${window.incognito ? ' · Private' : ''}`
+
+const HeaderActionReveal = ({
+  visible,
+  width,
+  children,
+}: {
+  visible: boolean
+  width: number
+  children: ReactNode
+}) => {
+  const reduced = useShouldReduceMotion()
+  return (
+    <motion.div
+      initial={false}
+      animate={{ width: visible ? width : 0, opacity: visible ? 1 : 0 }}
+      transition={{ duration: reduced ? 0 : 0.18, ease: 'easeOut' }}
+      className="shrink-0 overflow-hidden"
+    >
+      {visible && (
+        <div className="flex h-10 items-center gap-1">{children}</div>
+      )}
+    </motion.div>
+  )
+}
 
 export const WindowHeader = ({
   model,
@@ -37,11 +73,14 @@ export const WindowHeader = ({
   onIntent: (intent: TabManagerIntent) => void
   revealing?: boolean
 }) => {
-  const reduced = useShouldReduceMotion()
   const returning = Boolean(model.editingWindow || model.windowPicker)
   const window = model.windows.find(
     (window) => window.id === model.viewedWindowId,
   )
+  const viewingOtherWindow =
+    window &&
+    model.currentWindowId !== undefined &&
+    window.id !== model.currentWindowId
   return (
     <header
       className={`
@@ -50,34 +89,27 @@ export const WindowHeader = ({
       data-keyboard-section="header"
     >
       <div className="flex items-center">
-        <motion.div
-          initial={false}
-          animate={{ width: returning ? 44 : 0, opacity: returning ? 1 : 0 }}
-          transition={{ duration: reduced ? 0 : 0.18, ease: 'easeOut' }}
-          className="shrink-0 overflow-hidden"
-        >
-          {returning && (
-            <button
-              data-back-to-tabs
-              aria-label="Back to tabs"
-              title="Back to tabs"
-              className={cn(windowControlClass, 'size-10 px-0')}
-              onClick={() =>
-                onIntent({
-                  type: model.editingWindow
-                    ? 'cancel-window-edit'
-                    : 'dismiss-window-picker',
-                })
-              }
-            >
-              <ArrowLeft size={18} aria-hidden="true" />
-            </button>
-          )}
-        </motion.div>
+        <HeaderActionReveal visible={returning} width={44}>
+          <button
+            data-back-to-tabs
+            aria-label="Back to tabs"
+            title="Back to tabs"
+            className={cn(windowControlClass, 'size-10 px-0')}
+            onClick={() =>
+              onIntent({
+                type: model.editingWindow
+                  ? 'cancel-window-edit'
+                  : 'dismiss-window-picker',
+              })
+            }
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+          </button>
+        </HeaderActionReveal>
         <div className="flex min-w-0 flex-1 items-center gap-1">
           <button
             data-window-picker-trigger
-            aria-label={`Switch window: ${window?.title ?? 'Windows'}`}
+            aria-label={`Choose window: ${window?.title ?? 'Windows'}`}
             aria-expanded={model.windowPicker}
             className={cn(
               windowControlClass,
@@ -126,20 +158,55 @@ export const WindowHeader = ({
               />
             </DragReveal>
           </button>
+          <HeaderActionReveal visible={Boolean(viewingOtherWindow)} width={68}>
+            {viewingOtherWindow && (
+              <>
+                <button
+                  aria-label="Show current window"
+                  title="Show current window’s tabs"
+                  className={cn(
+                    windowControlClass,
+                    'size-8 min-h-8 shrink-0 px-0',
+                  )}
+                  onClick={() =>
+                    onIntent({
+                      type: 'view-window',
+                      windowId: model.currentWindowId!,
+                    })
+                  }
+                >
+                  <LocateFixed size={16} aria-hidden="true" />
+                </button>
+                <button
+                  aria-label="Switch to this window"
+                  title={`Switch to ${window.title}`}
+                  className={cn(
+                    windowControlClass,
+                    'size-8 min-h-8 shrink-0 px-0',
+                  )}
+                  onClick={() =>
+                    onIntent({ type: 'activate-window', windowId: window.id })
+                  }
+                >
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </button>
+              </>
+            )}
+          </HeaderActionReveal>
           <button
             data-window-edit-trigger
             aria-label={model.editingWindow ? 'Close editor' : 'Edit window'}
             title={model.editingWindow ? 'Close editor' : 'Edit window'}
             aria-expanded={Boolean(model.editingWindow)}
             disabled={!window}
-            className={cn(windowControlClass, 'size-10 shrink-0 px-0')}
+            className={cn(windowControlClass, 'size-8 min-h-8 shrink-0 px-0')}
             onClick={() =>
               onIntent({
                 type: 'edit-window',
               })
             }
           >
-            <Pencil size={18} />
+            <Pencil size={16} />
           </button>
         </div>
       </div>
@@ -148,18 +215,28 @@ export const WindowHeader = ({
 }
 
 export const WindowPicker = ({
+  shiftHeld,
   model,
   onIntent,
   dragging = false,
   dropWindowId,
+  draggedTabIds,
 }: {
+  shiftHeld: boolean
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   dragging?: boolean
   dropWindowId?: number | 'new' | null
+  draggedTabIds?: readonly number[]
 }) => {
+  const switchByDefault = model.windowClickBehavior === 'switch'
   const root = useRef<HTMLDivElement>(null)
   const { canFocusInput } = useSurfaceInputOwner()
+  const [hoveredWindowId, setHoveredWindowId] = useState<number | null>(null)
+  const [focusedWindowId, setFocusedWindowId] = useState<number | null>(null)
+  const actionWindowId = dragging
+    ? dropWindowId
+    : (hoveredWindowId ?? focusedWindowId)
   useLayoutEffect(() => {
     if (!dragging && canFocusInput())
       (
@@ -183,6 +260,7 @@ export const WindowPicker = ({
           return
         }
         if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
+        setHoveredWindowId(null)
         event.preventDefault()
         event.stopPropagation()
         const entries = Array.from(
@@ -250,8 +328,18 @@ export const WindowPicker = ({
                   `,
                 dropWindowId === window.id && windowDropClass,
               )}
-              onClick={() =>
-                onIntent({ type: 'activate-window', windowId: window.id })
+              onPointerEnter={() => {
+                setHoveredWindowId(window.id)
+              }}
+              onPointerLeave={() => setHoveredWindowId(null)}
+              onFocus={() => setFocusedWindowId(window.id)}
+              onBlur={() => setFocusedWindowId(null)}
+              onClick={(event) =>
+                onIntent({
+                  type: 'choose-window',
+                  windowId: window.id,
+                  alternate: event.shiftKey,
+                })
               }
             >
               <span
@@ -285,6 +373,15 @@ export const WindowPicker = ({
                   {windowContents(window)}
                 </span>
               </span>
+              {shiftHeld && actionWindowId === window.id && (
+                <WindowFocusIndicator
+                  follow={
+                    dragging
+                      ? followsMoveWithShift(model, window.id, draggedTabIds)
+                      : !switchByDefault
+                  }
+                />
+              )}
             </button>
             {!dragging && (
               <RowCloseButton
@@ -318,6 +415,11 @@ export const WindowPicker = ({
           <Plus size={22} />
         </span>
         New window
+        {dragging && shiftHeld && dropWindowId === 'new' && (
+          <WindowFocusIndicator
+            follow={followsMoveWithShift(model, undefined, draggedTabIds)}
+          />
+        )}
       </button>
     </div>
   )

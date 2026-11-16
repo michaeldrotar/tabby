@@ -15,7 +15,39 @@ export const OptionsManagerPreferences = ({
 }: Pick<OptionsProps, 'preferences' | 'onPreferenceChange'> & {
   controlProps: OptionsControlBindings
 }) => {
-  const { tabManagerCompactIconMode } = preferences
+  const settings = [
+    {
+      control: 'window-icon' as const,
+      title: 'Window identification',
+      description: 'Use a tab’s title and icon for unnamed windows.',
+      label: 'Window identification',
+      value: preferences.tabManagerCompactIconMode,
+      change: (value: string) =>
+        onPreferenceChange({
+          tabManagerCompactIconMode: value as 'active' | 'first',
+        }),
+      choices: [
+        { value: 'active', label: 'Active tab' },
+        { value: 'first', label: 'First tab' },
+      ],
+    },
+    {
+      control: 'window-click' as const,
+      title: 'Window focus',
+      description:
+        'Choose whether picking a window or moving tabs and groups switches windows. Hold Shift to do the opposite.',
+      label: 'Window focus',
+      value: preferences.tabManagerWindowClickBehavior,
+      change: (value: string) =>
+        onPreferenceChange({
+          tabManagerWindowClickBehavior: value as 'view' | 'switch',
+        }),
+      choices: [
+        { value: 'view', label: 'Stay in this window' },
+        { value: 'switch', label: 'Switch windows' },
+      ],
+    },
+  ]
   return (
     <section className="mb-6">
       <h2 className="mb-4 text-2xl font-semibold text-foreground">
@@ -27,57 +59,47 @@ export const OptionsManagerPreferences = ({
           'border-border bg-card',
         )}
       >
-        <div
-          className={`
-            flex flex-col gap-3
-            group-data-[wide=true]/options:flex-row
-            group-data-[wide=true]/options:items-center
-            group-data-[wide=true]/options:justify-between
-          `}
-        >
-          <div>
-            <h3 className="text-xl font-medium text-foreground">
-              Window identification
-            </h3>
-            <p className="text-base text-muted">
-              Use a tab’s title and icon for unnamed windows.
-            </p>
-          </div>
+        {settings.map((setting) => (
           <div
+            key={setting.control}
             className={`
-              flex gap-2
-              group-data-[wide=true]/options:justify-end
+              grid min-w-0 gap-3
+              group-data-[wide=true]/options:grid-cols-[minmax(0,1fr)_200px]
+              group-data-[wide=true]/options:items-center
+              group-data-[wide=true]/options:gap-6
             `}
           >
+            <div>
+              <h3 className="text-xl font-medium text-foreground">
+                {setting.title}
+              </h3>
+              <p className="text-base text-muted">{setting.description}</p>
+            </div>
             <Select
-              {...controlProps('window-icon')}
-              value={tabManagerCompactIconMode}
-              onValueChange={(value) =>
-                onPreferenceChange({
-                  tabManagerCompactIconMode: value as 'active' | 'first',
-                })
-              }
+              {...controlProps(setting.control)}
+              value={setting.value}
+              onValueChange={setting.change}
             >
               <SelectTrigger
-                aria-label="Window identification"
-                className={`
-                  w-full text-base
-                  group-data-[wide=true]/options:w-[160px]
-                `}
+                aria-label={setting.label}
+                className="w-full text-base"
               >
-                <SelectValue placeholder="Select tab" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem className="text-base" value="active">
-                  Active tab
-                </SelectItem>
-                <SelectItem className="text-base" value="first">
-                  First tab
-                </SelectItem>
+                {setting.choices.map((choice) => (
+                  <SelectItem
+                    key={choice.value}
+                    className="text-base"
+                    value={choice.value}
+                  >
+                    {choice.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
+        ))}
       </div>
     </section>
   )

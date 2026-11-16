@@ -44,6 +44,7 @@ export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface PreferenceState extends SeasonalIconPreferences {
   tabManagerCompactIconMode: 'active' | 'first'
+  tabManagerWindowClickBehavior: 'view' | 'switch'
   theme: ThemeMode
   themePreset: ThemePresetId | null
   themeLightBackground: ThemeNeutralPalette
@@ -76,6 +77,7 @@ export const defaultThemePreferences = Object.freeze({
 
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   tabManagerCompactIconMode: 'active',
+  tabManagerWindowClickBehavior: 'view',
   ...defaultThemePreferences,
   seasonalIconsEnabled: true,
   seasonalIconSelections: DEFAULT_SEASONAL_ICON_SELECTIONS,
@@ -88,6 +90,8 @@ const isValidPreference = (key: string, value: unknown): boolean => {
     return value === null || curatedThemes.some((theme) => theme.id === value)
   if (key === 'tabManagerCompactIconMode')
     return value === 'active' || value === 'first'
+  if (key === 'tabManagerWindowClickBehavior')
+    return value === 'view' || value === 'switch'
   if (key === 'theme')
     return (
       typeof value === 'string' && ['system', 'light', 'dark'].includes(value)

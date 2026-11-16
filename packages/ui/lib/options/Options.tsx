@@ -25,7 +25,7 @@ export type OptionsShortcutView = {
   shortcut?: string
 }
 export type OptionsControl =
-  'background' | 'foreground' | 'accent' | 'window-icon'
+  'background' | 'foreground' | 'accent' | 'window-icon' | 'window-click'
 export type OptionsProps = {
   urlSeasonalIcons?: boolean
   openControl?: OptionsControl | null
@@ -186,6 +186,7 @@ export const Options = (props: OptionsProps) => {
               openSidePanelSettings={props.openSidePanelSettings}
             />
             <OptionsShortcuts
+              preferences={props.preferences}
               isMac={props.isMac}
               shortcutRows={props.shortcutRows}
               shortcutsLoading={props.shortcutsLoading}

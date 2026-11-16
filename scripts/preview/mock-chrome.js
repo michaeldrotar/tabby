@@ -275,7 +275,7 @@ import defaultFavicon from './default-favicon.png'
     sidePanel: {
       open: async ({ windowId }) => {
         find(windows, windowId)
-        browser.currentWindowId = windowId
+        if (browser.followOpenedWindow) browser.currentWindowId = windowId
       },
     },
     bookmarks: {

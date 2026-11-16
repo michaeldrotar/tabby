@@ -103,11 +103,26 @@ export type BrowserCommand =
       afterTabId?: number
     }
   | { type: 'navigate-tab'; tabId: number; url: string }
-  | { type: 'move-group'; groupId: number; windowId?: number }
+  | { type: 'move-group'; groupId: number; windowId?: number; follow?: boolean }
   | { type: 'tab-action'; action: TabAction; tabIds: readonly number[] }
-  | { type: 'move-tabs'; tabIds: readonly number[]; windowId?: number }
-  | { type: 'place-tabs'; tabIds: readonly number[]; destination: TabPlacement }
-  | { type: 'group-tabs'; tabIds: readonly number[]; groupId?: number }
+  | {
+      type: 'move-tabs'
+      tabIds: readonly number[]
+      windowId?: number
+      follow?: boolean
+    }
+  | {
+      type: 'place-tabs'
+      tabIds: readonly number[]
+      destination: TabPlacement
+      follow?: boolean
+    }
+  | {
+      type: 'group-tabs'
+      tabIds: readonly number[]
+      groupId?: number
+      follow?: boolean
+    }
   | { type: 'group-action'; action: GroupAction; groupIds: readonly number[] }
   | { type: 'move-tab'; tabId: number; direction: 'backward' | 'forward' }
   | {

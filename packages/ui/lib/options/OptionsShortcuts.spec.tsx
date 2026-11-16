@@ -8,6 +8,7 @@ import {
   screen,
   within,
 } from '@testing-library/react'
+import { useState } from 'react'
 import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { Options } from './Options'
 import type { OptionsProps } from './Options'
@@ -39,21 +40,32 @@ const shortcutRows: OptionsProps['shortcutRows'] = [
   },
 ]
 
-const renderOptions = (hash = '') => {
+const renderOptions = (
+  hash = '',
+  onPreferenceChange: OptionsProps['onPreferenceChange'] = vi.fn(),
+  isMac = false,
+) => {
   window.history.replaceState(null, '', `/${hash}`)
-  return render(
-    <Options
-      urlSeasonalIcons
-      preferences={defaultPreferences}
-      activeThemeMode="light"
-      isMac={false}
-      shortcutRows={shortcutRows}
-      logoUrl=""
-      onPreferenceChange={vi.fn()}
-      openShortcutsSettings={vi.fn()}
-      openSidePanelSettings={vi.fn()}
-    />,
-  )
+  const LiveOptions = () => {
+    const [preferences, setPreferences] = useState(defaultPreferences)
+    return (
+      <Options
+        urlSeasonalIcons
+        preferences={preferences}
+        activeThemeMode="light"
+        isMac={isMac}
+        shortcutRows={shortcutRows}
+        logoUrl=""
+        onPreferenceChange={(patch) => {
+          onPreferenceChange(patch)
+          setPreferences((current) => ({ ...current, ...patch }))
+        }}
+        openShortcutsSettings={vi.fn()}
+        openSidePanelSettings={vi.fn()}
+      />
+    )
+  }
+  return render(<LiveOptions />)
 }
 
 it('keeps options in a flat list ending with seasonal icons', () => {
@@ -72,12 +84,49 @@ it('keeps options in a flat list ending with seasonal icons', () => {
     'Seasonal icons',
   ])
   expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
+  const identification = screen.getByRole('combobox', {
+    name: 'Window identification',
+  })
+  expect(identification).toHaveTextContent('Active tab')
   expect(
-    screen.getByRole('combobox', { name: 'Window identification' }),
-  ).toHaveTextContent('Active tab')
+    identification.compareDocumentPosition(
+      screen.getByRole('combobox', { name: 'Window focus' }),
+    ) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy()
   expect(
     screen.getByRole('switch', { name: 'Show seasonal icons' }),
   ).toBeChecked()
+})
+
+it('updates the focus setting and its shortcut explanation together', () => {
+  const save = vi.fn()
+  renderOptions('', save)
+  const description = screen.getByText(
+    'Choose whether picking a window or moving tabs and groups switches windows. Hold Shift to do the opposite.',
+  )
+  expect(description).toBeVisible()
+  expect(
+    screen.getByText(
+      'Hold while choosing a move destination or dropping tabs to switch windows',
+    ),
+  ).toBeVisible()
+  fireEvent.click(screen.getByRole('combobox', { name: 'Window focus' }))
+  fireEvent.click(screen.getByRole('option', { name: 'Switch windows' }))
+  expect(save).toHaveBeenLastCalledWith({
+    tabManagerWindowClickBehavior: 'switch',
+  })
+  expect(
+    screen.getByText(
+      'Hold while choosing a move destination or dropping tabs to stay in this window',
+    ),
+  ).toBeVisible()
+  expect(
+    screen.queryByText(
+      'Hold while choosing a move destination or dropping tabs to switch windows',
+    ),
+  ).toBeNull()
+  expect(description).toBeVisible()
+  expect(screen.queryByText(/Command-click|Ctrl-click/)).toBeNull()
 })
 
 it('opens seasonal choices at a direct link and returns to the main list', () => {

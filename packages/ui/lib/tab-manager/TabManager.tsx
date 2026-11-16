@@ -17,6 +17,7 @@ import { getTabManagerFocusSelector } from './itemFocus'
 import { ModeTransitionEffect } from './ui/ModeTransitionEffect'
 import { TabManagerActionBar } from './ui/TabManagerActionBar'
 import { TabManagerShell } from './ui/TabManagerShell'
+import { useShiftHeld } from './ui/WindowFocusIndicator'
 import {
   WindowHeader,
   WindowIdentityEditor,
@@ -29,6 +30,7 @@ import type {
 } from '../BrowserTabList'
 import type {
   BrowserTabGroupColor,
+  PreferenceState,
   SelectionItemRef,
   TabPlacement,
 } from '@extension/core'
@@ -73,6 +75,8 @@ export type TabManagerActionOption = {
   id: string
   label: string
   subtitle?: string
+  destinationWindowId?: number
+  windowLabel?: string
   icon?: string
   iconUrl?: string
   color?: BrowserTabGroupColor
@@ -96,6 +100,8 @@ export type TabManagerAction = {
 }
 export type TabManagerViewModel = {
   windows: TabManagerWindowView[]
+  currentWindowId?: number
+  windowClickBehavior?: PreferenceState['tabManagerWindowClickBehavior']
   windowSource?: 'active' | 'first'
   windowPicker?: boolean
   editingWindow?: {
@@ -140,6 +146,7 @@ export type TabManagerIntent =
     }
   | { type: 'receive-moved-tabs'; windowId: number; tabIds: readonly number[] }
   | { type: 'view-window'; windowId: number }
+  | { type: 'choose-window'; windowId: number; alternate: boolean }
   | { type: 'open-window-picker' }
   | { type: 'dismiss-window-picker' }
   | { type: 'edit-window' }
@@ -278,6 +285,7 @@ export const TabManager = ({
   const surface = useSurface()
   const { canFocusInput } = useSurfaceInputOwner()
   const rootRef = useRef<HTMLDivElement>(null)
+  const shiftHeld = useShiftHeld(rootRef, model.status !== 'loading')
   const initialFocusApplied = useRef(false)
   const pendingKeyboardFocus = useRef(false)
   const pendingCreatedFocus = useRef<{
@@ -291,7 +299,7 @@ export const TabManager = ({
   const menuPosition = useRef<{ x: number; y: number } | null>(null)
   const menuReturnFocus = useRef<HTMLElement | null>(null)
   const live = !surface || surface.inputMode === 'live'
-  const drag = useTabDrag(rootRef, model, onIntent, live)
+  const drag = useTabDrag(rootRef, model, onIntent, live, shiftHeld)
   const restoreDrag = drag.restore
   const viewedWindow = model.windows.find(
     (window) => window.id === model.viewedWindowId,
@@ -1126,6 +1134,7 @@ export const TabManager = ({
         }
         actionBar={
           <TabManagerActionBar
+            shiftHeld={shiftHeld}
             model={model}
             onIntent={actionBarIntent}
             menuRef={menuRef}
@@ -1156,10 +1165,12 @@ export const TabManager = ({
                 <WindowIdentityEditor model={model} onIntent={send} />
               ) : pickerVisible ? (
                 <WindowPicker
+                  shiftHeld={shiftHeld}
                   model={model}
                   onIntent={send}
                   dragging={!!drag.view}
                   dropWindowId={drag.dropWindowId}
+                  draggedTabIds={drag.view?.tabIds}
                 />
               ) : model.status === 'error' ? (
                 <p role="alert" className="p-4">

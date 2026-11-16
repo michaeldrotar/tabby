@@ -81,7 +81,7 @@ test('places pin and unpin transitions at the pinned boundary, including tabs ta
   )
 })
 
-test('switches Chrome windows, keeps selection local, and transitions right-click actions beside the cursor and toggles the menu button', async ({
+test('browses windows, keeps selection local, and transitions right-click actions beside the cursor and toggles the menu button', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 480, height: 640 })
@@ -94,11 +94,6 @@ test('switches Chrome windows, keeps selection local, and transitions right-clic
   const choose = async (id: number) => {
     await switcher.click()
     await page.locator(`[data-window-choice="${id}"]`).click()
-    await expect
-      .poll(() =>
-        page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
-      )
-      .toBe(id)
   }
   await choose(2)
   await expect(switcher).toContainText('Reading room')
@@ -230,9 +225,14 @@ test('moves between windows in the background and follows Shift-click or Shift+E
   await (
     await moveMenu(row(5), 'Move 1 tab to window', /^Reading room/)
   ).click()
-  await expect(row(5)).toHaveCount(0)
-  await expect(row(6)).toBeVisible()
+  await expect(row(5)).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+    'Reading room',
+  )
   expect(await focusedWindow()).toBe(1)
+  await page.locator('[data-window-picker-trigger]').click()
+  await page.locator('[data-window-choice="1"]').click()
+  await expect(row(6)).toBeVisible()
 
   await (
     await moveMenu(row(6), 'Move 1 tab to window', /^Reading room/)
@@ -342,7 +342,7 @@ test('moves a whole group through a submenu and closes duplicates in other windo
   await page.keyboard.press('ArrowRight')
   await expect(destinations).toBeVisible()
   await destinations.getByRole('menuitem', { name: /New window/i }).click()
-  await expect(row(2)).toHaveCount(0)
+  await expect(row(2)).toHaveAttribute('aria-selected', 'true')
   const moved = await page.evaluate(async () => ({
     group: await chrome.tabGroups.get(10),
     tabs: (await chrome.tabs.query({ groupId: 10 })).map((tab) => tab.id),
@@ -759,4 +759,265 @@ test('copies selected URLs and confirms the clipboard count', async ({
   await expect(
     page.locator('[data-tab-option][aria-selected="true"]'),
   ).toHaveCount(3)
+})
+
+test.describe('cross-window group destinations', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      groups: [
+        {
+          id: 20,
+          windowId: 2,
+          title: 'Reading queue',
+          color: 'green',
+          collapsed: false,
+        },
+        ...browser.groups,
+      ],
+      tabs: browser.tabs.map((tab) =>
+        tab.id === 7 ? { ...tab, groupId: 20 } : tab,
+      ),
+    },
+  })
+  test('orders and labels groups and previews the inverse focus action with Shift', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 480, height: 640 })
+    await page.goto('/tab-manager/index.html')
+    const row = (id: number) =>
+      page.locator(`[data-tab-id="${id}"] [data-tab-option]`)
+    const groupMenu = async (id: number) => {
+      await row(id).click({ button: 'right' })
+      await page
+        .getByRole('menuitem', { name: 'Group 1 tab', exact: true })
+        .click()
+      return page.getByRole('menu', { name: 'Group 1 tab', exact: true })
+    }
+    const menu = await groupMenu(5)
+    const choices = menu
+      .locator('[data-action-id]')
+      .filter({ hasNotText: 'Back' })
+    expect(
+      await choices.evaluateAll((items) =>
+        items.map((item) => item.getAttribute('data-action-id')),
+      ),
+    ).toEqual(['10', '20', 'new'])
+    const remote = menu.locator('[data-action-id="20"]')
+    await expect(remote).toContainText('In Reading room')
+    await expect(menu.locator('[data-action-id="10"]')).not.toContainText(
+      'In Tabby',
+    )
+    expect(
+      (await menu.locator('[data-action-id="10"]').boundingBox())!.height,
+    ).toBe((await remote.boundingBox())!.height)
+    expect(
+      (await menu.locator('[data-action-id="new"]').boundingBox())!.height,
+    ).toBe((await remote.boundingBox())!.height)
+    await remote.hover()
+    const count = remote.getByText('1', { exact: true })
+    const restingCount = await count.boundingBox()
+    await page.keyboard.down('Shift')
+    await expect(
+      remote.getByRole('img', { name: 'Switch windows', exact: true }),
+    ).toBeVisible()
+    const arrow = await remote
+      .locator('[data-window-modifier-action]')
+      .boundingBox()
+    const shiftedCount = await count.boundingBox()
+    expect(arrow!.x + arrow!.width).toBeLessThan(shiftedCount!.x)
+    expect(Math.abs(restingCount!.x - shiftedCount!.x)).toBeLessThan(1)
+    await page.keyboard.press('ArrowUp')
+    await expect(menu.locator('[data-action-id="10"]')).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(remote).toBeFocused()
+    await expect(
+      remote.getByRole('img', { name: 'Switch windows', exact: true }),
+    ).toBeVisible()
+    await page.screenshot({
+      path: '../../test-results/group-destination-shift-480.png',
+    })
+    await page.keyboard.up('Shift')
+    await expect(remote.locator('[data-window-modifier-action]')).toHaveCount(0)
+    await remote.click()
+    await expect(row(5)).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+      'Reading room',
+    )
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(1)
+    await page.locator('[data-window-picker-trigger]').click()
+    await page.locator('[data-window-choice="1"]').click()
+    await page.evaluate(async () => {
+      const key = 'preference-storage-key'
+      const value = (await chrome.storage.local.get(key))[key]
+      await chrome.storage.local.set({
+        [key]: { ...value, tabManagerWindowClickBehavior: 'switch' },
+      })
+    })
+    await row(6).focus()
+    await page.keyboard.press('g')
+    const secondMenu = page.getByRole('menu', {
+      name: 'Group 1 tab',
+      exact: true,
+    })
+    await expect(secondMenu).toBeVisible()
+    await page.keyboard.down('Shift')
+    await expect(
+      secondMenu.locator('[data-window-modifier-action]'),
+    ).toHaveCount(0)
+    await page.keyboard.up('Shift')
+    const next = secondMenu.locator('[data-action-id="20"]')
+    await secondMenu.locator('[data-action-id="10"]').hover()
+    await page.keyboard.press('ArrowDown')
+    await expect(next).toBeFocused()
+    await page.keyboard.down('Shift')
+    await expect(
+      next.getByRole('img', { name: 'Stay in this window', exact: true }),
+    ).toBeVisible()
+    await page.keyboard.press('Enter')
+    await page.keyboard.up('Shift')
+    await expect(row(6)).toHaveAttribute('aria-selected', 'true')
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(1)
+    await page.locator('[data-window-picker-trigger]').click()
+    await page.locator('[data-window-choice="1"]').click()
+    const follow = (await groupMenu(2)).locator('[data-action-id="20"]')
+    await follow.click()
+    await expect(row(2)).toHaveAttribute('aria-selected', 'true')
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(2)
+    expect(
+      await page.evaluate(async () => (await chrome.tabs.get(2)).groupId),
+    ).toBe(20)
+    await row(7).click({ button: 'right' })
+    await page
+      .getByRole('menuitem', { name: 'Move 1 tab to window', exact: true })
+      .click()
+    const newWindow = page.locator('[data-action-id="new"]')
+    await newWindow.hover()
+    await page.keyboard.down('Shift')
+    await expect(
+      newWindow.getByRole('img', { name: 'Stay in this window', exact: true }),
+    ).toBeVisible()
+    await page.keyboard.press('ArrowUp')
+    await expect(page.locator('[data-action-id="12"]')).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(newWindow).toBeFocused()
+    await expect(
+      newWindow.getByRole('img', { name: 'Stay in this window', exact: true }),
+    ).toBeVisible()
+    await page.keyboard.up('Shift')
+  })
+})
+
+test.describe('moving the hosting window’s final tabs', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      windows: browser.windows.slice(0, 2),
+      groups: [],
+      tabs: browser.tabs.filter((tab) => [5, 7].includes(tab.id)),
+      preferences: { tabManagerWindowClickBehavior: 'switch' },
+    },
+  })
+  test('shows the follow arrow and follows a closing-window move even with Shift', async ({
+    page,
+  }) => {
+    await page.goto('/tab-manager/index.html')
+    await page
+      .locator('[data-tab-id="5"] [data-tab-option]')
+      .click({ button: 'right' })
+    await page
+      .getByRole('menuitem', { name: 'Move 1 tab to window', exact: true })
+      .click()
+    const destination = page.locator('[data-action-id="new"]')
+    await destination.hover()
+    await page.keyboard.down('Shift')
+    await expect(
+      destination.getByRole('img', { name: 'Switch windows', exact: true }),
+    ).toBeVisible()
+    await destination.click({ modifiers: ['Shift'] })
+    await page.keyboard.up('Shift')
+    const movedWindow = await page.evaluate(
+      async () => (await chrome.tabs.get(5)).windowId,
+    )
+    expect(movedWindow).not.toBe(1)
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(movedWindow)
+    await expect(
+      page.locator('[data-tab-id="5"] [aria-selected="true"]'),
+    ).toBeVisible()
+  })
+})
+
+test.describe('emptying a window shown from another panel', () => {
+  test.use({
+    browserData: {
+      ...browser,
+      followOpenedWindow: false,
+      groups: [
+        {
+          id: 30,
+          windowId: 3,
+          title: 'Destination',
+          color: 'pink',
+          collapsed: true,
+        },
+      ],
+      tabs: browser.tabs
+        .filter((tab) => tab.windowId !== 2 || tab.id === 7)
+        .map((tab) => (tab.id === 103 ? { ...tab, groupId: 30 } : tab)),
+      preferences: { tabManagerWindowClickBehavior: 'switch' },
+    },
+  })
+  test('selects and focuses the destination after grouping the final remote tab', async ({
+    page,
+  }) => {
+    await page.goto('/tab-manager/index.html')
+    await page.locator('[data-window-picker-trigger]').click()
+    await page
+      .locator('[data-window-choice="2"]')
+      .click({ modifiers: ['Shift'] })
+    await page
+      .locator('[data-tab-id="7"] [data-tab-option]')
+      .click({ button: 'right' })
+    await page
+      .getByRole('menuitem', { name: 'Group 1 tab', exact: true })
+      .click()
+    const destination = page.locator('[data-action-id="30"]')
+    await destination.hover()
+    await page.keyboard.down('Shift')
+    await expect(
+      destination.getByRole('img', { name: 'Switch windows', exact: true }),
+    ).toBeVisible()
+    await destination.click({ modifiers: ['Shift'] })
+    await page.keyboard.up('Shift')
+    await expect(page.locator('[data-window-picker-trigger]')).toContainText(
+      'Design explorations',
+    )
+    await expect(
+      page.locator('[data-tab-id="7"] [data-tab-option]'),
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(
+      await page.evaluate(
+        async () => (await chrome.windows.getLastFocused()).id,
+      ),
+    ).toBe(3)
+    expect(
+      await page.evaluate(async () => (await chrome.tabs.get(7)).groupId),
+    ).toBe(30)
+  })
 })

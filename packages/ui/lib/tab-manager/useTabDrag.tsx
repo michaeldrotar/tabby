@@ -8,28 +8,17 @@ import {
   useRef,
   useState,
 } from 'react'
+import { toTabManagerSnapshot } from './tabManagerSnapshot'
+import {
+  followsMoveWithShift,
+  isCrossWindowMove,
+  WindowFocusIndicator,
+} from './ui/WindowFocusIndicator'
 import type { TabManagerIntent, TabManagerViewModel } from './TabManager'
 import type { BrowserSnapshot, TabPlacement } from '@extension/core'
 import type { PointerEvent, RefObject } from 'react'
 
 const REVEAL_DELAY = 780
-const toSnapshot = (
-  windows: TabManagerViewModel['windows'],
-): BrowserSnapshot => ({
-  state: 'loaded',
-  revision: 0,
-  windows,
-  tabs: windows.flatMap((window) =>
-    window.tabs.map((tab, index) => ({ ...tab, windowId: window.id, index })),
-  ),
-  groups: windows.flatMap((window) =>
-    window.groups.map((group) => ({
-      ...group,
-      windowId: window.id,
-      color: group.color ?? 'grey',
-    })),
-  ),
-})
 type DragView = {
   tabIds: number[]
   title: string
@@ -68,8 +57,12 @@ export const useTabDrag = (
   model: TabManagerViewModel,
   onIntent: (intent: TabManagerIntent) => void | Promise<void>,
   enabled: boolean,
+  shiftHeld: boolean,
 ) => {
-  const snapshot = useMemo(() => toSnapshot(model.windows), [model.windows])
+  const snapshot = useMemo(
+    () => toTabManagerSnapshot(model.windows),
+    [model.windows],
+  )
   const latest = useRef({ model, snapshot, onIntent, enabled, root })
   useLayoutEffect(() => {
     latest.current = { model, snapshot, onIntent, enabled, root }
@@ -78,6 +71,9 @@ export const useTabDrag = (
   const suppressClick = useRef(false)
   const [view, setView] = useState<DragView | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [dropTargetWindow, setDropTargetWindow] = useState<
+    number | 'new' | null
+  >(null)
   const [dropWindowId, setDropWindowId] = useState<number | 'new' | null>(null)
   const [revealing, setRevealing] = useState<string | null>(null)
   const [settlingExpanded, setSettlingExpanded] = useState<number[]>([])
@@ -133,6 +129,7 @@ export const useTabDrag = (
         setView(null)
         setRevealing(null)
         setDropWindowId(null)
+        setDropTargetWindow(null)
         setFeedback('')
         element.style.removeProperty('user-select')
         element.style.removeProperty('cursor')
@@ -436,6 +433,13 @@ export const useTabDrag = (
         }
       }
       setFeedback(current.drop?.reason ?? '')
+      setDropTargetWindow(
+        current.drop && !current.drop.reason
+          ? (current.drop.destination?.windowId ??
+              current.drop.windowId ??
+              'new')
+          : null,
+      )
       setDropWindowId(hoveredWindowId ?? null)
       if (current.hoverKey !== hoverKey) {
         current.hoverKey = hoverKey
@@ -713,7 +717,27 @@ export const useTabDrag = (
                 text-foreground shadow-lg
               `}
             >
-              <div className="truncate font-medium">{view.title}</div>
+              <div className="flex items-center gap-2 font-medium">
+                <span className="truncate">{view.title}</span>
+                {view.mode === 'tabs' &&
+                  shiftHeld &&
+                  dropTargetWindow !== null &&
+                  isCrossWindowMove(
+                    model,
+                    dropTargetWindow === 'new' ? undefined : dropTargetWindow,
+                    view.tabIds,
+                  ) && (
+                    <WindowFocusIndicator
+                      follow={followsMoveWithShift(
+                        model,
+                        dropTargetWindow === 'new'
+                          ? undefined
+                          : dropTargetWindow,
+                        view.tabIds,
+                      )}
+                    />
+                  )}
+              </div>
               {view.description ? (
                 <div className="truncate text-xs text-muted">
                   {view.description}

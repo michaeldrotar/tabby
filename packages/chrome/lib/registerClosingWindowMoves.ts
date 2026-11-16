@@ -5,12 +5,18 @@ import type { BrowserCommand } from '@extension/core/browser'
 
 type MoveCommand = Extract<
   BrowserCommand,
-  { type: 'move-tabs' | 'move-group' | 'place-tabs' }
+  { type: 'move-tabs' | 'move-group' | 'place-tabs' | 'group-tabs' }
 >
 const isId = (id: unknown): id is number =>
   typeof id === 'number' && Number.isSafeInteger(id) && id >= 0
 const isMove = (value: unknown): value is MoveCommand => {
   if (!value || typeof value !== 'object' || !('type' in value)) return false
+  if (
+    'follow' in value &&
+    value.follow !== undefined &&
+    typeof value.follow !== 'boolean'
+  )
+    return false
   if (value.type === 'move-group')
     return (
       'groupId' in value &&
@@ -26,6 +32,12 @@ const isMove = (value: unknown): value is MoveCommand => {
     !value.tabIds.every(isId)
   )
     return false
+  if (value.type === 'group-tabs')
+    return (
+      !('groupId' in value) ||
+      value.groupId === undefined ||
+      isId(value.groupId)
+    )
   if (value.type === 'move-tabs')
     return (
       !('windowId' in value) ||
@@ -82,7 +94,7 @@ export const registerClosingWindowMoves = (api: typeof chrome) => {
           const first = backend
             .getSnapshot()
             .tabs.find((tab) => tab.id === movedIds[0])
-          if (outcome.status === 'success' && first) {
+          if (outcome.status === 'success' && first && command.follow) {
             const ids = new Set(movedIds)
             const groups = new Set(
               backend

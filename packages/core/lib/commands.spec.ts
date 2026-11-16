@@ -7,6 +7,7 @@ import {
   planGroupMove,
   planTabCreation,
   planTabMove,
+  willTransferCloseWindow,
 } from './commands'
 import type { BrowserSnapshot } from './browser'
 
@@ -199,4 +200,49 @@ it('allows grouping into another normal window and rejects incompatible destinat
   expect(getCommandBlockReason(command, snapshot)).toContain(
     'no longer available',
   )
+})
+
+it('detects transfers that empty a window, including cross-window grouping', () => {
+  const data = {
+    ...snapshot,
+    groups: [
+      ...snapshot.groups,
+      { id: 30, windowId: 2, color: 'red' as const },
+    ],
+  }
+  const all = snapshot.tabs.map((tab) => tab.id)
+  expect(
+    willTransferCloseWindow({ type: 'move-tabs', tabIds: all }, data, 1),
+  ).toBe(true)
+  expect(
+    willTransferCloseWindow(
+      { type: 'group-tabs', tabIds: all, groupId: 30 },
+      data,
+      1,
+    ),
+  ).toBe(true)
+  expect(
+    willTransferCloseWindow({ type: 'group-tabs', tabIds: all }, data, 1),
+  ).toBe(false)
+  expect(
+    willTransferCloseWindow(
+      { type: 'place-tabs', tabIds: [2], destination: { windowId: 2 } },
+      data,
+      1,
+    ),
+  ).toBe(false)
+  expect(
+    willTransferCloseWindow(
+      { type: 'move-tabs', tabIds: all, windowId: 1 },
+      data,
+      1,
+    ),
+  ).toBe(false)
+  expect(
+    willTransferCloseWindow(
+      { type: 'move-tabs', tabIds: all, windowId: 2 },
+      data,
+      3,
+    ),
+  ).toBe(false)
 })
