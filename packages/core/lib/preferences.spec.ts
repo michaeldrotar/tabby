@@ -11,6 +11,7 @@ describe('preferences', () => {
       normalizePreferences({
         theme: 'dark',
         tabManagerCompactIconMode: 'first',
+        tabManagerWindowClickBehavior: 'switch',
         themeDarkAccent: 'invalid',
         themeLightAccentStrength: 50,
         themeDarkAccentStrength: 50,
@@ -20,9 +21,14 @@ describe('preferences', () => {
       ...defaultPreferences,
       theme: 'dark',
       tabManagerCompactIconMode: 'first',
+      tabManagerWindowClickBehavior: 'switch',
       themeLightForeground: 'mist',
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
+    expect(
+      normalizePreferences({ tabManagerWindowClickBehavior: 'invalid' })
+        .tabManagerWindowClickBehavior,
+    ).toBe('view')
   })
   it('applies valid patches without changing other fields and rejects invalid edits', () => {
     expect(

@@ -66,7 +66,11 @@ export const TabManagerExperience = ({
   )
   return (
     <TabManager
-      model={model}
+      model={{
+        ...model,
+        currentWindowId: host?.getCurrentWindowId?.(),
+        windowClickBehavior: preferenceState.tabManagerWindowClickBehavior,
+      }}
       onIntent={controller.dispatch}
       focusOnMount={focusOnMount}
     />

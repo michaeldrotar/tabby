@@ -73,10 +73,6 @@ export const createChromeTabManagerHost = (
       })()
     }
   }
-  const onFocused = (windowId: number) => {
-    if (running && windowId === currentWindowId)
-      options.onWindowActivated(windowId)
-  }
   const requireRunning = () => {
     if (!running) throw new Error('The browser host is not running.')
   }
@@ -145,11 +141,7 @@ export const createChromeTabManagerHost = (
       running = true
       const operation = ++generation
       api.runtime.onMessage.addListener(onMessage)
-      api.windows.onFocusChanged.addListener(onFocused)
-      subscribers.push(
-        () => api.runtime.onMessage.removeListener(onMessage),
-        () => api.windows.onFocusChanged.removeListener(onFocused),
-      )
+      subscribers.push(() => api.runtime.onMessage.removeListener(onMessage))
       const current = await api.windows.getCurrent({})
       if (running && operation === generation) currentWindowId = current.id
       return running && operation === generation ? currentWindowId : undefined

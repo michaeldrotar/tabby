@@ -12,14 +12,60 @@ import type {
   CommandOutcome,
 } from './browser.js'
 
+export type TabTransferCommand = Extract<
+  BrowserCommand,
+  { type: 'move-tabs' | 'move-group' | 'place-tabs' | 'group-tabs' }
+>
+export const isTabTransfer = (
+  command: BrowserCommand,
+): command is TabTransferCommand =>
+  ['move-tabs', 'move-group', 'place-tabs', 'group-tabs'].includes(command.type)
+
+export const getTransferWindowId = (
+  command: TabTransferCommand,
+  snapshot: Pick<BrowserSnapshot, 'tabs' | 'groups'>,
+): number | undefined =>
+  command.type === 'place-tabs'
+    ? command.destination.windowId
+    : command.type === 'group-tabs'
+      ? command.groupId === undefined
+        ? snapshot.tabs.find((tab) => tab.id === command.tabIds[0])?.windowId
+        : snapshot.groups.find((group) => group.id === command.groupId)
+            ?.windowId
+      : command.windowId
+
+export const willTransferCloseWindow = (
+  command: TabTransferCommand,
+  snapshot: Pick<BrowserSnapshot, 'tabs' | 'groups'>,
+  windowId: number,
+): boolean => {
+  if (getTransferWindowId(command, snapshot) === windowId) return false
+  const tabs = snapshot.tabs.filter((tab) => tab.windowId === windowId)
+  return (
+    tabs.length > 0 &&
+    tabs.every((tab) =>
+      command.type === 'move-group'
+        ? tab.groupId === command.groupId
+        : command.tabIds.includes(tab.id),
+    )
+  )
+}
+
+export const willTransferCloseAnyWindow = (
+  command: TabTransferCommand,
+  snapshot: Pick<BrowserSnapshot, 'windows' | 'tabs' | 'groups'>,
+): boolean =>
+  snapshot.windows.some((window) =>
+    willTransferCloseWindow(command, snapshot, window.id),
+  )
+
 /** Keep transfer focus and selection in the source tab order. */
 export const getMovedTabIds = (
   command: BrowserCommand,
   snapshot: BrowserSnapshot,
   outcome: CommandOutcome,
 ): number[] => {
-  if (!['move-tabs', 'move-group', 'place-tabs'].includes(command.type))
-    return []
+  if (!isTabTransfer(command)) return []
   return snapshot.tabs
     .filter((tab) =>
       command.type === 'move-group'

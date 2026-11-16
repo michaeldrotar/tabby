@@ -4,9 +4,11 @@ import {
   getCommandBlockReason,
   getCommandTargetIds,
   getTabMoveUnits,
+  isTabTransfer,
   planGroupMove,
   planTabCreation,
   planTabMove,
+  willTransferCloseAnyWindow,
 } from '@extension/core/commands'
 import { planTabPlacement } from '@extension/core/tabPlacement'
 import { deserializeWindowIdentity } from '@extension/core/windowIdentityStorage'
@@ -317,28 +319,9 @@ export const createChromeBackend = (
     if (
       options.delegateClosingWindowMoves &&
       api.runtime?.sendMessage &&
-      (command.type === 'move-tabs' ||
-        command.type === 'move-group' ||
-        command.type === 'place-tabs')
+      isTabTransfer(command)
     ) {
-      const ids =
-        command.type === 'move-group'
-          ? snapshot.tabs
-              .filter((tab) => tab.groupId === command.groupId)
-              .map((tab) => tab.id)
-          : command.tabIds
-      const destination =
-        command.type === 'place-tabs'
-          ? command.destination.windowId
-          : command.windowId
-      const closesSource = snapshot.windows.some((window) => {
-        const tabs = snapshot.tabs.filter((tab) => tab.windowId === window.id)
-        return (
-          window.id !== destination &&
-          tabs.length > 0 &&
-          tabs.every((tab) => ids.includes(tab.id))
-        )
-      })
+      const closesSource = willTransferCloseAnyWindow(command, snapshot)
       if (closesSource) {
         const response = await api.runtime.sendMessage({
           type: 'tabby-move-from-closing-window',

@@ -12,7 +12,7 @@ type TabManagerShortcut = {
   label: string
 }
 
-const tabManagerShortcutGroups = (isMac: boolean) =>
+const tabManagerShortcutGroups = (isMac: boolean, followsWindows: boolean) =>
   [
     {
       title: 'Navigate',
@@ -50,8 +50,10 @@ const tabManagerShortcutGroups = (isMac: boolean) =>
           label,
         })),
         {
-          keys: 'Shift+click / Shift+Enter',
-          label: 'Move tabs and switch to the destination window',
+          keys: 'Shift',
+          label: followsWindows
+            ? 'Hold while choosing a move destination or dropping tabs to stay in this window'
+            : 'Hold while choosing a move destination or dropping tabs to switch windows',
         },
       ],
     },
@@ -103,9 +105,15 @@ const ShortcutValue = ({
   )
 }
 
-const LocalShortcuts = ({ isMac }: Pick<OptionsProps, 'isMac'>) => (
+const LocalShortcuts = ({
+  isMac,
+  preferences,
+}: Pick<OptionsProps, 'isMac' | 'preferences'>) => (
   <div className="grid gap-y-4">
-    {tabManagerShortcutGroups(isMac).map(({ title, shortcuts }) => (
+    {tabManagerShortcutGroups(
+      isMac,
+      preferences.tabManagerWindowClickBehavior === 'switch',
+    ).map(({ title, shortcuts }) => (
       <section key={title} aria-label={`${title} shortcuts`}>
         <h3 className="mb-2 text-xl font-medium text-foreground">{title}</h3>
         <dl className="shortcut-dividers">
@@ -207,13 +215,18 @@ const ChromeShortcuts = ({
 }
 
 export const OptionsShortcuts = ({
+  preferences,
   isMac,
   shortcutRows,
   shortcutsLoading = false,
   openShortcutsSettings,
 }: Pick<
   OptionsProps,
-  'isMac' | 'shortcutRows' | 'shortcutsLoading' | 'openShortcutsSettings'
+  | 'preferences'
+  | 'isMac'
+  | 'shortcutRows'
+  | 'shortcutsLoading'
+  | 'openShortcutsSettings'
 >) => {
   const globalHeadingId = useId()
   const tabManagerHeadingId = useId()
@@ -245,7 +258,7 @@ export const OptionsShortcuts = ({
           Tab manager shortcuts
         </h2>
         <div className="rounded-lg border border-border bg-card p-4">
-          <LocalShortcuts isMac={isMac} />
+          <LocalShortcuts isMac={isMac} preferences={preferences} />
         </div>
       </section>
     </div>

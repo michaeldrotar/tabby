@@ -6,6 +6,7 @@ import type { PreferenceState } from '@extension/core'
 
 type BrowserFixture = Omit<typeof browser, 'preferences'> & {
   preferences: Partial<PreferenceState>
+  followOpenedWindow?: boolean
 }
 
 export const test = base.extend<{ browserData: BrowserFixture }>({
@@ -25,7 +26,7 @@ export const test = base.extend<{ browserData: BrowserFixture }>({
       route.fulfill({
         contentType: 'text/javascript',
         body: `globalThis.__TABBY_PREVIEW__ = ${JSON.stringify({
-          browser: browserData,
+          browser: { followOpenedWindow: true, ...browserData },
           messages,
           platform: process.platform === 'darwin' ? 'mac' : 'linux',
         })};\n${mock}`,

@@ -220,7 +220,7 @@ describe('TabManager presentation', () => {
       </Surface>,
     )
     expect(
-      screen.getByRole('button', { name: 'Switch window: Research' }),
+      screen.getByRole('button', { name: 'Choose window: Research' }),
     ).toHaveTextContent('Research1 tab · 1 group')
     for (const name of ['Edit window', 'Search', 'Options', 'More actions'])
       expect(screen.getByRole('button', { name })).toBeEnabled()
@@ -229,7 +229,7 @@ describe('TabManager presentation', () => {
     ).not.toBeInTheDocument()
     expect(container.querySelector('[data-selection-summary]')).toBeNull()
     fireEvent.click(
-      screen.getByRole('button', { name: 'Switch window: Research' }),
+      screen.getByRole('button', { name: 'Choose window: Research' }),
     )
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'open-window-picker' })
   })
@@ -273,9 +273,20 @@ describe('TabManager presentation', () => {
     expect(screen.getByRole('button', { name: /^Personal/ })).toHaveFocus()
     fireEvent.click(document.activeElement!)
     expect(onIntent).toHaveBeenLastCalledWith({
-      type: 'activate-window',
+      type: 'choose-window',
       windowId: 2,
+      alternate: false,
     })
+    for (const modifier of ['shiftKey', 'metaKey', 'ctrlKey']) {
+      fireEvent.click(screen.getByRole('button', { name: /^Personal/ }), {
+        [modifier]: true,
+      })
+      expect(onIntent).toHaveBeenLastCalledWith({
+        type: 'choose-window',
+        windowId: 2,
+        alternate: modifier === 'shiftKey',
+      })
+    }
     fireEvent.keyDown(first, { key: 'Escape' })
     expect(onIntent).toHaveBeenLastCalledWith({ type: 'dismiss-window-picker' })
   })

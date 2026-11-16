@@ -164,6 +164,7 @@ const buildTabManagerActions = (
         label: 'Move tabs',
       },
       {
+        destinationWindowId: window.id,
         icon: identity.icon,
         iconUrl: identity.iconUrl,
         windowIconColor: identity.iconColor,
@@ -219,6 +220,11 @@ const buildTabManagerActions = (
       options: [
         ...snapshot.groups
           .filter((group) => !groupIds.has(group.id))
+          .toSorted(
+            (a, b) =>
+              Number(b.windowId === state.viewedWindowId) -
+              Number(a.windowId === state.viewedWindowId),
+          )
           .map((group, index) => {
             const command: BrowserCommand = {
               type: 'group-tabs',
@@ -233,6 +239,16 @@ const buildTabManagerActions = (
               { type: 'command', command, label: 'Group tabs' },
               {
                 color: group.color,
+                destinationWindowId: group.windowId,
+                ...(group.windowId !== state.viewedWindowId && {
+                  windowLabel: getWindowIdentity(
+                    snapshot.windows.find(
+                      (window) => window.id === group.windowId,
+                    ) ?? { id: group.windowId },
+                    snapshot.tabs,
+                    options.windowSource,
+                  ).title,
+                }),
                 subtitle: String(ids.length),
                 dividerBefore: index === 0,
                 disabled: Boolean(reason),
@@ -251,6 +267,7 @@ const buildTabManagerActions = (
           },
           {
             icon: 'Plus',
+            destinationWindowId: state.viewedWindowId ?? undefined,
             dividerBefore: true,
             disabled: Boolean(groupReason),
             disabledReason: groupReason,

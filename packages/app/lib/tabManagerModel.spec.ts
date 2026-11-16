@@ -465,6 +465,40 @@ describe('Tab Manager controller', () => {
     ])
   })
 
+  it.each([
+    { behavior: 'view', alternate: false, focused: 1, viewed: 2 },
+    { behavior: 'view', alternate: true, focused: 2, viewed: 1 },
+    { behavior: 'switch', alternate: false, focused: 2, viewed: 1 },
+    { behavior: 'switch', alternate: true, focused: 1, viewed: 2 },
+  ] as const)(
+    'chooses a window with default $behavior and alternate $alternate',
+    async ({ behavior, alternate, focused, viewed }) => {
+      const resources = setup()
+      await resources.preferences.set({
+        tabManagerWindowClickBehavior: behavior,
+      })
+      const controller = createTabManagerController({
+        ...resources,
+        host: {
+          getCurrentWindowId: () => 1,
+          openWindowTabManager: async () => {},
+        },
+      })
+      controller.dispatch({ type: 'open-window-picker' })
+      await controller.dispatch({
+        type: 'choose-window',
+        windowId: 2,
+        alternate,
+      })
+      expect(
+        resources.backend.getSnapshot().windows.find((window) => window.focused)
+          ?.id,
+      ).toBe(focused)
+      expect(resources.view.getState().viewedWindowId).toBe(viewed)
+      expect(resources.view.getState().windowPicker).toBe(false)
+    },
+  )
+
   it('clears ordinary row selection at creation controls and preserves explicit multiple selection', () => {
     const { backend, view, controller } = setup()
     const selected = () =>
@@ -494,6 +528,7 @@ describe('Tab Manager controller', () => {
     expect(selected()).toEqual([12])
     controller.dispatch({ type: 'open-window-picker' })
     controller.dispatch({ type: 'view-window', windowId: 1 })
+    expect(view.getState().windowPicker).toBe(false)
     expect(selected()).toEqual([12])
     controller.dispatch({ type: 'view-window', windowId: 2 })
     expect(selected()).toEqual([13])
@@ -643,7 +678,7 @@ describe('Tab Manager controller', () => {
     )
   })
 
-  it('retains only surviving source tabs after moves and retains grouped tabs after local actions', async () => {
+  it('selects moved tabs in their destination and retains failed moves for retry', async () => {
     for (const operation of ['move', 'partial-move', 'ungroup'] as const) {
       const resources = setup()
       const fixtures = createFixtureBuilder()
@@ -716,7 +751,7 @@ describe('Tab Manager controller', () => {
       expect(selection.tabIds).toEqual(
         new Set(
           operation === 'move'
-            ? [13]
+            ? [11, 12]
             : operation === 'partial-move'
               ? [12]
               : [11, 12],
@@ -727,7 +762,9 @@ describe('Tab Manager controller', () => {
         .getSnapshot()
         .tabs.filter((tab) => [11, 12].includes(tab.id))
       if (operation === 'move' || operation === 'partial-move') {
-        expect(view.getState().viewedWindowId).toBe(1)
+        expect(view.getState().viewedWindowId).toBe(
+          operation === 'move' ? 2 : 1,
+        )
         if (operation === 'move')
           expect(
             backend.getSnapshot().groups.find((group) => group.id === 5)
@@ -1392,7 +1429,7 @@ describe('complete Tab Manager actions', () => {
       optionId: '2',
     })
     expect(resources.backend.getSnapshot().groups).toEqual([
-      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: true },
+      { id: 5, windowId: 2, title: 'Research', color: 'red', collapsed: false },
       { id: 6, windowId: 2, title: 'Build', color: 'blue' },
     ])
     expect(
@@ -1714,14 +1751,22 @@ describe('Tab Manager identity replacement', () => {
 
 describe('moving follows the destination', () => {
   it.each([
-    { group: false, follow: false },
-    { group: false, follow: true },
-    { group: true, follow: false },
-    { group: true, follow: true },
+    { group: false, follow: false, defaultFollow: false },
+    { group: false, follow: true, defaultFollow: false },
+    { group: true, follow: false, defaultFollow: false },
+    { group: true, follow: true, defaultFollow: false },
+    { group: false, follow: false, defaultFollow: true },
+    { group: false, follow: true, defaultFollow: true },
+    { group: true, follow: false, defaultFollow: true },
+    { group: true, follow: true, defaultFollow: true },
   ])(
-    'moves between windows with group=$group and follow=$follow',
-    async ({ group, follow }) => {
+    'moves with group=$group, modifier=$follow, defaultFollow=$defaultFollow',
+    async ({ group, follow, defaultFollow }) => {
       const resources = setup()
+      await resources.preferences.set({
+        tabManagerWindowClickBehavior: defaultFollow ? 'switch' : 'view',
+      })
+      const follows = defaultFollow !== follow
       if (group)
         resources.backend.restoreSnapshot({
           ...resources.backend.getSnapshot(),
@@ -1752,11 +1797,11 @@ describe('moving follows the destination', () => {
       const snapshot = resources.backend.getSnapshot()
       const moved = snapshot.tabs.find((tab) => tab.id === 12)!
       expect(moved.windowId).not.toBe(1)
-      expect(resources.view.getState().viewedWindowId).toBe(1)
+      expect(resources.view.getState().viewedWindowId).toBe(moved.windowId)
       expect(snapshot.windows.find((window) => window.focused)?.id).toBe(
-        follow ? moved.windowId : 1,
+        follows ? moved.windowId : 1,
       )
-      if (follow)
+      if (follows)
         expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(
           moved.windowId,
           [12],
@@ -1764,7 +1809,7 @@ describe('moving follows the destination', () => {
       else {
         expect(openWindowTabManager).not.toHaveBeenCalled()
         expect(resources.view.getState().selection.selection.tabIds).toEqual(
-          new Set([11]),
+          new Set([12]),
         )
       }
       if (group)
@@ -1774,7 +1819,7 @@ describe('moving follows the destination', () => {
     },
   )
 
-  it('opens the destination with the moved selection while the source sidebar keeps its own window', async () => {
+  it('selects the destination in the source panel and opens its manager when following', async () => {
     for (const optionId of ['2', 'new']) {
       const resources = setup()
       const openWindowTabManager = vi.fn(async () => {
@@ -1811,7 +1856,7 @@ describe('moving follows the destination', () => {
         tab.windowId,
         [12],
       )
-      expect(resources.view.getState().viewedWindowId).toBe(1)
+      expect(resources.view.getState().viewedWindowId).toBe(tab.windowId)
       await controller.dispatch({
         type: 'receive-moved-tabs',
         windowId: tab.windowId,
@@ -1977,5 +2022,173 @@ describe('adjacent tab creation', () => {
     ).toEqual([11, created.id, 12])
     expect(created.active).toBe(true)
     expect(model().selectedTabIds).toEqual([created.id])
+  })
+})
+
+describe('group destinations and window focus', () => {
+  it.each([
+    { defaultFollow: false, shift: false },
+    { defaultFollow: false, shift: true },
+    { defaultFollow: true, shift: false },
+    { defaultFollow: true, shift: true },
+  ])(
+    'groups across windows with defaultFollow=$defaultFollow and Shift=$shift',
+    async ({ defaultFollow, shift }) => {
+      const resources = setup()
+      const initial = resources.backend.getSnapshot()
+      resources.backend.restoreSnapshot({
+        ...initial,
+        windows: initial.windows.map((window) =>
+          window.id === 2 ? { ...window, name: 'Reading' } : window,
+        ),
+        groups: [
+          {
+            id: 6,
+            windowId: 2,
+            title: 'Remote group',
+            color: 'red',
+            collapsed: true,
+          },
+          { id: 7, windowId: 1, title: 'Local group', color: 'blue' },
+        ],
+        tabs: initial.tabs.map((tab) =>
+          tab.id === 11 ? { ...tab, groupId: 7 } : tab,
+        ),
+      })
+      await resources.preferences.set({
+        tabManagerWindowClickBehavior: defaultFollow ? 'switch' : 'view',
+      })
+      const openWindowTabManager = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { getCurrentWindowId: () => 1, openWindowTabManager },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 12 },
+      })
+      const model = projectTabManager(
+        resources.backend.getSnapshot(),
+        resources.view.getState(),
+      )
+      const options = model.actions?.find(
+        (action) => action.id === 'group-selected-tabs',
+      )?.options
+      expect(options?.map((option) => option.id)).toEqual(['7', '6', 'new'])
+      expect(options?.[0]?.windowLabel).toBeUndefined()
+      expect(options?.[1]).toMatchObject({
+        windowLabel: 'Reading',
+        destinationWindowId: 2,
+      })
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: 'group-selected-tabs',
+        optionId: '6',
+        follow: shift,
+      })
+      const snapshot = resources.backend.getSnapshot()
+      expect(snapshot.tabs.find((tab) => tab.id === 12)).toMatchObject({
+        windowId: 2,
+        groupId: 6,
+      })
+      const follows = defaultFollow !== shift
+      expect(snapshot.windows.find((window) => window.focused)?.id).toBe(
+        follows ? 2 : 1,
+      )
+      if (follows) {
+        expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(2, [12])
+        expect(snapshot.groups.find((group) => group.id === 6)?.collapsed).toBe(
+          false,
+        )
+      } else expect(openWindowTabManager).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    { defaultFollow: false, shift: false, group: false },
+    { defaultFollow: true, shift: true, group: false },
+    { defaultFollow: false, shift: false, group: true },
+  ])(
+    'always follows when the hosting window closes: $defaultFollow / $shift / $group',
+    async ({ defaultFollow, shift, group }) => {
+      const resources = setup()
+      if (group)
+        resources.backend.restoreSnapshot({
+          ...resources.snapshot,
+          groups: [{ id: 6, windowId: 2, color: 'red' }],
+        })
+      await resources.preferences.set({
+        tabManagerWindowClickBehavior: defaultFollow ? 'switch' : 'view',
+      })
+      const openWindowTabManager = vi.fn(async () => {})
+      const controller = createTabManagerController({
+        ...resources,
+        host: { getCurrentWindowId: () => 1, openWindowTabManager },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 11 },
+      })
+      controller.dispatch({
+        type: 'select-item',
+        item: { type: 'tab', id: 12 },
+        toggle: true,
+      })
+      await controller.dispatch({
+        type: 'run-action',
+        actionId: group ? 'group-selected-tabs' : 'move-selected-tabs',
+        optionId: group ? '6' : 'new',
+        follow: shift,
+      })
+      const snapshot = resources.backend.getSnapshot()
+      const destination = snapshot.tabs.find((tab) => tab.id === 11)!.windowId
+      expect(destination).not.toBe(1)
+      expect(snapshot.windows.find((window) => window.focused)?.id).toBe(
+        destination,
+      )
+      expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(
+        destination,
+        [11, 12],
+      )
+    },
+  )
+
+  it('follows a group destination when a remote source window is emptied', async () => {
+    const resources = setup()
+    resources.backend.restoreSnapshot({
+      ...resources.snapshot,
+      windows: [
+        ...resources.snapshot.windows,
+        { id: 3, type: 'normal', incognito: false },
+      ],
+      groups: [{ id: 30, windowId: 3, color: 'green' }],
+    })
+    resources.view.setState({ viewedWindowId: 2 })
+    const tabs = resources.snapshot.tabs
+      .filter((tab) => tab.windowId === 2)
+      .map((tab) => tab.id)
+    const openWindowTabManager = vi.fn(async () => {})
+    const controller = createTabManagerController({
+      ...resources,
+      host: { getCurrentWindowId: () => 1, openWindowTabManager },
+    })
+    controller.dispatch({
+      type: 'select-item',
+      item: { type: 'tab', id: tabs[0]! },
+    })
+    await controller.dispatch({
+      type: 'run-action',
+      actionId: 'group-selected-tabs',
+      optionId: '30',
+    })
+    expect(
+      resources.backend.getSnapshot().windows.find((window) => window.focused)
+        ?.id,
+    ).toBe(3)
+    expect(resources.view.getState().viewedWindowId).toBe(3)
+    expect(resources.view.getState().selection.selection.tabIds).toEqual(
+      new Set(tabs),
+    )
+    expect(openWindowTabManager).toHaveBeenCalledExactlyOnceWith(3, tabs)
   })
 })

@@ -44,6 +44,11 @@ import { getGroupColorClasses } from '../../tab-group/tabGroupColors'
 import { useShouldReduceMotion } from '../../useShouldReduceMotion'
 import { cn } from '../../utils/cn'
 import { getTabManagerFocusSelector } from '../itemFocus'
+import {
+  followsMoveWithShift,
+  isCrossWindowMove,
+  WindowFocusIndicator,
+} from './WindowFocusIndicator'
 import { windowControlClass, WindowIcon } from './WindowNavigation'
 import type {
   TabManagerAction,
@@ -95,9 +100,13 @@ const menuClass =
 const OptionContent = ({
   option,
   windows,
+  groups,
+  focusIndicator,
 }: {
   option: TabManagerActionOption
   windows: boolean
+  groups: boolean
+  focusIndicator?: React.ReactNode
 }) => (
   <>
     <span className="shrink-0 text-muted">
@@ -121,7 +130,20 @@ const OptionContent = ({
         <ActionIcon name={option.icon} />
       )}
     </span>
-    <span className="min-w-0 flex-1 truncate text-left">{option.label}</span>
+    <span
+      className={cn(
+        'min-w-0 flex-1 text-left',
+        groups && 'flex min-h-9 flex-col justify-center',
+      )}
+    >
+      <span className="block truncate">{option.label}</span>
+      {option.windowLabel && (
+        <span className="block h-4 truncate text-xs text-muted">
+          In {option.windowLabel}
+        </span>
+      )}
+    </span>
+    {focusIndicator}
     {option.subtitle && (
       <span className="text-xs text-muted">{option.subtitle}</span>
     )}
@@ -200,12 +222,14 @@ const StableMenuContent = ({
 }
 
 export const TabManagerActionBar = ({
+  shiftHeld,
   model,
   onIntent,
   menuRef,
   menuPosition,
   returnFocus,
 }: {
+  shiftHeld: boolean
   model: TabManagerViewModel
   onIntent: (intent: TabManagerIntent) => void
   menuRef: RefObject<HTMLDivElement | null>
@@ -213,6 +237,13 @@ export const TabManagerActionBar = ({
   returnFocus: RefObject<HTMLElement | null>
 }) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const focusContext = model.actionPanel ?? model.actionMenu
+  type ActiveOption = { context: typeof focusContext; id: string } | null
+  const [hoveredOption, setHoveredOption] = useState<ActiveOption>(null)
+  const [focusedOption, setFocusedOption] = useState<ActiveOption>(null)
+  const activeOption =
+    (hoveredOption?.context === focusContext ? hoveredOption?.id : null) ??
+    (focusedOption?.context === focusContext ? focusedOption?.id : null)
   const focusSelector = getTabManagerFocusSelector(
     model.focusedItem,
     model.windowPicker,
@@ -341,6 +372,47 @@ export const TabManagerActionBar = ({
   ) => {
     const props = {
       'data-action-id': id,
+      onKeyDownCapture: (event: React.KeyboardEvent) => {
+        const navigation = ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(
+          event.key,
+        )
+        if (navigation) setHoveredOption(null)
+        if (
+          !navigation ||
+          !panel ||
+          !event.shiftKey ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey
+        )
+          return
+        const items = Array.from(
+          menuRef.current?.querySelectorAll<HTMLElement>(
+            '[role="menuitem"]:not(:disabled):not([data-disabled])',
+          ) ?? [],
+        )
+        const index = items.indexOf(event.currentTarget as HTMLElement)
+        if (index < 0) return
+        event.preventDefault()
+        event.stopPropagation()
+        const next =
+          event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? items.length - 1
+              : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+                items.length
+        items[next]?.focus()
+      },
+      onPointerMove: () =>
+        setHoveredOption((current) =>
+          current?.context === focusContext && current?.id === id
+            ? current
+            : { context: focusContext, id },
+        ),
+      onPointerLeave: () => setHoveredOption(null),
+      onFocus: () => setFocusedOption({ context: focusContext, id }),
+      onBlur: () => setFocusedOption(null),
       'aria-keyshortcuts': settings.shortcut?.replace(' / ', ' '),
       title: settings.reason,
       disabled: settings.disabled,
@@ -407,11 +479,6 @@ export const TabManagerActionBar = ({
         () => onIntent({ type: 'dismiss-action-panel' }),
         { panel: true },
       )}
-      {panel.panel === 'windows' && (
-        <p className="px-3 py-2 text-xs text-muted">
-          Hold Shift to move and switch.
-        </p>
-      )}
       {panel.options?.map((option) => (
         <Fragment key={option.id}>
           {option.dividerBefore && (
@@ -422,6 +489,21 @@ export const TabManagerActionBar = ({
             <OptionContent
               option={option}
               windows={panel.panel === 'windows'}
+              groups={panel.panel === 'groups'}
+              focusIndicator={
+                shiftHeld &&
+                activeOption === option.id &&
+                !option.disabled &&
+                (panel.panel === 'windows' || panel.panel === 'groups') &&
+                isCrossWindowMove(model, option.destinationWindowId) ? (
+                  <WindowFocusIndicator
+                    follow={followsMoveWithShift(
+                      model,
+                      option.destinationWindowId,
+                    )}
+                  />
+                ) : null
+              }
             />,
             (follow) => run(panel, option.id, follow),
             {

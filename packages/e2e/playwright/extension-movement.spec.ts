@@ -117,6 +117,10 @@ test('drops a selection on another Chrome window and follows its first tab after
   await expect(page.locator('[data-window-picker]')).toBeVisible()
   await expect(page.locator('[data-tab-pane]')).toHaveCount(0)
   await page.keyboard.down('Shift')
+  await page.mouse.move(body.x + 31, body.y + body.height / 2)
+  await expect(
+    destination.getByRole('img', { name: 'Switch windows', exact: true }),
+  ).toBeVisible()
   await page.mouse.up()
   await page.keyboard.up('Shift')
   await expect
@@ -135,7 +139,7 @@ test('drops a selection on another Chrome window and follows its first tab after
     ),
   ).toEqual([data.targetTabId, data.sourceId, data.secondId])
   await expectDestination(page, data.targetId, [data.sourceId, data.secondId])
-  await expect(source).toHaveCount(0)
+  await expect(source).toHaveAttribute('aria-selected', 'true')
   await expect
     .poll(() =>
       page.evaluate(
@@ -152,59 +156,80 @@ test('drops a selection on another Chrome window and follows its first tab after
   ).toBe(data.sourceWindowId)
 })
 
-test('follows a final-tab move after Chrome closes the originating window', async ({
-  page,
-  context,
-  extensionId,
-}) => {
-  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
-  for (const other of context.pages()) if (other !== page) await other.close()
-  const targetId = await page.evaluate(
-    async () =>
-      (
-        await chrome.windows.create({
-          url: 'https://example.com/destination',
-          focused: false,
-        })
-      ).id!,
-  )
-  const sourceId = await page.evaluate(
-    async () => (await chrome.tabs.getCurrent())!.id!,
-  )
-  const source = page.locator(`[data-tab-id="${sourceId}"] [data-tab-option]`)
-  await expect(source).toBeVisible()
-  await source.click({ button: 'right' })
-  await page
-    .getByRole('menuitem', { name: 'Move 1 tab to window', exact: true })
-    .click()
-  await page
-    .getByRole('menu', { name: 'Move 1 tab to window' })
-    .locator(`[data-action-id="${targetId}"]`)
-    .click()
-  const worker = context.serviceWorkers()[0]!
-  await expect
-    .poll(() =>
-      worker.evaluate(
-        async (id) => (await chrome.tabs.get(id)).windowId,
-        sourceId,
-      ),
+for (const grouping of [false, true])
+  test(`follows a final-tab move after Chrome closes the originating window (group=${grouping})`, async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+    for (const other of context.pages()) if (other !== page) await other.close()
+    const targetId = await page.evaluate(
+      async () =>
+        (
+          await chrome.windows.create({
+            url: 'https://example.com/destination',
+            focused: false,
+          })
+        ).id!,
     )
-    .toBe(targetId)
-  await expect
-    .poll(() =>
-      worker.evaluate(async () => (await chrome.windows.getLastFocused()).id),
+    const targetGroupId = grouping
+      ? await page.evaluate(async (windowId) => {
+          const tabs = await chrome.tabs.query({ windowId })
+          const groupId = await chrome.tabs.group({
+            tabIds: tabs[0]!.id!,
+            createProperties: { windowId },
+          })
+          const key = 'preference-storage-key'
+          const saved = (await chrome.storage.local.get(key))[key]
+          await chrome.storage.local.set({
+            [key]: { ...saved, tabManagerWindowClickBehavior: 'switch' },
+          })
+          return groupId
+        }, targetId)
+      : undefined
+    const sourceId = await page.evaluate(
+      async () => (await chrome.tabs.getCurrent())!.id!,
     )
-    .toBe(targetId)
-  expect(
-    (
-      await worker.evaluate(async () =>
-        chrome.windows.getAll({ windowTypes: ['normal'] }),
+    const source = page.locator(`[data-tab-id="${sourceId}"] [data-tab-option]`)
+    await expect(source).toBeVisible()
+    await source.click({ button: 'right' })
+    await page
+      .getByRole('menuitem', {
+        name: grouping ? 'Group 1 tab' : 'Move 1 tab to window',
+        exact: true,
+      })
+      .click()
+    await page
+      .getByRole('menu', {
+        name: grouping ? 'Group 1 tab' : 'Move 1 tab to window',
+      })
+      .locator(`[data-action-id="${targetGroupId ?? targetId}"]`)
+      .click({ modifiers: grouping ? ['Shift'] : [] })
+    const worker = context.serviceWorkers()[0]!
+    await expect
+      .poll(() =>
+        worker.evaluate(
+          async (id) => (await chrome.tabs.get(id)).windowId,
+          sourceId,
+        ),
       )
-    ).map((window) => window.id),
-  ).toEqual([targetId])
-  await expect(source).toHaveAttribute('aria-selected', 'true')
-  await expect(source).toBeInViewport()
-})
+      .toBe(targetId)
+    await expect
+      .poll(() =>
+        worker.evaluate(async () => (await chrome.windows.getLastFocused()).id),
+      )
+      .toBe(targetId)
+    expect(
+      (
+        await worker.evaluate(async () =>
+          chrome.windows.getAll({ windowTypes: ['normal'] }),
+        )
+      ).map((window) => window.id),
+    ).toEqual([targetId])
+    await expect(source).toHaveAttribute('aria-selected', 'true')
+    await expect(source).toBeInViewport()
+  })
 
 test('opens the manager after a long drag creates a new Chrome window', async ({
   page,
@@ -324,7 +349,9 @@ for (const follow of [false, true])
     if (follow)
       await expectDestination(page, data.target, [data.first, data.second])
     else {
-      await expect(page.locator(`[data-tab-id="${data.first}"]`)).toHaveCount(0)
+      await expect(
+        page.locator(`[data-tab-id="${data.first}"] [data-tab-option]`),
+      ).toHaveAttribute('aria-selected', 'true')
       expect(
         await page.evaluate(
           async () => (await chrome.windows.getLastFocused()).id,
@@ -414,9 +441,90 @@ test('groups selected tabs into an existing group in another Chrome window', asy
         pinned: false,
       })),
     )
-  await expect(row(data.first)).toHaveCount(0)
-  await expect(row(data.second)).toHaveCount(0)
+  await expect(row(data.first)).toHaveAttribute('aria-selected', 'true')
+  await expect(row(data.second)).toHaveAttribute('aria-selected', 'true')
   expect(
     await page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
   ).toBe(data.source)
+})
+
+test('updates move behavior and shortcut guidance from the window focus setting', async ({
+  page,
+  extensionId,
+}) => {
+  await page.goto(`chrome-extension://${extensionId}/options/index.html`)
+  const setting = page.getByRole('combobox', {
+    name: 'Window focus',
+    exact: true,
+  })
+  await setting.click()
+  await page
+    .getByRole('option', { name: 'Switch windows', exact: true })
+    .click()
+  await expect(
+    page.getByText(
+      'Hold while choosing a move destination or dropping tabs to stay in this window',
+    ),
+  ).toBeVisible()
+  await page.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  const data = await page.evaluate(async () => {
+    const sourceWindowId = (await chrome.windows.getCurrent()).id!
+    const source = await chrome.tabs.create({
+      windowId: sourceWindowId,
+      url: 'https://example.com/stay',
+      active: false,
+    })
+    const second = await chrome.tabs.create({
+      windowId: sourceWindowId,
+      url: 'https://example.com/follow',
+      active: false,
+    })
+    const target = await chrome.windows.create({
+      url: 'https://example.com/destination',
+      focused: false,
+    })
+    return {
+      sourceWindowId,
+      sourceId: source.id!,
+      secondId: second.id!,
+      targetId: target.id!,
+    }
+  })
+  for (const [tabId, modifiers] of [
+    [data.sourceId, ['Shift']],
+    [data.secondId, []],
+  ] as const) {
+    const source = page.locator(`[data-tab-id="${tabId}"] [data-tab-option]`)
+    await source.click({ button: 'right' })
+    await page
+      .getByRole('menuitem', { name: 'Move 1 tab to window', exact: true })
+      .click()
+
+    await page
+      .getByRole('menu', { name: 'Move 1 tab to window' })
+      .locator(`[data-action-id="${data.targetId}"]`)
+      .click({ modifiers: [...modifiers] })
+    await expect
+      .poll(() =>
+        page.evaluate(
+          async (id) => (await chrome.tabs.get(id)).windowId,
+          tabId,
+        ),
+      )
+      .toBe(data.targetId)
+    if (tabId === data.sourceId) {
+      await expect(source).toHaveAttribute('aria-selected', 'true')
+      expect(
+        await page.evaluate(
+          async () => (await chrome.windows.getLastFocused()).id,
+        ),
+      ).toBe(data.sourceWindowId)
+      await page.locator('[data-window-picker-trigger]').click()
+      await page
+        .locator(`[data-window-choice="${data.sourceWindowId}"]`)
+        .click()
+    } else {
+      await expectDestination(page, data.targetId, [tabId])
+    }
+  }
 })

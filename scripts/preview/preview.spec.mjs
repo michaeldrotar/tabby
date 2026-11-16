@@ -78,6 +78,8 @@ describe('full application preview', () => {
     expect((await chrome.windows.getLastFocused()).id).toBe(
       browser.windows.at(-1).id,
     )
+    await chrome.sidePanel.open({ windowId: browser.windows.at(-1).id })
+    expect((await chrome.windows.getCurrent()).id).toBe(browser.currentWindowId)
     expect(await chrome.tabGroups.query()).toEqual(browser.groups)
     expect(chrome.i18n.getMessage('nTabs', '3')).toBe('3 tabs')
     expect(
