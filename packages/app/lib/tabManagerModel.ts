@@ -517,11 +517,10 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     if (command.type === 'create-tab' && sameInteraction) {
       const id = outcome.createdTabIds?.[0]
       const tab = backend.getSnapshot().tabs.find((tab) => tab.id === id)
-      if (tab) {
+      if (tab && tab.windowId === view.getState().viewedWindowId) {
         const state = view.getState()
         const item = { type: 'tab' as const, id: tab.id }
         view.setState({
-          viewedWindowId: tab.windowId,
           selectionCleared: false,
           focusedItem: item,
           selection: reduceSelectionIntent(
@@ -636,13 +635,13 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       destinationWindow !== undefined &&
       movedTabIds.length
     ) {
-      if (view.getState().viewedWindowId !== destinationWindow)
-        dispatch({ type: 'view-window', windowId: destinationWindow })
-      selectMovedTabs(
-        movedTabIds,
-        command.type !== 'place-tabs' ||
-          destinationWindow !== initiatingState.viewedWindowId,
-      )
+      view.setState({ windowPicker: false })
+      if (view.getState().viewedWindowId === destinationWindow)
+        selectMovedTabs(
+          movedTabIds,
+          command.type !== 'place-tabs' ||
+            destinationWindow !== initiatingState.viewedWindowId,
+        )
     }
     if (openWindowId !== undefined) {
       if (
@@ -866,12 +865,12 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       inputRevision++
     reconcile()
     const snapshot = backend.getSnapshot()
-    if (intent.type !== 'view-window' && !view.getState().hasUserInput)
+    if (intent.type !== 'receive-moved-tabs' && !view.getState().hasUserInput)
       view.setState({ hasUserInput: true })
     const state = view.getState()
     if (intent.type === 'receive-moved-tabs') {
-      dispatch({ type: 'view-window', windowId: intent.windowId })
-      selectMovedTabs(intent.tabIds)
+      if (state.viewedWindowId === intent.windowId)
+        selectMovedTabs(intent.tabIds)
     } else if (intent.type === 'place-tabs') {
       if (
         intent.destination?.windowId === state.viewedWindowId &&

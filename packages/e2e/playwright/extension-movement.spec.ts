@@ -139,7 +139,10 @@ test('drops a selection on another Chrome window and follows its first tab after
     ),
   ).toEqual([data.targetTabId, data.sourceId, data.secondId])
   await expectDestination(page, data.targetId, [data.sourceId, data.secondId])
-  await expect(source).toHaveAttribute('aria-selected', 'true')
+  await expect(source).toHaveCount(0)
+  await expect(
+    page.locator(`[data-tab-id="${data.managerTabId}"] [data-tab-option]`),
+  ).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(
@@ -346,12 +349,12 @@ for (const follow of [false, true])
       .getByRole('menu', { name: 'Move 2 tabs to window' })
       .locator(`[data-action-id="${data.target}"]`)
       .click({ modifiers: follow ? ['Shift'] : [] })
+    await expect(page.locator(`[data-tab-id="${data.first}"]`)).toHaveCount(0)
+    await expect(page.locator(`[data-tab-id="${data.second}"]`)).toHaveCount(0)
+    await expect(page.locator(`[data-tab-id="${data.manager}"]`)).toBeVisible()
     if (follow)
       await expectDestination(page, data.target, [data.first, data.second])
     else {
-      await expect(
-        page.locator(`[data-tab-id="${data.first}"] [data-tab-option]`),
-      ).toHaveAttribute('aria-selected', 'true')
       expect(
         await page.evaluate(
           async () => (await chrome.windows.getLastFocused()).id,
@@ -441,8 +444,8 @@ test('groups selected tabs into an existing group in another Chrome window', asy
         pinned: false,
       })),
     )
-  await expect(row(data.first)).toHaveAttribute('aria-selected', 'true')
-  await expect(row(data.second)).toHaveAttribute('aria-selected', 'true')
+  await expect(row(data.first)).toHaveCount(0)
+  await expect(row(data.second)).toHaveCount(0)
   expect(
     await page.evaluate(async () => (await chrome.windows.getLastFocused()).id),
   ).toBe(data.source)
@@ -513,7 +516,7 @@ test('updates move behavior and shortcut guidance from the window focus setting'
       )
       .toBe(data.targetId)
     if (tabId === data.sourceId) {
-      await expect(source).toHaveAttribute('aria-selected', 'true')
+      await expect(source).toHaveCount(0)
       expect(
         await page.evaluate(
           async () => (await chrome.windows.getLastFocused()).id,
