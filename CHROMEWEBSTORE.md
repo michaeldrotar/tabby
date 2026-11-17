@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-16
+Last updated: 2026-11-17
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -31,6 +31,8 @@ Organize one window at a time
 Click a tab in your current window to select and activate it. When viewing another window, clicking a tab only selects it; press Enter to activate it, focus its window, and open its Tab Manager. Only the active tab shows a bar on its left edge. Use CMD/CTRL-click to toggle selection or SHIFT-click to select a range without activating. The active tab starts selected, and Escape restores that selection. Use Ctrl+A or Cmd+A to select all tabs and groups, including collapsed groups. Right-click opens actions beside the cursor, where options open on click. Keyboard context menus open beside the focused item. Escape returns focus to the control used before opening the menu. Closing tabs from the menu keeps keyboard focus in the tab list. Add tabs to an existing group in another window from the group menu, with local groups first and window names beside other destinations. Complete groups stay intact when moved. Create and close windows in the picker; use the header pencil to edit the current window.
 
 Drag tabs, selected tabs, or whole groups to choose their position. Hold over the window header to reveal your windows, then drop on a window to move tabs there. Long lists scroll as you drag near their edges. Choose in Options whether picking windows and moving tabs or groups keeps you in your current window or follows the destination. Hold Shift when choosing a destination or dropping onto it to temporarily reverse that preference. An arrow previews whether focus will follow or stay. Each panel keeps showing its chosen window while tabs move without changing window focus. When window focus changes, each panel returns to its own window. Moves that empty a source window always follow the destination.
+
+Turn on Stack windows in Options to match the destination window’s size and position to your current window whenever Tabby switches windows, including when following moved tabs or groups.
 
 Middle-click a tab to close it, or create a new tab directly below an existing tab. Copy URLs, titles, or both to your clipboard. Copy actions show how many items will be copied and confirm what reached your clipboard.
 
@@ -147,10 +149,13 @@ Appearance preferences, an unfinished search query and its scope, recent search 
 
 ## Version history
 
+Version 1.9.0 includes an optional Stack windows setting that matches the destination window’s size and position to the current window when Tabby switches windows. See its [release notes](product/releases/v1.9.0-new-release.md).
+
 Version 1.8.0 fixes adding tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It includes a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. Keyboard actions include expanding or collapsing groups, choosing group colors with numbered shortcuts, removing duplicates, and closing other tabs or tabs below. It also includes clearer labels and counts for copying titles and URLs, and a left-edge bar reserved for the active tab. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move without changing window focus, and returns to its own window when focus changes. Clicking a tab in another window selects it; Enter brings the tab, its window, and its Tab Manager forward. See its [release notes](product/releases/v1.8.0-more-control-smoother-browsing.md).
 
 | Version                                                                      | Submission date | Summary                                                                                      | Store status |
 | ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | ------------ |
+| [1.9.0](product/releases/v1.9.0-new-release.md)                              | TBD             | Keep windows in the same place while switching through Tabby.                                | Development  |
 | [1.8.0](product/releases/v1.8.0-more-control-smoother-browsing.md)           | 2026-11-16      | More control over search, windows, and tab actions, with smoother keyboard navigation.       | Submitted    |
 | [1.7.1](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.1)          | 2026-10-29      | Fix search priorities, recent-choice recall, duplicate window results, and shifting results. | Published    |
 | [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search.      | Published    |

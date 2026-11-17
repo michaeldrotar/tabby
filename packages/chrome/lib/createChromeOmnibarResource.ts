@@ -89,7 +89,7 @@ export const createChromeOmnibarResource = (
     operation: number,
     choice?: OmnibarChoice,
   ) => {
-    if (!choice) {
+    if (!choice && modifier !== 'new-window' && action.kind !== 'restore') {
       await createChromeOmnibarNavigator(
         api,
         metadata.originalWindowId,

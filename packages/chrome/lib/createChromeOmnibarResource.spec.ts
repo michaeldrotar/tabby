@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createChromeOmnibarResource } from './createChromeOmnibarResource.js'
+import { CHROME_PREFERENCES_STORAGE_KEY } from './createChromePreferences.js'
+import { registerOmnibarActions } from './registerOmnibarActions.js'
 import type { ChromeOmnibarApi } from './createChromeOmnibarResource.js'
 
 const setup = (originalWindowId?: number) => {
+  let listener: Parameters<typeof chrome.runtime.onMessage.addListener>[0]
   const api = {
     tabs: {
       create: vi.fn().mockResolvedValue({}),
@@ -70,6 +73,18 @@ const setup = (originalWindowId?: number) => {
       },
     },
     runtime: {
+      id: 'test',
+      onMessage: {
+        addListener: (next: typeof listener) => {
+          listener = next
+        },
+      },
+      sendMessage: vi.fn(
+        (message: unknown) =>
+          new Promise((resolve) => {
+            listener(message, { id: 'test' }, resolve)
+          }),
+      ),
       getURL: vi.fn((path: string) => `chrome-extension://test/${path}`),
       getPlatformInfo: vi.fn().mockResolvedValue({ os: 'mac' }),
       openOptionsPage: vi.fn().mockResolvedValue(undefined),
@@ -83,6 +98,7 @@ const setup = (originalWindowId?: number) => {
     },
     sidePanel: { open: vi.fn().mockResolvedValue(undefined) },
   }
+  registerOmnibarActions(api as unknown as typeof chrome)
   return {
     api,
     resource: createChromeOmnibarResource(
@@ -91,6 +107,30 @@ const setup = (originalWindowId?: number) => {
     ),
   }
 }
+
+it.each([true, false])(
+  'stacks restored destinations only when enabled: %s',
+  async (stackWindows) => {
+    const { api, resource } = setup(1)
+    const bounds = { left: -1200, top: 40, width: 1100, height: 800 }
+    api.storage.local.get.mockResolvedValue({
+      [CHROME_PREFERENCES_STORAGE_KEY]: { stackWindows },
+    })
+    api.windows.getLastFocused.mockResolvedValue(
+      Object.assign({ id: 1 }, { type: 'normal', state: 'normal', ...bounds }),
+    )
+    api.sessions.restore.mockImplementation(async () => {
+      api.windows.getLastFocused.mockResolvedValue({ id: 4 })
+      return { window: { id: 4, tabs: [] } }
+    })
+    await resource.start()
+    await resource.execute({ kind: 'restore', sessionId: 'closed' })
+    expect(api.sessions.restore).toHaveBeenCalledExactlyOnceWith('closed')
+    if (stackWindows)
+      expect(api.windows.update).toHaveBeenLastCalledWith(4, bounds)
+    else expect(api.windows.update).not.toHaveBeenCalled()
+  },
+)
 
 describe('Chrome Omnibar resource', () => {
   it('matches recently closed URL substrings and preserves native search results', async () => {

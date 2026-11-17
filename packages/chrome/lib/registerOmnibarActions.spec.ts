@@ -74,6 +74,40 @@ const setup = () => {
 }
 
 describe('Worker-owned omnibar choices', () => {
+  it.each(['restore', 'new-window'] as const)(
+    'finishes %s stacking after popup disposal without a learning choice',
+    async (action) => {
+      const { api, resource } = setup()
+      const popup = resource()
+      const bounds = { left: -1200, top: 40, width: 1100, height: 800 }
+      api.storage.local.values['preference-storage-key'] = {
+        stackWindows: true,
+      }
+      api.windows.getLastFocused.mockResolvedValue(
+        Object.assign(
+          { id: 1, incognito: false },
+          { type: 'normal', state: 'normal', ...bounds },
+        ),
+      )
+      const opened = async () => {
+        popup.dispose()
+        return { id: 3, window: { id: 3 } }
+      }
+      api.sessions.restore.mockImplementationOnce(opened)
+      api.windows.create.mockImplementationOnce(opened)
+      await popup.start()
+      await expect(
+        action === 'restore'
+          ? popup.execute({ kind: 'restore', sessionId: 'closed' })
+          : popup.execute(
+              { kind: 'url', url: 'https://tabby.test' },
+              'new-window',
+            ),
+      ).rejects.toThrow('disposed')
+      expect(api.windows.update).toHaveBeenLastCalledWith(3, bounds)
+    },
+  )
+
   it('records a window choice after popup disposal and reloads it on reopening', async () => {
     const { api, resource, choice } = setup()
     const popup = resource()

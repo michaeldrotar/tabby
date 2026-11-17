@@ -672,7 +672,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         await Promise.all([
           opening,
           followsMove && movedTabs[0]
-            ? backend.execute({ type: 'activate-tab', tabId: movedTabs[0].id })
+            ? backend.execute({
+                type: 'activate-tab',
+                tabId: movedTabs[0].id,
+                preserveWindowPlacement: true,
+              })
             : undefined,
         ])
       } catch (error) {

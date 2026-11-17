@@ -12,6 +12,7 @@ describe('preferences', () => {
         theme: 'dark',
         tabManagerCompactIconMode: 'first',
         tabManagerWindowClickBehavior: 'switch',
+        stackWindows: true,
         themeDarkAccent: 'invalid',
         themeLightAccentStrength: 50,
         themeDarkAccentStrength: 50,
@@ -22,9 +23,13 @@ describe('preferences', () => {
       theme: 'dark',
       tabManagerCompactIconMode: 'first',
       tabManagerWindowClickBehavior: 'switch',
+      stackWindows: true,
       themeLightForeground: 'mist',
     })
     expect(normalizePreferences(null)).toEqual(defaultPreferences)
+    expect(normalizePreferences({ stackWindows: 'true' }).stackWindows).toBe(
+      false,
+    )
     expect(
       normalizePreferences({ tabManagerWindowClickBehavior: 'invalid' })
         .tabManagerWindowClickBehavior,

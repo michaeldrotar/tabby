@@ -1,10 +1,15 @@
 import { isNavigableUrl } from '@extension/core/navigation'
+import {
+  captureChromeWindowStack,
+  focusChromeWindow,
+  stackChromeWindow,
+} from './focusChromeWindow.js'
 import type { OmnibarAction, OmnibarModifier } from '@extension/core'
 
 export type ChromeOmnibarNavigationApi = Pick<
   typeof chrome,
   'windows' | 'tabs' | 'tabGroups' | 'sessions' | 'runtime' | 'sidePanel'
->
+> & { storage?: Pick<typeof chrome.storage, 'local'> }
 
 type OpenedTab = Pick<chrome.tabs.Tab, 'id' | 'url'>
 
@@ -13,6 +18,8 @@ export const createChromeOmnibarNavigator = (
   originalWindowId?: number,
   current: (operation?: number) => void = () => {},
 ) => {
+  const focusWindow = (windowId: number, operation: number) =>
+    focusChromeWindow(api, windowId, () => current(operation))
   const openUrl = async (
     url: string,
     modifier?: OmnibarModifier,
@@ -25,7 +32,11 @@ export const createChromeOmnibarNavigator = (
         'This URL cannot be opened. Use a web address or a supported browser page.',
       )
     if (modifier === 'new-window') {
+      const source = await captureChromeWindowStack(api)
+      current(operation)
       const window = await api.windows.create({ url, focused: true })
+      if (window?.id !== undefined)
+        await stackChromeWindow(api, window.id, source)
       return (window?.tabs ?? []).map((tab) => ({
         ...tab,
         url: tab.url ?? url,
@@ -39,8 +50,7 @@ export const createChromeOmnibarNavigator = (
         active: true,
       })
       current(operation)
-      if (windowId !== undefined)
-        await api.windows.update(windowId, { focused: true })
+      if (windowId !== undefined) await focusWindow(windowId, operation)
       return [{ ...tab, url: tab.url ?? url }]
     }
     if (windowId !== undefined) {
@@ -51,7 +61,7 @@ export const createChromeOmnibarNavigator = (
           ? await api.tabs.update(tab.id, { url, active: true })
           : await api.tabs.create({ windowId, url, active: true })
       current(operation)
-      await api.windows.update(windowId, { focused: true })
+      await focusWindow(windowId, operation)
       return [{ ...opened, id: opened?.id ?? tab?.id, url }]
     }
     const tab = await api.tabs.update({ url })
@@ -82,7 +92,7 @@ export const createChromeOmnibarNavigator = (
         // Activate first: focusing a different window can close the popup host.
         await api.tabs.update(action.tabId, { active: true })
         current(operation)
-        await api.windows.update(action.windowId, { focused: true })
+        await focusWindow(action.windowId, operation)
         break
       case 'group': {
         const [groups, tabs] = await Promise.all([
@@ -107,14 +117,19 @@ export const createChromeOmnibarNavigator = (
         current(operation)
         await api.tabs.update(tab.id, { active: true })
         current(operation)
-        await api.windows.update(group.windowId, { focused: true })
+        await focusWindow(group.windowId, operation)
         break
       }
       case 'window':
-        await api.windows.update(action.windowId, { focused: true })
+        await focusWindow(action.windowId, operation)
         break
       case 'restore': {
+        const source = await captureChromeWindowStack(api)
+        current(operation)
         const restored = await api.sessions.restore(action.sessionId)
+        const windowId = restored.window?.id ?? restored.tab?.windowId
+        if (windowId !== undefined)
+          await stackChromeWindow(api, windowId, source)
         return restored.tab ? [restored.tab] : (restored.window?.tabs ?? [])
       }
       case 'tab-manager': {
