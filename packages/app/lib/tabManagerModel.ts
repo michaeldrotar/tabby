@@ -40,6 +40,7 @@ import type { TabManagerResources } from './TabbyProvider'
 import type { ManagerActionOptions } from './tabManagerActions'
 import type { TabManagerViewState } from './view'
 import type { BrowserSnapshot, CommandOutcome } from '@extension/core'
+import type { DiscoveryTipId } from '@extension/core/discovery'
 import type {
   PaneContext,
   SelectionItemRef,
@@ -405,6 +406,18 @@ export const createTabManagerController = (resources: TabManagerResources) => {
     resources.environment,
   )
   const setNotice = notifications.publish
+  const offerTip = async (id: DiscoveryTipId, windowId?: number) => {
+    if (!resources.discovery?.getSnapshot().loaded) return
+    try {
+      await resources.discovery.offerTip(id, windowId)
+    } catch (error) {
+      setNotice({
+        message:
+          error instanceof Error ? error.message : 'Could not save the tip.',
+        kind: 'error',
+      })
+    }
+  }
   let previousSnapshot = backend.getSnapshot()
   const getActions = (snapshot: BrowserSnapshot, state: TabManagerViewState) =>
     getTabManagerActions(snapshot, state, {
@@ -595,6 +608,26 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       outcome.status === 'success' &&
       initiatingInput === inputRevision &&
       changesWindow
+    if (isMove && outcome.status === 'success' && changesWindow) {
+      if (
+        alternateMove &&
+        !willTransferCloseAnyWindow(inputCommand, initiatingSnapshot)
+      )
+        await offerTip(
+          followMove ? 'follow-windows' : 'stay-in-window',
+          followMove
+            ? destinationWindow
+            : resources.host?.getCurrentWindowId?.(),
+        )
+      else if (command.type === 'move-group')
+        await offerTip(
+          'move-groups',
+          followMove
+            ? destinationWindow
+            : resources.host?.getCurrentWindowId?.(),
+        )
+      if (operation !== generation || initiatingInput !== inputRevision) return
+    }
     if (
       isMove &&
       outcome.status === 'success' &&
@@ -923,6 +956,15 @@ export const createTabManagerController = (resources: TabManagerResources) => {
         actionMenu: null,
         actionPanel: null,
       })
+      if (
+        resources.preferences.getSnapshot().tabManagerCompactIconMode ===
+          'active' &&
+        snapshot.windows.some((window) => !window.name?.trim())
+      )
+        void offerTip(
+          'stable-window-icons',
+          resources.host?.getCurrentWindowId?.(),
+        )
     } else if (intent.type === 'dismiss-window-picker') {
       view.setState({ windowPicker: false, actionPanel: null })
     } else if (intent.type === 'edit-window') {
@@ -1222,6 +1264,11 @@ export const createTabManagerController = (resources: TabManagerResources) => {
       const empty =
         !selection.selection.tabIds.size && !selection.selection.groupIds.size
       const explicitlyCleared = !!intent.toggle && item.type === 'tab' && empty
+      if (
+        (intent.toggle || intent.shift) &&
+        resolveSelectedTabIds(selection.selection, snapshot).length > 1
+      )
+        void offerTip('batch-selection', resources.host?.getCurrentWindowId?.())
       view.setState({
         selection:
           empty && !explicitlyCleared

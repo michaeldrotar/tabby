@@ -73,7 +73,8 @@ describe('configuration composition', () => {
       expect(input.content).toEqual(['fixture.html'])
       expect(
         createTailwindConfig(uiTailwindConfig, input).content,
-      ).toHaveLength(2)
+      ).not.toContain('extra.tsx')
+      expect(css).toContain('.bottom-16')
       expect(css).toContain('#abcdef')
       expect(css).toContain('var(--background)')
       expect(css).toContain('data-theme="dark"')

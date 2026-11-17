@@ -1,6 +1,6 @@
 # Privacy policy for Tabby
 
-Last updated: November 15, 2026
+Last updated: November 17, 2026
 
 ## Introduction
 
@@ -16,6 +16,7 @@ Tabby is designed with privacy as a core value.
 - **Local Processing:** Searches across your tabs, history, and bookmarks, along with tab management, happen locally within your browser.
 - **Google Searches:** When you select **Search Google**, Tabby opens Google with your query in the search URL. Google receives the query; see [Google's Privacy Policy](https://policies.google.com/privacy) for how Google handles information.
 - **Search Choices:** Tabby remembers the query, destination, and time when you choose a search result, so related searches can bring the same result and matching tabs opened or restored from it toward the top. Page destinations include URLs from restored pages. These records stay on your device, expire after 90 days of disuse, and are limited to 200 query-and-destination pairs per store. Choices for live tabs, groups, and windows remain in session storage. Private-window choices use a separate session store. No search-choice records are sent to the publisher.
+- **Walkthroughs and Tips:** Tabby saves walkthrough completion, acknowledged tips, and your automatic-tip preference locally. Small counters and a limited set of usage dates help delay tips until you have used Tabby for a while and repeated a relevant action. A pending tip can include its destination window’s temporary ID. These records do not contain page titles, URLs, or browsing history, and are not sent to the publisher.
 - **Local Storage:** Tabby uses your browser's local storage (`chrome.storage`) to save your preferences, unfinished search query and its scope, and Tabby window names and icons. To recognize restored windows, it also keeps their relative order and SHA-256 hashes of their web and file URLs. Raw addresses are not saved as window fingerprints. Closed-window fingerprints expire after 90 days; at most 200 saved window identities are retained. Private-window names and icons remain in session storage and are not included in persistent fingerprints. This information is stored in your browser, not on a Tabby server.
 
 ## Permissions

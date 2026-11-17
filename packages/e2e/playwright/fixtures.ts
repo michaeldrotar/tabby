@@ -7,6 +7,7 @@ import type { PreferenceState } from '@extension/core'
 type BrowserFixture = Omit<typeof browser, 'preferences'> & {
   preferences: Partial<PreferenceState>
   followOpenedWindow?: boolean
+  discovery?: Record<string, unknown>
 }
 
 export const test = base.extend<{ browserData: BrowserFixture }>({
@@ -26,7 +27,14 @@ export const test = base.extend<{ browserData: BrowserFixture }>({
       route.fulfill({
         contentType: 'text/javascript',
         body: `globalThis.__TABBY_PREVIEW__ = ${JSON.stringify({
-          browser: browserData,
+          browser: {
+            ...browserData,
+            discovery: browserData.discovery ?? {
+              'tabby-discovery-tour-1.9.0-omnibar': true,
+              'tabby-discovery-tour-1.9.0-tab-manager': true,
+              'tabby-discovery-tips-enabled': false,
+            },
+          },
           messages,
           platform: process.platform === 'darwin' ? 'mac' : 'linux',
         })};\n${mock}`,

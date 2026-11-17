@@ -3,6 +3,7 @@ import { Options } from '@extension/ui/options/Options'
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
+import { DiscoveryOptions } from './DiscoveryExperience'
 import { useTabbyResources } from './TabbyProvider'
 import { useExperienceClock } from './useExperienceClock'
 import type { PreferenceResource, PreferenceState } from '@extension/core'
@@ -111,6 +112,7 @@ export const OptionsExperience = ({
       : metadata.logoUrl
   return (
     <Options
+      discovery={<DiscoveryOptions />}
       urlSeasonalIcons={urlSeasonalIcons}
       preferences={preferences}
       activeThemeMode={

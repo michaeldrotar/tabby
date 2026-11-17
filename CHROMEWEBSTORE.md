@@ -1,6 +1,6 @@
 # Chrome Web Store listing — Tabby
 
-Last updated: 2026-11-16
+Last updated: 2026-11-17
 
 Publishing reference for Tabby's store listing, images, permissions explanations, privacy disclosures, and submission records. Detailed release notes are linked from the version history.
 
@@ -41,6 +41,8 @@ Click the Tabby toolbar icon to search, or press Cmd+E on macOS or Alt+E on Wind
 Use Tab and Shift+Tab to move between window controls, tab and window lists, New tab, New window, and the bottom bar. Use arrow keys to browse tabs, groups, and the window picker. From an empty search, use the arrow keys to select Open tab manager and Open options while keeping search ready to type. Reorder tabs and groups with Alt+Up/Down. Use P to pin or unpin, M to mute or unmute tabs with audio, D to duplicate, R to reload, G to choose a group, U to ungroup, W to move, C to copy, N to create a new tab below, and Z to discard eligible tabs. Use F2 to rename a group, E to expand or collapse groups, and L to open group colors, with 1–9 to choose a color. Use X to remove duplicates, O to close other tabs, and B to close tabs below. Create windows in the picker, and use Search, More actions, and Options in the bottom bar at every panel width. See shortcut keys beside actions in the menu and press a key to activate its action. Keyboard choosers open beside the focused item. Find a guide to Tab manager keyboard shortcuts in Options.
 
 Make Tabby comfortable to use
+
+Brief, skippable walkthroughs introduce search and the Tab Manager. Tips appear gradually as you use Tabby, with at most one automatic tip per day and a quiet period after a walkthrough. Change a suggested setting from a tip and undo it if you change your mind. Browse all tips, replay either walkthrough, or turn off automatic tips in Options.
 
 Choose from fifteen coordinated colorful and tonal themes, each with a light and dark version. Try contrasting hues or a quieter single-color palette. Choose seasonal Tabby icons for holidays throughout the year. Clear selection and focus indicators help you keep your place with the mouse or keyboard. Screen readers announce search results and the selected item, and settings menus follow your preference for reduced animation. Routine tab actions finish quietly. Notifications explain errors and partial results, and copy actions confirm when text reaches your clipboard.
 
@@ -87,7 +89,7 @@ The manifest declares these permissions. It declares no host permissions or prod
 | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `alarms`    | permissions | Schedule local checks for seasonal toolbar icons and confirmation of restored window names.                                                 |
 | `favicon`   | permissions | Show recognizable website icons beside tabs, bookmarks, history, and search results using Chrome’s favicon cache.                           |
-| `storage`   | permissions | Save appearance preferences, unfinished queries, recent search choices, window labels, and hashed URL fingerprints locally.                 |
+| `storage`   | permissions | Save preferences, search choices, window labels, hashed URL fingerprints, walkthrough progress, and tip pacing counters locally.            |
 | `tabs`      | permissions | List tab titles and addresses across windows, search open tabs, activate them, and perform the tab management actions selected by the user. |
 | `tabGroups` | permissions | Display and search tab groups and let the user create, rename, recolor, collapse, expand, move, and ungroup them.                           |
 | `sidePanel` | permissions | Display the persistent tab manager beside the current browser page.                                                                         |
@@ -101,17 +103,17 @@ The manifest declares these permissions. It declares no host permissions or prod
 
 Tabby handles browsing data locally. The publisher does not collect it or receive saved preferences. The submitted listing discloses **Web history** and **User activity**.
 
-| Data type                           | Handled?                | Transmitted off-device by Tabby? | Purpose                                                                              | Shared with the publisher? |
-| ----------------------------------- | ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
-| Personally identifiable information | No dedicated collection | No                               | —                                                                                    | No                         |
-| Health information                  | No dedicated collection | No                               | —                                                                                    | No                         |
-| Financial information               | No dedicated collection | No                               | —                                                                                    | No                         |
-| Authentication information          | No                      | No                               | —                                                                                    | No                         |
-| Personal communications             | No page-content access  | No                               | —                                                                                    | No                         |
-| Location                            | No                      | No                               | —                                                                                    | No                         |
-| Web history                         | Yes, locally            | No                               | Search titles and addresses locally; use hashed window URLs to restore Tabby labels. | No                         |
-| User activity                       | Search choices, locally | No                               | Remember which result was chosen for a query to improve search ranking.              | No                         |
-| Website content                     | No page-content access  | No                               | —                                                                                    | No                         |
+| Data type                           | Handled?                                      | Transmitted off-device by Tabby? | Purpose                                                                              | Shared with the publisher? |
+| ----------------------------------- | --------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------ | -------------------------- |
+| Personally identifiable information | No dedicated collection                       | No                               | —                                                                                    | No                         |
+| Health information                  | No dedicated collection                       | No                               | —                                                                                    | No                         |
+| Financial information               | No dedicated collection                       | No                               | —                                                                                    | No                         |
+| Authentication information          | No                                            | No                               | —                                                                                    | No                         |
+| Personal communications             | No page-content access                        | No                               | —                                                                                    | No                         |
+| Location                            | No                                            | No                               | —                                                                                    | No                         |
+| Web history                         | Yes, locally                                  | No                               | Search titles and addresses locally; use hashed window URLs to restore Tabby labels. | No                         |
+| User activity                       | Search choices and guidance progress, locally | No                               | Improve search ranking and pace walkthroughs and tips.                               | No                         |
+| Website content                     | No page-content access                        | No                               | —                                                                                    | No                         |
 
 Search Google is an explicit navigation chosen by the user. Google receives that query through the search URL. Do not describe the extension as never sending any data to third parties. Copy actions put only the selected text on the device’s clipboard.
 
@@ -147,21 +149,24 @@ Appearance preferences, an unfinished search query and its scope, recent search 
 
 ## Version history
 
+Version 1.9.0 adds brief search and Tab Manager walkthroughs, paced contextual tips with reversible setting changes, and a tip library with walkthrough replay in Options. Guidance progress and limited pacing counters stay on the device. See its [release notes](product/releases/v1.9.0-guidance-when-you-need-it.md).
+
 Version 1.8.0 fixes adding tabs to existing groups in other windows and keeps context menus steady while moving between actions and submenus. It includes a compact search scope picker, shortcuts for changing scopes, a current-window search default from the Tab Manager, a clickable X to close search, global shortcuts for opening search and the tab manager, plus illustrated guides for changing Tabby’s side panel position through Chrome Panels and editing shortcuts in Chrome. The Tab Manager supports unpinning from its pin indicator, quick hints for tab actions, distinct duplicate badges, a brush-marked action to remove duplicates, and simpler tab rows without activity times. Keyboard actions include expanding or collapsing groups, choosing group colors with numbered shortcuts, removing duplicates, and closing other tabs or tabs below. It also includes clearer labels and counts for copying titles and URLs, and a left-edge bar reserved for the active tab. The window picker shows group counts alongside tab counts. A shared window-focus preference controls window picking and moves, with Shift temporarily reversing the selected behavior. Each panel keeps its chosen window while tabs move without changing window focus, and returns to its own window when focus changes. Clicking a tab in another window selects it; Enter brings the tab, its window, and its Tab Manager forward. See its [release notes](product/releases/v1.8.0-more-control-smoother-browsing.md).
 
-| Version                                                                      | Submission date | Summary                                                                                      | Store status |
-| ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | ------------ |
-| [1.8.0](product/releases/v1.8.0-more-control-smoother-browsing.md)           | 2026-11-16      | More control over search, windows, and tab actions, with smoother keyboard navigation.       | Submitted    |
-| [1.7.1](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.1)          | 2026-10-29      | Fix search priorities, recent-choice recall, duplicate window results, and shifting results. | Published    |
-| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search.      | Published    |
-| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                     | Published    |
-| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                              | Published    |
-| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                       | Published    |
-| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                            | Published    |
-| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                                    | Not recorded |
-| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                                 | Not recorded |
-| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                              | Not recorded |
-| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                             | Not recorded |
+| Version                                                                      | Submission date | Summary                                                                                      | Store status   |
+| ---------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------- | -------------- |
+| [1.9.0](product/releases/v1.9.0-guidance-when-you-need-it.md)                | —               | Brief walkthroughs, paced tips, and a browsable tip library.                                 | In development |
+| [1.8.0](product/releases/v1.8.0-more-control-smoother-browsing.md)           | 2026-11-16      | More control over search, windows, and tab actions, with smoother keyboard navigation.       | Submitted      |
+| [1.7.1](https://github.com/michaeldrotar/tabby/releases/tag/v1.7.1)          | 2026-10-29      | Fix search priorities, recent-choice recall, duplicate window results, and shifting results. | Published      |
+| [1.7.0](product/releases/v1.7.0-a-more-polished-tabby.md)                    | 2026-10-25      | Tab controls, drag and drop, coordinated colorful and tonal themes, and smarter search.      | Published      |
+| [1.6.0](product/releases/v1.6.0-named-windows-and-a-simpler-tab-manager.md)  | 2026-10-17      | Named windows and a simpler Tab Manager.                                                     | Published      |
+| [1.5.0](product/releases/v1.5.0-seasonal-icons.md)                           | 2026-10-15      | Seasonal icons.                                                                              | Published      |
+| [1.4.0](product/releases/v1.4.0-clearer-controls-and-safer-navigation.md)    | 2026-10-14      | Clearer controls and safer navigation.                                                       | Published      |
+| [1.3.0](product/releases/v1.3.0-batch-actions-and-smarter-search.md)         | 2026-10-08      | Batch actions and smarter search.                                                            | Published      |
+| [1.2.0](product/releases/v1.2.0-tab-manager-redesign-and-personalization.md) | 2025-12-17      | Tab manager redesign and personalization.                                                    | Not recorded   |
+| [1.1.0](product/releases/v1.1.0-polishing-the-experience.md)                 | 2025-12-04      | Search and interface polish.                                                                 | Not recorded   |
+| [1.0.1](https://github.com/michaeldrotar/tabby/compare/v1.0.0...v1.0.1)      | 2025-11-29      | Fix default keyboard shortcuts.                                                              | Not recorded   |
+| [1.0.0](product/releases/v1.0.0-the-launch.md)                               | 2025-11-24      | Initial release.                                                                             | Not recorded   |
 
 Version links open detailed release notes or the patch changes. Submission dates through 1.3.0 use the tagged commit dates confirmed by the publisher. Earlier store publication statuses are not recorded.
 

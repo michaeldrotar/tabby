@@ -4,7 +4,7 @@ import { ChromeTabbyProvider } from '@extension/providers/chrome'
 
 const Options = () => (
   <ChromeTabbyProvider surface="options">
-    <TabbySurface>
+    <TabbySurface style={{ height: '100dvh' }}>
       <OptionsExperience urlSeasonalIcons />
     </TabbySurface>
   </ChromeTabbyProvider>
