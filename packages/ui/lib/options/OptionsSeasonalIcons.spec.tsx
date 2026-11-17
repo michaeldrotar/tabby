@@ -27,7 +27,7 @@ it('shows each holiday and its three illustrated choices plus Off', () => {
 
   expect(screen.queryByRole('group', { name: 'Summer' })).toBeNull()
   expect(screen.getAllByRole('group')).toHaveLength(
-    availableSeasonalHolidays.length,
+    availableSeasonalHolidays.length + 1,
   )
 
   for (const holiday of availableSeasonalHolidays) {
@@ -39,6 +39,35 @@ it('shows each holiday and its three illustrated choices plus Off', () => {
       }),
     ).toBeInTheDocument()
   }
+})
+
+it('offers incognito choices independently of seasonal icons', () => {
+  const onPreferenceChange = vi.fn()
+  const props = {
+    preferences: { ...defaultPreferences, seasonalIconsEnabled: false },
+    onPreferenceChange,
+  }
+  const { rerender } = render(<OptionsSeasonalIcons {...props} />)
+  const incognito = within(screen.getByRole('group', { name: 'Incognito' }))
+  expect(
+    incognito
+      .getAllByRole('radio')
+      .map((radio) => radio.getAttribute('aria-label')),
+  ).toEqual(['Ninja', 'Spy', 'Ghost', 'Classic Tabby'])
+  expect(incognito.getByRole('radio', { name: 'Ninja' })).toBeChecked()
+  fireEvent.click(incognito.getByRole('radio', { name: 'Spy' }))
+  expect(onPreferenceChange).toHaveBeenLastCalledWith({ incognitoIcon: 'spy' })
+  rerender(
+    <OptionsSeasonalIcons
+      {...props}
+      preferences={{ ...props.preferences, incognitoIcon: 'spy' }}
+    />,
+  )
+  expect(incognito.getByRole('radio', { name: 'Spy' })).toBeChecked()
+  fireEvent.click(incognito.getByRole('radio', { name: 'Classic Tabby' }))
+  expect(onPreferenceChange).toHaveBeenLastCalledWith({
+    incognitoIcon: 'classic',
+  })
 })
 
 it('shows changing date controls inline with their holidays', () => {

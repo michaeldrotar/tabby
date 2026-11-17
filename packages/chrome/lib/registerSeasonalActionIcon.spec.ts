@@ -26,16 +26,36 @@ const createStorageChangeEvent = () => {
   }
 }
 
-const createApi = () => {
+const createApi = (tabs: Array<{ id: number; incognito: boolean }> = []) => {
   let preferences: unknown = { ...defaultPreferences }
   const storageChanges = createStorageChangeEvent()
   const api = {
-    action: { setIcon: vi.fn(async () => {}) },
+    action: {
+      setIcon: vi.fn<SeasonalActionIconApi['action']['setIcon']>(
+        async () => {},
+      ),
+    },
     alarms: {
       create: vi.fn(async () => {}),
       onAlarm: { addListener: vi.fn() },
     },
     i18n: { getUILanguage: () => 'en-US' },
+    tabs: {
+      query: vi.fn(async () => tabs),
+      get: vi.fn(async (id: number) => ({ id, incognito: true })),
+      onCreated: {
+        addListener:
+          vi.fn<(listener: (tab: chrome.tabs.Tab) => void) => void>(),
+      },
+      onReplaced: {
+        addListener:
+          vi.fn<
+            (
+              listener: (addedTabId: number, removedTabId: number) => void,
+            ) => void
+          >(),
+      },
+    },
     runtime: {
       onInstalled: { addListener: vi.fn() },
       onStartup: { addListener: vi.fn() },
@@ -60,6 +80,84 @@ const createApi = () => {
 }
 
 describe('seasonal action icon', () => {
+  it('defaults private tabs to Ninja, updates new tabs, and restores Classic Tabby independently', async () => {
+    const { api, mock, setPreferences, storageChanges } = createApi([
+      { id: 1, incognito: false },
+      { id: 2, incognito: true },
+    ])
+    registerSeasonalActionIcon(api, () => new Date(2026, 9, 24, 12))
+    const ninjaPaths = {
+      16: 'incognito-icons/ninja-16.png',
+      32: 'incognito-icons/ninja-32.png',
+      48: 'incognito-icons/ninja-48.png',
+      128: 'incognito-icons/ninja-128.png',
+    }
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenCalledWith({
+        tabId: 2,
+        path: ninjaPaths,
+      }),
+    )
+    expect(mock.action.setIcon).toHaveBeenCalledWith({
+      path: getSeasonalActionIconPaths('halloween-frankenstein-hoodie'),
+    })
+    const created = mock.tabs.onCreated.addListener.mock.calls[0]![0]
+    created({ id: 3, incognito: true } as chrome.tabs.Tab)
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenCalledWith({
+        tabId: 3,
+        path: ninjaPaths,
+      }),
+    )
+
+    const saveChoice = (incognitoIcon: 'ghost' | 'classic') => {
+      const preferences = {
+        ...defaultPreferences,
+        incognitoIcon,
+        seasonalIconsEnabled: incognitoIcon !== 'ghost',
+      }
+      setPreferences(preferences)
+      storageChanges.emit(
+        { [CHROME_PREFERENCES_STORAGE_KEY]: { newValue: preferences } },
+        'local',
+      )
+    }
+    saveChoice('ghost')
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenCalledWith({
+        tabId: 2,
+        path: {
+          16: 'incognito-icons/ghost-16.png',
+          32: 'incognito-icons/ghost-32.png',
+          48: 'incognito-icons/ghost-48.png',
+          128: 'incognito-icons/ghost-128.png',
+        },
+      }),
+    )
+    saveChoice('classic')
+    const classicPaths = {
+      16: 'tabby-face-16.png',
+      32: 'tabby-face-32.png',
+      48: 'tabby-face-48.png',
+      128: 'tabby-face-128.png',
+    }
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenLastCalledWith({
+        tabId: 2,
+        path: classicPaths,
+      }),
+    )
+    mock.tabs.onReplaced.addListener.mock.calls[0]![0](4, 2)
+    await vi.waitFor(() =>
+      expect(mock.action.setIcon).toHaveBeenLastCalledWith({
+        tabId: 4,
+        path: classicPaths,
+      }),
+    )
+    expect(
+      mock.action.setIcon.mock.calls.some(([details]) => details.tabId === 1),
+    ).toBe(false)
+  })
   it('keeps the default icon during summer despite a saved summer choice', async () => {
     const { api, mock, setPreferences } = createApi()
     setPreferences({

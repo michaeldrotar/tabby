@@ -81,7 +81,7 @@ it('keeps options in a flat list ending with seasonal icons', () => {
     'Side panel position',
     'Global shortcuts',
     'Tab manager shortcuts',
-    'Seasonal icons',
+    'Tabby icons',
   ])
   expect(screen.queryByRole('group', { name: "Valentine's Day" })).toBeNull()
   const identification = screen.getByRole('combobox', {
@@ -131,7 +131,7 @@ it('updates the focus setting and its shortcut explanation together', () => {
 
 it('opens seasonal choices at a direct link and returns to the main list', () => {
   renderOptions()
-  fireEvent.click(screen.getByRole('button', { name: 'Choose seasonal icons' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Choose icons' }))
 
   expect(window.location.hash).toBe('#seasonal-icons')
   expect(screen.getByRole('group', { name: "Valentine's Day" })).toBeVisible()

@@ -1,6 +1,7 @@
 export * from './actions/batchTabActions.js'
 export type * from './browser.js'
 export * from './commands.js'
+export * from './incognitoIcons.js'
 export type * from './omnibar.js'
 export * from './omnibarResults.js'
 export type * from './options.js'

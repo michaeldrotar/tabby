@@ -257,6 +257,68 @@ test.describe('curated theme text', () => {
   })
 })
 
+test('keeps incognito and seasonal choices independent', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 480, height: 640 })
+  await page.goto('/options/index.html#seasonal-icons')
+  const incognito = page.getByRole('group', { name: 'Incognito', exact: true })
+  const ninja = incognito.getByRole('radio', { name: 'Ninja', exact: true })
+  await expect(ninja).toBeChecked()
+  for (const image of await incognito.locator('img').all()) {
+    await expect(image).toBeVisible()
+    await expect
+      .poll(() =>
+        image.evaluate((node) => node.complete && node.naturalWidth > 0),
+      )
+      .toBe(true)
+  }
+  await page.screenshot({ path: testInfo.outputPath('incognito-icons.png') })
+  await ninja.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(
+    incognito.getByRole('radio', { name: 'Spy', exact: true }),
+  ).toBeChecked()
+  const valentines = page.getByRole('group', {
+    name: "Valentine's Day",
+    exact: true,
+  })
+  await valentines
+    .getByRole('radio', { name: 'Off', exact: true })
+    .locator('..')
+    .click()
+  await expect(
+    incognito.getByRole('radio', { name: 'Spy', exact: true }),
+  ).toBeChecked()
+  await expect(
+    valentines.getByRole('radio', { name: 'Off', exact: true }),
+  ).toBeChecked()
+  await page
+    .getByRole('button', { name: 'Back to options', exact: true })
+    .click()
+  await page
+    .getByRole('switch', { name: 'Show seasonal icons' })
+    .locator('..')
+    .click()
+  await page.getByRole('button', { name: 'Choose icons', exact: true }).click()
+  await expect(
+    incognito.getByRole('radio', { name: 'Spy', exact: true }),
+  ).toBeChecked()
+  await incognito
+    .getByRole('radio', { name: 'Classic Tabby', exact: true })
+    .locator('..')
+    .click()
+  await expect(
+    incognito.getByRole('radio', { name: 'Classic Tabby', exact: true }),
+  ).toBeChecked()
+  await page.setViewportSize({ width: 320, height: 640 })
+  expect(
+    await page
+      .locator('[data-options]')
+      .evaluate((node) => node.scrollWidth <= node.clientWidth),
+  ).toBe(true)
+})
+
 test('animates seasonal controls and honors reduced motion', async ({
   page,
 }) => {

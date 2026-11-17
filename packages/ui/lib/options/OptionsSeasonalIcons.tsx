@@ -1,4 +1,8 @@
-import { availableSeasonalHolidays } from '@extension/core'
+import {
+  availableSeasonalHolidays,
+  getIncognitoIconPath,
+  INCOGNITO_ICON_OPTIONS,
+} from '@extension/core'
 import { useId } from 'react'
 import {
   Select,
@@ -19,29 +23,29 @@ type SeasonalIconChoice = SeasonalIconId | 'off'
 
 type ChoiceCardProps = {
   groupName: string
-  holidayId: SeasonalHolidayId
-  selected: SeasonalIconChoice
-  iconId: SeasonalIconChoice
+  selected: string
+  iconId: string
   label: string
-  onSelect: (holidayId: SeasonalHolidayId, iconId: SeasonalIconChoice) => void
+  imageSrc: string
+  onSelect: () => void
 }
 
 const ChoiceCard = ({
   groupName,
-  holidayId,
   selected,
   iconId,
   label,
+  imageSrc,
   onSelect,
 }: ChoiceCardProps) => (
   <label className="group cursor-pointer">
     <input
       type="radio"
       aria-label={label}
-      name={`${groupName}-${holidayId}`}
+      name={groupName}
       value={iconId}
       checked={selected === iconId}
-      onChange={() => onSelect(holidayId, iconId)}
+      onChange={onSelect}
       className="peer sr-only"
     />
     <span
@@ -59,11 +63,7 @@ const ChoiceCard = ({
       )}
     >
       <img
-        src={
-          iconId === 'off'
-            ? '/tabby-face-128.png'
-            : `/seasonal-icons/${iconId}-128.png`
-        }
+        src={imageSrc}
         width={64}
         height={64}
         loading="lazy"
@@ -189,9 +189,7 @@ export const OptionsSeasonalIconsOverview = ({
   onOpen: () => void
 }) => (
   <section className="mb-8">
-    <h2 className="mb-4 text-2xl font-semibold text-foreground">
-      Seasonal icons
-    </h2>
+    <h2 className="mb-4 text-2xl font-semibold text-foreground">Tabby icons</h2>
     <div className={cn('rounded-lg border p-4', 'border-border bg-card')}>
       <div
         className={`
@@ -252,7 +250,7 @@ export const OptionsSeasonalIconsOverview = ({
             `,
           )}
         >
-          Choose seasonal icons
+          Choose icons
           <span aria-hidden="true">→</span>
         </button>
       </div>
@@ -279,9 +277,45 @@ export const OptionsSeasonalIcons = ({
         tabIndex={-1}
         className="mb-2 text-2xl font-semibold text-foreground"
       >
-        Seasonal icons
+        Tabby icons
       </h2>
       <div className="stack-y-4">
+        <div
+          role="group"
+          aria-labelledby={`${groupName}-incognito-heading`}
+          className={cn('rounded-lg border p-4', 'border-border bg-card')}
+        >
+          <h3
+            id={`${groupName}-incognito-heading`}
+            className="text-xl font-medium text-foreground"
+          >
+            Incognito
+          </h3>
+          <p className="mt-1 text-base text-muted">
+            Choose the toolbar icon for incognito windows. Ninja is the default.
+          </p>
+          <div
+            className={`
+              mt-3 grid grid-cols-2 gap-2
+              group-data-[wide=true]/options:grid-cols-4
+            `}
+          >
+            {INCOGNITO_ICON_OPTIONS.map((option) => (
+              <ChoiceCard
+                key={option.id}
+                groupName={`${groupName}-incognito`}
+                selected={preferences.incognitoIcon}
+                iconId={option.id}
+                label={option.name}
+                imageSrc={`/${getIncognitoIconPath(option.id)}`}
+                onSelect={() =>
+                  void onPreferenceChange({ incognitoIcon: option.id })
+                }
+              />
+            ))}
+          </div>
+        </div>
+        <h3 className="text-xl font-medium text-foreground">Seasonal icons</h3>
         {availableSeasonalHolidays.map((holiday) => {
           const dateLabel =
             'dateLabel' in holiday ? holiday.dateLabel : undefined
@@ -330,21 +364,21 @@ export const OptionsSeasonalIcons = ({
                 {holiday.iconOptions.map((option) => (
                   <ChoiceCard
                     key={option.id}
-                    groupName={groupName}
-                    holidayId={holiday.id}
+                    groupName={`${groupName}-${holiday.id}`}
                     selected={preferences.seasonalIconSelections[holiday.id]}
                     iconId={option.id}
                     label={option.name}
-                    onSelect={selectIcon}
+                    imageSrc={`/seasonal-icons/${option.id}-128.png`}
+                    onSelect={() => selectIcon(holiday.id, option.id)}
                   />
                 ))}
                 <ChoiceCard
-                  groupName={groupName}
-                  holidayId={holiday.id}
+                  groupName={`${groupName}-${holiday.id}`}
                   selected={preferences.seasonalIconSelections[holiday.id]}
                   iconId="off"
                   label="Off"
-                  onSelect={selectIcon}
+                  imageSrc="/tabby-face-128.png"
+                  onSelect={() => selectIcon(holiday.id, 'off')}
                 />
               </div>
             </div>

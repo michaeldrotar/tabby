@@ -163,7 +163,7 @@ describe('Options resources', () => {
       ),
     )
     const seasonalButtons = screen.getAllByRole('button', {
-      name: 'Choose seasonal icons',
+      name: 'Choose icons',
     })
     fireEvent.click(seasonalButtons[0]!)
     fireEvent.click(seasonalButtons[1]!)
