@@ -1,3 +1,4 @@
+import { createDiscoveryResource } from '@extension/core/discovery'
 import {
   createFixtureBuilder,
   createMemoryPreferences,
@@ -1970,6 +1971,82 @@ describe('Tab Manager identity replacement', () => {
 })
 
 describe('moving preserves the displayed window', () => {
+  it.each([
+    {
+      name: 'following a Shift move',
+      preference: 'view',
+      shift: true,
+      ids: [12],
+      ignore: false,
+      tip: 'follow-windows',
+      destination: 2,
+    },
+    {
+      name: 'staying after a Shift move',
+      preference: 'switch',
+      shift: true,
+      ids: [12],
+      ignore: false,
+      tip: 'stay-in-window',
+      destination: 1,
+    },
+    {
+      name: 'moving without Shift',
+      preference: 'view',
+      shift: false,
+      ids: [12],
+      ignore: false,
+      tip: null,
+      destination: 1,
+    },
+    {
+      name: 'an unsuccessful move',
+      preference: 'view',
+      shift: true,
+      ids: [12],
+      ignore: true,
+      tip: null,
+      destination: 1,
+    },
+    {
+      name: 'a move that must close its source window',
+      preference: 'view',
+      shift: true,
+      ids: [11, 12],
+      ignore: false,
+      tip: null,
+      destination: 2,
+    },
+  ] as const)(
+    'records relevant experience for $name',
+    async ({ preference, shift, ids, ignore, tip, destination }) => {
+      const resources = setup(ignore ? { commands: 'ignore' } : {})
+      await resources.preferences.set({
+        tabManagerWindowClickBehavior: preference,
+      })
+      const discovery = createDiscoveryResource()
+      await discovery.start()
+      const offer = vi.spyOn(discovery, 'offerTip')
+      const controller = createTabManagerController({
+        ...resources,
+        discovery,
+        host: {
+          getCurrentWindowId: () => 1,
+          openWindowTabManager: async () => {},
+        },
+      })
+      await controller.dispatch({
+        type: 'place-tabs',
+        tabIds: [...ids],
+        windowId: 2,
+        follow: shift,
+      })
+      if (tip) expect(offer).toHaveBeenCalledExactlyOnceWith(tip, destination)
+      else expect(offer).not.toHaveBeenCalled()
+      expect(discovery.getSnapshot().pendingTips).toEqual([])
+    },
+  )
+
   it.each([
     { group: false, follow: false, defaultFollow: false },
     { group: false, follow: true, defaultFollow: false },

@@ -32,6 +32,9 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(
     page.getByRole('heading', { name: 'Appearance', exact: true }),
   ).toBeVisible()
+  await page
+    .getByRole('button', { name: 'Replay tab manager walkthrough' })
+    .click()
   expect(
     await page.evaluate(async () =>
       (await chrome.commands.getAll())
@@ -88,6 +91,8 @@ test('the built extension shares preferences and receives live tab changes', asy
   await page.getByRole('option', { name: 'First tab', exact: true }).click()
   const manager = await context.newPage()
   await manager.goto(`chrome-extension://${extensionId}/tab-manager/index.html`)
+  await expect(manager.getByRole('dialog')).toContainText('Find your windows')
+  await manager.getByRole('button', { name: 'Skip tour' }).click()
   await manager
     .getByRole('button', { name: 'Edit window', exact: true })
     .click()

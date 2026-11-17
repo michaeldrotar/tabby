@@ -17,6 +17,7 @@ import {
 } from './OptionsSeasonalIcons'
 import { OptionsShortcuts } from './OptionsShortcuts'
 import type { PreferenceState } from '@extension/core'
+import type { ReactNode } from 'react'
 
 export type OptionsShortcutView = {
   id: string
@@ -27,6 +28,7 @@ export type OptionsShortcutView = {
 export type OptionsControl =
   'background' | 'foreground' | 'accent' | 'window-icon' | 'window-click'
 export type OptionsProps = {
+  discovery?: ReactNode
   urlSeasonalIcons?: boolean
   openControl?: OptionsControl | null
   onOpenControlChange?: (control: OptionsControl | null) => void
@@ -192,6 +194,7 @@ export const Options = (props: OptionsProps) => {
               shortcutsLoading={props.shortcutsLoading}
               openShortcutsSettings={props.openShortcutsSettings}
             />
+            {props.discovery}
             <OptionsSeasonalIconsOverview
               preferences={props.preferences}
               onPreferenceChange={props.onPreferenceChange}

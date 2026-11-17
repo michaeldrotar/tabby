@@ -40,6 +40,13 @@ export const test = base.extend<{
     if (!extensionId) {
       throw new Error('Failed to get extension ID from service worker URL')
     }
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        'tabby-discovery-tour-1.9.0-omnibar': true,
+        'tabby-discovery-tour-1.9.0-tab-manager': true,
+        'tabby-discovery-tips-enabled': false,
+      })
+    })
     await use(extensionId)
   },
 })

@@ -234,7 +234,10 @@ import defaultFavicon from './default-favicon.png'
     },
     storage: {
       local: storageArea(
-        { 'preference-storage-key': browser.preferences ?? {} },
+        {
+          'preference-storage-key': browser.preferences ?? {},
+          ...browser.discovery,
+        },
         'local',
       ),
       session: storageArea(

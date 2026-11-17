@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { useStore } from 'zustand'
+import { DiscoveryExperience } from './DiscoveryExperience'
 import { useTabManagerResources } from './TabbyProvider'
 import {
   createTabManagerController,
@@ -22,7 +23,7 @@ export const TabManagerExperience = ({
   focusOnMount?: boolean
 }) => {
   const resources = useTabManagerResources()
-  const { backend, view, environment, preferences, host } = resources
+  const { backend, view, environment, preferences, host, discovery } = resources
   const surface = useSurface()
   const live = !surface || surface.inputMode === 'live'
   const snapshot = useSyncExternalStore(
@@ -45,8 +46,9 @@ export const TabManagerExperience = ({
         environment,
         preferences,
         host,
+        discovery,
       }),
-    [supplied, backend, view, environment, preferences, host],
+    [supplied, backend, view, environment, preferences, host, discovery],
   )
   useLayoutEffect(() => {
     controller.reconcile()
@@ -65,14 +67,20 @@ export const TabManagerExperience = ({
     controller.getPreviousSnapshot(),
   )
   return (
-    <TabManager
-      model={{
-        ...model,
-        currentWindowId: host?.getCurrentWindowId?.(),
-        windowClickBehavior: preferenceState.tabManagerWindowClickBehavior,
-      }}
-      onIntent={controller.dispatch}
-      focusOnMount={focusOnMount}
-    />
+    <>
+      <TabManager
+        model={{
+          ...model,
+          currentWindowId: host?.getCurrentWindowId?.(),
+          windowClickBehavior: preferenceState.tabManagerWindowClickBehavior,
+        }}
+        onIntent={controller.dispatch}
+        focusOnMount={focusOnMount}
+      />
+      <DiscoveryExperience
+        area="tab-manager"
+        ready={snapshot.state === 'loaded'}
+      />
+    </>
   )
 }

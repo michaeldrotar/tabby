@@ -2,6 +2,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { runInNewContext } from 'node:vm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { createChromeDiscovery } from '../../packages/chrome/lib/createChromeDiscovery'
+import { createAsyncQueue } from '../../packages/core/lib/asyncQueue'
 import { createPreviewServer, getPreviewMockBundle } from './server.mjs'
 
 const previewDirectory = import.meta.dirname
@@ -29,6 +31,21 @@ const loadMock = (source = mockSource, fixture = browser, environment = {}) => {
 }
 
 describe('full application preview', () => {
+  it('persists discovery across panels and receives local storage updates', async () => {
+    const chrome = loadMock()
+    const lock = createAsyncQueue()
+    const first = createChromeDiscovery(chrome, lock.run)
+    const second = createChromeDiscovery(chrome, lock.run)
+    await Promise.all([first.start(), second.start()])
+    await first.completeTour('tab-manager')
+    expect(second.getSnapshot().completedTours).toEqual(['tab-manager'])
+    await chrome.storage.local.set({ 'tabby-discovery-tips-enabled': false })
+    expect(first.getSnapshot().tipsEnabled).toBe(false)
+    const stored = await chrome.storage.local.get(null)
+    expect(stored['tabby-discovery-tour-1.9.0-tab-manager']).toBe(true)
+    first.dispose()
+    second.dispose()
+  })
   let directory
   let server
   let origin

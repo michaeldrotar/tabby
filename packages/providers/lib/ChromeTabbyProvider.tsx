@@ -5,6 +5,7 @@ import {
   TabbyProvider,
 } from '@extension/app'
 import { createChromeBackend } from '@extension/chrome/createChromeBackend'
+import { createChromeDiscovery } from '@extension/chrome/createChromeDiscovery'
 import { createChromeOmnibarResource } from '@extension/chrome/createChromeOmnibarResource'
 import { createChromeOptionsResource } from '@extension/chrome/createChromeOptionsResource'
 import { createChromePreferences } from '@extension/chrome/createChromePreferences'
@@ -32,11 +33,13 @@ export const ChromeTabbyProvider = ({
       delegateClosingWindowMoves: true,
     })
     const preferences = createChromePreferences(api)
+    const discovery = createChromeDiscovery(api)
     const views = createTabbyViews()
     const tabManager = createTabManagerController({
       backend,
       view: views.tabManager,
       preferences,
+      discovery,
       environment: { now: Date.now, systemTheme: 'light' },
     })
     const host = createChromeTabManagerHost(api, {
@@ -68,6 +71,7 @@ export const ChromeTabbyProvider = ({
     return {
       backend,
       preferences,
+      discovery,
       views,
       omnibar: createChromeOmnibarResource(api, originalWindowId),
       options: createChromeOptionsResource(api),
@@ -123,6 +127,7 @@ export const ChromeTabbyProvider = ({
       browserReady,
       resources.omnibar.start(),
       resources.options.start(),
+      resources.discovery.start(),
     ]).catch((error: unknown) => {
       if (!live) return
       const message =
@@ -146,12 +151,14 @@ export const ChromeTabbyProvider = ({
       resources.preferences.dispose()
       resources.omnibar.dispose()
       resources.options.dispose()
+      resources.discovery.dispose()
     }
   }, [resources, surface])
   return (
     <TabbyProvider
       backend={resources.backend}
       preferences={resources.preferences}
+      discovery={resources.discovery}
       omnibar={resources.omnibar}
       options={resources.options}
       views={resources.views}

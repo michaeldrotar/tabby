@@ -7,6 +7,7 @@ import { useSurface } from '@extension/ui/Surface'
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
+import { DiscoveryExperience } from './DiscoveryExperience'
 import { useTabbyResources } from './TabbyProvider'
 import type {
   OmnibarAction,
@@ -65,6 +66,7 @@ export const OmnibarExperience = ({
     views,
     environment,
     preferences,
+    discovery,
   } = useTabbyResources()
   const preferenceState = useSyncExternalStore(
     preferences.subscribe,
@@ -231,6 +233,8 @@ export const OmnibarExperience = ({
     })
   }
   const changeCriteria = (query: string, scope: OmnibarScope) => {
+    if (scope !== view.getState().scope && discovery?.getSnapshot().loaded)
+      void discovery.offerTip('search-scopes').catch(error)
     view.setState({
       query,
       scope,
@@ -280,6 +284,10 @@ export const OmnibarExperience = ({
           {state.error}
         </div>
       )}
+      <DiscoveryExperience
+        area="omnibar"
+        ready={metadata.loaded && snapshot.state === 'loaded'}
+      />
     </>
   )
 }
