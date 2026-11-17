@@ -129,6 +129,22 @@ it('updates the focus setting and its shortcut explanation together', () => {
   expect(screen.queryByText(/Command-click|Ctrl-click/)).toBeNull()
 })
 
+it('lets users enable and disable window stacking independently of window focus', () => {
+  const save = vi.fn()
+  renderOptions('', save)
+  const stacking = screen.getByRole('combobox', { name: 'Stack windows' })
+  expect(stacking).toHaveTextContent('Off')
+  fireEvent.click(stacking)
+  fireEvent.click(screen.getByRole('option', { name: 'On' }))
+  expect(save).toHaveBeenLastCalledWith({ stackWindows: true })
+  expect(
+    screen.getByRole('combobox', { name: 'Window focus' }),
+  ).toHaveTextContent('Stay in this window')
+  fireEvent.click(stacking)
+  fireEvent.click(screen.getByRole('option', { name: 'Off' }))
+  expect(save).toHaveBeenLastCalledWith({ stackWindows: false })
+})
+
 it('opens seasonal choices at a direct link and returns to the main list', () => {
   renderOptions()
   fireEvent.click(screen.getByRole('button', { name: 'Choose seasonal icons' }))

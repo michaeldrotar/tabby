@@ -3,6 +3,7 @@ import {
   createCommandOutcome,
   getCommandBlockReason,
   getCommandTargetIds,
+  getMovedTabIds,
   getTabMoveUnits,
   isTabTransfer,
   planGroupMove,
@@ -13,6 +14,11 @@ import {
 import { planTabPlacement } from '@extension/core/tabPlacement'
 import { deserializeWindowIdentity } from '@extension/core/windowIdentityStorage'
 import { getChromeFaviconUrl } from './favicon.js'
+import {
+  captureChromeWindowStack,
+  focusChromeWindow,
+  stackChromeWindow,
+} from './focusChromeWindow.js'
 import { WINDOW_IDENTITIES_KEY } from './registerWindowIdentities.js'
 import type { WindowIdentityAssignment } from './registerWindowIdentities.js'
 import type {
@@ -269,6 +275,7 @@ export const createChromeBackend = (
   }
 
   const execute = async (command: BrowserCommand): Promise<CommandOutcome> => {
+    const before = snapshot
     const commandGeneration = generation
     const requestedIds = getCommandTargetIds(command, snapshot)
     const succeededIds: number[] = []
@@ -333,6 +340,15 @@ export const createChromeBackend = (
         }
       }
     }
+    const stackSource =
+      isTabTransfer(command) && command.follow
+        ? await captureChromeWindowStack(api)
+        : undefined
+    const focusWindow = (windowId: number) =>
+      focusChromeWindow(api, windowId, () => {
+        if (!running || generation !== commandGeneration)
+          throw new Error('The browser connection was stopped.')
+      })
     switch (command.type) {
       case 'name-window':
         await attempt(command.windowId, async () => {
@@ -367,7 +383,7 @@ export const createChromeBackend = (
           )
             await api.tabs.group({ tabIds: tab.id, groupId: plan.groupId })
           if (running && generation === commandGeneration)
-            await api.windows.update(tab.windowId, { focused: true })
+            await focusWindow(tab.windowId)
         } catch (error) {
           failures.push({ id: -1, message: errorMessage(error) })
         }
@@ -704,7 +720,7 @@ export const createChromeBackend = (
           await attempt(id, () =>
             command.action === 'close'
               ? api.windows.remove(id)
-              : api.windows.update(id, { focused: true }),
+              : focusWindow(id),
           )
         break
       case 'close-window':
@@ -719,13 +735,13 @@ export const createChromeBackend = (
           if (!running || generation !== commandGeneration) {
             throw new Error('The browser connection was stopped.')
           }
-          await api.windows.update(tab.windowId, { focused: true })
+          if (command.preserveWindowPlacement)
+            await api.windows.update(tab.windowId, { focused: true })
+          else await focusWindow(tab.windowId)
         })
         break
       case 'activate-window':
-        await attempt(command.windowId, () =>
-          api.windows.update(command.windowId, { focused: true }),
-        )
+        await attempt(command.windowId, () => focusWindow(command.windowId))
         break
       case 'set-group-collapsed':
         await attempt(command.groupId, () => {
@@ -739,7 +755,7 @@ export const createChromeBackend = (
         break
     }
     if (running && generation === commandGeneration) await invalidate()
-    return createCommandOutcome(requestedIds, succeededIds, failures, {
+    const outcome = createCommandOutcome(requestedIds, succeededIds, failures, {
       ...(createdWindowIds ? { createdWindowIds } : {}),
       ...(createdTabIds ? { createdTabIds } : {}),
       ...(createdGroupIds ? { createdGroupIds } : {}),
@@ -747,6 +763,27 @@ export const createChromeBackend = (
         ? { skippedActiveIds, skippedAlreadyDiscardedIds }
         : {}),
     })
+    if (
+      stackSource &&
+      outcome.status === 'success' &&
+      running &&
+      generation === commandGeneration
+    ) {
+      const movedIds = getMovedTabIds(command, before, outcome)
+      const [first] = movedIds
+      const destination = snapshot.tabs.find(
+        (tab) => tab.id === first,
+      )?.windowId
+      if (
+        destination !== undefined &&
+        movedIds.some(
+          (id) =>
+            before.tabs.find((tab) => tab.id === id)?.windowId !== destination,
+        )
+      )
+        await stackChromeWindow(api, destination, stackSource)
+    }
+    return outcome
   }
 
   return {

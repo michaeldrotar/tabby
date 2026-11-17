@@ -137,7 +137,7 @@ export type BrowserCommand =
       action: 'close' | 'focus'
       windowIds: readonly number[]
     }
-  | { type: 'activate-tab'; tabId: number }
+  | { type: 'activate-tab'; tabId: number; preserveWindowPlacement?: boolean }
   | { type: 'activate-window'; windowId: number }
   | { type: 'set-group-collapsed'; groupId: number; collapsed: boolean }
 

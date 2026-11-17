@@ -45,6 +45,7 @@ export type ThemeMode = 'system' | 'light' | 'dark'
 export interface PreferenceState extends SeasonalIconPreferences {
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerWindowClickBehavior: 'view' | 'switch'
+  stackWindows: boolean
   theme: ThemeMode
   themePreset: ThemePresetId | null
   themeLightBackground: ThemeNeutralPalette
@@ -78,6 +79,7 @@ export const defaultThemePreferences = Object.freeze({
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
   tabManagerCompactIconMode: 'active',
   tabManagerWindowClickBehavior: 'view',
+  stackWindows: false,
   ...defaultThemePreferences,
   seasonalIconsEnabled: true,
   seasonalIconSelections: DEFAULT_SEASONAL_ICON_SELECTIONS,
@@ -96,7 +98,8 @@ const isValidPreference = (key: string, value: unknown): boolean => {
     return (
       typeof value === 'string' && ['system', 'light', 'dark'].includes(value)
     )
-  if (key === 'seasonalIconsEnabled') return typeof value === 'boolean'
+  if (key === 'seasonalIconsEnabled' || key === 'stackWindows')
+    return typeof value === 'boolean'
   if (key === 'seasonalIconSelections') return isSeasonalIconSelections(value)
   if (key === 'seasonalEasterCalendar')
     return ['local', 'western', 'orthodox'].includes(value as string)

@@ -25,7 +25,12 @@ export type OptionsShortcutView = {
   shortcut?: string
 }
 export type OptionsControl =
-  'background' | 'foreground' | 'accent' | 'window-icon' | 'window-click'
+  | 'background'
+  | 'foreground'
+  | 'accent'
+  | 'window-icon'
+  | 'window-click'
+  | 'stack-windows'
 export type OptionsProps = {
   urlSeasonalIcons?: boolean
   openControl?: OptionsControl | null

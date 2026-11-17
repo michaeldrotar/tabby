@@ -117,7 +117,11 @@ export const registerClosingWindowMoves = (api: typeof chrome) => {
             )
             await Promise.all([
               opening,
-              backend.execute({ type: 'activate-tab', tabId: first.id }),
+              backend.execute({
+                type: 'activate-tab',
+                tabId: first.id,
+                preserveWindowPlacement: true,
+              }),
             ])
           }
           sendResponse({ outcome })

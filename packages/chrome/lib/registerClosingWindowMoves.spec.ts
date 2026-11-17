@@ -65,6 +65,7 @@ it.each([
       expect(backend.execute).toHaveBeenCalledWith({
         type: 'activate-tab',
         tabId: 11,
+        preserveWindowPlacement: true,
       })
     } else {
       expect(host.capabilities.openWindowTabManager).not.toHaveBeenCalled()

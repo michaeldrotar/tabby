@@ -47,6 +47,20 @@ export const OptionsManagerPreferences = ({
         { value: 'switch', label: 'Switch windows' },
       ],
     },
+    {
+      control: 'stack-windows' as const,
+      title: 'Stack windows',
+      description:
+        'When Tabby switches windows, match the destination window’s size and position to your current window.',
+      label: 'Stack windows',
+      value: preferences.stackWindows ? 'on' : 'off',
+      change: (value: string) =>
+        onPreferenceChange({ stackWindows: value === 'on' }),
+      choices: [
+        { value: 'off', label: 'Off' },
+        { value: 'on', label: 'On' },
+      ],
+    },
   ]
   return (
     <section className="mb-6">

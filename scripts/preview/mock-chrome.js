@@ -23,6 +23,10 @@ import defaultFavicon from './default-favicon.png'
     incognito: false,
     type: 'normal',
     state: 'normal',
+    left: 80,
+    top: 60,
+    width: 1200,
+    height: 800,
     ...clone(window),
   }))
   const groups = clone(browser.groups ?? [])
@@ -352,6 +356,10 @@ import defaultFavicon from './default-favicon.png'
           incognito: Boolean(values.incognito),
           type: 'normal',
           state: 'normal',
+          left: 100,
+          top: 80,
+          width: 1000,
+          height: 700,
         }
         windows.push(window)
         api.windows.onCreated.emit(clone(window))
