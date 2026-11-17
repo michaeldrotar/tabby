@@ -56,6 +56,14 @@ For example:
 
 The root `package.json` remains the source of truth for the manifest version. Keep release notes scoped to actual user-facing net changes; do not duplicate a patch fix in the next minor-release notes. Forward-porting code or version metadata does not authorize tagging, packaging, uploading, submitting, or publishing a release. Release actions require a user request.
 
+### Next development version
+
+Publishing a minor or major GitHub release also authorizes and requires preparing the next minor development version on `main`. Complete this through a separate reviewed pull request as part of the release task, without waiting for Chrome Web Store approval.
+
+Compute the target from the released version, such as `1.8.0` to `1.9.0`. Start from current `main` and run `pnpm prep minor` when it still has the released version, or `pnpm prep <target-version>` to reach that target. Include the root version and a matching versioned release-notes file. For a new notes file, set its release date to `TBD` and leave **What's New** and **Fixes** empty. If `main` is already at the target or an approved higher version, preserve that version and its existing note entries; create the matching notes file if it is missing.
+
+Merge after the required checks and independent review. The published tag, finalized notes, ZIP, and store submission retain the released version. Patch releases preserve the active feature-release version through the [forward-port rules](#forward-port-versions).
+
 ## Feature Work and CI
 
 1. Start from an issue with a clear outcome and acceptance criteria. Use a short-lived issue branch and open a pull request to `main`.
@@ -85,7 +93,7 @@ Run these steps when the user asks to cut a release:
    git push origin vVERSION
    ```
 
-5. Create a GitHub release for that tag and attach the ZIP and finalized notes. Complete the [marketing-site update](#marketing-site) as part of the release.
+5. Create a GitHub release for that tag and attach the ZIP and finalized notes. Complete the [marketing-site update](#marketing-site) and prepare the [next development version](#next-development-version) as part of the release.
 6. Submit the package to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) only when the user asks. Complete the skill's [store review checklist](./.agents/skills/chrome-extensions/references/webstore/review-checklist.md), use `CHROMEWEBSTORE.md` to complete the listing and privacy declarations, and upload the ZIP to the existing listing for review. The Chrome Web Store API v2 may also be used when credentials are configured; neither path is triggered automatically by CI, a merge, or a tag.
 7. When publication is authorized, enable automatic publishing after approval. Verify the submission, record its date and status in `CHROMEWEBSTORE.md`, use the submission date in the release notes, report the result, and end the task. Monitor review or publication only when the user explicitly requests monitoring; do not poll, schedule checks, or wait for approval merely because publication was requested. Handle reported rejections using the skill's [rejection workflow](./.agents/skills/chrome-extensions/references/webstore/store-listing.md#after-rejection).
 8. When the user explicitly requests publication verification, verify the published version and smoke-test the installed Chrome Web Store update.
