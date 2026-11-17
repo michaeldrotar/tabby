@@ -1,4 +1,5 @@
 import {
+  getIncognitoIconPath,
   getThemeIconId,
   getUpcomingSeasonalIcon,
   normalizePreferences,
@@ -27,7 +28,7 @@ export const getSeasonalActionIconPaths = (
 
 export type SeasonalActionIconApi = Pick<
   typeof chrome,
-  'action' | 'alarms' | 'i18n' | 'runtime' | 'storage'
+  'action' | 'alarms' | 'i18n' | 'runtime' | 'storage' | 'tabs'
 >
 
 export const registerSeasonalActionIcon = (
@@ -45,29 +46,52 @@ export const registerSeasonalActionIcon = (
     })
   }
 
-  const refresh = async () => {
+  const refresh = async (tab?: chrome.tabs.Tab) => {
     const currentDate = now()
     try {
       const values = await api.storage.local.get(CHROME_PREFERENCES_STORAGE_KEY)
       const preferences = normalizePreferences(
         values[CHROME_PREFERENCES_STORAGE_KEY],
       )
-      const currentIcon =
-        getThemeIconId(preferences) ??
-        getUpcomingSeasonalIcon(
-          preferences,
-          currentDate,
-          api.i18n.getUILanguage(),
-        )?.iconId
-      await api.action.setIcon({
-        path: currentIcon
-          ? getSeasonalActionIconPaths(currentIcon)
-          : DEFAULT_ICON_PATHS,
-      })
+      if (!tab) {
+        const currentIcon =
+          getThemeIconId(preferences) ??
+          getUpcomingSeasonalIcon(
+            preferences,
+            currentDate,
+            api.i18n.getUILanguage(),
+          )?.iconId
+        await api.action.setIcon({
+          path: currentIcon
+            ? getSeasonalActionIconPaths(currentIcon)
+            : DEFAULT_ICON_PATHS,
+        })
+      }
+      const tabs = tab ? [tab] : await api.tabs.query({})
+      const incognitoPaths = Object.fromEntries(
+        ICON_SIZES.map((size) => [
+          size,
+          getIncognitoIconPath(preferences.incognitoIcon, size),
+        ]),
+      ) as IconPathSet
+      await Promise.all(
+        tabs.map(async (currentTab) => {
+          if (!currentTab.incognito || currentTab.id === undefined) return
+          try {
+            await api.action.setIcon({
+              tabId: currentTab.id,
+              path: incognitoPaths,
+            })
+          } catch (error: unknown) {
+            console.warn('Could not refresh the incognito Tabby icon.', error)
+          }
+        }),
+      )
     } catch (error: unknown) {
       console.warn('Could not refresh the seasonal Tabby icon.', error)
     }
 
+    if (tab) return
     try {
       await scheduleNextDateCheck(currentDate)
     } catch (error: unknown) {
@@ -88,6 +112,19 @@ export const registerSeasonalActionIcon = (
     if (areaName === 'local' && changes[CHROME_PREFERENCES_STORAGE_KEY]) {
       void refresh()
     }
+  })
+  api.tabs.onCreated.addListener((tab) => {
+    if (tab.incognito) void refresh(tab)
+  })
+  api.tabs.onReplaced.addListener((addedTabId) => {
+    void (async () => {
+      try {
+        const tab = await api.tabs.get(addedTabId)
+        if (tab.incognito) await refresh(tab)
+      } catch (error: unknown) {
+        console.warn('Could not refresh the replaced Tabby icon.', error)
+      }
+    })()
   })
 
   void refresh()

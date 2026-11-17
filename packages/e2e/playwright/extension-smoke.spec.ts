@@ -321,9 +321,21 @@ test('the built extension shares preferences and receives live tab changes', asy
   await expect(
     page.getByRole('group', { name: 'Seasonal themes', exact: true }),
   ).toHaveCount(0)
-  await page
-    .getByRole('button', { name: 'Choose seasonal icons', exact: true })
+  await page.getByRole('button', { name: 'Choose icons', exact: true }).click()
+  const incognitoIcons = page.getByRole('group', {
+    name: 'Incognito',
+    exact: true,
+  })
+  await expect(
+    incognitoIcons.getByRole('radio', { name: 'Ninja', exact: true }),
+  ).toBeChecked()
+  await incognitoIcons
+    .getByRole('radio', { name: 'Spy', exact: true })
+    .locator('..')
     .click()
+  await expect(
+    incognitoIcons.getByRole('radio', { name: 'Spy', exact: true }),
+  ).toBeChecked()
   await expect(
     page.getByRole('group', { name: 'Summer', exact: true }),
   ).toHaveCount(0)
@@ -342,7 +354,21 @@ test('the built extension shares preferences and receives live tab changes', asy
   ).toBeChecked()
   await page.reload()
   await expect(
+    incognitoIcons.getByRole('radio', { name: 'Spy', exact: true }),
+  ).toBeChecked()
+  await expect(
     holidayIcons.getByRole('radio', { name: 'Vampire fangs', exact: true }),
+  ).toBeChecked()
+  await incognitoIcons
+    .getByRole('radio', { name: 'Classic Tabby', exact: true })
+    .locator('..')
+    .click()
+  await expect(
+    incognitoIcons.getByRole('radio', { name: 'Classic Tabby', exact: true }),
+  ).toBeChecked()
+  await page.reload()
+  await expect(
+    incognitoIcons.getByRole('radio', { name: 'Classic Tabby', exact: true }),
   ).toBeChecked()
   await page
     .getByRole('button', { name: 'Back to options', exact: true })

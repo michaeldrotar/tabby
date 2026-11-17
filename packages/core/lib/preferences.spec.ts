@@ -6,6 +6,28 @@ import {
 } from './preferences'
 
 describe('preferences', () => {
+  it('defaults incognito to Ninja and saves valid choices independently', () => {
+    expect(normalizePreferences({}).incognitoIcon).toBe('ninja')
+    expect(
+      normalizePreferences({ incognitoIcon: 'invalid' }).incognitoIcon,
+    ).toBe('ninja')
+    for (const incognitoIcon of ['ninja', 'spy', 'ghost', 'classic'] as const) {
+      expect(normalizePreferences({ incognitoIcon }).incognitoIcon).toBe(
+        incognitoIcon,
+      )
+      expect(
+        applyPreferencePatch(defaultPreferences, { incognitoIcon }),
+      ).toEqual({
+        ...defaultPreferences,
+        incognitoIcon,
+      })
+    }
+    expect(() =>
+      applyPreferencePatch(defaultPreferences, {
+        incognitoIcon: 'invalid' as never,
+      }),
+    ).toThrow('Invalid preference')
+  })
   it('keeps valid persisted fields and defaults invalid or missing fields', () => {
     expect(
       normalizePreferences({

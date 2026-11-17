@@ -99,19 +99,19 @@ test('previews themes in Options and shares their palette with the product', asy
     product.getByRole('heading', { name: 'Options', exact: true }),
   ).toBeVisible()
   await product
-    .getByRole('button', { name: 'Choose seasonal icons', exact: true })
+    .getByRole('button', { name: 'Choose icons', exact: true })
     .click()
   await expect(
     product.getByRole('group', { name: 'Summer', exact: true }),
   ).toHaveCount(0)
   await expect(
-    product.getByRole('heading', { name: 'Seasonal icons', exact: true }),
+    product.getByRole('heading', { name: 'Tabby icons', exact: true }),
   ).toBeFocused()
   await product
     .getByRole('button', { name: 'Back to options', exact: true })
     .click()
   await expect(
-    product.getByRole('button', { name: 'Choose seasonal icons', exact: true }),
+    product.getByRole('button', { name: 'Choose icons', exact: true }),
   ).toBeFocused()
   await product.getByRole('button', { name: 'Seaglass', exact: true }).click()
   await mode.getByText('Light', { exact: true }).click()
@@ -144,7 +144,7 @@ test('previews themes in Options and shares their palette with the product', asy
     product.getByRole('button', { name: 'Reset options', exact: true }),
   ).toHaveCount(0)
   const seasonalIcons = product.getByRole('button', {
-    name: 'Choose seasonal icons',
+    name: 'Choose icons',
     exact: true,
   })
   await seasonalIcons.scrollIntoViewIfNeeded()

@@ -1,9 +1,11 @@
+import { isIncognitoIconChoice } from './incognitoIcons.js'
 import {
   DEFAULT_SEASONAL_ICON_SELECTIONS,
   isSeasonalIconSelections,
   normalizeSeasonalIconSelections,
 } from './seasonalIcons.js'
 import { curatedThemes } from './themes.js'
+import type { IncognitoIconChoice } from './incognitoIcons.js'
 import type { SeasonalIconPreferences } from './seasonalIcons.js'
 import type { ThemePresetId } from './themes.js'
 
@@ -43,6 +45,7 @@ export type ThemeAccentPalette = (typeof THEME_ACCENT_PALETTES)[number]
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface PreferenceState extends SeasonalIconPreferences {
+  incognitoIcon: IncognitoIconChoice
   tabManagerCompactIconMode: 'active' | 'first'
   tabManagerWindowClickBehavior: 'view' | 'switch'
   theme: ThemeMode
@@ -76,6 +79,7 @@ export const defaultThemePreferences = Object.freeze({
 } as const)
 
 export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
+  incognitoIcon: 'ninja',
   tabManagerCompactIconMode: 'active',
   tabManagerWindowClickBehavior: 'view',
   ...defaultThemePreferences,
@@ -86,6 +90,7 @@ export const defaultPreferences: Readonly<PreferenceState> = Object.freeze({
 })
 
 const isValidPreference = (key: string, value: unknown): boolean => {
+  if (key === 'incognitoIcon') return isIncognitoIconChoice(value)
   if (key === 'themePreset')
     return value === null || curatedThemes.some((theme) => theme.id === value)
   if (key === 'tabManagerCompactIconMode')
