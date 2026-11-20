@@ -47,6 +47,6 @@
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "tsc-alias": "^1.9.9"
+    "tsc-alias": "^1.9.10"
   }
 }
